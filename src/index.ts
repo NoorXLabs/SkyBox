@@ -2,6 +2,7 @@
 import { program } from "commander";
 import { initCommand } from "./commands/init";
 import { browseCommand } from "./commands/browse";
+import { listCommand } from "./commands/list";
 
 program
   .name("devbox")
@@ -17,5 +18,10 @@ program
   .command("browse")
   .description("List projects on remote server")
   .action(browseCommand);
+
+program
+  .command("list")
+  .description("List local projects")
+  .action(listCommand);
 
 program.parse();
