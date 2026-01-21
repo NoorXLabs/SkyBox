@@ -1,5 +1,7 @@
 // src/lib/container.ts
 import { execa } from "execa";
+import { existsSync } from "fs";
+import { join } from "path";
 
 export enum ContainerStatus {
   Running = "running",
@@ -107,4 +109,10 @@ export async function attachToShell(projectPath: string): Promise<ContainerResul
     }
     return { success: false, error: err.stderr || err.message };
   }
+}
+
+export function hasDevcontainerConfig(projectPath: string): boolean {
+  const configPath = join(projectPath, ".devcontainer", "devcontainer.json");
+  const altConfigPath = join(projectPath, ".devcontainer.json");
+  return existsSync(configPath) || existsSync(altConfigPath);
 }
