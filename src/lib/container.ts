@@ -23,3 +23,47 @@ export async function getContainerStatus(projectPath: string): Promise<Container
     return ContainerStatus.Error;
   }
 }
+
+export interface ContainerResult {
+  success: boolean;
+  error?: string;
+}
+
+export async function startContainer(
+  projectPath: string,
+  options?: { rebuild?: boolean }
+): Promise<ContainerResult> {
+  const args = ["up", "--workspace-folder", projectPath];
+
+  if (options?.rebuild) {
+    args.push("--rebuild-if-exists");
+  }
+
+  try {
+    await execa("devcontainer", args, { stdio: "inherit" });
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.stderr || err.message };
+  }
+}
+
+export async function stopContainer(projectPath: string): Promise<ContainerResult> {
+  try {
+    // Get container ID
+    const result = await execa("docker", [
+      "ps",
+      "-q",
+      "--filter", `label=devcontainer.local_folder=${projectPath}`,
+    ]);
+
+    const containerId = result.stdout.trim();
+    if (!containerId) {
+      return { success: true }; // Already stopped
+    }
+
+    await execa("docker", ["stop", containerId]);
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.stderr || err.message };
+  }
+}
