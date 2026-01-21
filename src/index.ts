@@ -3,6 +3,7 @@ import { program } from "commander";
 import { initCommand } from "./commands/init";
 import { browseCommand } from "./commands/browse";
 import { listCommand } from "./commands/list";
+import { cloneCommand } from "./commands/clone";
 
 program
   .name("devbox")
@@ -23,5 +24,10 @@ program
   .command("list")
   .description("List local projects")
   .action(listCommand);
+
+program
+  .command("clone <project>")
+  .description("Clone remote project locally")
+  .action(cloneCommand);
 
 program.parse();
