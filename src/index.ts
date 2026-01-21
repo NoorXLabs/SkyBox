@@ -5,6 +5,8 @@ import { browseCommand } from "./commands/browse";
 import { listCommand } from "./commands/list";
 import { cloneCommand } from "./commands/clone";
 import { pushCommand } from "./commands/push";
+import { upCommand } from "./commands/up";
+import { editorCommand } from "./commands/editor";
 
 program
   .name("devbox")
@@ -35,5 +37,20 @@ program
   .command("push <path> [name]")
   .description("Push local project to remote")
   .action(pushCommand);
+
+program
+  .command("up [project]")
+  .description("Start a development container")
+  .option("-e, --editor", "Open in editor after start")
+  .option("-a, --attach", "Attach to shell after start")
+  .option("-r, --rebuild", "Force container rebuild")
+  .option("--no-prompt", "Non-interactive mode")
+  .option("-v, --verbose", "Show detailed output")
+  .action(upCommand);
+
+program
+  .command("editor")
+  .description("Change default editor")
+  .action(editorCommand);
 
 program.parse();
