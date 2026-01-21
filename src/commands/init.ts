@@ -81,6 +81,7 @@ async function configureRemote(): Promise<{ host: string; basePath: string } | n
 
   let sshHost: string; // The host name for config (friendly name or existing host)
   let sshConnectString: string; // The actual connection string for SSH commands
+  let identityFile: string | undefined; // SSH key path (for new servers with custom keys)
 
   if (hostChoice === "__new__") {
     const { hostname, username, friendlyName } = await inquirer.prompt([
@@ -90,84 +91,84 @@ async function configureRemote(): Promise<{ host: string; basePath: string } | n
     ]);
 
     sshHost = friendlyName;
-    // Use user@host format for SSH commands since the friendly name isn't in SSH config yet
     sshConnectString = `${username}@${hostname}`;
 
-    info(`After setup, add this to ~/.ssh/config for easier access:`);
-    console.log(`
+    // For new servers, ask about SSH key FIRST before testing connection
+    const keys = findSSHKeys();
+    const keyChoices = [
+      ...keys.map((k) => ({ name: k, value: k })),
+      { name: "+ Enter custom path", value: "__custom__" },
+    ];
+
+    const { keyChoice } = await inquirer.prompt([
+      {
+        type: "list",
+        name: "keyChoice",
+        message: "Select SSH key to use:",
+        choices: keyChoices,
+      },
+    ]);
+
+    if (keyChoice === "__custom__") {
+      const { customPath } = await inquirer.prompt([
+        {
+          type: "input",
+          name: "customPath",
+          message: "Path to SSH private key:",
+          default: "~/.ssh/id_ed25519",
+        },
+      ]);
+      identityFile = customPath.replace(/^~/, process.env.HOME || "");
+    } else {
+      identityFile = keyChoice;
+    }
+
+    // Test connection with the specified key
+    const spin = spinner("Testing SSH connection...");
+    const connResult = await testConnection(sshConnectString, identityFile);
+
+    if (connResult.success) {
+      spin.succeed("SSH connection successful");
+      info(`Add this to ~/.ssh/config for easier access:`);
+      console.log(`
 Host ${friendlyName}
   HostName ${hostname}
   User ${username}
+  IdentityFile ${identityFile}
 `);
-  } else {
-    sshHost = hostChoice;
-    sshConnectString = hostChoice; // Existing hosts can be used directly
-  }
+    } else {
+      spin.fail("SSH connection failed - key may not be on server");
 
-  // Test connection
-  const spin = spinner("Testing SSH connection...");
-  const connResult = await testConnection(sshConnectString);
-
-  if (connResult.success) {
-    spin.succeed("SSH connection successful");
-  } else {
-    spin.fail("SSH connection failed");
-
-    // Try to set up key auth
-    const keys = findSSHKeys();
-    if (keys.length > 0) {
-      const { setupKey } = await inquirer.prompt([
+      const { copyKey: shouldCopy } = await inquirer.prompt([
         {
           type: "confirm",
-          name: "setupKey",
-          message: "Set up SSH key authentication?",
+          name: "copyKey",
+          message: "Copy SSH key to server? (requires password)",
           default: true,
         },
       ]);
 
-      if (setupKey) {
-        const keyChoices = [
-          ...keys.map((k) => ({ name: k, value: k })),
-          { name: "+ Enter custom path", value: "__custom__" },
-        ];
-
-        const { keyChoice } = await inquirer.prompt([
-          {
-            type: "list",
-            name: "keyChoice",
-            message: "Select SSH key:",
-            choices: keyChoices,
-          },
-        ]);
-
-        let keyPath: string;
-        if (keyChoice === "__custom__") {
-          const { customPath } = await inquirer.prompt([
-            {
-              type: "input",
-              name: "customPath",
-              message: "Path to SSH private key:",
-              default: "~/.ssh/id_ed25519",
-            },
-          ]);
-          keyPath = customPath.replace(/^~/, process.env.HOME || "");
-        } else {
-          keyPath = keyChoice;
-        }
-
-        info("Running ssh-copy-id (you may need to enter your password)...");
-        const copyResult = await copyKey(sshConnectString, keyPath);
+      if (shouldCopy) {
+        info("Running ssh-copy-id (enter your password when prompted)...");
+        const copyResult = await copyKey(sshConnectString, identityFile!);
 
         if (copyResult.success) {
           success("SSH key installed");
 
-          // Re-test connection
-          const retestResult = await testConnection(sshConnectString);
+          // Re-test connection with identity file
+          const retestResult = await testConnection(sshConnectString, identityFile);
           if (!retestResult.success) {
             error("Connection still failing after key setup");
             return null;
           }
           success("SSH connection now working");
+          info(`Add this to ~/.ssh/config for easier access:`);
+          console.log(`
+Host ${friendlyName}
+  HostName ${hostname}
+  User ${username}
+  IdentityFile ${identityFile}
+`);
         } else {
           error("Failed to install SSH key");
           info(`Manually copy your public key to the server's ~/.ssh/authorized_keys`);
@@ -176,9 +177,20 @@ Host ${friendlyName}
       } else {
         return null;
       }
+    }
+  } else {
+    sshHost = hostChoice;
+    sshConnectString = hostChoice;
+
+    // For existing hosts, test connection first
+    const spin = spinner("Testing SSH connection...");
+    const connResult = await testConnection(sshConnectString);
+
+    if (connResult.success) {
+      spin.succeed("SSH connection successful");
     } else {
-      error("No SSH keys found in ~/.ssh/");
-      info("Generate a key with: ssh-keygen -t ed25519");
+      spin.fail("SSH connection failed");
+      error("Check your SSH config and try again");
       return null;
     }
   }
@@ -195,7 +207,7 @@ Host ${friendlyName}
 
   // Check if directory exists
   const checkSpin = spinner("Checking remote directory...");
-  const checkResult = await runRemoteCommand(sshConnectString, `ls -d ${basePath} 2>/dev/null || echo "__NOT_FOUND__"`);
+  const checkResult = await runRemoteCommand(sshConnectString, `ls -d ${basePath} 2>/dev/null || echo "__NOT_FOUND__"`, identityFile);
 
   if (checkResult.stdout?.includes("__NOT_FOUND__")) {
     checkSpin.warn("Directory doesn't exist");
@@ -209,7 +221,7 @@ Host ${friendlyName}
     ]);
 
     if (createDir) {
-      const mkdirResult = await runRemoteCommand(sshConnectString, `mkdir -p ${basePath}`);
+      const mkdirResult = await runRemoteCommand(sshConnectString, `mkdir -p ${basePath}`, identityFile);
       if (mkdirResult.success) {
         success("Created remote directory");
       } else {
@@ -223,7 +235,7 @@ Host ${friendlyName}
     checkSpin.succeed("Remote directory exists");
 
     // List existing projects
-    const lsResult = await runRemoteCommand(sshConnectString, `ls -1 ${basePath} 2>/dev/null | head -10`);
+    const lsResult = await runRemoteCommand(sshConnectString, `ls -1 ${basePath} 2>/dev/null | head -10`, identityFile);
     if (lsResult.stdout?.trim()) {
       info("Existing projects on remote:");
       lsResult.stdout.split("\n").forEach((p) => console.log(`    ${p}`));

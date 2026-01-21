@@ -74,9 +74,17 @@ export function findSSHKeys(): string[] {
   return keys;
 }
 
-export async function testConnection(host: string): Promise<{ success: boolean; error?: string }> {
+export async function testConnection(
+  host: string,
+  identityFile?: string
+): Promise<{ success: boolean; error?: string }> {
   try {
-    await execa("ssh", ["-o", "BatchMode=yes", "-o", "ConnectTimeout=5", host, "echo", "ok"]);
+    const args = ["-o", "BatchMode=yes", "-o", "ConnectTimeout=5"];
+    if (identityFile) {
+      args.push("-i", identityFile);
+    }
+    args.push(host, "echo", "ok");
+    await execa("ssh", args);
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.stderr || error.message };
@@ -94,10 +102,16 @@ export async function copyKey(host: string, keyPath: string): Promise<{ success:
 
 export async function runRemoteCommand(
   host: string,
-  command: string
+  command: string,
+  identityFile?: string
 ): Promise<{ success: boolean; stdout?: string; error?: string }> {
   try {
-    const result = await execa("ssh", [host, command]);
+    const args: string[] = [];
+    if (identityFile) {
+      args.push("-i", identityFile);
+    }
+    args.push(host, command);
+    const result = await execa("ssh", args);
     return { success: true, stdout: result.stdout };
   } catch (error: any) {
     return { success: false, error: error.stderr || error.message };
