@@ -121,14 +121,34 @@ Host ${friendlyName}
       ]);
 
       if (setupKey) {
-        const { keyPath } = await inquirer.prompt([
+        const keyChoices = [
+          ...keys.map((k) => ({ name: k, value: k })),
+          { name: "+ Enter custom path", value: "__custom__" },
+        ];
+
+        const { keyChoice } = await inquirer.prompt([
           {
             type: "list",
-            name: "keyPath",
+            name: "keyChoice",
             message: "Select SSH key:",
-            choices: keys,
+            choices: keyChoices,
           },
         ]);
+
+        let keyPath: string;
+        if (keyChoice === "__custom__") {
+          const { customPath } = await inquirer.prompt([
+            {
+              type: "input",
+              name: "customPath",
+              message: "Path to SSH private key:",
+              default: "~/.ssh/id_ed25519",
+            },
+          ]);
+          keyPath = customPath.replace(/^~/, process.env.HOME || "");
+        } else {
+          keyPath = keyChoice;
+        }
 
         info("Running ssh-copy-id (you may need to enter your password)...");
         const copyResult = await copyKey(sshHost, keyPath);
