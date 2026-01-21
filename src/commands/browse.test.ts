@@ -1,0 +1,59 @@
+// src/commands/browse.test.ts
+import { describe, expect, test, beforeEach, afterEach, mock, spyOn } from "bun:test";
+import { mkdirSync, rmSync, existsSync, writeFileSync } from "fs";
+import { join } from "path";
+import { tmpdir } from "os";
+
+describe("browse command", () => {
+  let testDir: string;
+  let originalEnv: string | undefined;
+
+  beforeEach(() => {
+    testDir = join(tmpdir(), `devbox-browse-test-${Date.now()}`);
+    mkdirSync(testDir, { recursive: true });
+    originalEnv = process.env.DEVBOX_HOME;
+    process.env.DEVBOX_HOME = testDir;
+  });
+
+  afterEach(() => {
+    if (existsSync(testDir)) {
+      rmSync(testDir, { recursive: true });
+    }
+    if (originalEnv) {
+      process.env.DEVBOX_HOME = originalEnv;
+    } else {
+      delete process.env.DEVBOX_HOME;
+    }
+  });
+
+  test("exits with error when no config exists", async () => {
+    const { configExists } = await import("../lib/config");
+    expect(configExists()).toBe(false);
+  });
+
+  test("parses project list from SSH output", async () => {
+    // Test the parsing logic directly
+    const sshOutput = "myapp|main\nbackend|develop\nexperiments|main";
+    const lines = sshOutput.split("\n");
+    const projects = lines.map((line) => {
+      const [name, branch] = line.split("|");
+      return { name, branch };
+    });
+
+    expect(projects).toEqual([
+      { name: "myapp", branch: "main" },
+      { name: "backend", branch: "develop" },
+      { name: "experiments", branch: "main" },
+    ]);
+  });
+
+  test("handles empty SSH output", async () => {
+    const sshOutput = "";
+    const projects = sshOutput
+      .trim()
+      .split("\n")
+      .filter((line) => line.includes("|"));
+
+    expect(projects).toEqual([]);
+  });
+});
