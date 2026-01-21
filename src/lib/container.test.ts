@@ -6,7 +6,8 @@ import {
   startContainer,
   stopContainer,
   openInEditor,
-  SUPPORTED_EDITORS
+  SUPPORTED_EDITORS,
+  attachToShell
 } from "./container";
 
 describe("container module", () => {
@@ -36,5 +37,11 @@ describe("editor support", () => {
 
   test("openInEditor function exists", () => {
     expect(typeof openInEditor).toBe("function");
+  });
+});
+
+describe("attachToShell", () => {
+  test("attachToShell function exists", () => {
+    expect(typeof attachToShell).toBe("function");
   });
 });

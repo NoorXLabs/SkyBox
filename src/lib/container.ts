@@ -93,3 +93,18 @@ export async function openInEditor(
     return { success: false, error: err.stderr || err.message };
   }
 }
+
+export async function attachToShell(projectPath: string): Promise<ContainerResult> {
+  try {
+    await execa("devcontainer", ["exec", "--workspace-folder", projectPath, "/bin/bash"], {
+      stdio: "inherit",
+    });
+    return { success: true };
+  } catch (err: any) {
+    // Exit code 130 is normal Ctrl+C exit
+    if (err.exitCode === 130) {
+      return { success: true };
+    }
+    return { success: false, error: err.stderr || err.message };
+  }
+}
