@@ -67,3 +67,29 @@ export async function stopContainer(projectPath: string): Promise<ContainerResul
     return { success: false, error: err.stderr || err.message };
   }
 }
+
+export const SUPPORTED_EDITORS = [
+  { id: "code", name: "VS Code" },
+  { id: "cursor", name: "Cursor" },
+  { id: "code-insiders", name: "VS Code Insiders" },
+] as const;
+
+export type EditorId = typeof SUPPORTED_EDITORS[number]["id"] | string;
+
+export async function openInEditor(
+  projectPath: string,
+  editor: EditorId
+): Promise<ContainerResult> {
+  try {
+    // Try devcontainer open first (works with VS Code)
+    if (editor === "code" || editor === "code-insiders") {
+      await execa("devcontainer", ["open", "--workspace-folder", projectPath]);
+    } else {
+      // Direct editor command for others
+      await execa(editor, [projectPath]);
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.stderr || err.message };
+  }
+}
