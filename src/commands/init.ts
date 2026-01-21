@@ -79,7 +79,8 @@ async function configureRemote(): Promise<{ host: string; basePath: string } | n
     },
   ]);
 
-  let sshHost: string;
+  let sshHost: string; // The host name for config (friendly name or existing host)
+  let sshConnectString: string; // The actual connection string for SSH commands
 
   if (hostChoice === "__new__") {
     const { hostname, username, friendlyName } = await inquirer.prompt([
@@ -89,7 +90,10 @@ async function configureRemote(): Promise<{ host: string; basePath: string } | n
     ]);
 
     sshHost = friendlyName;
-    info(`You'll need to add this to ~/.ssh/config:`);
+    // Use user@host format for SSH commands since the friendly name isn't in SSH config yet
+    sshConnectString = `${username}@${hostname}`;
+
+    info(`After setup, add this to ~/.ssh/config for easier access:`);
     console.log(`
 Host ${friendlyName}
   HostName ${hostname}
@@ -97,11 +101,12 @@ Host ${friendlyName}
 `);
   } else {
     sshHost = hostChoice;
+    sshConnectString = hostChoice; // Existing hosts can be used directly
   }
 
   // Test connection
   const spin = spinner("Testing SSH connection...");
-  const connResult = await testConnection(sshHost);
+  const connResult = await testConnection(sshConnectString);
 
   if (connResult.success) {
     spin.succeed("SSH connection successful");
@@ -151,13 +156,13 @@ Host ${friendlyName}
         }
 
         info("Running ssh-copy-id (you may need to enter your password)...");
-        const copyResult = await copyKey(sshHost, keyPath);
+        const copyResult = await copyKey(sshConnectString, keyPath);
 
         if (copyResult.success) {
           success("SSH key installed");
 
           // Re-test connection
-          const retestResult = await testConnection(sshHost);
+          const retestResult = await testConnection(sshConnectString);
           if (!retestResult.success) {
             error("Connection still failing after key setup");
             return null;
@@ -190,7 +195,7 @@ Host ${friendlyName}
 
   // Check if directory exists
   const checkSpin = spinner("Checking remote directory...");
-  const checkResult = await runRemoteCommand(sshHost, `ls -d ${basePath} 2>/dev/null || echo "__NOT_FOUND__"`);
+  const checkResult = await runRemoteCommand(sshConnectString, `ls -d ${basePath} 2>/dev/null || echo "__NOT_FOUND__"`);
 
   if (checkResult.stdout?.includes("__NOT_FOUND__")) {
     checkSpin.warn("Directory doesn't exist");
@@ -204,7 +209,7 @@ Host ${friendlyName}
     ]);
 
     if (createDir) {
-      const mkdirResult = await runRemoteCommand(sshHost, `mkdir -p ${basePath}`);
+      const mkdirResult = await runRemoteCommand(sshConnectString, `mkdir -p ${basePath}`);
       if (mkdirResult.success) {
         success("Created remote directory");
       } else {
@@ -218,7 +223,7 @@ Host ${friendlyName}
     checkSpin.succeed("Remote directory exists");
 
     // List existing projects
-    const lsResult = await runRemoteCommand(sshHost, `ls -1 ${basePath} 2>/dev/null | head -10`);
+    const lsResult = await runRemoteCommand(sshConnectString, `ls -1 ${basePath} 2>/dev/null | head -10`);
     if (lsResult.stdout?.trim()) {
       info("Existing projects on remote:");
       lsResult.stdout.split("\n").forEach((p) => console.log(`    ${p}`));
