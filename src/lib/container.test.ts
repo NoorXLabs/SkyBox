@@ -5,19 +5,26 @@ import {
   ContainerStatus,
   startContainer,
   stopContainer,
+  removeContainer,
   openInEditor,
   SUPPORTED_EDITORS,
   attachToShell,
-  hasDevcontainerConfig
+  hasLocalDevcontainerConfig
 } from "./container";
 import { mkdirSync, rmSync, writeFileSync, existsSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 
 describe("container module", () => {
-  test("getContainerStatus returns not_running for non-existent container", async () => {
+  test("getContainerStatus returns NotFound for non-existent container", async () => {
     const status = await getContainerStatus("/nonexistent/path");
-    expect(status).toBe(ContainerStatus.NotRunning);
+    expect(status).toBe(ContainerStatus.NotFound);
+  });
+});
+
+describe("removeContainer", () => {
+  test("removeContainer function exists", () => {
+    expect(typeof removeContainer).toBe("function");
   });
 });
 
@@ -50,7 +57,7 @@ describe("attachToShell", () => {
   });
 });
 
-describe("hasDevcontainerConfig", () => {
+describe("hasLocalDevcontainerConfig", () => {
   let testDir: string;
 
   beforeEach(() => {
@@ -65,13 +72,13 @@ describe("hasDevcontainerConfig", () => {
   });
 
   test("returns false when no devcontainer.json exists", () => {
-    expect(hasDevcontainerConfig(testDir)).toBe(false);
+    expect(hasLocalDevcontainerConfig(testDir)).toBe(false);
   });
 
   test("returns true when devcontainer.json exists", () => {
     const devcontainerDir = join(testDir, ".devcontainer");
     mkdirSync(devcontainerDir, { recursive: true });
     writeFileSync(join(devcontainerDir, "devcontainer.json"), "{}");
-    expect(hasDevcontainerConfig(testDir)).toBe(true);
+    expect(hasLocalDevcontainerConfig(testDir)).toBe(true);
   });
 });

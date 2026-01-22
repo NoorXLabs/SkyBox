@@ -2,7 +2,6 @@
 import inquirer from "inquirer";
 import { loadConfig, configExists, saveConfig } from "../lib/config";
 import { getSyncStatus, resumeSync, waitForSync } from "../lib/mutagen";
-import { runRemoteCommand } from "../lib/ssh";
 import {
   getContainerStatus,
   ContainerStatus,
@@ -10,7 +9,7 @@ import {
   stopContainer,
   openInEditor,
   attachToShell,
-  hasDevcontainerConfig,
+  hasLocalDevcontainerConfig,
   SUPPORTED_EDITORS,
 } from "../lib/container";
 import { TEMPLATES, createDevcontainerConfig } from "../lib/templates";
@@ -51,7 +50,7 @@ export async function upCommand(
 
   if (!project) {
     // Try to detect from current directory
-    project = resolveProjectFromCwd();
+    project = resolveProjectFromCwd() ?? undefined;
   }
 
   if (!project) {
@@ -80,33 +79,29 @@ export async function upCommand(
   }
 
   // Verify project exists locally
-  if (!projectExists(project)) {
+  if (!projectExists(project!)) {
     error(`Project '${project}' not found locally. Run 'devbox clone ${project}' first.`);
     process.exit(1);
   }
 
-  const projectPath = getProjectPath(project);
+  const projectPath = getProjectPath(project!);
   header(`Starting '${project}'...`);
 
-  // Step 3: Ensure sync is running
+  // Step 3: Ensure sync is running (background sync to remote)
   const syncSpin = spinner("Checking sync status...");
-  const syncStatus = await getSyncStatus(project);
+  const syncStatus = await getSyncStatus(project!);
 
   if (!syncStatus.exists) {
-    syncSpin.fail("No sync session found");
-    error(`No sync session for '${project}'. Run 'devbox clone ${project}' first.`);
-    process.exit(1);
-  }
-
-  if (syncStatus.paused) {
+    syncSpin.warn("No sync session found - remote backup not active");
+    info("Run 'devbox push' to set up remote sync.");
+  } else if (syncStatus.paused) {
     syncSpin.text = "Resuming sync...";
-    const resumeResult = await resumeSync(project);
+    const resumeResult = await resumeSync(project!);
     if (!resumeResult.success) {
-      syncSpin.fail("Failed to resume sync");
-      error(resumeResult.error || "Unknown error");
-      process.exit(1);
+      syncSpin.warn("Failed to resume sync - continuing without remote backup");
+    } else {
+      syncSpin.succeed("Sync resumed");
     }
-    syncSpin.succeed("Sync resumed");
   } else {
     syncSpin.succeed("Sync is active");
   }
@@ -118,16 +113,20 @@ export async function upCommand(
     if (options.noPrompt) {
       info("Container already running, continuing...");
     } else {
-      const { restart } = await inquirer.prompt([
+      const { action } = await inquirer.prompt([
         {
-          type: "confirm",
-          name: "restart",
-          message: "Container already running. Restart it?",
-          default: false,
+          type: "list",
+          name: "action",
+          message: "Container already running. What would you like to do?",
+          choices: [
+            { name: "Continue with existing container", value: "continue" },
+            { name: "Restart container", value: "restart" },
+            { name: "Rebuild container", value: "rebuild" },
+          ],
         },
       ]);
 
-      if (restart) {
+      if (action === "restart" || action === "rebuild") {
         const stopSpin = spinner("Stopping container...");
         const stopResult = await stopContainer(projectPath);
         if (!stopResult.success) {
@@ -136,88 +135,68 @@ export async function upCommand(
           process.exit(1);
         }
         stopSpin.succeed("Container stopped");
+
+        if (action === "rebuild") {
+          options.rebuild = true;
+        }
       } else {
         // Skip to post-start options
         await handlePostStart(projectPath, config, options);
         return;
       }
     }
+  } else if (containerStatus === ContainerStatus.Stopped) {
+    info("Found stopped container, will restart it...");
   }
 
   // Step 5: Check for devcontainer.json
-  if (!hasDevcontainerConfig(projectPath)) {
-    // Check remote first
-    const remoteSpin = spinner("Checking remote for devcontainer config...");
-    const remoteHasConfig = await checkRemoteDevcontainer(
-      config.remote.host,
-      config.remote.base_path,
-      project
-    );
-
-    if (remoteHasConfig) {
-      remoteSpin.text = "Found on remote, syncing...";
-      await waitForSync(project);
-      remoteSpin.succeed("Synced devcontainer config from remote");
-    } else {
-      remoteSpin.warn("No devcontainer.json found");
-
-      if (options.noPrompt) {
-        error("No devcontainer.json found and --no-prompt is set.");
-        process.exit(1);
-      }
-
-      // Offer to create template
-      const { createTemplate } = await inquirer.prompt([
-        {
-          type: "confirm",
-          name: "createTemplate",
-          message: "No devcontainer.json found. Would you like to create one?",
-          default: true,
-        },
-      ]);
-
-      if (!createTemplate) {
-        info("Please add a .devcontainer/devcontainer.json and try again.");
-        return;
-      }
-
-      const { templateId } = await inquirer.prompt([
-        {
-          type: "list",
-          name: "templateId",
-          message: "Select a template:",
-          choices: TEMPLATES.map((t) => ({
-            name: `${t.name} - ${t.description}`,
-            value: t.id,
-          })),
-        },
-      ]);
-
-      createDevcontainerConfig(projectPath, templateId);
-      success("Created .devcontainer/devcontainer.json");
-
-      // Commit the new config
-      await commitDevcontainerConfig(projectPath);
+  if (!hasLocalDevcontainerConfig(projectPath)) {
+    if (options.noPrompt) {
+      error("No devcontainer.json found and --no-prompt is set.");
+      process.exit(1);
     }
+
+    warn("No devcontainer.json found");
+
+    // Offer to create template
+    const { createTemplate } = await inquirer.prompt([
+      {
+        type: "confirm",
+        name: "createTemplate",
+        message: "Would you like to create a devcontainer.json from a template?",
+        default: true,
+      },
+    ]);
+
+    if (!createTemplate) {
+      info("Please add a .devcontainer/devcontainer.json and try again.");
+      return;
+    }
+
+    const { templateId } = await inquirer.prompt([
+      {
+        type: "list",
+        name: "templateId",
+        message: "Select a template:",
+        choices: TEMPLATES.map((t) => ({
+          name: `${t.name} - ${t.description}`,
+          value: t.id,
+        })),
+      },
+    ]);
+
+    createDevcontainerConfig(projectPath, templateId, project);
+    success("Created .devcontainer/devcontainer.json");
+
+    // Commit the new config
+    await commitDevcontainerConfig(projectPath);
   }
 
-  // Step 6: Start container with retry
+  // Step 6: Start container locally with retry
   await startContainerWithRetry(projectPath, options);
 
   // Step 7: Post-start options
   await handlePostStart(projectPath, config, options);
-}
-
-async function checkRemoteDevcontainer(
-  host: string,
-  basePath: string,
-  project: string
-): Promise<boolean> {
-  const result = await runRemoteCommand(
-    host,
-    `test -f ${basePath}/${project}/.devcontainer/devcontainer.json && echo "EXISTS" || echo "NOT_FOUND"`
-  );
-  return result.stdout?.includes("EXISTS") ?? false;
 }
 
 async function commitDevcontainerConfig(projectPath: string): Promise<void> {
@@ -235,12 +214,12 @@ async function startContainerWithRetry(
   projectPath: string,
   options: UpOptions
 ): Promise<void> {
-  const startSpin = spinner("Starting container...");
+  const startSpin = spinner("Starting container locally...");
 
   let result = await startContainer(projectPath, { rebuild: options.rebuild });
 
   if (!result.success) {
-    startSpin.text = "Container failed, retrying...";
+    startSpin.text = "Container failed, retrying with rebuild...";
     result = await startContainer(projectPath, { rebuild: true });
 
     if (!result.success) {
@@ -266,14 +245,14 @@ async function handlePostStart(
 ): Promise<void> {
   // Handle flags for non-interactive mode
   if (options.editor && options.attach) {
-    const editor = config.editor || "code";
+    const editor = config.editor || "cursor";
     await openInEditor(projectPath, editor);
     await attachToShell(projectPath);
     return;
   }
 
   if (options.editor) {
-    const editor = config.editor || "code";
+    const editor = config.editor || "cursor";
     await openInEditor(projectPath, editor);
     return;
   }

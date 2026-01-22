@@ -1,5 +1,11 @@
 // src/lib/download.ts
-import { existsSync, mkdirSync, createWriteStream, chmodSync, unlinkSync } from "fs";
+import {
+	existsSync,
+	mkdirSync,
+	createWriteStream,
+	chmodSync,
+	unlinkSync,
+} from "fs";
 import { join } from "path";
 import { pipeline } from "stream/promises";
 import { createGunzip } from "zlib";
@@ -9,89 +15,93 @@ import { BIN_DIR, MUTAGEN_PATH } from "./paths";
 const MUTAGEN_VERSION = "0.17.5";
 const MUTAGEN_REPO = "mutagen-io/mutagen";
 
-export function getMutagenDownloadUrl(platform: string, arch: string, version: string): string {
-  const os = platform === "darwin" ? "darwin" : "linux";
-  const cpu = arch === "arm64" ? "arm64" : "amd64";
-  return `https://github.com/${MUTAGEN_REPO}/releases/download/v${version}/mutagen_${os}_${cpu}_v${version}.tar.gz`;
+export function getMutagenDownloadUrl(
+	platform: string,
+	arch: string,
+	version: string,
+): string {
+	const os = platform === "darwin" ? "darwin" : "linux";
+	const cpu = arch === "arm64" ? "arm64" : "amd64";
+	return `https://github.com/${MUTAGEN_REPO}/releases/download/v${version}/mutagen_${os}_${cpu}_v${version}.tar.gz`;
 }
 
 export function getMutagenChecksumUrl(version: string): string {
-  return `https://github.com/${MUTAGEN_REPO}/releases/download/v${version}/SHA256SUMS`;
+	return `https://github.com/${MUTAGEN_REPO}/releases/download/v${version}/SHA256SUMS`;
 }
 
 export function isMutagenInstalled(): boolean {
-  if (!existsSync(MUTAGEN_PATH)) {
-    return false;
-  }
+	if (!existsSync(MUTAGEN_PATH)) {
+		return false;
+	}
 
-  try {
-    const result = Bun.spawnSync([MUTAGEN_PATH, "version"]);
-    return result.exitCode === 0;
-  } catch {
-    return false;
-  }
+	try {
+		const result = Bun.spawnSync([MUTAGEN_PATH, "version"]);
+		return result.exitCode === 0;
+	} catch {
+		return false;
+	}
 }
 
 export async function downloadMutagen(
-  onProgress?: (message: string) => void
+	onProgress?: (message: string) => void,
 ): Promise<{ success: boolean; error?: string }> {
-  const platform = process.platform;
-  const arch = process.arch;
+	const platform = process.platform;
+	const arch = process.arch;
 
-  if (platform !== "darwin" && platform !== "linux") {
-    return { success: false, error: `Unsupported platform: ${platform}` };
-  }
+	if (platform !== "darwin" && platform !== "linux") {
+		return { success: false, error: `Unsupported platform: ${platform}` };
+	}
 
-  const url = getMutagenDownloadUrl(platform, arch, MUTAGEN_VERSION);
-  const tarPath = join(BIN_DIR, "mutagen.tar.gz");
+	const url = getMutagenDownloadUrl(platform, arch, MUTAGEN_VERSION);
+	const tarPath = join(BIN_DIR, "mutagen.tar.gz");
 
-  try {
-    // Create bin directory
-    if (!existsSync(BIN_DIR)) {
-      mkdirSync(BIN_DIR, { recursive: true });
-    }
+	try {
+		// Create bin directory
+		if (!existsSync(BIN_DIR)) {
+			mkdirSync(BIN_DIR, { recursive: true });
+		}
 
-    onProgress?.(`Downloading mutagen v${MUTAGEN_VERSION}...`);
+		onProgress?.(`Downloading mutagen v${MUTAGEN_VERSION}...`);
 
-    // Download tar.gz
-    const response = await fetch(url);
-    if (!response.ok) {
-      return { success: false, error: `Download failed: ${response.status}` };
-    }
+		// Download tar.gz
+		const response = await fetch(url);
+		if (!response.ok) {
+			return { success: false, error: `Download failed: ${response.status}` };
+		}
 
-    // Write to file
-    const fileStream = createWriteStream(tarPath);
-    const reader = response.body?.getReader();
+		// Write to file
+		const fileStream = createWriteStream(tarPath);
+		const reader = response.body?.getReader();
 
-    if (!reader) {
-      return { success: false, error: "Failed to read response body" };
-    }
+		if (!reader) {
+			return { success: false, error: "Failed to read response body" };
+		}
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      fileStream.write(value);
-    }
-    fileStream.close();
+		while (true) {
+			const { done, value } = await reader.read();
+			if (done) break;
+			fileStream.write(value);
+		}
+		fileStream.close();
 
-    onProgress?.("Extracting...");
+		onProgress?.("Extracting...");
 
-    // Extract tar.gz
-    await extract({
-      file: tarPath,
-      cwd: BIN_DIR,
-      filter: (path) => path === "mutagen" || path === "mutagen-agents.tar.gz",
-    });
+		// Extract tar.gz
+		await extract({
+			file: tarPath,
+			cwd: BIN_DIR,
+			filter: (path) => path === "mutagen" || path === "mutagen-agents.tar.gz",
+		});
 
-    // Make executable
-    chmodSync(MUTAGEN_PATH, 0o755);
+		// Make executable
+		chmodSync(MUTAGEN_PATH, 0o755);
 
-    // Clean up tar file
-    unlinkSync(tarPath);
+		// Clean up tar file
+		unlinkSync(tarPath);
 
-    onProgress?.(`Installed mutagen v${MUTAGEN_VERSION}`);
-    return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
-  }
+		onProgress?.(`Installed mutagen v${MUTAGEN_VERSION}`);
+		return { success: true };
+	} catch (error: any) {
+		return { success: false, error: error.message };
+	}
 }

@@ -6,32 +6,32 @@ import type { DevboxConfig } from "../types";
 
 // Dynamic import to get fresh DEVBOX_HOME on each call
 function getConfigPath(): string {
-  const home = process.env.DEVBOX_HOME || `${require("os").homedir()}/.devbox`;
-  return `${home}/config.yaml`;
+	const home = process.env.DEVBOX_HOME || `${require("os").homedir()}/.devbox`;
+	return `${home}/config.yaml`;
 }
 
 export function configExists(): boolean {
-  return existsSync(getConfigPath());
+	return existsSync(getConfigPath());
 }
 
 export function loadConfig(): DevboxConfig | null {
-  const configPath = getConfigPath();
-  if (!existsSync(configPath)) {
-    return null;
-  }
+	const configPath = getConfigPath();
+	if (!existsSync(configPath)) {
+		return null;
+	}
 
-  const content = readFileSync(configPath, "utf-8");
-  return parse(content) as DevboxConfig;
+	const content = readFileSync(configPath, "utf-8");
+	return parse(content) as DevboxConfig;
 }
 
 export function saveConfig(config: DevboxConfig): void {
-  const configPath = getConfigPath();
-  const dir = dirname(configPath);
+	const configPath = getConfigPath();
+	const dir = dirname(configPath);
 
-  if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true });
-  }
+	if (!existsSync(dir)) {
+		mkdirSync(dir, { recursive: true });
+	}
 
-  const content = stringify(config);
-  writeFileSync(configPath, content, "utf-8");
+	const content = stringify(config);
+	writeFileSync(configPath, content, "utf-8");
 }

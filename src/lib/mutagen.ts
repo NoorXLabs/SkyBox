@@ -3,113 +3,126 @@ import { execa } from "execa";
 import { MUTAGEN_PATH } from "./paths";
 
 export interface SyncStatus {
-  exists: boolean;
-  paused: boolean;
-  status: string;
+	exists: boolean;
+	paused: boolean;
+	status: string;
 }
 
 export function sessionName(project: string): string {
-  return `devbox-${project}`;
+	return `devbox-${project}`;
 }
 
 export async function createSyncSession(
-  project: string,
-  localPath: string,
-  remoteHost: string,
-  remotePath: string,
-  ignores: string[]
+	project: string,
+	localPath: string,
+	remoteHost: string,
+	remotePath: string,
+	ignores: string[],
 ): Promise<{ success: boolean; error?: string }> {
-  const name = sessionName(project);
-  const alpha = localPath;
-  const beta = `${remoteHost}:${remotePath}`;
+	const name = sessionName(project);
+	const alpha = localPath;
+	const beta = `${remoteHost}:${remotePath}`;
 
-  const args = [
-    "sync", "create",
-    alpha, beta,
-    "--name", name,
-    "--sync-mode", "two-way-resolved",
-  ];
+	const args = [
+		"sync",
+		"create",
+		alpha,
+		beta,
+		"--name",
+		name,
+		"--sync-mode",
+		"two-way-resolved",
+	];
 
-  // Add ignore patterns
-  for (const pattern of ignores) {
-    args.push("--ignore", pattern);
-  }
+	// Add ignore patterns
+	for (const pattern of ignores) {
+		args.push("--ignore", pattern);
+	}
 
-  try {
-    await execa(MUTAGEN_PATH, args);
-    return { success: true };
-  } catch (err: any) {
-    return { success: false, error: err.stderr || err.message };
-  }
+	try {
+		await execa(MUTAGEN_PATH, args);
+		return { success: true };
+	} catch (err: any) {
+		return { success: false, error: err.stderr || err.message };
+	}
 }
 
 export async function getSyncStatus(project: string): Promise<SyncStatus> {
-  const name = sessionName(project);
+	const name = sessionName(project);
 
-  try {
-    const result = await execa(MUTAGEN_PATH, [
-      "sync", "list",
-      "--label-selector", `name=${name}`,
-    ]);
+	try {
+		// List session by name directly
+		const result = await execa(MUTAGEN_PATH, ["sync", "list", name]);
 
-    if (!result.stdout || result.stdout.includes("No sessions found")) {
-      return { exists: false, paused: false, status: "none" };
-    }
+		if (!result.stdout || result.stdout.includes("No synchronization sessions found")) {
+			return { exists: false, paused: false, status: "none" };
+		}
 
-    const paused = result.stdout.includes("Paused");
-    const status = paused ? "paused" : "syncing";
+		// Check for paused status - mutagen shows "[Paused]" in status line
+		const paused = result.stdout.includes("[Paused]");
+		const status = paused ? "paused" : "syncing";
 
-    return { exists: true, paused, status };
-  } catch {
-    return { exists: false, paused: false, status: "error" };
-  }
+		return { exists: true, paused, status };
+	} catch (err: any) {
+		// If session not found, mutagen exits with error
+		if (err.stderr?.includes("unable to locate") || err.message?.includes("unable to locate")) {
+			return { exists: false, paused: false, status: "none" };
+		}
+		return { exists: false, paused: false, status: "error" };
+	}
 }
 
 export async function waitForSync(
-  project: string,
-  onProgress?: (message: string) => void
+	project: string,
+	onProgress?: (message: string) => void,
 ): Promise<{ success: boolean; error?: string }> {
-  const name = sessionName(project);
+	const name = sessionName(project);
 
-  try {
-    onProgress?.("Waiting for sync to complete...");
-    await execa(MUTAGEN_PATH, ["sync", "flush", name]);
-    onProgress?.("Sync complete");
-    return { success: true };
-  } catch (err: any) {
-    return { success: false, error: err.stderr || err.message };
-  }
+	try {
+		onProgress?.("Waiting for sync to complete...");
+		await execa(MUTAGEN_PATH, ["sync", "flush", name]);
+		onProgress?.("Sync complete");
+		return { success: true };
+	} catch (err: any) {
+		return { success: false, error: err.stderr || err.message };
+	}
 }
 
-export async function pauseSync(project: string): Promise<{ success: boolean; error?: string }> {
-  const name = sessionName(project);
+export async function pauseSync(
+	project: string,
+): Promise<{ success: boolean; error?: string }> {
+	const name = sessionName(project);
 
-  try {
-    await execa(MUTAGEN_PATH, ["sync", "pause", name]);
-    return { success: true };
-  } catch (err: any) {
-    return { success: false, error: err.stderr || err.message };
-  }
+	try {
+		await execa(MUTAGEN_PATH, ["sync", "pause", name]);
+		return { success: true };
+	} catch (err: any) {
+		return { success: false, error: err.stderr || err.message };
+	}
 }
 
-export async function resumeSync(project: string): Promise<{ success: boolean; error?: string }> {
-  const name = sessionName(project);
+export async function resumeSync(
+	project: string,
+): Promise<{ success: boolean; error?: string }> {
+	const name = sessionName(project);
 
-  try {
-    await execa(MUTAGEN_PATH, ["sync", "resume", name]);
-    return { success: true };
-  } catch (err: any) {
-    return { success: false, error: err.stderr || err.message };
-  }
+	try {
+		await execa(MUTAGEN_PATH, ["sync", "resume", name]);
+		return { success: true };
+	} catch (err: any) {
+		return { success: false, error: err.stderr || err.message };
+	}
 }
 
-export async function terminateSession(project: string): Promise<{ success: boolean; error?: string }> {
-  const name = sessionName(project);
+export async function terminateSession(
+	project: string,
+): Promise<{ success: boolean; error?: string }> {
+	const name = sessionName(project);
 
-  try {
-    await execa(MUTAGEN_PATH, ["sync", "terminate", name]);
-    return { success: true };
-  } catch (err: any) {
-    return { success: false, error: err.stderr || err.message };
-  }
+	try {
+		await execa(MUTAGEN_PATH, ["sync", "terminate", name]);
+		return { success: true };
+	} catch (err: any) {
+		return { success: false, error: err.stderr || err.message };
+	}
 }
