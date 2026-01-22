@@ -112,4 +112,74 @@ describe("status command helpers", () => {
       expect(result).toBeInstanceOf(Date);
     });
   });
+
+  describe("statusCommand", () => {
+    let configDir: string;
+
+    // Helper to clear module cache for fresh imports
+    const clearModuleCache = () => {
+      // Clear require.cache for all devbox-related modules
+      for (const key of Object.keys(require.cache)) {
+        if (key.includes("devbox") || key.includes("status") || key.includes("paths") || key.includes("config")) {
+          delete require.cache[key];
+        }
+      }
+    };
+
+    beforeEach(() => {
+      configDir = join(testDir, ".devbox");
+      const projectsDir = join(configDir, "Projects");
+      mkdirSync(projectsDir, { recursive: true });
+      process.env.DEVBOX_HOME = configDir;
+
+      // Clear module cache so paths.ts picks up new DEVBOX_HOME
+      clearModuleCache();
+
+      // Create minimal config
+      const configPath = join(configDir, "config.yaml");
+      writeFileSync(configPath, `
+remote:
+  host: testhost
+  base_path: ~/code
+editor: code
+defaults:
+  sync_mode: two-way-resolved
+  ignore: []
+projects: {}
+`);
+    });
+
+    test("shows empty message when no projects", async () => {
+      // Capture console output
+      const logs: string[] = [];
+      const originalLog = console.log;
+      console.log = (...args) => logs.push(args.join(" "));
+
+      const { statusCommand } = await import("./status");
+      await statusCommand();
+
+      console.log = originalLog;
+
+      expect(logs.some((l) => l.includes("No projects found"))).toBe(true);
+    });
+
+    test("shows project in overview when project exists", async () => {
+      // Create a project directory
+      const projectsDir = join(configDir, "Projects");
+      const projectPath = join(projectsDir, "myapp");
+      mkdirSync(projectPath);
+
+      // Capture console output
+      const logs: string[] = [];
+      const originalLog = console.log;
+      console.log = (...args) => logs.push(args.join(" "));
+
+      const { statusCommand } = await import("./status");
+      await statusCommand();
+
+      console.log = originalLog;
+
+      expect(logs.some((l) => l.includes("myapp"))).toBe(true);
+    });
+  });
 });
