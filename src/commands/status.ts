@@ -19,6 +19,27 @@ export async function getDiskUsage(path: string): Promise<string> {
   }
 }
 
+export async function getLastActive(projectPath: string): Promise<Date | null> {
+  // Try git log first
+  try {
+    const result = await execa("git", ["-C", projectPath, "log", "-1", "--format=%ct"]);
+    const timestamp = parseInt(result.stdout.trim(), 10);
+    if (!isNaN(timestamp)) {
+      return new Date(timestamp * 1000);
+    }
+  } catch {
+    // Not a git repo or no commits
+  }
+
+  // Fall back to directory mtime
+  try {
+    const stats = statSync(projectPath);
+    return stats.mtime;
+  } catch {
+    return null;
+  }
+}
+
 export async function getGitInfo(projectPath: string): Promise<GitDetails | null> {
   try {
     // Check if it's a git repo

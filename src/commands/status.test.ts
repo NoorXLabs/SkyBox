@@ -84,4 +84,32 @@ describe("status command helpers", () => {
       expect(result).toBe("unknown");
     });
   });
+
+  describe("getLastActive", () => {
+    test("returns date from git log if available", async () => {
+      // Initialize git repo with a commit
+      await execa("git", ["init"], { cwd: testDir });
+      await execa("git", ["config", "user.email", "test@test.com"], { cwd: testDir });
+      await execa("git", ["config", "user.name", "Test"], { cwd: testDir });
+      writeFileSync(join(testDir, "README.md"), "# Test");
+      await execa("git", ["add", "."], { cwd: testDir });
+      await execa("git", ["commit", "-m", "init"], { cwd: testDir });
+
+      const { getLastActive } = await import("./status");
+      const result = await getLastActive(testDir);
+
+      expect(result).toBeInstanceOf(Date);
+      // Should be recent (within last minute)
+      expect(Date.now() - result!.getTime()).toBeLessThan(60000);
+    });
+
+    test("returns directory mtime for non-git directory", async () => {
+      writeFileSync(join(testDir, "file.txt"), "content");
+
+      const { getLastActive } = await import("./status");
+      const result = await getLastActive(testDir);
+
+      expect(result).toBeInstanceOf(Date);
+    });
+  });
 });
