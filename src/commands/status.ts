@@ -10,11 +10,9 @@ import { PROJECTS_DIR } from "../lib/paths";
 import { error, header } from "../lib/ui";
 import type {
   ProjectSummary,
-  DetailedStatus,
   GitDetails,
   ContainerDetails,
   SyncDetails,
-  DiskDetails,
 } from "../types";
 
 export async function getDiskUsage(path: string): Promise<string> {
