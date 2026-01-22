@@ -64,4 +64,24 @@ describe("status command helpers", () => {
       expect(result!.status).toBe("dirty");
     });
   });
+
+  describe("getDiskUsage", () => {
+    test("returns size string for directory", async () => {
+      // Create some files
+      writeFileSync(join(testDir, "file1.txt"), "hello world");
+      writeFileSync(join(testDir, "file2.txt"), "more content");
+
+      const { getDiskUsage } = await import("./status");
+      const result = await getDiskUsage(testDir);
+
+      // Should return something like "4.0K" or "8.0K" depending on filesystem
+      expect(result).toMatch(/^\d+(\.\d+)?[KMGT]?$/i);
+    });
+
+    test("returns 'unknown' on error", async () => {
+      const { getDiskUsage } = await import("./status");
+      const result = await getDiskUsage("/nonexistent/path/that/does/not/exist");
+      expect(result).toBe("unknown");
+    });
+  });
 });

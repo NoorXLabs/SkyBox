@@ -8,6 +8,17 @@ import { PROJECTS_DIR } from "../lib/paths";
 import { error, header } from "../lib/ui";
 import type { ProjectSummary, DetailedStatus, GitDetails } from "../types";
 
+export async function getDiskUsage(path: string): Promise<string> {
+  try {
+    const result = await execa("du", ["-sh", path], { timeout: 5000 });
+    // Output is like "1.2G\t/path/to/dir"
+    const size = result.stdout.trim().split(/\s+/)[0];
+    return size || "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+
 export async function getGitInfo(projectPath: string): Promise<GitDetails | null> {
   try {
     // Check if it's a git repo
