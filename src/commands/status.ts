@@ -3,12 +3,19 @@ import { existsSync, readdirSync, statSync } from "fs";
 import { join } from "path";
 import chalk from "chalk";
 import { execa } from "execa";
-import { configExists } from "../lib/config";
-import { getContainerStatus, ContainerStatus } from "../lib/container";
-import { getSyncStatus } from "../lib/mutagen";
+import { configExists, loadConfig } from "../lib/config";
+import { getContainerStatus, getContainerInfo, ContainerStatus } from "../lib/container";
+import { getSyncStatus, sessionName } from "../lib/mutagen";
 import { PROJECTS_DIR } from "../lib/paths";
 import { error, header } from "../lib/ui";
-import type { ProjectSummary, DetailedStatus, GitDetails } from "../types";
+import type {
+  ProjectSummary,
+  DetailedStatus,
+  GitDetails,
+  ContainerDetails,
+  SyncDetails,
+  DiskDetails,
+} from "../types";
 
 export async function getDiskUsage(path: string): Promise<string> {
   try {
@@ -110,6 +117,89 @@ function colorSync(status: string): string {
     case "paused": return chalk.yellow(status);
     case "error": return chalk.red(status);
     default: return chalk.dim(status);
+  }
+}
+
+async function getContainerDetails(projectPath: string): Promise<ContainerDetails> {
+  const status = await getContainerStatus(projectPath);
+  const info = await getContainerInfo(projectPath);
+
+  if (status !== ContainerStatus.Running || !info) {
+    return {
+      status: status === ContainerStatus.Running ? "running" : "stopped",
+      image: info?.image || "-",
+      uptime: "-",
+      cpu: "-",
+      memory: "-",
+    };
+  }
+
+  // Get stats for running container
+  try {
+    const statsResult = await execa("docker", [
+      "stats", "--no-stream", "--format",
+      "{{.CPUPerc}}\t{{.MemUsage}}",
+      info.id,
+    ], { timeout: 5000 });
+
+    const [cpu, memory] = statsResult.stdout.trim().split("\t");
+
+    // Parse uptime from status string (e.g., "Up 2 hours")
+    const uptimeMatch = info.status.match(/Up\s+(.+)/i);
+    const uptime = uptimeMatch ? uptimeMatch[1] : "-";
+
+    return {
+      status: "running",
+      image: info.image,
+      uptime,
+      cpu: cpu || "-",
+      memory: memory || "-",
+    };
+  } catch {
+    return {
+      status: "running",
+      image: info.image,
+      uptime: "-",
+      cpu: "-",
+      memory: "-",
+    };
+  }
+}
+
+async function getSyncDetails(projectName: string): Promise<SyncDetails> {
+  const status = await getSyncStatus(projectName);
+
+  if (!status.exists) {
+    return {
+      status: "no session",
+      session: "-",
+      pending: "-",
+      lastSync: "-",
+    };
+  }
+
+  return {
+    status: status.paused ? "paused" : "syncing",
+    session: sessionName(projectName),
+    pending: "0 files", // Would need more mutagen parsing for real count
+    lastSync: "-", // Would need more mutagen parsing
+  };
+}
+
+async function getRemoteDiskUsage(projectName: string): Promise<string> {
+  try {
+    const config = loadConfig();
+    if (!config) {
+      return "unavailable";
+    }
+    const remotePath = `${config.remote.base_path}/${projectName}`;
+    const result = await execa("ssh", [
+      config.remote.host,
+      `du -sh ${remotePath} 2>/dev/null | cut -f1`,
+    ], { timeout: 10000 });
+    return result.stdout.trim() || "unknown";
+  } catch {
+    return "unavailable";
   }
 }
 
@@ -238,7 +328,59 @@ async function showDetailed(projectName: string): Promise<void> {
     process.exit(1);
   }
 
-  // TODO: Implement detailed view
-  header(`Project: ${projectName}`);
-  console.log("  (detailed view not yet implemented)");
+  // Gather all details
+  const [container, sync, git, localDisk, remoteDisk] = await Promise.all([
+    getContainerDetails(projectPath),
+    getSyncDetails(projectName),
+    getGitInfo(projectPath),
+    getDiskUsage(projectPath),
+    getRemoteDiskUsage(projectName),
+  ]);
+
+  // Print header
+  console.log();
+  console.log(chalk.bold(`Project: ${projectName}`));
+  console.log(chalk.dim("━".repeat(50)));
+
+  // Container section
+  console.log();
+  console.log(chalk.bold("Container"));
+  console.log(`  Status:     ${colorContainer(container.status)}`);
+  console.log(`  Image:      ${container.image}`);
+  console.log(`  Uptime:     ${container.uptime}`);
+  console.log(`  CPU:        ${container.cpu}`);
+  console.log(`  Memory:     ${container.memory}`);
+
+  // Sync section
+  console.log();
+  console.log(chalk.bold("Sync"));
+  console.log(`  Status:     ${colorSync(sync.status)}`);
+  console.log(`  Session:    ${sync.session}`);
+  console.log(`  Pending:    ${sync.pending}`);
+  console.log(`  Last sync:  ${sync.lastSync}`);
+
+  // Git section
+  console.log();
+  console.log(chalk.bold("Git"));
+  if (git) {
+    const statusColor = git.status === "clean" ? chalk.green : chalk.yellow;
+    console.log(`  Branch:     ${git.branch}`);
+    console.log(`  Status:     ${statusColor(git.status)}`);
+    console.log(`  Ahead:      ${git.ahead} commits`);
+    console.log(`  Behind:     ${git.behind} commits`);
+  } else {
+    console.log(chalk.dim("  Not a git repository"));
+  }
+
+  // Lock section
+  console.log();
+  console.log(chalk.bold("Lock"));
+  console.log(`  Status:     ${chalk.dim("n/a (not implemented)")}`);
+
+  // Disk section
+  console.log();
+  console.log(chalk.bold("Disk Usage"));
+  console.log(`  Local:      ${localDisk}`);
+  console.log(`  Remote:     ${remoteDisk}`);
+  console.log();
 }
