@@ -8,6 +8,7 @@ import { pushCommand } from "./commands/push";
 import { upCommand } from "./commands/up";
 import { downCommand } from "./commands/down";
 import { editorCommand } from "./commands/editor";
+import { statusCommand } from "./commands/status";
 
 program
 	.name("devbox")
@@ -58,5 +59,10 @@ program
   .command("editor")
   .description("Change default editor")
   .action(editorCommand);
+
+program
+  .command("status [project]")
+  .description("Show project status")
+  .action(statusCommand);
 
 program.parse();
