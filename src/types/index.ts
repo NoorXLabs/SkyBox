@@ -47,3 +47,52 @@ export const DEFAULT_IGNORE = [
   "target",
   "vendor",
 ];
+
+// Status command types
+export interface ProjectSummary {
+  name: string;
+  container: "running" | "stopped" | "unknown";
+  sync: "syncing" | "paused" | "no session" | "error" | "unknown";
+  branch: string;
+  lock: string;
+  lastActive: Date | null;
+  size: string;
+  path: string;
+}
+
+export interface ContainerDetails {
+  status: "running" | "stopped" | "unknown";
+  image: string;
+  uptime: string;
+  cpu: string;
+  memory: string;
+}
+
+export interface SyncDetails {
+  status: "syncing" | "paused" | "no session" | "error" | "unknown";
+  session: string;
+  pending: string;
+  lastSync: string;
+}
+
+export interface GitDetails {
+  branch: string;
+  status: "clean" | "dirty";
+  ahead: number;
+  behind: number;
+}
+
+export interface DiskDetails {
+  local: string;
+  remote: string;
+}
+
+export interface DetailedStatus {
+  name: string;
+  path: string;
+  container: ContainerDetails;
+  sync: SyncDetails;
+  git: GitDetails | null;
+  lock: string;
+  disk: DiskDetails;
+}
