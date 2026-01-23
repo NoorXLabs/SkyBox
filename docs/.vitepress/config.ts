@@ -30,6 +30,7 @@ export default defineConfig({
         {
           text: 'Core Concepts',
           items: [
+            { text: 'Concepts Overview', link: '/guide/concepts' },
             { text: 'Containers', link: '/guide/containers' },
             { text: 'Configuration', link: '/guide/configuration' },
           ],
@@ -37,8 +38,9 @@ export default defineConfig({
         {
           text: 'Workflows',
           items: [
-            { text: 'Creating Environments', link: '/guide/creating-environments' },
-            { text: 'Managing Containers', link: '/guide/managing-containers' },
+            { text: 'New Project', link: '/guide/workflows/new-project' },
+            { text: 'Daily Development', link: '/guide/workflows/daily-development' },
+            { text: 'Team Sharing', link: '/guide/workflows/team-sharing' },
           ],
         },
       ],
