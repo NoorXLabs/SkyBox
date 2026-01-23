@@ -297,4 +297,4 @@ projects:
 ## Next Steps
 
 - See the [Command Reference](/reference/) for detailed command documentation
-- Learn about [Container Configuration](/guide/containers) for customizing your dev environment
+- Explore [Workflow Tutorials](/guide/workflows/new-project) for step-by-step guides
