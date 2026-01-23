@@ -6,6 +6,14 @@ export default defineConfig({
 
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/devbox-logo-grey.svg' }],
+    [
+      'script',
+      {
+        src: 'https://rybbit.jcjmrhjts.uk/api/script.js',
+        'data-site-id': '554e65b88847',
+        defer: ''
+      }
+    ],
   ],
 
   themeConfig: {
