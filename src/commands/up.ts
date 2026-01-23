@@ -19,15 +19,11 @@ import {
 } from "../lib/project.ts";
 import { createDevcontainerConfig, TEMPLATES } from "../lib/templates.ts";
 import { error, header, info, spinner, success, warn } from "../lib/ui.ts";
-import { ContainerStatus, type DevboxConfig } from "../types/index.ts";
-
-interface UpOptions {
-	editor?: boolean;
-	attach?: boolean;
-	rebuild?: boolean;
-	noPrompt?: boolean;
-	verbose?: boolean;
-}
+import {
+	ContainerStatus,
+	type DevboxConfig,
+	type UpOptions,
+} from "../types/index.ts";
 
 export async function upCommand(
 	projectArg: string | undefined,

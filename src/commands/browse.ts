@@ -3,11 +3,7 @@ import { configExists, loadConfig } from "../lib/config.ts";
 import { getErrorMessage } from "../lib/errors.ts";
 import { runRemoteCommand } from "../lib/ssh.ts";
 import { error, header, info, spinner } from "../lib/ui.ts";
-
-interface RemoteProject {
-	name: string;
-	branch: string;
-}
+import type { RemoteProject } from "../types/index.ts";
 
 async function getRemoteProjects(
 	host: string,

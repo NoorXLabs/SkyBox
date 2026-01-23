@@ -1,13 +1,7 @@
 // src/lib/templates.ts
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-
-export interface Template {
-	id: string;
-	name: string;
-	description: string;
-	config: object;
-}
+import type { Template } from "../types/index.ts";
 
 // Common features for all templates
 const COMMON_FEATURES = {

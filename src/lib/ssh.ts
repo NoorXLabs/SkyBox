@@ -4,7 +4,7 @@ import { appendFileSync, existsSync, readdirSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { execa } from "execa";
-import type { SSHHost } from "../types/index.ts";
+import type { SSHConfigEntry, SSHHost } from "../types/index.ts";
 import { getErrorMessage, getExecaErrorMessage } from "./errors.ts";
 
 function getSSHDir(): string {
@@ -121,14 +121,6 @@ export async function runRemoteCommand(
 	} catch (error: unknown) {
 		return { success: false, error: getExecaErrorMessage(error) };
 	}
-}
-
-export interface SSHConfigEntry {
-	name: string;
-	hostname: string;
-	user: string;
-	identityFile: string;
-	port?: number;
 }
 
 export function writeSSHConfigEntry(entry: SSHConfigEntry): {

@@ -1,11 +1,20 @@
 // src/types/index.ts
 
+// SSH types
 export interface SSHHost {
 	name: string;
 	hostname?: string;
 	user?: string;
 	port?: number;
 	identityFile?: string;
+}
+
+export interface SSHConfigEntry {
+	name: string;
+	hostname: string;
+	user: string;
+	identityFile: string;
+	port?: number;
 }
 
 export interface RemoteConfig {
@@ -115,4 +124,46 @@ export interface DetailedStatus {
 	git: GitDetails | null;
 	lock: string;
 	disk: DiskDetails;
+}
+
+// Project types
+export interface RemoteProject {
+	name: string;
+	branch: string;
+}
+
+export interface LocalProject {
+	name: string;
+	branch: string;
+	path: string;
+}
+
+// Command options types
+export interface DownOptions {
+	cleanup?: boolean;
+	force?: boolean;
+	noPrompt?: boolean;
+}
+
+export interface UpOptions {
+	editor?: boolean;
+	attach?: boolean;
+	rebuild?: boolean;
+	noPrompt?: boolean;
+	verbose?: boolean;
+}
+
+// Template types
+export interface Template {
+	id: string;
+	name: string;
+	description: string;
+	config: object;
+}
+
+// Sync types
+export interface SyncStatus {
+	exists: boolean;
+	paused: boolean;
+	status: string;
 }

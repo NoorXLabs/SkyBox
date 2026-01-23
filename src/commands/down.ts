@@ -18,13 +18,7 @@ import {
 	resolveProjectFromCwd,
 } from "../lib/project.ts";
 import { error, header, info, spinner, success, warn } from "../lib/ui.ts";
-import { ContainerStatus } from "../types/index.ts";
-
-interface DownOptions {
-	cleanup?: boolean;
-	force?: boolean;
-	noPrompt?: boolean;
-}
+import { ContainerStatus, type DownOptions } from "../types/index.ts";
 
 export async function downCommand(
 	projectArg: string | undefined,

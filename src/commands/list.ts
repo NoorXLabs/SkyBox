@@ -6,12 +6,7 @@ import { execa } from "execa";
 import { configExists } from "../lib/config.ts";
 import { PROJECTS_DIR } from "../lib/paths.ts";
 import { error, header, info } from "../lib/ui.ts";
-
-interface LocalProject {
-	name: string;
-	branch: string;
-	path: string;
-}
+import type { LocalProject } from "../types/index.ts";
 
 async function getGitBranch(projectPath: string): Promise<string> {
 	try {

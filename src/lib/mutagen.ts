@@ -1,13 +1,8 @@
 // src/lib/mutagen.ts
 import { execa } from "execa";
+import type { SyncStatus } from "../types/index.ts";
 import { getExecaErrorMessage } from "./errors.ts";
 import { MUTAGEN_PATH } from "./paths.ts";
-
-export interface SyncStatus {
-	exists: boolean;
-	paused: boolean;
-	status: string;
-}
 
 export function sessionName(project: string): string {
 	return `devbox-${project}`;
