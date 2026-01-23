@@ -1,9 +1,20 @@
 // src/commands/__tests__/status.test.ts
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execa } from "execa";
+import type { LockStatus } from "../../types/index.ts";
+
+// Mock the lock module to avoid SSH calls during tests
+const mockGetLockStatus = mock(
+	(_project: string, _config: unknown): Promise<LockStatus> =>
+		Promise.resolve({ locked: false }),
+);
+
+mock.module("../../lib/lock.ts", () => ({
+	getLockStatus: mockGetLockStatus,
+}));
 
 describe("status command helpers", () => {
 	let testDir: string;

@@ -6,13 +6,16 @@ import chalk from "chalk";
 import { execa } from "execa";
 import { configExists, loadConfig } from "../lib/config.ts";
 import { getContainerInfo, getContainerStatus } from "../lib/container.ts";
+import { getLockStatus } from "../lib/lock.ts";
 import { getSyncStatus, sessionName } from "../lib/mutagen.ts";
 import { PROJECTS_DIR } from "../lib/paths.ts";
 import { error, header } from "../lib/ui.ts";
 import {
 	type ContainerDetails,
 	ContainerStatus,
+	type DevboxConfig,
 	type GitDetails,
+	type LockStatus,
 	type ProjectSummary,
 	type SyncDetails,
 } from "../types/index.ts";
@@ -150,6 +153,16 @@ function colorSync(status: string): string {
 	}
 }
 
+function formatLockStatus(lockStatus: LockStatus): string {
+	if (!lockStatus.locked) {
+		return "unlocked";
+	}
+	if (lockStatus.ownedByMe) {
+		return "locked (this machine)";
+	}
+	return `locked (${lockStatus.info.machine})`;
+}
+
 async function getContainerDetails(
 	projectPath: string,
 ): Promise<ContainerDetails> {
@@ -242,7 +255,10 @@ async function getRemoteDiskUsage(projectName: string): Promise<string> {
 	}
 }
 
-async function getProjectSummary(projectName: string): Promise<ProjectSummary> {
+async function getProjectSummary(
+	projectName: string,
+	config: DevboxConfig | null,
+): Promise<ProjectSummary> {
 	const projectPath = join(PROJECTS_DIR, projectName);
 
 	// Run checks in parallel
@@ -254,6 +270,13 @@ async function getProjectSummary(projectName: string): Promise<ProjectSummary> {
 			getDiskUsage(projectPath),
 			getLastActive(projectPath),
 		]);
+
+	// Get lock status if config is available
+	let lockDisplay = "unavailable";
+	if (config) {
+		const lockStatus = await getLockStatus(projectName, config);
+		lockDisplay = formatLockStatus(lockStatus);
+	}
 
 	// Map container status
 	let container: ProjectSummary["container"] = "unknown";
@@ -276,7 +299,7 @@ async function getProjectSummary(projectName: string): Promise<ProjectSummary> {
 		container,
 		sync,
 		branch: gitInfo?.branch || "-",
-		lock: "n/a",
+		lock: lockDisplay,
 		lastActive,
 		size: diskUsage,
 		path: projectPath,
@@ -379,8 +402,13 @@ async function showOverview(): Promise<void> {
 		return;
 	}
 
+	// Load config for lock status checks
+	const config = loadConfig();
+
 	// Gather summaries in parallel
-	const summaries = await Promise.all(projectDirs.map(getProjectSummary));
+	const summaries = await Promise.all(
+		projectDirs.map((project) => getProjectSummary(project, config)),
+	);
 
 	header("Projects:");
 	console.log();
@@ -398,14 +426,21 @@ async function showDetailed(projectName: string): Promise<void> {
 		process.exit(1);
 	}
 
+	// Load config for lock status
+	const config = loadConfig();
+
 	// Gather all details
-	const [container, sync, git, localDisk, remoteDisk] = await Promise.all([
-		getContainerDetails(projectPath),
-		getSyncDetails(projectName),
-		getGitInfo(projectPath),
-		getDiskUsage(projectPath),
-		getRemoteDiskUsage(projectName),
-	]);
+	const [container, sync, git, localDisk, remoteDisk, lockStatus] =
+		await Promise.all([
+			getContainerDetails(projectPath),
+			getSyncDetails(projectName),
+			getGitInfo(projectPath),
+			getDiskUsage(projectPath),
+			getRemoteDiskUsage(projectName),
+			config
+				? getLockStatus(projectName, config)
+				: Promise.resolve({ locked: false } as LockStatus),
+		]);
 
 	// Print header
 	console.log();
@@ -445,7 +480,21 @@ async function showDetailed(projectName: string): Promise<void> {
 	// Lock section
 	console.log();
 	console.log(chalk.bold("Lock"));
-	console.log(`  Status:     ${chalk.dim("n/a (not implemented)")}`);
+	if (!config) {
+		console.log(`  Status:     ${chalk.dim("unavailable (no config)")}`);
+	} else if (!lockStatus.locked) {
+		console.log(`  Status:     ${chalk.green("unlocked")}`);
+	} else {
+		const statusColor = lockStatus.ownedByMe ? chalk.yellow : chalk.red;
+		const statusText = lockStatus.ownedByMe
+			? "locked (this machine)"
+			: `locked (${lockStatus.info.machine})`;
+		console.log(`  Status:     ${statusColor(statusText)}`);
+		console.log(`  Machine:    ${lockStatus.info.machine}`);
+		console.log(`  User:       ${lockStatus.info.user}`);
+		console.log(`  Timestamp:  ${lockStatus.info.timestamp}`);
+		console.log(`  PID:        ${lockStatus.info.pid}`);
+	}
 
 	// Disk section
 	console.log();
