@@ -1,13 +1,14 @@
 // src/commands/push.ts
-import inquirer from "inquirer";
-import { existsSync, mkdirSync, cpSync, rmSync } from "fs";
-import { join, resolve, basename } from "path";
+
+import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
+import { basename, join, resolve } from "node:path";
 import { execa } from "execa";
-import { loadConfig, configExists, saveConfig } from "../lib/config";
-import { runRemoteCommand } from "../lib/ssh";
-import { createSyncSession, waitForSync } from "../lib/mutagen";
-import { PROJECTS_DIR } from "../lib/paths";
-import { success, error, info, header, spinner } from "../lib/ui";
+import inquirer from "inquirer";
+import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
+import { createSyncSession, waitForSync } from "../lib/mutagen.ts";
+import { PROJECTS_DIR } from "../lib/paths.ts";
+import { runRemoteCommand } from "../lib/ssh.ts";
+import { error, header, info, spinner, success } from "../lib/ui.ts";
 
 async function checkRemoteProjectExists(
 	host: string,

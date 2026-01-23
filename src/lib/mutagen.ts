@@ -1,6 +1,6 @@
 // src/lib/mutagen.ts
 import { execa } from "execa";
-import { MUTAGEN_PATH } from "./paths";
+import { MUTAGEN_PATH } from "./paths.ts";
 
 export interface SyncStatus {
 	exists: boolean;
@@ -54,7 +54,10 @@ export async function getSyncStatus(project: string): Promise<SyncStatus> {
 		// List session by name directly
 		const result = await execa(MUTAGEN_PATH, ["sync", "list", name]);
 
-		if (!result.stdout || result.stdout.includes("No synchronization sessions found")) {
+		if (
+			!result.stdout ||
+			result.stdout.includes("No synchronization sessions found")
+		) {
 			return { exists: false, paused: false, status: "none" };
 		}
 
@@ -65,7 +68,10 @@ export async function getSyncStatus(project: string): Promise<SyncStatus> {
 		return { exists: true, paused, status };
 	} catch (err: any) {
 		// If session not found, mutagen exits with error
-		if (err.stderr?.includes("unable to locate") || err.message?.includes("unable to locate")) {
+		if (
+			err.stderr?.includes("unable to locate") ||
+			err.message?.includes("unable to locate")
+		) {
 			return { exists: false, paused: false, status: "none" };
 		}
 		return { exists: false, paused: false, status: "error" };

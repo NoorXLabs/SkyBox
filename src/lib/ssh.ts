@@ -1,9 +1,10 @@
 // src/lib/ssh.ts
-import { existsSync, readFileSync, readdirSync, appendFileSync, writeFileSync } from "fs";
-import { join } from "path";
-import { homedir } from "os";
+
+import { appendFileSync, existsSync, readdirSync, readFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { execa } from "execa";
-import type { SSHHost } from "../types";
+import type { SSHHost } from "../types/index.ts";
 
 function getSSHDir(): string {
 	const home = process.env.HOME || homedir();
@@ -129,17 +130,23 @@ export interface SSHConfigEntry {
 	port?: number;
 }
 
-export function writeSSHConfigEntry(entry: SSHConfigEntry): { success: boolean; error?: string } {
+export function writeSSHConfigEntry(entry: SSHConfigEntry): {
+	success: boolean;
+	error?: string;
+} {
 	const configPath = join(getSSHDir(), "config");
 
 	// Check if entry already exists
 	const existingHosts = parseSSHConfig();
 	const existingHost = existingHosts.find(
-		(h) => h.name.toLowerCase() === entry.name.toLowerCase()
+		(h) => h.name.toLowerCase() === entry.name.toLowerCase(),
 	);
 
 	if (existingHost) {
-		return { success: false, error: `Host "${entry.name}" already exists in SSH config` };
+		return {
+			success: false,
+			error: `Host "${entry.name}" already exists in SSH config`,
+		};
 	}
 
 	// Build the config entry
@@ -154,7 +161,7 @@ Host ${entry.name}
 		// Ensure .ssh directory exists
 		const sshDir = getSSHDir();
 		if (!existsSync(sshDir)) {
-			const { mkdirSync } = require("fs");
+			const { mkdirSync } = require("node:fs");
 			mkdirSync(sshDir, { mode: 0o700 });
 		}
 

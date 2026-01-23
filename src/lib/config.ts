@@ -1,12 +1,13 @@
 // src/lib/config.ts
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
-import { dirname } from "path";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
 import { parse, stringify } from "yaml";
-import type { DevboxConfig } from "../types";
+import type { DevboxConfig } from "../types/index.ts";
 
 // Dynamic import to get fresh DEVBOX_HOME on each call
 function getConfigPath(): string {
-	const home = process.env.DEVBOX_HOME || `${require("os").homedir()}/.devbox`;
+	const home =
+		process.env.DEVBOX_HOME || `${require("node:os").homedir()}/.devbox`;
 	return `${home}/config.yaml`;
 }
 

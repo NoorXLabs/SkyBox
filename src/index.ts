@@ -1,14 +1,14 @@
 // src/index.ts
 import { program } from "commander";
-import { initCommand } from "./commands/init";
-import { browseCommand } from "./commands/browse";
-import { listCommand } from "./commands/list";
-import { cloneCommand } from "./commands/clone";
-import { pushCommand } from "./commands/push";
-import { upCommand } from "./commands/up";
-import { downCommand } from "./commands/down";
-import { editorCommand } from "./commands/editor";
-import { statusCommand } from "./commands/status";
+import { browseCommand } from "./commands/browse.ts";
+import { cloneCommand } from "./commands/clone.ts";
+import { downCommand } from "./commands/down.ts";
+import { editorCommand } from "./commands/editor.ts";
+import { initCommand } from "./commands/init.ts";
+import { listCommand } from "./commands/list.ts";
+import { pushCommand } from "./commands/push.ts";
+import { statusCommand } from "./commands/status.ts";
+import { upCommand } from "./commands/up.ts";
 
 program
 	.name("devbox")
@@ -38,31 +38,31 @@ program
 	.action(pushCommand);
 
 program
-  .command("up [project]")
-  .description("Start a development container")
-  .option("-e, --editor", "Open in editor after start")
-  .option("-a, --attach", "Attach to shell after start")
-  .option("-r, --rebuild", "Force container rebuild")
-  .option("--no-prompt", "Non-interactive mode")
-  .option("-v, --verbose", "Show detailed output")
-  .action(upCommand);
+	.command("up [project]")
+	.description("Start a development container")
+	.option("-e, --editor", "Open in editor after start")
+	.option("-a, --attach", "Attach to shell after start")
+	.option("-r, --rebuild", "Force container rebuild")
+	.option("--no-prompt", "Non-interactive mode")
+	.option("-v, --verbose", "Show detailed output")
+	.action(upCommand);
 
 program
-  .command("down [project]")
-  .description("Stop a development container")
-  .option("-c, --cleanup", "Remove container and volumes")
-  .option("-f, --force", "Force stop even on errors")
-  .option("--no-prompt", "Non-interactive mode")
-  .action(downCommand);
+	.command("down [project]")
+	.description("Stop a development container")
+	.option("-c, --cleanup", "Remove container and volumes")
+	.option("-f, --force", "Force stop even on errors")
+	.option("--no-prompt", "Non-interactive mode")
+	.action(downCommand);
 
 program
-  .command("editor")
-  .description("Change default editor")
-  .action(editorCommand);
+	.command("editor")
+	.description("Change default editor")
+	.action(editorCommand);
 
 program
-  .command("status [project]")
-  .description("Show project status")
-  .action(statusCommand);
+	.command("status [project]")
+	.description("Show project status")
+	.action(statusCommand);
 
 program.parse();

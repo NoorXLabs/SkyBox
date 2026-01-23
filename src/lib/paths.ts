@@ -1,8 +1,9 @@
 // src/lib/paths.ts
-import { homedir } from "os";
-import { join } from "path";
+import { homedir } from "node:os";
+import { join } from "node:path";
 
-export const DEVBOX_HOME = process.env.DEVBOX_HOME || join(homedir(), ".devbox");
+export const DEVBOX_HOME =
+	process.env.DEVBOX_HOME || join(homedir(), ".devbox");
 export const CONFIG_PATH = join(DEVBOX_HOME, "config.yaml");
 export const PROJECTS_DIR = join(DEVBOX_HOME, "Projects");
 export const BIN_DIR = join(DEVBOX_HOME, "bin");

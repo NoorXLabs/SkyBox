@@ -1,12 +1,18 @@
 // src/commands/clone.ts
+
+import { existsSync, mkdirSync, rmSync } from "node:fs";
+import { join } from "node:path";
 import inquirer from "inquirer";
-import { existsSync, mkdirSync, rmSync } from "fs";
-import { join } from "path";
-import { loadConfig, configExists, saveConfig } from "../lib/config";
-import { runRemoteCommand } from "../lib/ssh";
-import { createSyncSession, waitForSync, getSyncStatus, resumeSync, terminateSession } from "../lib/mutagen";
-import { PROJECTS_DIR } from "../lib/paths";
-import { success, error, info, header, spinner } from "../lib/ui";
+import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
+import {
+	createSyncSession,
+	getSyncStatus,
+	terminateSession,
+	waitForSync,
+} from "../lib/mutagen.ts";
+import { PROJECTS_DIR } from "../lib/paths.ts";
+import { runRemoteCommand } from "../lib/ssh.ts";
+import { error, header, info, spinner, success } from "../lib/ui.ts";
 
 async function checkRemoteProjectExists(
 	host: string,
@@ -155,7 +161,7 @@ export async function cloneCommand(project: string): Promise<void> {
 
 	if (startContainer) {
 		// Import and run up command
-		const { upCommand } = await import("./up");
+		const { upCommand } = await import("./up.ts");
 		await upCommand(project, {});
 	} else {
 		info(`Run 'devbox up ${project}' when ready to start working.`);

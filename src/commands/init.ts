@@ -1,28 +1,29 @@
 // src/commands/init.ts
-import inquirer from "inquirer";
-import { existsSync, mkdirSync } from "fs";
+
+import { mkdirSync } from "node:fs";
 import { execa } from "execa";
-import { configExists, loadConfig, saveConfig } from "../lib/config";
+import inquirer from "inquirer";
+import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
+import { downloadMutagen, isMutagenInstalled } from "../lib/download.ts";
+import { BIN_DIR, DEVBOX_HOME, PROJECTS_DIR } from "../lib/paths.ts";
 import {
-	parseSSHConfig,
-	findSSHKeys,
-	testConnection,
 	copyKey,
+	findSSHKeys,
+	parseSSHConfig,
 	runRemoteCommand,
+	testConnection,
 	writeSSHConfigEntry,
-} from "../lib/ssh";
-import { isMutagenInstalled, downloadMutagen } from "../lib/download";
-import { DEVBOX_HOME, PROJECTS_DIR, BIN_DIR } from "../lib/paths";
+} from "../lib/ssh.ts";
 import {
-	success,
 	error,
-	warn,
-	info,
 	header,
-	spinner,
+	info,
 	printNextSteps,
-} from "../lib/ui";
-import { DEFAULT_IGNORE, type DevboxConfig } from "../types";
+	spinner,
+	success,
+	warn,
+} from "../lib/ui.ts";
+import { DEFAULT_IGNORE, type DevboxConfig } from "../types/index.ts";
 
 async function checkDependencies(): Promise<boolean> {
 	header("Checking dependencies...");
@@ -164,7 +165,7 @@ async function configureRemote(): Promise<{
 				name: friendlyName,
 				hostname,
 				user: username,
-				identityFile: identityFile!,
+				identityFile: identityFile ?? "",
 			});
 
 			if (writeResult.success) {
@@ -193,7 +194,7 @@ Host ${friendlyName}
 
 			if (shouldCopy) {
 				info("Running ssh-copy-id (enter your password when prompted)...");
-				const copyResult = await copyKey(sshConnectString, identityFile!);
+				const copyResult = await copyKey(sshConnectString, identityFile ?? "");
 
 				if (copyResult.success) {
 					success("SSH key installed");
@@ -214,7 +215,7 @@ Host ${friendlyName}
 						name: friendlyName,
 						hostname,
 						user: username,
-						identityFile: identityFile!,
+						identityFile: identityFile ?? "",
 					});
 
 					if (writeResult.success) {
@@ -312,7 +313,9 @@ Host ${friendlyName}
 		);
 		if (lsResult.stdout?.trim()) {
 			info("Existing projects on remote:");
-			lsResult.stdout.split("\n").forEach((p) => console.log(`    ${p}`));
+			lsResult.stdout.split("\n").forEach((p) => {
+				console.log(`    ${p}`);
+			});
 		}
 	}
 

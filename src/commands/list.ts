@@ -1,10 +1,11 @@
 // src/commands/list.ts
-import { existsSync, readdirSync, statSync } from "fs";
-import { join } from "path";
+
+import { existsSync, readdirSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { execa } from "execa";
-import { configExists } from "../lib/config";
-import { PROJECTS_DIR } from "../lib/paths";
-import { error, info, header } from "../lib/ui";
+import { configExists } from "../lib/config.ts";
+import { PROJECTS_DIR } from "../lib/paths.ts";
+import { error, header, info } from "../lib/ui.ts";
 
 interface LocalProject {
 	name: string;

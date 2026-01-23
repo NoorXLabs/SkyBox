@@ -1,16 +1,14 @@
 // src/lib/download.ts
 import {
+	chmodSync,
+	createWriteStream,
 	existsSync,
 	mkdirSync,
-	createWriteStream,
-	chmodSync,
 	unlinkSync,
-} from "fs";
-import { join } from "path";
-import { pipeline } from "stream/promises";
-import { createGunzip } from "zlib";
+} from "node:fs";
+import { join } from "node:path";
 import { extract } from "tar";
-import { BIN_DIR, MUTAGEN_PATH } from "./paths";
+import { BIN_DIR, MUTAGEN_PATH } from "./paths.ts";
 
 const MUTAGEN_VERSION = "0.17.5";
 const MUTAGEN_REPO = "mutagen-io/mutagen";

@@ -1,7 +1,7 @@
 // src/commands/browse.ts
-import { loadConfig, configExists } from "../lib/config";
-import { runRemoteCommand } from "../lib/ssh";
-import { error, info, header, spinner } from "../lib/ui";
+import { configExists, loadConfig } from "../lib/config.ts";
+import { runRemoteCommand } from "../lib/ssh.ts";
+import { error, header, info, spinner } from "../lib/ui.ts";
 
 interface RemoteProject {
 	name: string;
