@@ -118,7 +118,7 @@ async function createFromTemplate(
 	const { builtIn, user } = getAllTemplates();
 
 	// Build choices with separators
-	type ChoiceItem = { name: string; value: string } | inquirer.Separator;
+	type ChoiceItem = { name: string; value: string } | InstanceType<typeof inquirer.Separator>;
 	const choices: ChoiceItem[] = [];
 
 	// Built-in templates
