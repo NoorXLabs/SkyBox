@@ -167,3 +167,15 @@ export interface SyncStatus {
 	paused: boolean;
 	status: string;
 }
+
+// Lock types
+export interface LockInfo {
+	machine: string; // hostname of machine holding lock
+	user: string; // username
+	timestamp: string; // ISO 8601 datetime
+	pid: number; // process ID
+}
+
+export type LockStatus =
+	| { locked: false }
+	| { locked: true; ownedByMe: boolean; info: LockInfo };
