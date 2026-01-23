@@ -89,7 +89,7 @@ export default defineConfig({
 
     footer: {
       message: 'Released under the Apache License 2.0.',
-      copyright: `Copyright ${new Date().getFullYear()} Noor Chasib`,
+      copyright: `© ${new Date().getFullYear()} Noor Chasib`,
     },
 
     search: {
