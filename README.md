@@ -156,4 +156,4 @@ All templates include Docker-outside-of-Docker, SSH passthrough, and Zsh.
 
 ## License
 
-MIT
+Apache License 2.0
