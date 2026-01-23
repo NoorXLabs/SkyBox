@@ -10,6 +10,7 @@ import { createSyncSession, waitForSync } from "../lib/mutagen.ts";
 import { PROJECTS_DIR } from "../lib/paths.ts";
 import { runRemoteCommand } from "../lib/ssh.ts";
 import { error, header, info, spinner, success } from "../lib/ui.ts";
+import { upCommand } from "./up.ts";
 
 async function checkRemoteProjectExists(
 	host: string,
@@ -213,12 +214,9 @@ export async function pushCommand(
 	]);
 
 	if (startContainer) {
-		info(
-			"Container startup not yet implemented. Run 'devbox up " +
-				projectName +
-				"' when ready.",
-		);
+		await upCommand(projectName, {});
 	} else {
+		info(`Project saved to ${localPath}`);
 		info(`Run 'devbox up ${projectName}' when ready to start working.`);
 	}
 }
