@@ -29,7 +29,6 @@ This document consolidates all TODOs, incomplete features, future work, and hous
 
 | Feature | Location | Issue |
 |---------|----------|-------|
-| Auto container startup after push | `src/commands/push.ts:216-220` | Stub message: "Container startup not yet implemented" |
 | Lock status in status command | `src/commands/status.ts:487` | Shows "unavailable" when config not loaded |
 
 ### Active Worktrees (In Progress)
@@ -48,7 +47,7 @@ This document consolidates all TODOs, incomplete features, future work, and hous
 
 | File | Line | Description |
 |------|------|-------------|
-| `src/commands/push.ts` | 216-220 | Container startup not yet implemented after push |
+| *(none)* | - | - |
 
 ### In Planning Documents (Resolved)
 
@@ -216,7 +215,7 @@ From `SPEC.md` lines 528-645 (Nice-to-Haves / Exploratory):
 | `browse` | ✅ Complete | - |
 | `list` | ✅ Complete | - |
 | `clone` | ✅ Complete | - |
-| `push` | ⚠️ Partial (no auto-start) | Medium |
+| `push` | ✅ Complete | - |
 | `up` | ✅ Complete | - |
 | `down` | ✅ Complete | - |
 | `status` | ✅ Complete | - |
@@ -229,4 +228,4 @@ From `SPEC.md` lines 528-645 (Nice-to-Haves / Exploratory):
 
 ---
 
-*Last updated: 2026-01-22*
+*Last updated: 2026-01-23*
