@@ -5,6 +5,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { execa } from "execa";
 import type { SSHHost } from "../types/index.ts";
+import { getErrorMessage, getExecaErrorMessage } from "./errors.ts";
 
 function getSSHDir(): string {
 	const home = process.env.HOME || homedir();
@@ -87,8 +88,8 @@ export async function testConnection(
 		args.push(host, "echo", "ok");
 		await execa("ssh", args);
 		return { success: true };
-	} catch (error: any) {
-		return { success: false, error: error.stderr || error.message };
+	} catch (error: unknown) {
+		return { success: false, error: getExecaErrorMessage(error) };
 	}
 }
 
@@ -99,8 +100,8 @@ export async function copyKey(
 	try {
 		await execa("ssh-copy-id", ["-i", keyPath, host], { stdio: "inherit" });
 		return { success: true };
-	} catch (error: any) {
-		return { success: false, error: error.message };
+	} catch (error: unknown) {
+		return { success: false, error: getErrorMessage(error) };
 	}
 }
 
@@ -117,8 +118,8 @@ export async function runRemoteCommand(
 		args.push(host, command);
 		const result = await execa("ssh", args);
 		return { success: true, stdout: result.stdout };
-	} catch (error: any) {
-		return { success: false, error: error.stderr || error.message };
+	} catch (error: unknown) {
+		return { success: false, error: getExecaErrorMessage(error) };
 	}
 }
 
@@ -168,7 +169,7 @@ Host ${entry.name}
 		// Append to config file
 		appendFileSync(configPath, configEntry, { mode: 0o600 });
 		return { success: true };
-	} catch (error: any) {
-		return { success: false, error: error.message };
+	} catch (error: unknown) {
+		return { success: false, error: getErrorMessage(error) };
 	}
 }

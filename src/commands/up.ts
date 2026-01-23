@@ -19,7 +19,7 @@ import {
 } from "../lib/project.ts";
 import { createDevcontainerConfig, TEMPLATES } from "../lib/templates.ts";
 import { error, header, info, spinner, success, warn } from "../lib/ui.ts";
-import { ContainerStatus } from "../types/index.ts";
+import { ContainerStatus, type DevboxConfig } from "../types/index.ts";
 
 interface UpOptions {
 	editor?: boolean;
@@ -256,7 +256,7 @@ async function startContainerWithRetry(
 
 async function handlePostStart(
 	projectPath: string,
-	config: any,
+	config: DevboxConfig,
 	options: UpOptions,
 ): Promise<void> {
 	// Handle flags for non-interactive mode

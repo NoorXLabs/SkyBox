@@ -1,5 +1,6 @@
 // src/commands/browse.ts
 import { configExists, loadConfig } from "../lib/config.ts";
+import { getErrorMessage } from "../lib/errors.ts";
 import { runRemoteCommand } from "../lib/ssh.ts";
 import { error, header, info, spinner } from "../lib/ui.ts";
 
@@ -84,9 +85,9 @@ export async function browseCommand(): Promise<void> {
 		} else {
 			printProjects(projects, config.remote.host, config.remote.base_path);
 		}
-	} catch (err: any) {
+	} catch (err: unknown) {
 		spin.fail("Failed to connect to remote");
-		error(err.message || "Check your SSH config.");
+		error(getErrorMessage(err) || "Check your SSH config.");
 		process.exit(1);
 	}
 }

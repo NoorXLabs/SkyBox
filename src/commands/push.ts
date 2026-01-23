@@ -5,6 +5,7 @@ import { basename, join, resolve } from "node:path";
 import { execa } from "execa";
 import inquirer from "inquirer";
 import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
+import { getErrorMessage } from "../lib/errors.ts";
 import { createSyncSession, waitForSync } from "../lib/mutagen.ts";
 import { PROJECTS_DIR } from "../lib/paths.ts";
 import { runRemoteCommand } from "../lib/ssh.ts";
@@ -82,9 +83,9 @@ export async function pushCommand(
 			try {
 				await initGit(absolutePath);
 				gitSpin.succeed("Git initialized");
-			} catch (err: any) {
+			} catch (err: unknown) {
 				gitSpin.fail("Failed to initialize git");
-				error(err.message);
+				error(getErrorMessage(err));
 				process.exit(1);
 			}
 		}

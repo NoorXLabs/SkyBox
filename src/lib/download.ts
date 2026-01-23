@@ -8,6 +8,7 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 import { extract } from "tar";
+import { getErrorMessage } from "./errors.ts";
 import { BIN_DIR, MUTAGEN_PATH } from "./paths.ts";
 
 const MUTAGEN_VERSION = "0.17.5";
@@ -99,7 +100,7 @@ export async function downloadMutagen(
 
 		onProgress?.(`Installed mutagen v${MUTAGEN_VERSION}`);
 		return { success: true };
-	} catch (error: any) {
-		return { success: false, error: error.message };
+	} catch (error: unknown) {
+		return { success: false, error: getErrorMessage(error) };
 	}
 }

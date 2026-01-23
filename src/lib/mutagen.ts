@@ -1,5 +1,6 @@
 // src/lib/mutagen.ts
 import { execa } from "execa";
+import { getExecaErrorMessage } from "./errors.ts";
 import { MUTAGEN_PATH } from "./paths.ts";
 
 export interface SyncStatus {
@@ -42,8 +43,8 @@ export async function createSyncSession(
 	try {
 		await execa(MUTAGEN_PATH, args);
 		return { success: true };
-	} catch (err: any) {
-		return { success: false, error: err.stderr || err.message };
+	} catch (error: unknown) {
+		return { success: false, error: getExecaErrorMessage(error) };
 	}
 }
 
@@ -66,12 +67,10 @@ export async function getSyncStatus(project: string): Promise<SyncStatus> {
 		const status = paused ? "paused" : "syncing";
 
 		return { exists: true, paused, status };
-	} catch (err: any) {
+	} catch (error: unknown) {
 		// If session not found, mutagen exits with error
-		if (
-			err.stderr?.includes("unable to locate") ||
-			err.message?.includes("unable to locate")
-		) {
+		const message = getExecaErrorMessage(error);
+		if (message.includes("unable to locate")) {
 			return { exists: false, paused: false, status: "none" };
 		}
 		return { exists: false, paused: false, status: "error" };
@@ -89,8 +88,8 @@ export async function waitForSync(
 		await execa(MUTAGEN_PATH, ["sync", "flush", name]);
 		onProgress?.("Sync complete");
 		return { success: true };
-	} catch (err: any) {
-		return { success: false, error: err.stderr || err.message };
+	} catch (error: unknown) {
+		return { success: false, error: getExecaErrorMessage(error) };
 	}
 }
 
@@ -102,8 +101,8 @@ export async function pauseSync(
 	try {
 		await execa(MUTAGEN_PATH, ["sync", "pause", name]);
 		return { success: true };
-	} catch (err: any) {
-		return { success: false, error: err.stderr || err.message };
+	} catch (error: unknown) {
+		return { success: false, error: getExecaErrorMessage(error) };
 	}
 }
 
@@ -115,8 +114,8 @@ export async function resumeSync(
 	try {
 		await execa(MUTAGEN_PATH, ["sync", "resume", name]);
 		return { success: true };
-	} catch (err: any) {
-		return { success: false, error: err.stderr || err.message };
+	} catch (error: unknown) {
+		return { success: false, error: getExecaErrorMessage(error) };
 	}
 }
 
@@ -128,7 +127,7 @@ export async function terminateSession(
 	try {
 		await execa(MUTAGEN_PATH, ["sync", "terminate", name]);
 		return { success: true };
-	} catch (err: any) {
-		return { success: false, error: err.stderr || err.message };
+	} catch (error: unknown) {
+		return { success: false, error: getExecaErrorMessage(error) };
 	}
 }

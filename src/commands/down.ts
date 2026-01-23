@@ -9,6 +9,7 @@ import {
 	removeContainer,
 	stopContainer,
 } from "../lib/container.ts";
+import { getErrorMessage } from "../lib/errors.ts";
 import { pauseSync } from "../lib/mutagen.ts";
 import {
 	getLocalProjects,
@@ -189,9 +190,9 @@ export async function downCommand(
 				`Remote copy preserved at ${config.remote.host}:${config.remote.base_path}/${project}`,
 			);
 			info(`Run 'devbox clone ${project}' to restore locally.`);
-		} catch (err: any) {
+		} catch (err: unknown) {
 			rmSpin.fail("Failed to remove local files");
-			error(err.message);
+			error(getErrorMessage(err));
 		}
 	} else {
 		// Just pause sync if not removing

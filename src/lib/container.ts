@@ -8,6 +8,7 @@ import {
 	type ContainerResult,
 	ContainerStatus,
 } from "../types/index.ts";
+import { getExecaErrorMessage, hasExitCode } from "./errors.ts";
 
 // Get container status for a local project
 export async function getContainerStatus(
@@ -74,8 +75,8 @@ export async function startContainer(
 	try {
 		const _result = await execa("devcontainer", args, { stdio: "inherit" });
 		return { success: true };
-	} catch (err: any) {
-		return { success: false, error: err.stderr || err.message };
+	} catch (error: unknown) {
+		return { success: false, error: getExecaErrorMessage(error) };
 	}
 }
 
@@ -98,8 +99,8 @@ export async function stopContainer(
 
 		await execa("docker", ["stop", containerId]);
 		return { success: true, containerId };
-	} catch (err: any) {
-		return { success: false, error: err.stderr || err.message };
+	} catch (error: unknown) {
+		return { success: false, error: getExecaErrorMessage(error) };
 	}
 }
 
@@ -134,8 +135,8 @@ export async function removeContainer(
 		await execa("docker", removeArgs);
 
 		return { success: true, containerId };
-	} catch (err: any) {
-		return { success: false, error: err.stderr || err.message };
+	} catch (error: unknown) {
+		return { success: false, error: getExecaErrorMessage(error) };
 	}
 }
 
@@ -216,8 +217,8 @@ export async function openInEditor(
 			await execa(editor, [projectPath]);
 		}
 		return { success: true };
-	} catch (err: any) {
-		return { success: false, error: err.stderr || err.message };
+	} catch (error: unknown) {
+		return { success: false, error: getExecaErrorMessage(error) };
 	}
 }
 
@@ -234,12 +235,12 @@ export async function attachToShell(
 			},
 		);
 		return { success: true };
-	} catch (err: any) {
+	} catch (error: unknown) {
 		// Exit code 130 is normal Ctrl+C exit
-		if (err.exitCode === 130) {
+		if (hasExitCode(error, 130)) {
 			return { success: true };
 		}
-		return { success: false, error: err.stderr || err.message };
+		return { success: false, error: getExecaErrorMessage(error) };
 	}
 }
 
