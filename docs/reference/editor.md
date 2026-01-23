@@ -74,7 +74,7 @@ Default editor updated to sublime.
 
 ## Configuration
 
-The editor setting is stored in `~/.devbox/config.json`. You can also set it during initial setup with `devbox init`.
+The editor setting is stored in `~/.devbox/config.yaml`. You can also set it during initial setup with `devbox init`.
 
 ## See Also
 

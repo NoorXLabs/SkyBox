@@ -4,12 +4,7 @@ export default defineConfig({
   title: 'DevBox',
   description: 'Development environment management CLI',
 
-  head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
-  ],
-
   themeConfig: {
-    logo: '/logo.svg',
 
     nav: [
       { text: 'Guide', link: '/guide/', activeMatch: '/guide/' },
@@ -31,8 +26,6 @@ export default defineConfig({
           text: 'Core Concepts',
           items: [
             { text: 'Concepts Overview', link: '/guide/concepts' },
-            { text: 'Containers', link: '/guide/containers' },
-            { text: 'Configuration', link: '/guide/configuration' },
           ],
         },
         {
@@ -60,6 +53,7 @@ export default defineConfig({
             { text: 'devbox status', link: '/reference/status' },
             { text: 'devbox editor', link: '/reference/editor' },
             { text: 'devbox rm', link: '/reference/rm' },
+            { text: 'Configuration', link: '/reference/configuration' },
           ],
         },
       ],
@@ -77,12 +71,12 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/your-org/devbox' },
+      { icon: 'github', link: 'https://github.com/noorchasib/DevBox' },
     ],
 
     footer: {
       message: 'Released under the MIT License.',
-      copyright: 'Copyright 2024-present',
+      copyright: 'Copyright 2024-2026',
     },
 
     search: {

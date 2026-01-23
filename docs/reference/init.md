@@ -96,7 +96,7 @@ Next steps:
 
 ## Configuration File
 
-After running `init`, DevBox creates a configuration file at `~/.devbox/config.json` containing:
+After running `init`, DevBox creates a configuration file at `~/.devbox/config.yaml` containing:
 
 - Remote server host and base path
 - Default editor
