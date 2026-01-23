@@ -36,7 +36,7 @@ DevBox stores your code on a remote server while running containers locally. You
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/devbox.git
+git clone https://github.com/NoorChasib/DevBox.git
 cd devbox
 
 # Install dependencies
