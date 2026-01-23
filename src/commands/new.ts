@@ -1,7 +1,10 @@
 // src/commands/new.ts
 import inquirer from "inquirer";
 import { configExists, loadConfig } from "../lib/config.ts";
-import { validateProjectName } from "../lib/projectTemplates.ts";
+import {
+	getAllTemplates,
+	validateProjectName,
+} from "../lib/projectTemplates.ts";
 import { runRemoteCommand } from "../lib/ssh.ts";
 import { error, header, info, spinner, success } from "../lib/ui.ts";
 import type { DevboxConfig } from "../types/index.ts";
@@ -75,14 +78,163 @@ async function createEmptyProject(
 	config: DevboxConfig,
 	projectName: string,
 ): Promise<void> {
-	// TODO: Implement in Task 7
-	info(`Creating empty project: ${projectName}`);
+	const remotePath = `${config.remote.base_path}/${projectName}`;
+
+	// Create project directory with devcontainer
+	const createSpin = spinner("Creating project on remote...");
+
+	const devcontainerJson = JSON.stringify(
+		{
+			name: projectName,
+			image: "mcr.microsoft.com/devcontainers/base:ubuntu",
+		},
+		null,
+		2,
+	);
+
+	// Escape the JSON for shell
+	const escapedJson = devcontainerJson.replace(/'/g, "'\\''");
+
+	const createCmd = `mkdir -p ${remotePath}/.devcontainer && echo '${escapedJson}' > ${remotePath}/.devcontainer/devcontainer.json`;
+
+	const createResult = await runRemoteCommand(config.remote.host, createCmd);
+
+	if (!createResult.success) {
+		createSpin.fail("Failed to create project");
+		error(createResult.error || "Unknown error");
+		process.exit(1);
+	}
+
+	createSpin.succeed("Project created on remote");
+
+	// Offer to clone locally
+	await offerClone(config, projectName);
 }
 
 async function createFromTemplate(
 	config: DevboxConfig,
 	projectName: string,
 ): Promise<void> {
-	// TODO: Implement in Task 8
-	info(`Creating from template: ${projectName}`);
+	const { builtIn, user } = getAllTemplates();
+
+	// Build choices with separators
+	type ChoiceItem = { name: string; value: string } | inquirer.Separator;
+	const choices: ChoiceItem[] = [];
+
+	// Built-in templates
+	if (builtIn.length > 0) {
+		choices.push(new inquirer.Separator("──── Built-in ────"));
+		for (const t of builtIn) {
+			choices.push({ name: t.name, value: `builtin:${t.id}` });
+		}
+	}
+
+	// User templates
+	if (user.length > 0) {
+		choices.push(new inquirer.Separator("──── Custom ────"));
+		for (const t of user) {
+			choices.push({ name: t.name, value: `user:${t.name}` });
+		}
+	}
+
+	// Git URL option
+	choices.push(new inquirer.Separator("────────────────"));
+	choices.push({ name: "Enter git URL...", value: "custom" });
+
+	const { templateChoice } = await inquirer.prompt([
+		{
+			type: "list",
+			name: "templateChoice",
+			message: "Select a template:",
+			choices,
+		},
+	]);
+
+	let templateUrl: string;
+
+	if (templateChoice === "custom") {
+		const { gitUrl } = await inquirer.prompt([
+			{
+				type: "input",
+				name: "gitUrl",
+				message: "Git repository URL:",
+				validate: (input: string) => {
+					if (!input.trim()) return "URL cannot be empty";
+					if (!input.startsWith("https://") && !input.startsWith("git@")) {
+						return "URL must start with https:// or git@";
+					}
+					return true;
+				},
+			},
+		]);
+		templateUrl = gitUrl;
+	} else if (templateChoice.startsWith("builtin:")) {
+		const id = templateChoice.replace("builtin:", "");
+		const template = builtIn.find((t) => t.id === id);
+		if (!template) {
+			error("Template not found");
+			process.exit(1);
+		}
+		templateUrl = template.url;
+	} else {
+		const name = templateChoice.replace("user:", "");
+		const template = user.find((t) => t.name === name);
+		if (!template) {
+			error("Template not found");
+			process.exit(1);
+		}
+		templateUrl = template.url;
+	}
+
+	// Ask about git history for custom URLs
+	let keepHistory = false;
+	if (templateChoice === "custom") {
+		const { historyChoice } = await inquirer.prompt([
+			{
+				type: "list",
+				name: "historyChoice",
+				message: "Git history:",
+				choices: [
+					{ name: "Start fresh (recommended)", value: "fresh" },
+					{ name: "Keep original history", value: "keep" },
+				],
+			},
+		]);
+		keepHistory = historyChoice === "keep";
+	}
+
+	await cloneTemplateToRemote(config, projectName, templateUrl, keepHistory);
+}
+
+async function cloneTemplateToRemote(
+	config: DevboxConfig,
+	projectName: string,
+	templateUrl: string,
+	keepHistory: boolean,
+): Promise<void> {
+	// TODO: Implement in Task 9
+	info(`Cloning ${templateUrl} to ${projectName} (keepHistory: ${keepHistory})`);
+}
+
+async function offerClone(
+	_config: DevboxConfig,
+	projectName: string,
+): Promise<void> {
+	console.log();
+	const { shouldClone } = await inquirer.prompt([
+		{
+			type: "confirm",
+			name: "shouldClone",
+			message: "Clone this project locally now?",
+			default: true,
+		},
+	]);
+
+	if (shouldClone) {
+		const { cloneCommand } = await import("./clone.ts");
+		await cloneCommand(projectName);
+	} else {
+		success(`Project '${projectName}' created on remote`);
+		info(`Run 'devbox clone ${projectName}' to clone locally.`);
+	}
 }
