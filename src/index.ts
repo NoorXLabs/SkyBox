@@ -8,6 +8,7 @@ import { editorCommand } from "./commands/editor.ts";
 import { initCommand } from "./commands/init.ts";
 import { listCommand } from "./commands/list.ts";
 import { pushCommand } from "./commands/push.ts";
+import { rmCommand } from "./commands/rm.ts";
 import { statusCommand } from "./commands/status.ts";
 import { upCommand } from "./commands/up.ts";
 
@@ -65,5 +66,11 @@ program
 	.command("status [project]")
 	.description("Show project status")
 	.action(statusCommand);
+
+program
+	.command("rm <project>")
+	.description("Remove project locally (keeps remote)")
+	.option("-f, --force", "Skip confirmation prompt")
+	.action(rmCommand);
 
 program.parse();

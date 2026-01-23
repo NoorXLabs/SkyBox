@@ -10,7 +10,8 @@ import {
 	stopContainer,
 } from "../lib/container.ts";
 import { getErrorMessage } from "../lib/errors.ts";
-import { pauseSync } from "../lib/mutagen.ts";
+import { releaseLock } from "../lib/lock.ts";
+import { pauseSync, waitForSync } from "../lib/mutagen.ts";
 import {
 	getLocalProjects,
 	getProjectPath,
@@ -85,6 +86,15 @@ export async function downCommand(
 	if (containerStatus === ContainerStatus.NotFound) {
 		info("No container found for this project.");
 	} else {
+		// Flush sync before stopping container
+		const syncSpin = spinner("Syncing pending changes...");
+		const syncResult = await waitForSync(project ?? "");
+		if (syncResult.success) {
+			syncSpin.succeed("Sync complete");
+		} else {
+			syncSpin.warn("Could not flush sync");
+		}
+
 		// Stop the container
 		const stopSpin = spinner("Stopping container...");
 
@@ -101,6 +111,14 @@ export async function downCommand(
 			}
 		} else {
 			stopSpin.succeed("Container already stopped");
+		}
+
+		// Release lock after container stopped
+		const lockResult = await releaseLock(project ?? "", config);
+		if (lockResult.success) {
+			success("Lock released");
+		} else {
+			warn(`Could not release lock: ${lockResult.error}`);
 		}
 	}
 
