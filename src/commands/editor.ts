@@ -29,7 +29,7 @@ export async function editorCommand(): Promise<void> {
 
 	const { selectedEditor } = await inquirer.prompt([
 		{
-			type: "list",
+			type: "rawlist",
 			name: "selectedEditor",
 			message: "Select default editor:",
 			choices,

@@ -1,8 +1,19 @@
 // src/lib/container.ts
 
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { join } from "node:path";
 import { execa } from "execa";
+
+// Normalize path to real case (important for macOS case-insensitive filesystem)
+// Docker labels use exact string match, so paths must match exactly
+function normalizePath(path: string): string {
+	try {
+		return realpathSync(path);
+	} catch {
+		return path;
+	}
+}
+
 import {
 	type ContainerInfo,
 	type ContainerResult,
@@ -10,16 +21,61 @@ import {
 } from "../types/index.ts";
 import { getExecaErrorMessage, hasExitCode } from "./errors.ts";
 
+export interface DevcontainerConfig {
+	workspaceFolder?: string;
+}
+
+// Read devcontainer.json configuration
+export function getDevcontainerConfig(
+	projectPath: string,
+): DevcontainerConfig | null {
+	const configPath = join(projectPath, ".devcontainer", "devcontainer.json");
+	const altConfigPath = join(projectPath, ".devcontainer.json");
+
+	let content: string;
+	try {
+		if (existsSync(configPath)) {
+			content = readFileSync(configPath, "utf-8");
+		} else if (existsSync(altConfigPath)) {
+			content = readFileSync(altConfigPath, "utf-8");
+		} else {
+			return null;
+		}
+		return JSON.parse(content);
+	} catch {
+		return null;
+	}
+}
+
+// Get container ID for a local project
+export async function getContainerId(
+	projectPath: string,
+): Promise<string | null> {
+	try {
+		const result = await execa("docker", [
+			"ps",
+			"-q",
+			"--filter",
+			`label=devcontainer.local_folder=${projectPath}`,
+		]);
+		const containerId = result.stdout.trim();
+		return containerId || null;
+	} catch {
+		return null;
+	}
+}
+
 // Get container status for a local project
 export async function getContainerStatus(
 	projectPath: string,
 ): Promise<ContainerStatus> {
+	const normalizedPath = normalizePath(projectPath);
 	try {
 		const result = await execa("docker", [
 			"ps",
 			"-a",
 			"--filter",
-			`label=devcontainer.local_folder=${projectPath}`,
+			`label=devcontainer.local_folder=${normalizedPath}`,
 			"--format",
 			"{{.Status}}",
 		]);
@@ -41,12 +97,13 @@ export async function getContainerStatus(
 export async function getContainerInfo(
 	projectPath: string,
 ): Promise<ContainerInfo | null> {
+	const normalizedPath = normalizePath(projectPath);
 	try {
 		const result = await execa("docker", [
 			"ps",
 			"-a",
 			"--filter",
-			`label=devcontainer.local_folder=${projectPath}`,
+			`label=devcontainer.local_folder=${normalizedPath}`,
 			"--format",
 			"{{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Image}}",
 		]);
@@ -73,7 +130,10 @@ export async function startContainer(
 	}
 
 	try {
-		const _result = await execa("devcontainer", args, { stdio: "inherit" });
+		// Use stdin: 'ignore' to prevent devcontainer from affecting
+		// the terminal's stdin state, which can break subsequent
+		// interactive prompts (inquirer list prompts)
+		await execa("devcontainer", args, { stdin: "ignore" });
 		return { success: true };
 	} catch (error: unknown) {
 		return { success: false, error: getExecaErrorMessage(error) };
@@ -84,12 +144,13 @@ export async function startContainer(
 export async function stopContainer(
 	projectPath: string,
 ): Promise<ContainerResult> {
+	const normalizedPath = normalizePath(projectPath);
 	try {
 		const result = await execa("docker", [
 			"ps",
 			"-q",
 			"--filter",
-			`label=devcontainer.local_folder=${projectPath}`,
+			`label=devcontainer.local_folder=${normalizedPath}`,
 		]);
 
 		const containerId = result.stdout.trim();
@@ -109,6 +170,7 @@ export async function removeContainer(
 	projectPath: string,
 	options?: { removeVolumes?: boolean },
 ): Promise<ContainerResult> {
+	const normalizedPath = normalizePath(projectPath);
 	try {
 		// Get container ID
 		const result = await execa("docker", [
@@ -116,7 +178,7 @@ export async function removeContainer(
 			"-a",
 			"-q",
 			"--filter",
-			`label=devcontainer.local_folder=${projectPath}`,
+			`label=devcontainer.local_folder=${normalizedPath}`,
 		]);
 
 		const containerId = result.stdout.trim();
@@ -180,13 +242,14 @@ export async function openInEditor(
 	projectPath: string,
 	editor: EditorId,
 ): Promise<ContainerResult> {
+	const normalizedPath = normalizePath(projectPath);
 	try {
 		// Get the container ID for this project
 		const containerResult = await execa("docker", [
 			"ps",
 			"-q",
 			"--filter",
-			`label=devcontainer.local_folder=${projectPath}`,
+			`label=devcontainer.local_folder=${normalizedPath}`,
 		]);
 
 		const containerId = containerResult.stdout.trim();
@@ -198,11 +261,11 @@ export async function openInEditor(
 		}
 
 		// Get the workspace folder from devcontainer.json or use default
-		const projectName = projectPath.split("/").pop();
+		const projectName = normalizedPath.split("/").pop();
 		const workspaceFolder = `/workspaces/${projectName}`;
 
 		// Build the devcontainer URI - hex encode the project path
-		const hexPath = Buffer.from(projectPath).toString("hex");
+		const hexPath = Buffer.from(normalizedPath).toString("hex");
 		const devcontainerUri = `vscode-remote://dev-container+${hexPath}${workspaceFolder}`;
 
 		// Use the editor to open the devcontainer URI
@@ -214,7 +277,7 @@ export async function openInEditor(
 			await execa(editor, ["--folder-uri", devcontainerUri]);
 		} else {
 			// Fallback: just open the folder directly
-			await execa(editor, [projectPath]);
+			await execa(editor, [normalizedPath]);
 		}
 		return { success: true };
 	} catch (error: unknown) {

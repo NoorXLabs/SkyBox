@@ -26,7 +26,7 @@ describe("paths", () => {
 	});
 
 	test("PROJECTS_DIR is under DEVBOX_HOME", () => {
-		expect(PROJECTS_DIR).toContain("Projects");
+		expect(PROJECTS_DIR).toContain("projects");
 	});
 
 	test("BIN_DIR is under DEVBOX_HOME", () => {
