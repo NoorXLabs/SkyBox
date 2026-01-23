@@ -1,6 +1,6 @@
-// src/lib/download.test.ts
+// src/lib/__tests__/download.test.ts
 import { describe, expect, test } from "bun:test";
-import { getMutagenChecksumUrl, getMutagenDownloadUrl } from "./download.ts";
+import { getMutagenChecksumUrl, getMutagenDownloadUrl } from "../download.ts";
 
 describe("download", () => {
 	test("getMutagenDownloadUrl returns correct URL for darwin-arm64", () => {

@@ -1,7 +1,7 @@
-// src/lib/paths.test.ts
+// src/lib/__tests__/paths.test.ts
 import { afterEach, describe, expect, test } from "bun:test";
 import { homedir } from "node:os";
-import { BIN_DIR, CONFIG_PATH, MUTAGEN_PATH, PROJECTS_DIR } from "./paths.ts";
+import { BIN_DIR, CONFIG_PATH, MUTAGEN_PATH, PROJECTS_DIR } from "../paths.ts";
 
 describe("paths", () => {
 	const originalEnv = process.env.DEVBOX_HOME;
@@ -17,7 +17,7 @@ describe("paths", () => {
 	test("uses default home when DEVBOX_HOME not set", () => {
 		delete process.env.DEVBOX_HOME;
 		// Re-import to get fresh values
-		const paths = require("./paths.ts");
+		const paths = require("../paths.ts");
 		expect(paths.DEVBOX_HOME).toBe(`${homedir()}/.devbox`);
 	});
 

@@ -1,9 +1,9 @@
-// src/lib/container.test.ts
+// src/lib/__tests__/container.test.ts
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { ContainerStatus } from "../types/index.ts";
+import { ContainerStatus } from "../../types/index.ts";
 import {
 	attachToShell,
 	getContainerStatus,
@@ -13,7 +13,7 @@ import {
 	SUPPORTED_EDITORS,
 	startContainer,
 	stopContainer,
-} from "./container.ts";
+} from "../container.ts";
 
 describe("container module", () => {
 	test("getContainerStatus returns NotFound for non-existent container", async () => {

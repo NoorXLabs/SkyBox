@@ -1,9 +1,9 @@
-// src/lib/templates.test.ts
+// src/lib/__tests__/templates.test.ts
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { createDevcontainerConfig, TEMPLATES } from "./templates.ts";
+import { createDevcontainerConfig, TEMPLATES } from "../templates.ts";
 
 describe("templates", () => {
 	let testDir: string;

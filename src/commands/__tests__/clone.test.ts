@@ -1,4 +1,4 @@
-// src/commands/clone.test.ts
+// src/commands/__tests__/clone.test.ts
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";

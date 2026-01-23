@@ -1,4 +1,4 @@
-// src/commands/editor.test.ts
+// src/commands/__tests__/editor.test.ts
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
 	existsSync,

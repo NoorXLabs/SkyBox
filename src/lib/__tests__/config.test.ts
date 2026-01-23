@@ -1,4 +1,4 @@
-// src/lib/config.test.ts
+// src/lib/__tests__/config.test.ts
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -27,18 +27,18 @@ describe("config", () => {
 	});
 
 	test("configExists returns false when no config", async () => {
-		const { configExists } = await import("./config.ts");
+		const { configExists } = await import("../config.ts");
 		expect(configExists()).toBe(false);
 	});
 
 	test("loadConfig returns null when no config", async () => {
-		const { loadConfig } = await import("./config.ts");
+		const { loadConfig } = await import("../config.ts");
 		expect(loadConfig()).toBeNull();
 	});
 
 	test("saveConfig creates config file", async () => {
 		const { saveConfig, loadConfig, configExists } = await import(
-			"./config.ts"
+			"../config.ts"
 		);
 		const config = {
 			remote: { host: "myserver", base_path: "~/code" },

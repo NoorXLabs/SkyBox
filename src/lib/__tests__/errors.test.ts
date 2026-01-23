@@ -1,10 +1,10 @@
-// src/lib/errors.test.ts
+// src/lib/__tests__/errors.test.ts
 import { describe, expect, test } from "bun:test";
 import {
 	getErrorMessage,
 	getExecaErrorMessage,
 	hasExitCode,
-} from "./errors.ts";
+} from "../errors.ts";
 
 describe("getErrorMessage", () => {
 	test("extracts message from Error instance", () => {

@@ -1,4 +1,4 @@
-// src/commands/status.test.ts
+// src/commands/__tests__/status.test.ts
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -21,7 +21,7 @@ describe("status command helpers", () => {
 
 	describe("getGitInfo", () => {
 		test("returns null for non-git directory", async () => {
-			const { getGitInfo } = await import("./status.ts");
+			const { getGitInfo } = await import("../status.ts");
 			const result = await getGitInfo(testDir);
 			expect(result).toBeNull();
 		});
@@ -37,7 +37,7 @@ describe("status command helpers", () => {
 			await execa("git", ["add", "."], { cwd: testDir });
 			await execa("git", ["commit", "-m", "init"], { cwd: testDir });
 
-			const { getGitInfo } = await import("./status.ts");
+			const { getGitInfo } = await import("../status.ts");
 			const result = await getGitInfo(testDir);
 
 			expect(result).not.toBeNull();
@@ -61,7 +61,7 @@ describe("status command helpers", () => {
 			// Make uncommitted change
 			writeFileSync(join(testDir, "new.txt"), "new file");
 
-			const { getGitInfo } = await import("./status.ts");
+			const { getGitInfo } = await import("../status.ts");
 			const result = await getGitInfo(testDir);
 
 			expect(result).not.toBeNull();
@@ -75,7 +75,7 @@ describe("status command helpers", () => {
 			writeFileSync(join(testDir, "file1.txt"), "hello world");
 			writeFileSync(join(testDir, "file2.txt"), "more content");
 
-			const { getDiskUsage } = await import("./status.ts");
+			const { getDiskUsage } = await import("../status.ts");
 			const result = await getDiskUsage(testDir);
 
 			// Should return something like "4.0K" or "8.0K" depending on filesystem
@@ -83,7 +83,7 @@ describe("status command helpers", () => {
 		});
 
 		test("returns 'unknown' on error", async () => {
-			const { getDiskUsage } = await import("./status.ts");
+			const { getDiskUsage } = await import("../status.ts");
 			const result = await getDiskUsage(
 				"/nonexistent/path/that/does/not/exist",
 			);
@@ -103,7 +103,7 @@ describe("status command helpers", () => {
 			await execa("git", ["add", "."], { cwd: testDir });
 			await execa("git", ["commit", "-m", "init"], { cwd: testDir });
 
-			const { getLastActive } = await import("./status.ts");
+			const { getLastActive } = await import("../status.ts");
 			const result = await getLastActive(testDir);
 
 			expect(result).toBeInstanceOf(Date);
@@ -114,7 +114,7 @@ describe("status command helpers", () => {
 		test("returns directory mtime for non-git directory", async () => {
 			writeFileSync(join(testDir, "file.txt"), "content");
 
-			const { getLastActive } = await import("./status.ts");
+			const { getLastActive } = await import("../status.ts");
 			const result = await getLastActive(testDir);
 
 			expect(result).toBeInstanceOf(Date);
@@ -171,7 +171,7 @@ projects: {}
 			const originalLog = console.log;
 			console.log = (...args) => logs.push(args.join(" "));
 
-			const { statusCommand } = await import("./status.ts");
+			const { statusCommand } = await import("../status.ts");
 			await statusCommand();
 
 			console.log = originalLog;
@@ -190,7 +190,7 @@ projects: {}
 			const originalLog = console.log;
 			console.log = (...args) => logs.push(args.join(" "));
 
-			const { statusCommand } = await import("./status.ts");
+			const { statusCommand } = await import("../status.ts");
 			await statusCommand();
 
 			console.log = originalLog;

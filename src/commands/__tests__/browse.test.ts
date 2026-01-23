@@ -1,4 +1,4 @@
-// src/commands/browse.test.ts
+// src/commands/__tests__/browse.test.ts
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -27,7 +27,7 @@ describe("browse command", () => {
 	});
 
 	test("exits with error when no config exists", async () => {
-		const { configExists } = await import("../lib/config.ts");
+		const { configExists } = await import("../../lib/config.ts");
 		expect(configExists()).toBe(false);
 	});
 

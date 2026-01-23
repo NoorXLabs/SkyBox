@@ -1,6 +1,6 @@
-// src/lib/mutagen.test.ts
+// src/lib/__tests__/mutagen.test.ts
 import { describe, expect, test } from "bun:test";
-import { sessionName } from "./mutagen.ts";
+import { sessionName } from "../mutagen.ts";
 
 describe("mutagen", () => {
 	test("sessionName formats correctly", () => {
