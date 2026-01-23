@@ -1,11 +1,37 @@
 // src/lib/__tests__/projectTemplates.test.ts
-import { describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { stringify } from "yaml";
 import {
 	BUILT_IN_TEMPLATES,
 	getBuiltInTemplates,
+	getUserTemplates,
+	getAllTemplates,
+	validateProjectName,
 } from "../projectTemplates.ts";
 
 describe("projectTemplates", () => {
+	let testDir: string;
+	let originalEnv: string | undefined;
+
+	beforeEach(() => {
+		testDir = join(tmpdir(), `devbox-templates-test-${Date.now()}`);
+		mkdirSync(testDir, { recursive: true });
+		originalEnv = process.env.DEVBOX_HOME;
+		process.env.DEVBOX_HOME = testDir;
+	});
+
+	afterEach(() => {
+		rmSync(testDir, { recursive: true });
+		if (originalEnv) {
+			process.env.DEVBOX_HOME = originalEnv;
+		} else {
+			delete process.env.DEVBOX_HOME;
+		}
+	});
+
 	describe("BUILT_IN_TEMPLATES", () => {
 		test("includes node template", () => {
 			const node = BUILT_IN_TEMPLATES.find((t) => t.id === "node");
@@ -33,6 +59,98 @@ describe("projectTemplates", () => {
 		test("returns all built-in templates", () => {
 			const templates = getBuiltInTemplates();
 			expect(templates.length).toBeGreaterThanOrEqual(4);
+		});
+	});
+
+	describe("getUserTemplates", () => {
+		test("returns empty array when no config", () => {
+			const templates = getUserTemplates();
+			expect(templates).toEqual([]);
+		});
+
+		test("returns empty array when no templates in config", () => {
+			const config = {
+				remote: { host: "test", base_path: "~/code" },
+				editor: "code",
+				defaults: { sync_mode: "two-way-resolved", ignore: [] },
+				projects: {},
+			};
+			writeFileSync(join(testDir, "config.yaml"), stringify(config));
+
+			const templates = getUserTemplates();
+			expect(templates).toEqual([]);
+		});
+
+		test("returns user templates from config", () => {
+			const config = {
+				remote: { host: "test", base_path: "~/code" },
+				editor: "code",
+				defaults: { sync_mode: "two-way-resolved", ignore: [] },
+				projects: {},
+				templates: {
+					react: "https://github.com/user/react-template",
+					rust: "https://github.com/user/rust-template",
+				},
+			};
+			writeFileSync(join(testDir, "config.yaml"), stringify(config));
+
+			const templates = getUserTemplates();
+			expect(templates).toHaveLength(2);
+			expect(templates[0]).toEqual({
+				name: "react",
+				url: "https://github.com/user/react-template",
+			});
+		});
+	});
+
+	describe("getAllTemplates", () => {
+		test("combines built-in and user templates", () => {
+			const config = {
+				remote: { host: "test", base_path: "~/code" },
+				editor: "code",
+				defaults: { sync_mode: "two-way-resolved", ignore: [] },
+				projects: {},
+				templates: {
+					custom: "https://github.com/user/custom",
+				},
+			};
+			writeFileSync(join(testDir, "config.yaml"), stringify(config));
+
+			const all = getAllTemplates();
+			expect(all.builtIn.length).toBeGreaterThanOrEqual(4);
+			expect(all.user).toHaveLength(1);
+			expect(all.user[0].name).toBe("custom");
+		});
+	});
+
+	describe("validateProjectName", () => {
+		test("accepts valid alphanumeric names", () => {
+			expect(validateProjectName("myproject")).toEqual({ valid: true });
+			expect(validateProjectName("my-project")).toEqual({ valid: true });
+			expect(validateProjectName("my_project")).toEqual({ valid: true });
+			expect(validateProjectName("MyProject123")).toEqual({ valid: true });
+		});
+
+		test("rejects empty names", () => {
+			const result = validateProjectName("");
+			expect(result.valid).toBe(false);
+			expect(result.error).toContain("empty");
+		});
+
+		test("rejects names with spaces", () => {
+			const result = validateProjectName("my project");
+			expect(result.valid).toBe(false);
+			expect(result.error).toContain("alphanumeric");
+		});
+
+		test("rejects names with special characters", () => {
+			const result = validateProjectName("my@project!");
+			expect(result.valid).toBe(false);
+		});
+
+		test("rejects names starting with hyphen or underscore", () => {
+			expect(validateProjectName("-myproject").valid).toBe(false);
+			expect(validateProjectName("_myproject").valid).toBe(false);
 		});
 	});
 });
