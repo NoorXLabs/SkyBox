@@ -51,6 +51,38 @@ export async function newCommand(): Promise<void> {
 	}
 	checkSpin.succeed("Name available");
 
-	// TODO: Step 3-6 in next tasks
-	info(`Project '${projectName}' will be created.`);
+	// Step 3: Choose project type
+	const { projectType } = await inquirer.prompt([
+		{
+			type: "list",
+			name: "projectType",
+			message: "How would you like to create this project?",
+			choices: [
+				{ name: "Empty project (with devcontainer.json)", value: "empty" },
+				{ name: "From a template", value: "template" },
+			],
+		},
+	]);
+
+	if (projectType === "empty") {
+		await createEmptyProject(config, projectName);
+	} else {
+		await createFromTemplate(config, projectName);
+	}
+}
+
+async function createEmptyProject(
+	config: DevboxConfig,
+	projectName: string,
+): Promise<void> {
+	// TODO: Implement in Task 7
+	info(`Creating empty project: ${projectName}`);
+}
+
+async function createFromTemplate(
+	config: DevboxConfig,
+	projectName: string,
+): Promise<void> {
+	// TODO: Implement in Task 8
+	info(`Creating from template: ${projectName}`);
 }
