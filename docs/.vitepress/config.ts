@@ -4,6 +4,10 @@ export default defineConfig({
   title: 'DevBox',
   description: 'Development environment management CLI',
 
+  head: [
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/devbox-logo-grey.svg' }],
+  ],
+
   themeConfig: {
     logo: '/devbox-logo-grey.svg',
 
@@ -76,8 +80,8 @@ export default defineConfig({
     ],
 
     footer: {
-      message: 'Released under the MIT License.',
-      copyright: 'Copyright 2024-2026',
+      message: 'Released under the Apache License 2.0.',
+      copyright: 'Copyright 2026 Noor Chasib',
     },
 
     search: {

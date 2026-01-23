@@ -50,4 +50,10 @@
   border-radius: 6px;
 }
 
+/* Larger navbar logo */
+.VPNavBarTitle .logo {
+  height: 32px;
+  width: 32px;
+}
+
 /* Add more custom styles as needed */

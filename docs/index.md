@@ -5,6 +5,9 @@ hero:
   name: DevBox
   text: Local-first dev containers
   tagline: Develop locally. Sync remotely. Stay consistent.
+  image:
+    src: /devbox-logo-grey.svg
+    alt: DevBox
   actions:
     - theme: brand
       text: Get Started
