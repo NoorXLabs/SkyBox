@@ -212,8 +212,80 @@ async function cloneTemplateToRemote(
 	templateUrl: string,
 	keepHistory: boolean,
 ): Promise<void> {
-	// TODO: Implement in Task 9
-	info(`Cloning ${templateUrl} to ${projectName} (keepHistory: ${keepHistory})`);
+	const remotePath = `${config.remote.base_path}/${projectName}`;
+
+	const cloneSpin = spinner("Cloning template to remote...");
+
+	// Clone to temp, then move to final location
+	const tempPath = `/tmp/devbox-template-${Date.now()}`;
+
+	let cloneCmd: string;
+	if (keepHistory) {
+		cloneCmd = `git clone ${templateUrl} ${tempPath} && mv ${tempPath} ${remotePath}`;
+	} else {
+		cloneCmd = `git clone ${templateUrl} ${tempPath} && rm -rf ${tempPath}/.git && git -C ${tempPath} init && mv ${tempPath} ${remotePath}`;
+	}
+
+	const cloneResult = await runRemoteCommand(config.remote.host, cloneCmd);
+
+	if (!cloneResult.success) {
+		cloneSpin.fail("Failed to clone template");
+		error(cloneResult.error || "Unknown error");
+
+		// Offer to retry or go back
+		const { retryChoice } = await inquirer.prompt([
+			{
+				type: "list",
+				name: "retryChoice",
+				message: "What would you like to do?",
+				choices: [
+					{ name: "Try again", value: "retry" },
+					{ name: "Go back to template selection", value: "back" },
+					{ name: "Cancel", value: "cancel" },
+				],
+			},
+		]);
+
+		if (retryChoice === "retry") {
+			return cloneTemplateToRemote(config, projectName, templateUrl, keepHistory);
+		} else if (retryChoice === "back") {
+			return createFromTemplate(config, projectName);
+		} else {
+			process.exit(1);
+		}
+	}
+
+	cloneSpin.succeed("Template cloned to remote");
+
+	// Check if devcontainer.json exists, add if not
+	const checkDevcontainer = await runRemoteCommand(
+		config.remote.host,
+		`test -f ${remotePath}/.devcontainer/devcontainer.json && echo "EXISTS" || echo "NOT_FOUND"`,
+	);
+
+	if (checkDevcontainer.stdout?.includes("NOT_FOUND")) {
+		const addSpin = spinner("Adding devcontainer.json...");
+
+		const devcontainerJson = JSON.stringify(
+			{
+				name: projectName,
+				image: "mcr.microsoft.com/devcontainers/base:ubuntu",
+			},
+			null,
+			2,
+		);
+		const escapedJson = devcontainerJson.replace(/'/g, "'\\''");
+
+		await runRemoteCommand(
+			config.remote.host,
+			`mkdir -p ${remotePath}/.devcontainer && echo '${escapedJson}' > ${remotePath}/.devcontainer/devcontainer.json`,
+		);
+
+		addSpin.succeed("Added devcontainer.json");
+	}
+
+	// Offer to clone locally
+	await offerClone(config, projectName);
 }
 
 async function offerClone(
