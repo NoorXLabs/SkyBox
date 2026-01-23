@@ -167,3 +167,8 @@ export interface SyncStatus {
 	paused: boolean;
 	status: string;
 }
+
+// Shell command types
+export interface ShellOptions {
+	command?: string;
+}
