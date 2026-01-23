@@ -1,6 +1,6 @@
 // src/lib/container.ts
 
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { execa } from "execa";
 import {
@@ -9,6 +9,50 @@ import {
 	ContainerStatus,
 } from "../types/index.ts";
 import { getExecaErrorMessage, hasExitCode } from "./errors.ts";
+
+export interface DevcontainerConfig {
+	workspaceFolder?: string;
+}
+
+// Read devcontainer.json configuration
+export function getDevcontainerConfig(
+	projectPath: string,
+): DevcontainerConfig | null {
+	const configPath = join(projectPath, ".devcontainer", "devcontainer.json");
+	const altConfigPath = join(projectPath, ".devcontainer.json");
+
+	let content: string;
+	try {
+		if (existsSync(configPath)) {
+			content = readFileSync(configPath, "utf-8");
+		} else if (existsSync(altConfigPath)) {
+			content = readFileSync(altConfigPath, "utf-8");
+		} else {
+			return null;
+		}
+		return JSON.parse(content);
+	} catch {
+		return null;
+	}
+}
+
+// Get container ID for a local project
+export async function getContainerId(
+	projectPath: string,
+): Promise<string | null> {
+	try {
+		const result = await execa("docker", [
+			"ps",
+			"-q",
+			"--filter",
+			`label=devcontainer.local_folder=${projectPath}`,
+		]);
+		const containerId = result.stdout.trim();
+		return containerId || null;
+	} catch {
+		return null;
+	}
+}
 
 // Get container status for a local project
 export async function getContainerStatus(

@@ -82,3 +82,71 @@ describe("hasLocalDevcontainerConfig", () => {
 		expect(hasLocalDevcontainerConfig(testDir)).toBe(true);
 	});
 });
+
+describe("getDevcontainerConfig", () => {
+	let testDir: string;
+
+	beforeEach(() => {
+		testDir = join(tmpdir(), `devbox-container-test-${Date.now()}`);
+		mkdirSync(testDir, { recursive: true });
+	});
+
+	afterEach(() => {
+		if (existsSync(testDir)) {
+			rmSync(testDir, { recursive: true });
+		}
+	});
+
+	test("reads workspaceFolder from devcontainer.json", async () => {
+		const devcontainerDir = join(testDir, ".devcontainer");
+		mkdirSync(devcontainerDir);
+		writeFileSync(
+			join(devcontainerDir, "devcontainer.json"),
+			JSON.stringify({ workspaceFolder: "/custom/workspace" }),
+		);
+
+		const { getDevcontainerConfig } = await import("../container.ts");
+		const config = getDevcontainerConfig(testDir);
+
+		expect(config?.workspaceFolder).toBe("/custom/workspace");
+	});
+
+	test("returns null when no devcontainer.json exists", async () => {
+		const { getDevcontainerConfig } = await import("../container.ts");
+		const config = getDevcontainerConfig(testDir);
+
+		expect(config).toBeNull();
+	});
+});
+
+// Mock execa for getContainerId tests
+import { mock } from "bun:test";
+
+const mockExeca = mock(() => Promise.resolve({ stdout: "" }));
+mock.module("execa", () => ({
+	execa: mockExeca,
+}));
+
+describe("getContainerId", () => {
+	beforeEach(() => {
+		mockExeca.mockReset();
+	});
+
+	test("returns container ID when container exists", async () => {
+		mockExeca.mockResolvedValueOnce({ stdout: "abc123def456\n" });
+
+		const { getContainerId } = await import("../container.ts");
+		const result = await getContainerId("/path/to/project");
+
+		expect(result).toBe("abc123def456");
+	});
+
+	test("returns null when no container found", async () => {
+		mockExeca.mockResolvedValueOnce({ stdout: "" });
+
+		const { getContainerId } = await import("../container.ts");
+		const result = await getContainerId("/path/to/project");
+
+		expect(result).toBeNull();
+	});
+});
