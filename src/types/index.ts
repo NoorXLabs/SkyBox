@@ -153,6 +153,10 @@ export interface UpOptions {
 	verbose?: boolean;
 }
 
+export interface RmOptions {
+	force?: boolean;
+}
+
 // Template types
 export interface Template {
 	id: string;
@@ -172,3 +176,15 @@ export interface SyncStatus {
 export interface ShellOptions {
 	command?: string;
 }
+
+// Lock types
+export interface LockInfo {
+	machine: string; // hostname of machine holding lock
+	user: string; // username
+	timestamp: string; // ISO 8601 datetime
+	pid: number; // process ID
+}
+
+export type LockStatus =
+	| { locked: false }
+	| { locked: true; ownedByMe: boolean; info: LockInfo };

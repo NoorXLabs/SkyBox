@@ -93,7 +93,7 @@ async function configureRemote(): Promise<{
 
 	const { hostChoice } = await inquirer.prompt([
 		{
-			type: "list",
+			type: "rawlist",
 			name: "hostChoice",
 			message: "Select SSH host:",
 			choices,
@@ -132,7 +132,7 @@ async function configureRemote(): Promise<{
 
 		const { keyChoice } = await inquirer.prompt([
 			{
-				type: "list",
+				type: "rawlist",
 				name: "keyChoice",
 				message: "Select SSH key to use:",
 				choices: keyChoices,
@@ -327,7 +327,7 @@ async function configureEditor(): Promise<string> {
 
 	const { editor } = await inquirer.prompt([
 		{
-			type: "list",
+			type: "rawlist",
 			name: "editor",
 			message: "Preferred editor:",
 			choices: [

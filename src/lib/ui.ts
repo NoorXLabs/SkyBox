@@ -24,7 +24,9 @@ export function header(message: string): void {
 }
 
 export function spinner(message: string): Ora {
-	return ora({ text: message, prefixText: " " }).start();
+	// discardStdin: false prevents conflicts with inquirer prompts
+	// See: https://github.com/sindresorhus/ora/issues/134
+	return ora({ text: message, prefixText: " ", discardStdin: false }).start();
 }
 
 export function printNextSteps(steps: string[]): void {
