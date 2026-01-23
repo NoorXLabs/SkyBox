@@ -60,7 +60,7 @@ export async function downCommand(
 
 		const { selectedProject } = await inquirer.prompt([
 			{
-				type: "list",
+				type: "rawlist",
 				name: "selectedProject",
 				message: "Select a project to stop:",
 				choices: projects,

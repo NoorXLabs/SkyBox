@@ -326,16 +326,17 @@ function formatOverviewTable(summaries: ProjectSummary[]): void {
 
 	// Print rows
 	for (const s of summaries) {
+		// Calculate padding separately to avoid ANSI escape code length issues
+		const containerPad = " ".repeat(Math.max(0, widths[1] - s.container.length));
+		const syncPad = " ".repeat(Math.max(0, widths[2] - s.sync.length));
+		const lockPad = " ".repeat(Math.max(0, widths[4] - s.lock.length));
+
 		const row = [
 			s.name.padEnd(widths[0]),
-			colorContainer(s.container).padEnd(
-				widths[1] + (s.container === "running" ? 10 : 0),
-			), // Account for color codes
-			colorSync(s.sync).padEnd(
-				widths[2] + (s.sync === "syncing" ? 10 : s.sync === "paused" ? 9 : 0),
-			),
+			colorContainer(s.container) + containerPad,
+			colorSync(s.sync) + syncPad,
 			s.branch.padEnd(widths[3]),
-			chalk.dim(s.lock).padEnd(widths[4]),
+			chalk.dim(s.lock) + lockPad,
 			formatRelativeTime(s.lastActive).padEnd(widths[5]),
 			s.size.padEnd(widths[6]),
 		].join("  ");

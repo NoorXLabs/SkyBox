@@ -67,7 +67,7 @@ export async function upCommand(
 
 		const { selectedProject } = await inquirer.prompt([
 			{
-				type: "list",
+				type: "rawlist",
 				name: "selectedProject",
 				message: "Select a project:",
 				choices: projects,
@@ -115,7 +115,7 @@ export async function upCommand(
 		} else {
 			const { action } = await inquirer.prompt([
 				{
-					type: "list",
+					type: "rawlist",
 					name: "action",
 					message: "Container already running. What would you like to do?",
 					choices: [
@@ -176,7 +176,7 @@ export async function upCommand(
 
 		const { templateId } = await inquirer.prompt([
 			{
-				type: "list",
+				type: "rawlist",
 				name: "templateId",
 				message: "Select a template:",
 				choices: TEMPLATES.map((t) => ({
@@ -285,7 +285,7 @@ async function handlePostStart(
 	if (!editor) {
 		const { selectedEditor } = await inquirer.prompt([
 			{
-				type: "list",
+				type: "rawlist",
 				name: "selectedEditor",
 				message: "Which editor would you like to use?",
 				choices: [
@@ -327,7 +327,7 @@ async function handlePostStart(
 	// Ask what to do
 	const { action } = await inquirer.prompt([
 		{
-			type: "list",
+			type: "rawlist",
 			name: "action",
 			message: "What would you like to do?",
 			choices: [

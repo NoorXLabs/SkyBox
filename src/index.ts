@@ -1,5 +1,6 @@
 // src/index.ts
 import { program } from "commander";
+import pkg from "../package.json";
 import { browseCommand } from "./commands/browse.ts";
 import { cloneCommand } from "./commands/clone.ts";
 import { downCommand } from "./commands/down.ts";
@@ -13,7 +14,7 @@ import { upCommand } from "./commands/up.ts";
 program
 	.name("devbox")
 	.description("Local-first dev containers with remote sync")
-	.version("0.1.0");
+	.version(pkg.version, "-v, --version");
 
 program
 	.command("init")
@@ -44,7 +45,7 @@ program
 	.option("-a, --attach", "Attach to shell after start")
 	.option("-r, --rebuild", "Force container rebuild")
 	.option("--no-prompt", "Non-interactive mode")
-	.option("-v, --verbose", "Show detailed output")
+	.option("--verbose", "Show detailed output")
 	.action(upCommand);
 
 program
