@@ -5,6 +5,7 @@ export default defineConfig({
   description: 'Development environment management CLI',
 
   themeConfig: {
+    logo: '/devbox-logo-grey.svg',
 
     nav: [
       { text: 'Guide', link: '/guide/', activeMatch: '/guide/' },
