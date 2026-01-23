@@ -1,0 +1,95 @@
+import { defineConfig } from 'vitepress'
+
+export default defineConfig({
+  title: 'DevBox',
+  description: 'Development environment management CLI',
+
+  head: [
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
+  ],
+
+  themeConfig: {
+    logo: '/logo.svg',
+
+    nav: [
+      { text: 'Guide', link: '/guide/', activeMatch: '/guide/' },
+      { text: 'Reference', link: '/reference/', activeMatch: '/reference/' },
+      { text: 'Architecture', link: '/architecture/', activeMatch: '/architecture/' },
+    ],
+
+    sidebar: {
+      '/guide/': [
+        {
+          text: 'Getting Started',
+          items: [
+            { text: 'Introduction', link: '/guide/' },
+            { text: 'Installation', link: '/guide/installation' },
+            { text: 'Quick Start', link: '/guide/quick-start' },
+          ],
+        },
+        {
+          text: 'Core Concepts',
+          items: [
+            { text: 'Containers', link: '/guide/containers' },
+            { text: 'Configuration', link: '/guide/configuration' },
+          ],
+        },
+        {
+          text: 'Workflows',
+          items: [
+            { text: 'Creating Environments', link: '/guide/creating-environments' },
+            { text: 'Managing Containers', link: '/guide/managing-containers' },
+          ],
+        },
+      ],
+
+      '/reference/': [
+        {
+          text: 'Commands',
+          items: [
+            { text: 'Overview', link: '/reference/' },
+            { text: 'devbox init', link: '/reference/init' },
+            { text: 'devbox up', link: '/reference/up' },
+            { text: 'devbox down', link: '/reference/down' },
+            { text: 'devbox status', link: '/reference/status' },
+            { text: 'devbox shell', link: '/reference/shell' },
+            { text: 'devbox new', link: '/reference/new' },
+            { text: 'devbox list', link: '/reference/list' },
+            { text: 'devbox clone', link: '/reference/clone' },
+            { text: 'devbox push', link: '/reference/push' },
+          ],
+        },
+        {
+          text: 'Configuration',
+          items: [
+            { text: 'devbox.yaml', link: '/reference/configuration' },
+          ],
+        },
+      ],
+
+      '/architecture/': [
+        {
+          text: 'Architecture',
+          items: [
+            { text: 'Overview', link: '/architecture/' },
+            { text: 'Design Principles', link: '/architecture/design-principles' },
+            { text: 'Container System', link: '/architecture/container-system' },
+          ],
+        },
+      ],
+    },
+
+    socialLinks: [
+      { icon: 'github', link: 'https://github.com/your-org/devbox' },
+    ],
+
+    footer: {
+      message: 'Released under the MIT License.',
+      copyright: 'Copyright 2024-present',
+    },
+
+    search: {
+      provider: 'local',
+    },
+  },
+})
