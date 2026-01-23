@@ -55,7 +55,7 @@ devbox push ./my-awesome-project cool-api
 
 ### Local Storage
 
-After pushing, the project is copied to `~/.devbox/projects/<project-name>` and sync is established between this location and the remote.
+After pushing, the project is copied to `~/.devbox/Projects/<project-name>` and sync is established between this location and the remote.
 
 ## Examples
 

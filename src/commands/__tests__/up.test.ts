@@ -27,10 +27,10 @@ describe("up command", () => {
 	});
 
 	test("project path construction works", () => {
-		const projectsDir = join(testDir, "projects");
+		const projectsDir = join(testDir, "Projects");
 		const project = "myapp";
 		const projectPath = join(projectsDir, project);
-		expect(projectPath).toBe(`${testDir}/projects/myapp`);
+		expect(projectPath).toBe(`${testDir}/Projects/myapp`);
 	});
 
 	test("can detect missing config", () => {

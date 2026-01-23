@@ -82,7 +82,7 @@ devbox/
 ### Step 8: Write Config & Create Directories
 
 - Write `~/.devbox/config.yaml`
-- Create `~/.devbox/projects/`
+- Create `~/.devbox/Projects/`
 - Create `~/.devbox/bin/`
 - Show success message with next steps
 

@@ -584,7 +584,7 @@ git commit -m "feat: add devbox push command
 Pushes a local project to remote server with mutagen sync.
 - Offers to initialize git if not a repo
 - Double confirms before overwriting existing remote project
-- Copies project to ~/.devbox/projects/
+- Copies project to ~/.devbox/Projects/
 - Creates bidirectional sync session
 - Offers to start dev container after sync"
 ```

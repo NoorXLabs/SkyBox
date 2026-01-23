@@ -18,7 +18,7 @@ This command has no options.
 
 ## Description
 
-The `list` command shows all projects in your local DevBox projects directory (`~/.devbox/projects`). For each project, it displays:
+The `list` command shows all projects in your local DevBox projects directory (`~/.devbox/Projects`). For each project, it displays:
 
 - Project name
 - Current git branch
@@ -35,11 +35,11 @@ Local projects:
 
   my-api
     Branch: main
-    Path: /Users/you/.devbox/projects/my-api
+    Path: /Users/you/.devbox/Projects/my-api
 
   frontend-app
     Branch: feature/new-ui
-    Path: /Users/you/.devbox/projects/frontend-app
+    Path: /Users/you/.devbox/Projects/frontend-app
 
 Run 'devbox up <project>' to start working.
 ```
@@ -72,7 +72,7 @@ devbox list
 #
 #   my-api
 #     Branch: main
-#     Path: /Users/you/.devbox/projects/my-api
+#     Path: /Users/you/.devbox/Projects/my-api
 
 # Start working on it
 devbox up my-api --editor

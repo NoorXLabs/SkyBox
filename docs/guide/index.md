@@ -16,7 +16,7 @@ DevBox manages the complete lifecycle of containerized development environments:
 ```
 Your Machine                     Remote Server
 ┌─────────────────────┐         ┌─────────────────────┐
-│  ~/.devbox/projects │◄───────►│    ~/code/          │
+│  ~/.devbox/Projects │◄───────►│    ~/code/          │
 │  ├── project-a/     │  Sync   │    ├── project-a/   │
 │  └── project-b/     │         │    └── project-b/   │
 └─────────────────────┘         └─────────────────────┘
@@ -28,7 +28,7 @@ Your Machine                     Remote Server
 └─────────────────────┘
 ```
 
-1. Projects are stored locally in `~/.devbox/projects/`
+1. Projects are stored locally in `~/.devbox/Projects/`
 2. Mutagen syncs files bidirectionally to your remote server
 3. Docker containers run locally using devcontainer configurations
 4. Lock files on the remote prevent conflicts between machines

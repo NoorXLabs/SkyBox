@@ -32,7 +32,7 @@ The `clone` command downloads a project from your configured remote server to yo
 
 ### Local Storage
 
-Projects are cloned to `~/.devbox/projects/<project-name>`.
+Projects are cloned to `~/.devbox/Projects/<project-name>`.
 
 ### Sync Behavior
 

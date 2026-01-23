@@ -24,7 +24,7 @@ Projects:
 **Columns:**
 | Column | Source | Notes |
 |--------|--------|-------|
-| NAME | Directory names in `~/.devbox/projects/` | |
+| NAME | Directory names in `~/.devbox/Projects/` | |
 | CONTAINER | Docker ps with devcontainer labels | |
 | SYNC | Mutagen session status | |
 | BRANCH | Git current branch | |

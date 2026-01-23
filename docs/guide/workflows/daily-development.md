@@ -15,7 +15,7 @@ devbox up my-project
 Or navigate to the project directory and run:
 
 ```bash
-cd ~/.devbox/projects/my-project
+cd ~/.devbox/Projects/my-project
 devbox up
 ```
 
@@ -225,11 +225,11 @@ Local projects:
 
   backend-api
     Branch: main
-    Path: /Users/john/.devbox/projects/backend-api
+    Path: /Users/john/.devbox/Projects/backend-api
 
   frontend-app
     Branch: develop
-    Path: /Users/john/.devbox/projects/frontend-app
+    Path: /Users/john/.devbox/Projects/frontend-app
 ```
 
 ## Ending Your Day

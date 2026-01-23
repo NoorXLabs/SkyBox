@@ -6,14 +6,14 @@ This page explains the key concepts behind DevBox: how projects, containers, syn
 
 A **project** in DevBox is a directory containing your source code, managed as a unit. Projects are:
 
-- Stored locally in `~/.devbox/projects/<project-name>/`
+- Stored locally in `~/.devbox/Projects/<project-name>/`
 - Synced to your remote server at `<base_path>/<project-name>/`
 - Registered in the DevBox configuration
 
 ### Project Structure
 
 ```
-~/.devbox/projects/my-app/
+~/.devbox/Projects/my-app/
 ├── .devcontainer/
 │   └── devcontainer.json    # Container configuration
 ├── .git/                     # Git repository
@@ -97,7 +97,7 @@ DevBox uses **Mutagen** for bidirectional file synchronization between your loca
 
 ```
 Local Machine                    Remote Server
-~/.devbox/projects/my-app/      ~/code/my-app/
+~/.devbox/Projects/my-app/      ~/code/my-app/
 ├── src/index.js         ◄────► ├── src/index.js
 ├── package.json         ◄────► ├── package.json
 └── ...                         └── ...

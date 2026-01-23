@@ -63,7 +63,7 @@ devbox down my-project --cleanup
 devbox down my-project --force
 
 # Stop from within project directory
-cd ~/.devbox/projects/my-project
+cd ~/.devbox/Projects/my-project
 devbox down
 
 # Non-interactive stop (for scripts)

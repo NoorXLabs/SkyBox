@@ -91,7 +91,7 @@ devbox clone backend-api
 ```
 
 This:
-1. Creates `~/.devbox/projects/backend-api` on Bob's machine
+1. Creates `~/.devbox/Projects/backend-api` on Bob's machine
 2. Downloads all files from remote
 3. Sets up sync session
 

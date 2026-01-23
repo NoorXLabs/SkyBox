@@ -44,7 +44,7 @@ devbox push ./my-project
 ```
 
 This will:
-1. Copy the project to `~/.devbox/projects/my-project/`
+1. Copy the project to `~/.devbox/Projects/my-project/`
 2. Create the project directory on your remote server
 3. Set up bidirectional sync between local and remote
 4. Register the project in DevBox
@@ -76,7 +76,7 @@ Example output:
 ```
 Cloning 'my-project' from my-server:~/code/my-project...
   Project found on remote
-  Created /Users/you/.devbox/projects/my-project
+  Created /Users/you/.devbox/Projects/my-project
   Setting up sync...
   Syncing files from remote...
   Initial sync complete
@@ -95,7 +95,7 @@ devbox up my-project
 Or, if you're inside the project directory:
 
 ```bash
-cd ~/.devbox/projects/my-project
+cd ~/.devbox/Projects/my-project
 devbox up
 ```
 

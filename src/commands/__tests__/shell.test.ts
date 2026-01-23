@@ -11,8 +11,8 @@ describe("shell command", () => {
 	beforeEach(() => {
 		testDir = join(tmpdir(), `devbox-shell-test-${Date.now()}`);
 		mkdirSync(testDir, { recursive: true });
-		mkdirSync(join(testDir, "projects", "myapp"), { recursive: true });
-		mkdirSync(join(testDir, "projects", "myapp", ".devcontainer"), {
+		mkdirSync(join(testDir, "Projects", "myapp"), { recursive: true });
+		mkdirSync(join(testDir, "Projects", "myapp", ".devcontainer"), {
 			recursive: true,
 		});
 
@@ -26,13 +26,13 @@ editor: cursor
 defaults:
   sync_mode: two-way-resolved
   ignore: []
-projects: {}
+Projects: {}
 `,
 		);
 
 		// Write devcontainer.json
 		writeFileSync(
-			join(testDir, "projects", "myapp", ".devcontainer", "devcontainer.json"),
+			join(testDir, "Projects", "myapp", ".devcontainer", "devcontainer.json"),
 			JSON.stringify({ workspaceFolder: "/workspaces/myapp" }),
 		);
 
@@ -52,14 +52,14 @@ projects: {}
 	});
 
 	test("project path is constructed correctly", () => {
-		const projectPath = join(testDir, "projects", "myapp");
+		const projectPath = join(testDir, "Projects", "myapp");
 		expect(existsSync(projectPath)).toBe(true);
 	});
 
 	test("devcontainer.json is readable", () => {
 		const configPath = join(
 			testDir,
-			"projects",
+			"Projects",
 			"myapp",
 			".devcontainer",
 			"devcontainer.json",

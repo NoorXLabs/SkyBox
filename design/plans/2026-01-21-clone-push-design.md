@@ -17,7 +17,7 @@ Both use a shared `mutagen.ts` module for bidirectional file sync.
 ```
 $ devbox clone myapp
 Cloning 'myapp' from DevBox-VPS-Dedicated:~/code/myapp...
-  ✓ Created ~/.devbox/projects/myapp
+  ✓ Created ~/.devbox/Projects/myapp
   ⠋ Syncing files... (142 files, 12.3 MB)
   ✓ Initial sync complete
 Start dev container now? [y/N]
@@ -38,12 +38,12 @@ Start dev container now? [y/N]
 
 1. **Verify config exists** - Error if not configured
 2. **Check project exists on remote** - SSH to verify `~/code/<project>` exists
-3. **Check local doesn't exist** - If `~/.devbox/projects/<project>` exists:
+3. **Check local doesn't exist** - If `~/.devbox/Projects/<project>` exists:
    - Prompt: "Project already exists locally. Overwrite?"
    - If yes: "Are you sure? All local changes will be lost."
    - If confirmed: Remove local directory
    - If no: Abort
-4. **Create local directory** - `mkdir -p ~/.devbox/projects/<project>`
+4. **Create local directory** - `mkdir -p ~/.devbox/Projects/<project>`
 5. **Create mutagen sync session** - Name: `devbox-<project>`
 6. **Wait for initial sync** - Show progress with file count and size
 7. **Register in config** - Add to `projects: {}` in config.yaml
@@ -75,7 +75,7 @@ Start dev container now? [y/N]
    - If confirmed: Remove remote directory
    - If no: Abort
 5. **Create remote directory** - `ssh <host> mkdir -p ~/code/<name>`
-6. **Copy to devbox projects** - Copy to `~/.devbox/projects/<name>`
+6. **Copy to devbox projects** - Copy to `~/.devbox/Projects/<name>`
 7. **Create mutagen sync session** - Name: `devbox-<project>`
 8. **Wait for initial sync** - Show progress (local → remote)
 9. **Register in config** - Add to `projects: {}` in config.yaml

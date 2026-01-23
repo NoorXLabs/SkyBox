@@ -18,14 +18,14 @@ DevBox requires the following software:
 ::: code-group
 
 ```bash [macOS]
-# Install Docker Desktop
-brew install --cask docker
+# Install Docker
+brew install docker
 
 # Install Node.js
 brew install node
 
 # Install Bun
-curl -fsSL https://bun.sh/install | bash
+brew install oven-sh/bun/bun
 ```
 
 ```bash [Linux]
@@ -34,7 +34,7 @@ curl -fsSL https://get.docker.com | sh
 sudo usermod -aG docker $USER
 
 # Install Node.js (using nvm)
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 nvm install 20
 
 # Install Bun
@@ -45,13 +45,7 @@ curl -fsSL https://bun.sh/install | bash
 
 ## Install DevBox
 
-Install DevBox globally using Bun:
-
-```bash
-bun install -g devbox
-```
-
-Alternatively, you can install from source:
+Install DevBox from source:
 
 ```bash
 git clone https://github.com/noorchasib/DevBox.git

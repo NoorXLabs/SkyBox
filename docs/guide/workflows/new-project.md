@@ -32,7 +32,7 @@ devbox push ./my-project my-app
 
 1. **Git Check** - DevBox verifies the project is a git repository (offers to initialize if not)
 2. **Remote Creation** - Creates the project directory on your remote server
-3. **Local Copy** - Copies files to `~/.devbox/projects/<project-name>`
+3. **Local Copy** - Copies files to `~/.devbox/Projects/<project-name>`
 4. **Sync Setup** - Establishes two-way sync with Mutagen
 5. **Initial Sync** - Waits for all files to sync to remote
 
@@ -75,7 +75,7 @@ devbox clone backend-api
 ### Step 3: What Happens
 
 1. **Remote Check** - Verifies the project exists on remote
-2. **Local Directory** - Creates `~/.devbox/projects/backend-api`
+2. **Local Directory** - Creates `~/.devbox/Projects/backend-api`
 3. **Sync Session** - Creates Mutagen sync session
 4. **Initial Sync** - Downloads all files from remote
 5. **Optional Start** - Prompts to start the dev container

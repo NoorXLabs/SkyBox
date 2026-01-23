@@ -36,11 +36,11 @@ Local projects:
 
   myapp
     Branch: main
-    Path: ~/.devbox/projects/myapp
+    Path: ~/.devbox/Projects/myapp
 
   backend
     Branch: develop
-    Path: ~/.devbox/projects/backend
+    Path: ~/.devbox/Projects/backend
 
 Run 'devbox up <project>' to start working.
 ```
@@ -76,7 +76,7 @@ Run 'devbox clone <project>' or 'devbox push ./path' to get started.
 
 ### devbox list
 
-1. Read directories in `~/.devbox/projects/`
+1. Read directories in `~/.devbox/Projects/`
 2. For each directory:
    - Get git branch via `git branch --show-current`
    - Build path string

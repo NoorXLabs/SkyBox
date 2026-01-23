@@ -6,7 +6,7 @@ import { join, relative, sep } from "node:path";
 // Dynamic function to get fresh PROJECTS_DIR on each call
 function getProjectsDir(): string {
 	const home = process.env.DEVBOX_HOME || join(homedir(), ".devbox");
-	return join(home, "projects");
+	return join(home, "Projects");
 }
 
 export function resolveProjectFromCwd(): string | null {

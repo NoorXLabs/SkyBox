@@ -12,7 +12,7 @@ describe("list command", () => {
 
 	beforeEach(() => {
 		testDir = join(tmpdir(), `devbox-list-test-${Date.now()}`);
-		projectsDir = join(testDir, "projects");
+		projectsDir = join(testDir, "Projects");
 		mkdirSync(projectsDir, { recursive: true });
 		originalEnv = process.env.DEVBOX_HOME;
 		process.env.DEVBOX_HOME = testDir;

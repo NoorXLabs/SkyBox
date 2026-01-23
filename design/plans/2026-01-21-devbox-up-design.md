@@ -23,7 +23,7 @@ Options:
 ### Project Resolution Order
 
 1. If `project` argument provided → use it
-2. If current directory is inside `~/.devbox/projects/<name>` → use that project
+2. If current directory is inside `~/.devbox/Projects/<name>` → use that project
 3. Otherwise → show interactive list from `devbox list`
 
 ## Main Workflow

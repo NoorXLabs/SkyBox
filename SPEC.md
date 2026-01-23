@@ -32,7 +32,7 @@
 ┌─────────────────────────────────────────────────────────────────┐
 │                     Local Machine                               │
 │  ┌───────────────────────────────────────────────────────────┐  │
-│  │  ~/.devbox/projects/                                      │  │
+│  │  ~/.devbox/Projects/                                      │  │
 │  │    └── project-a/    ← synced working copy with git       │  │
 │  └───────────────────────────────────────────────────────────┘  │
 │                              │                                  │
@@ -84,7 +84,7 @@
 - Configures remote code directory path
 - Shows existing projects on remote server
 - Creates `~/.devbox/config.yaml` with all settings
-- Creates `~/.devbox/projects/` directory for local synced copies
+- Creates `~/.devbox/Projects/` directory for local synced copies
 - **Configures preferred editor** (cursor, code, vim, etc.)
 
 **Config file structure:**
@@ -142,7 +142,7 @@ devbox push . --git-init
 ### 3. Clone Remote Project (`devbox clone <project>`)
 
 **What it does:**
-- Creates local directory at `~/.devbox/projects/<project>`
+- Creates local directory at `~/.devbox/Projects/<project>`
 - Creates mutagen sync session named `devbox-<project>`
 - **Syncs .git directory** for full history and branches
 - Configures sync with:
@@ -167,7 +167,7 @@ devbox push . --git-init
 ### 5. List Local Projects (`devbox list`)
 
 **What it does:**
-- Lists all projects in `~/.devbox/projects/`
+- Lists all projects in `~/.devbox/Projects/`
 - Shows for each project:
   - Container status (running/stopped)
   - Sync status (syncing/paused/unknown)
@@ -615,7 +615,7 @@ User never needs to manually install mutagen.
 
 #### 14. Auto-Up on Directory Enter
 - Shell integration (zsh/bash hook)
-- `cd ~/.devbox/projects/myapp` automatically runs `devbox up myapp`
+- `cd ~/.devbox/Projects/myapp` automatically runs `devbox up myapp`
 - Configurable, off by default
 - Auto-down when leaving directory
 
@@ -763,7 +763,7 @@ devbox/
 | Path | Purpose |
 |------|---------|
 | `~/.devbox/config.yaml` | Main configuration |
-| `~/.devbox/projects/` | Local synced project copies |
+| `~/.devbox/Projects/` | Local synced project copies |
 | `~/.devbox/bin/` | Bundled binaries (mutagen) |
 | `~/.devbox/logs/` | Log files |
 | `~/.ssh/config` | SSH host configurations |

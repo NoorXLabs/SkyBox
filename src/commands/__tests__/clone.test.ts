@@ -33,14 +33,14 @@ describe("clone command", () => {
 	});
 
 	test("local path is constructed correctly", () => {
-		const projectsDir = join(testDir, "projects");
+		const projectsDir = join(testDir, "Projects");
 		const project = "myapp";
 		const localPath = join(projectsDir, project);
-		expect(localPath).toBe(`${testDir}/projects/myapp`);
+		expect(localPath).toBe(`${testDir}/Projects/myapp`);
 	});
 
 	test("detects existing local project", () => {
-		const projectsDir = join(testDir, "projects");
+		const projectsDir = join(testDir, "Projects");
 		const project = "myapp";
 		const localPath = join(projectsDir, project);
 

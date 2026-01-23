@@ -36,7 +36,7 @@ describe("project resolution", () => {
 	});
 
 	test("resolveProjectFromCwd returns project name when in project dir", async () => {
-		const projectsDir = join(testDir, "projects");
+		const projectsDir = join(testDir, "Projects");
 		const projectDir = join(projectsDir, "myapp");
 		mkdirSync(projectDir, { recursive: true });
 		process.chdir(projectDir);
@@ -53,7 +53,7 @@ describe("project resolution", () => {
 	});
 
 	test("getLocalProjects returns project names", async () => {
-		const projectsDir = join(testDir, "projects");
+		const projectsDir = join(testDir, "Projects");
 		mkdirSync(join(projectsDir, "app1"), { recursive: true });
 		mkdirSync(join(projectsDir, "app2"), { recursive: true });
 

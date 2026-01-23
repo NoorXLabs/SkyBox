@@ -73,7 +73,7 @@ devbox up my-project --rebuild
 devbox up my-project --no-prompt
 
 # Start from within project directory
-cd ~/.devbox/projects/my-project
+cd ~/.devbox/Projects/my-project
 devbox up
 ```
 
