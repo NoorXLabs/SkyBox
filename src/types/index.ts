@@ -172,6 +172,11 @@ export interface SyncStatus {
 	status: string;
 }
 
+// Shell command types
+export interface ShellOptions {
+	command?: string;
+}
+
 // Lock types
 export interface LockInfo {
 	machine: string; // hostname of machine holding lock
