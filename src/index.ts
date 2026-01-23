@@ -7,6 +7,7 @@ import { editorCommand } from "./commands/editor.ts";
 import { initCommand } from "./commands/init.ts";
 import { listCommand } from "./commands/list.ts";
 import { pushCommand } from "./commands/push.ts";
+import { shellCommand } from "./commands/shell.ts";
 import { statusCommand } from "./commands/status.ts";
 import { upCommand } from "./commands/up.ts";
 
@@ -64,5 +65,11 @@ program
 	.command("status [project]")
 	.description("Show project status")
 	.action(statusCommand);
+
+program
+	.command("shell <project>")
+	.description("Enter container shell")
+	.option("-c, --command <cmd>", "Run a single command and exit")
+	.action(shellCommand);
 
 program.parse();
