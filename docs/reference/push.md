@@ -31,7 +31,7 @@ The `push` command uploads a local project to your configured remote server and 
 6. **Sync Setup** - Creates a Mutagen sync session for bidirectional synchronization
 7. **Initial Sync** - Uploads all files to the remote
 8. **Registration** - Registers the project in DevBox configuration
-9. **Container Prompt** - Offers to start the development container
+9. **Container Prompt** - Offers to start the development container immediately
 
 ### Git Repository
 
@@ -70,17 +70,35 @@ devbox push ./my-project my-api
 devbox push /path/to/my-project
 ```
 
+### Container Auto-Start
+
+After pushing, you'll be prompted to start the development container:
+
+```bash
+? Start dev container now? (y/N)
+```
+
+Choosing **yes** runs the full [`devbox up`](/reference/up) flow:
+- Acquires project lock
+- Prompts for devcontainer template (if none exists)
+- Starts the container
+- Offers to open in your editor or attach to shell
+
+Choosing **no** displays the project location and you can start later with `devbox up`.
+
 ### Workflow Example
 
 ```bash
 # Start with an existing local project
 cd ~/code/my-new-app
 
-# Push it to remote
+# Push it to remote and start container immediately
 devbox push .
-
-# Now it's synced! Start the container
-devbox up my-new-app
+# ? Start dev container now? Yes
+# ─── Starting 'my-new-app'... ───
+# ℹ Lock acquired
+# ✔ Sync is active
+# ...
 ```
 
 ### Overwrite Behavior
