@@ -153,6 +153,10 @@ export interface UpOptions {
 	verbose?: boolean;
 }
 
+export interface RmOptions {
+	force?: boolean;
+}
+
 // Template types
 export interface Template {
 	id: string;
