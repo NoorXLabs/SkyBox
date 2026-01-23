@@ -8,6 +8,7 @@ import { editorCommand } from "./commands/editor.ts";
 import { initCommand } from "./commands/init.ts";
 import { listCommand } from "./commands/list.ts";
 import { pushCommand } from "./commands/push.ts";
+import { newCommand } from "./commands/new.ts";
 import { rmCommand } from "./commands/rm.ts";
 import { shellCommand } from "./commands/shell.ts";
 import { statusCommand } from "./commands/status.ts";
@@ -67,6 +68,11 @@ program
 	.command("status [project]")
 	.description("Show project status")
 	.action(statusCommand);
+
+program
+	.command("new")
+	.description("Create a new project on the remote server")
+	.action(newCommand);
 
 program
 	.command("rm <project>")
