@@ -38,6 +38,7 @@ export interface DevboxConfig {
 	editor: string;
 	defaults: SyncDefaults;
 	projects: Record<string, ProjectConfig>;
+	templates?: Record<string, string>; // name -> git URL
 }
 
 export enum ContainerStatus {
@@ -159,6 +160,19 @@ export interface Template {
 	name: string;
 	description: string;
 	config: object;
+}
+
+// User-defined project templates (git repos)
+export interface UserTemplate {
+	name: string;
+	url: string;
+}
+
+// Built-in template definition
+export interface BuiltInTemplate {
+	id: string;
+	name: string;
+	url: string;
 }
 
 // Sync types
