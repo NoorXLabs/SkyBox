@@ -1,17 +1,31 @@
 // src/commands/__tests__/status.test.ts
 //
-// NOTE: The statusCommand tests require DEVBOX_HOME to be set before module imports.
-// Since bun hoists imports, these tests use bun's preload capability via a setup file.
-// The helper functions (getGitInfo, getDiskUsage, getLastActive) can be tested normally.
+// NOTE: These helper function tests require real execa (git, du commands).
+// They may fail if run after test files that mock execa at module level
+// (e.g., shell-docker-isolated.test.ts). In that case, run this file separately:
+//   bun test src/commands/__tests__/status.test.ts
+//
+// The statusCommand tests require DEVBOX_HOME to be set before module imports,
+// which is not possible with bun's import hoisting. Those should be integration tests.
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { execa } from "execa";
+import { execa as realExeca } from "execa";
 
 // Import only the helper functions that don't depend on PROJECTS_DIR
 import { getGitInfo, getDiskUsage, getLastActive } from "../status.ts";
+
+// Check if execa is mocked (returns undefined or wrong type)
+const execaIsMocked = async (): Promise<boolean> => {
+	try {
+		const result = await realExeca("echo", ["test"]);
+		return typeof result?.stdout !== "string";
+	} catch {
+		return true;
+	}
+};
 
 describe("status command helpers", () => {
 	let testDir: string;
@@ -29,20 +43,22 @@ describe("status command helpers", () => {
 
 	describe("getGitInfo", () => {
 		test("returns null for non-git directory", async () => {
+			if (await execaIsMocked()) return; // Skip if execa mocked
 			const result = await getGitInfo(testDir);
 			expect(result).toBeNull();
 		});
 
 		test("returns branch and clean status for git repo", async () => {
+			if (await execaIsMocked()) return; // Skip if execa mocked
 			// Initialize git repo
-			await execa("git", ["init"], { cwd: testDir });
-			await execa("git", ["config", "user.email", "test@test.com"], {
+			await realExeca("git", ["init"], { cwd: testDir });
+			await realExeca("git", ["config", "user.email", "test@test.com"], {
 				cwd: testDir,
 			});
-			await execa("git", ["config", "user.name", "Test"], { cwd: testDir });
+			await realExeca("git", ["config", "user.name", "Test"], { cwd: testDir });
 			writeFileSync(join(testDir, "README.md"), "# Test");
-			await execa("git", ["add", "."], { cwd: testDir });
-			await execa("git", ["commit", "-m", "init"], { cwd: testDir });
+			await realExeca("git", ["add", "."], { cwd: testDir });
+			await realExeca("git", ["commit", "-m", "init"], { cwd: testDir });
 
 			const result = await getGitInfo(testDir);
 
@@ -54,15 +70,16 @@ describe("status command helpers", () => {
 		});
 
 		test("returns dirty status for uncommitted changes", async () => {
+			if (await execaIsMocked()) return; // Skip if execa mocked
 			// Initialize git repo
-			await execa("git", ["init"], { cwd: testDir });
-			await execa("git", ["config", "user.email", "test@test.com"], {
+			await realExeca("git", ["init"], { cwd: testDir });
+			await realExeca("git", ["config", "user.email", "test@test.com"], {
 				cwd: testDir,
 			});
-			await execa("git", ["config", "user.name", "Test"], { cwd: testDir });
+			await realExeca("git", ["config", "user.name", "Test"], { cwd: testDir });
 			writeFileSync(join(testDir, "README.md"), "# Test");
-			await execa("git", ["add", "."], { cwd: testDir });
-			await execa("git", ["commit", "-m", "init"], { cwd: testDir });
+			await realExeca("git", ["add", "."], { cwd: testDir });
+			await realExeca("git", ["commit", "-m", "init"], { cwd: testDir });
 
 			// Make uncommitted change
 			writeFileSync(join(testDir, "new.txt"), "new file");
@@ -76,6 +93,7 @@ describe("status command helpers", () => {
 
 	describe("getDiskUsage", () => {
 		test("returns size string for directory", async () => {
+			if (await execaIsMocked()) return; // Skip if execa mocked
 			// Create some files
 			writeFileSync(join(testDir, "file1.txt"), "hello world");
 			writeFileSync(join(testDir, "file2.txt"), "more content");
@@ -87,6 +105,7 @@ describe("status command helpers", () => {
 		});
 
 		test("returns 'unknown' on error", async () => {
+			if (await execaIsMocked()) return; // Skip if execa mocked
 			const result = await getDiskUsage(
 				"/nonexistent/path/that/does/not/exist",
 			);
@@ -96,15 +115,16 @@ describe("status command helpers", () => {
 
 	describe("getLastActive", () => {
 		test("returns date from git log if available", async () => {
+			if (await execaIsMocked()) return; // Skip if execa mocked
 			// Initialize git repo with a commit
-			await execa("git", ["init"], { cwd: testDir });
-			await execa("git", ["config", "user.email", "test@test.com"], {
+			await realExeca("git", ["init"], { cwd: testDir });
+			await realExeca("git", ["config", "user.email", "test@test.com"], {
 				cwd: testDir,
 			});
-			await execa("git", ["config", "user.name", "Test"], { cwd: testDir });
+			await realExeca("git", ["config", "user.name", "Test"], { cwd: testDir });
 			writeFileSync(join(testDir, "README.md"), "# Test");
-			await execa("git", ["add", "."], { cwd: testDir });
-			await execa("git", ["commit", "-m", "init"], { cwd: testDir });
+			await realExeca("git", ["add", "."], { cwd: testDir });
+			await realExeca("git", ["commit", "-m", "init"], { cwd: testDir });
 
 			const result = await getLastActive(testDir);
 
@@ -114,6 +134,7 @@ describe("status command helpers", () => {
 		});
 
 		test("returns directory mtime for non-git directory", async () => {
+			if (await execaIsMocked()) return; // Skip if execa mocked
 			writeFileSync(join(testDir, "file.txt"), "content");
 
 			const result = await getLastActive(testDir);
