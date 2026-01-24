@@ -11,7 +11,7 @@ import type { LockInfo, LockStatus } from "../../types/index.ts";
 const mockExeca = mock(() => Promise.resolve({ exitCode: 0 }));
 mock.module("execa", () => ({ execa: mockExeca }));
 
-// Mock the lock module
+// Mock the lock module - must include ALL exports to prevent "export not found" errors
 const mockGetLockStatus = mock(
 	(_project: string, _config: unknown): Promise<LockStatus> =>
 		Promise.resolve({ locked: false }),
@@ -19,6 +19,15 @@ const mockGetLockStatus = mock(
 
 mock.module("../../lib/lock.ts", () => ({
 	getLockStatus: mockGetLockStatus,
+	getMachineName: mock(() => hostname()),
+	createLockRemoteInfo: mock(
+		(remote: { host: string; user?: string; path: string }) => ({
+			host: remote.user ? `${remote.user}@${remote.host}` : remote.host,
+			basePath: remote.path,
+		}),
+	),
+	acquireLock: mock(() => Promise.resolve({ success: true })),
+	releaseLock: mock(() => Promise.resolve({ success: true })),
 }));
 
 // Mock inquirer
