@@ -4,7 +4,7 @@
 // Since bun hoists imports, these tests use bun's preload capability via a setup file.
 // The helper functions (getGitInfo, getDiskUsage, getLastActive) can be tested normally.
 
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";

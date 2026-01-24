@@ -7,7 +7,7 @@ import {
 } from "../lib/projectTemplates.ts";
 import { runRemoteCommand } from "../lib/ssh.ts";
 import { error, header, info, spinner, success } from "../lib/ui.ts";
-import type { DevboxConfigV2, RemoteEntry } from "../types/index.ts";
+import type { RemoteEntry } from "../types/index.ts";
 import { getRemoteHost, selectRemote } from "./remote.ts";
 
 export async function newCommand(): Promise<void> {
