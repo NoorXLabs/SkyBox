@@ -7,39 +7,20 @@ on:
     branches: [main]
 
 jobs:
-  check:
+  ci:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
       - uses: biomejs/setup-biome@v2
-      - run: biome check ./src
-
-  typecheck:
-    runs-on: self-hosted
-    steps:
-      - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
       - run: bun install
-      - run: bun run typecheck
-
-  test:
-    runs-on: self-hosted
-    steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-      - run: bun install
-      - run: bun test
-
-  build:
-    runs-on: self-hosted
-    steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-      - run: bun install
-      - run: bun run build
+      - name: Lint
+        run: biome check ./src
+      - name: Typecheck
+        run: bun run typecheck
+      - name: Test
+        run: bun test
+      - name: Build
+        run: bun run build
