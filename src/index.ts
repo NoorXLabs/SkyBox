@@ -3,12 +3,14 @@ import { program } from "commander";
 import pkg from "../package.json";
 import { browseCommand } from "./commands/browse.ts";
 import { cloneCommand } from "./commands/clone.ts";
+import { configCommand } from "./commands/config.ts";
 import { downCommand } from "./commands/down.ts";
 import { editorCommand } from "./commands/editor.ts";
 import { initCommand } from "./commands/init.ts";
 import { listCommand } from "./commands/list.ts";
 import { pushCommand } from "./commands/push.ts";
 import { newCommand } from "./commands/new.ts";
+import { remoteCommand } from "./commands/remote.ts";
 import { rmCommand } from "./commands/rm.ts";
 import { shellCommand } from "./commands/shell.ts";
 import { statusCommand } from "./commands/status.ts";
@@ -97,5 +99,17 @@ program
 	.description("Enter container shell")
 	.option("-c, --command <cmd>", "Run a single command and exit")
 	.action(shellCommand);
+
+program
+	.command("remote [subcommand] [arg1] [arg2]")
+	.description("Manage remote servers")
+	.option("-k, --key <path>", "SSH key path")
+	.action((subcommand, arg1, arg2, options) => remoteCommand(subcommand, arg1, arg2, options));
+
+program
+	.command("config [key] [value]")
+	.description("View or modify configuration")
+	.option("--validate", "Test connection to all remotes")
+	.action((key, value, options) => configCommand(options, key, value));
 
 program.parse();
