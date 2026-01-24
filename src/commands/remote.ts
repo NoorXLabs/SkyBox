@@ -10,7 +10,81 @@ import {
 	testConnection,
 } from "../lib/ssh.ts";
 import { error, header, info, spinner, success, warn } from "../lib/ui.ts";
-import type { RemoteEntry } from "../types/index.ts";
+import type { DevboxConfigV2, RemoteEntry } from "../types/index.ts";
+
+/**
+ * Prompt user to select a remote from configured remotes.
+ * If only one remote exists, returns it automatically.
+ */
+export async function selectRemote(
+	config?: DevboxConfigV2 | null,
+): Promise<string> {
+	const cfg = config ?? loadConfig();
+	if (!cfg) {
+		error("devbox not configured. Run 'devbox init' first.");
+		process.exit(1);
+	}
+
+	const remotes = Object.keys(cfg.remotes);
+	if (remotes.length === 0) {
+		error("No remotes configured. Run 'devbox remote add' first.");
+		process.exit(1);
+	}
+
+	if (remotes.length === 1) {
+		return remotes[0];
+	}
+
+	const { selected } = await inquirer.prompt([
+		{
+			type: "rawlist",
+			name: "selected",
+			message: "Select remote:",
+			choices: remotes.map((name) => {
+				const r = cfg.remotes[name];
+				const userPart = r.user ? `${r.user}@` : "";
+				return { name: `${name} (${userPart}${r.host})`, value: name };
+			}),
+		},
+	]);
+
+	return selected;
+}
+
+/**
+ * Get the remote associated with a project.
+ * Returns null if project not found or remote not configured.
+ */
+export function getProjectRemote(
+	projectName: string,
+	config?: DevboxConfigV2 | null,
+): { name: string; remote: RemoteEntry } | null {
+	const cfg = config ?? loadConfig();
+	if (!cfg) return null;
+
+	const project = cfg.projects[projectName];
+	if (!project?.remote) return null;
+
+	const remote = cfg.remotes[project.remote];
+	if (!remote) return null;
+
+	return { name: project.remote, remote };
+}
+
+/**
+ * Build SSH connection string from remote entry.
+ * Returns "user@host" or just "host" if no user specified.
+ */
+export function getRemoteHost(remote: RemoteEntry): string {
+	return remote.user ? `${remote.user}@${remote.host}` : remote.host;
+}
+
+/**
+ * Build remote path for a project on a given remote.
+ */
+export function getRemotePath(remote: RemoteEntry, projectName: string): string {
+	return `${remote.path}/${projectName}`;
+}
 
 /**
  * Parse a remote string in "user@host:path" format

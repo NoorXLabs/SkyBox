@@ -1,7 +1,8 @@
 // src/lib/__tests__/lock.test.ts
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import { hostname, userInfo } from "node:os";
-import type { DevboxConfig, LockInfo } from "../../types/index.ts";
+import type { LockInfo } from "../../types/index.ts";
+import type { LockRemoteInfo } from "../lock.ts";
 
 // Mock the ssh module
 const mockRunRemoteCommand = mock(
@@ -22,17 +23,9 @@ const { getMachineName, getLockStatus, acquireLock, releaseLock } =
 	await import("../lock.ts");
 
 describe("lock", () => {
-	const testConfig: DevboxConfig = {
-		remote: {
-			host: "testhost",
-			base_path: "~/code",
-		},
-		editor: "cursor",
-		defaults: {
-			sync_mode: "two-way-resolved",
-			ignore: [],
-		},
-		projects: {},
+	const testRemoteInfo: LockRemoteInfo = {
+		host: "testhost",
+		basePath: "~/code",
 	};
 
 	beforeEach(() => {
@@ -57,7 +50,7 @@ describe("lock", () => {
 				stdout: "",
 			});
 
-			const status = await getLockStatus("myproject", testConfig);
+			const status = await getLockStatus("myproject", testRemoteInfo);
 
 			expect(status.locked).toBe(false);
 			expect(mockRunRemoteCommand).toHaveBeenCalledWith(
@@ -72,7 +65,7 @@ describe("lock", () => {
 				error: "Connection failed",
 			});
 
-			const status = await getLockStatus("myproject", testConfig);
+			const status = await getLockStatus("myproject", testRemoteInfo);
 
 			expect(status.locked).toBe(false);
 		});
@@ -90,7 +83,7 @@ describe("lock", () => {
 				stdout: JSON.stringify(lockInfo),
 			});
 
-			const status = await getLockStatus("myproject", testConfig);
+			const status = await getLockStatus("myproject", testRemoteInfo);
 
 			expect(status.locked).toBe(true);
 			if (status.locked) {
@@ -112,7 +105,7 @@ describe("lock", () => {
 				stdout: JSON.stringify(lockInfo),
 			});
 
-			const status = await getLockStatus("myproject", testConfig);
+			const status = await getLockStatus("myproject", testRemoteInfo);
 
 			expect(status.locked).toBe(true);
 			if (status.locked) {
@@ -127,7 +120,7 @@ describe("lock", () => {
 				stdout: "invalid json",
 			});
 
-			const status = await getLockStatus("myproject", testConfig);
+			const status = await getLockStatus("myproject", testRemoteInfo);
 
 			expect(status.locked).toBe(false);
 		});
@@ -145,7 +138,7 @@ describe("lock", () => {
 				success: true,
 			});
 
-			const result = await acquireLock("myproject", testConfig);
+			const result = await acquireLock("myproject", testRemoteInfo);
 
 			expect(result.success).toBe(true);
 			expect(mockRunRemoteCommand).toHaveBeenCalledTimes(2);
@@ -174,7 +167,7 @@ describe("lock", () => {
 				success: true,
 			});
 
-			const result = await acquireLock("myproject", testConfig);
+			const result = await acquireLock("myproject", testRemoteInfo);
 
 			expect(result.success).toBe(true);
 			expect(mockRunRemoteCommand).toHaveBeenCalledTimes(2);
@@ -194,7 +187,7 @@ describe("lock", () => {
 				stdout: JSON.stringify(lockInfo),
 			});
 
-			const result = await acquireLock("myproject", testConfig);
+			const result = await acquireLock("myproject", testRemoteInfo);
 
 			expect(result.success).toBe(false);
 			expect(result.error).toContain("other-machine");
@@ -216,7 +209,7 @@ describe("lock", () => {
 				error: "Permission denied",
 			});
 
-			const result = await acquireLock("myproject", testConfig);
+			const result = await acquireLock("myproject", testRemoteInfo);
 
 			expect(result.success).toBe(false);
 			expect(result.error).toBe("Permission denied");
@@ -229,7 +222,7 @@ describe("lock", () => {
 				success: true,
 			});
 
-			const result = await releaseLock("myproject", testConfig);
+			const result = await releaseLock("myproject", testRemoteInfo);
 
 			expect(result.success).toBe(true);
 			expect(mockRunRemoteCommand).toHaveBeenCalledWith(
@@ -244,7 +237,7 @@ describe("lock", () => {
 				error: "Permission denied",
 			});
 
-			const result = await releaseLock("myproject", testConfig);
+			const result = await releaseLock("myproject", testRemoteInfo);
 
 			expect(result.success).toBe(false);
 			expect(result.error).toBe("Permission denied");

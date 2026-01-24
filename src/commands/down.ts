@@ -10,7 +10,7 @@ import {
 	stopContainer,
 } from "../lib/container.ts";
 import { getErrorMessage } from "../lib/errors.ts";
-import { releaseLock } from "../lib/lock.ts";
+import { createLockRemoteInfo, releaseLock } from "../lib/lock.ts";
 import { pauseSync, waitForSync } from "../lib/mutagen.ts";
 import {
 	getLocalProjects,
@@ -20,6 +20,7 @@ import {
 } from "../lib/project.ts";
 import { error, header, info, spinner, success, warn } from "../lib/ui.ts";
 import { ContainerStatus, type DownOptions } from "../types/index.ts";
+import { getProjectRemote, getRemoteHost, getRemotePath } from "./remote.ts";
 
 export async function downCommand(
 	projectArg: string | undefined,
@@ -113,12 +114,16 @@ export async function downCommand(
 			stopSpin.succeed("Container already stopped");
 		}
 
-		// Release lock after container stopped
-		const lockResult = await releaseLock(project ?? "", config);
-		if (lockResult.success) {
-			success("Lock released");
-		} else {
-			warn(`Could not release lock: ${lockResult.error}`);
+		// Release lock after container stopped (if project has a remote)
+		const projectRemote = getProjectRemote(project ?? "", config);
+		if (projectRemote) {
+			const remoteInfo = createLockRemoteInfo(projectRemote.remote);
+			const lockResult = await releaseLock(project ?? "", remoteInfo);
+			if (lockResult.success) {
+				success("Lock released");
+			} else {
+				warn(`Could not release lock: ${lockResult.error}`);
+			}
 		}
 	}
 
@@ -192,15 +197,20 @@ export async function downCommand(
 			}
 			rmSpin.succeed("Local files removed");
 
+			// Get remote info for the info message
+			const projectRemoteInfo = getProjectRemote(project ?? "", config);
+
 			// Optionally remove from config
 			if (config.projects?.[project ?? ""]) {
 				delete config.projects[project ?? ""];
 				saveConfig(config);
 			}
 
-			info(
-				`Remote copy preserved at ${config.remote.host}:${config.remote.base_path}/${project}`,
-			);
+			if (projectRemoteInfo) {
+				const host = getRemoteHost(projectRemoteInfo.remote);
+				const remotePath = getRemotePath(projectRemoteInfo.remote, project ?? "");
+				info(`Remote copy preserved at ${host}:${remotePath}`);
+			}
 			info(`Run 'devbox clone ${project}' to restore locally.`);
 		} catch (err: unknown) {
 			rmSpin.fail("Failed to remove local files");

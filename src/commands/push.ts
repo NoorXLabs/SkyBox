@@ -10,6 +10,7 @@ import { createSyncSession, waitForSync } from "../lib/mutagen.ts";
 import { PROJECTS_DIR } from "../lib/paths.ts";
 import { runRemoteCommand } from "../lib/ssh.ts";
 import { error, header, info, spinner, success } from "../lib/ui.ts";
+import { getRemoteHost, getRemotePath, selectRemote } from "./remote.ts";
 import { upCommand } from "./up.ts";
 
 async function checkRemoteProjectExists(
@@ -64,9 +65,13 @@ export async function pushCommand(
 	// Determine project name
 	const projectName = name || basename(absolutePath);
 
-	header(
-		`Pushing '${projectName}' to ${config.remote.host}:${config.remote.base_path}/${projectName}...`,
-	);
+	// Select which remote to push to
+	const remoteName = await selectRemote(config);
+	const remote = config.remotes[remoteName];
+	const host = getRemoteHost(remote);
+	const remotePath = getRemotePath(remote, projectName);
+
+	header(`Pushing '${projectName}' to ${host}:${remotePath}...`);
 
 	// Check if git repo
 	if (!(await isGitRepo(absolutePath))) {
@@ -95,8 +100,8 @@ export async function pushCommand(
 	// Check remote doesn't exist
 	const checkSpin = spinner("Checking remote...");
 	const remoteExists = await checkRemoteProjectExists(
-		config.remote.host,
-		config.remote.base_path,
+		host,
+		remote.path,
 		projectName,
 	);
 
@@ -132,20 +137,14 @@ export async function pushCommand(
 		}
 
 		// Remove remote directory
-		await runRemoteCommand(
-			config.remote.host,
-			`rm -rf ${config.remote.base_path}/${projectName}`,
-		);
+		await runRemoteCommand(host, `rm -rf ${remotePath}`);
 	} else {
 		checkSpin.succeed("Remote path available");
 	}
 
 	// Create remote directory
 	const mkdirSpin = spinner("Creating remote directory...");
-	const mkdirResult = await runRemoteCommand(
-		config.remote.host,
-		`mkdir -p ${config.remote.base_path}/${projectName}`,
-	);
+	const mkdirResult = await runRemoteCommand(host, `mkdir -p ${remotePath}`);
 
 	if (!mkdirResult.success) {
 		mkdirSpin.fail("Failed to create remote directory");
@@ -168,12 +167,11 @@ export async function pushCommand(
 
 	// Create sync session
 	const syncSpin = spinner("Starting sync...");
-	const remotePath = `${config.remote.base_path}/${projectName}`;
 
 	const createResult = await createSyncSession(
 		projectName,
 		localPath,
-		config.remote.host,
+		host,
 		remotePath,
 		config.defaults.ignore,
 	);
@@ -198,8 +196,8 @@ export async function pushCommand(
 
 	syncSpin.succeed("Initial sync complete");
 
-	// Register in config
-	config.projects[projectName] = {};
+	// Register in config with remote reference
+	config.projects[projectName] = { remote: remoteName };
 	saveConfig(config);
 
 	// Offer to start container

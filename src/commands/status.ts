@@ -6,19 +6,20 @@ import chalk from "chalk";
 import { execa } from "execa";
 import { configExists, loadConfig } from "../lib/config.ts";
 import { getContainerInfo, getContainerStatus } from "../lib/container.ts";
-import { getLockStatus } from "../lib/lock.ts";
+import { createLockRemoteInfo, getLockStatus } from "../lib/lock.ts";
 import { getSyncStatus, sessionName } from "../lib/mutagen.ts";
 import { PROJECTS_DIR } from "../lib/paths.ts";
 import { error, header } from "../lib/ui.ts";
 import {
 	type ContainerDetails,
 	ContainerStatus,
-	type DevboxConfig,
+	type DevboxConfigV2,
 	type GitDetails,
 	type LockStatus,
 	type ProjectSummary,
 	type SyncDetails,
 } from "../types/index.ts";
+import { getProjectRemote, getRemoteHost } from "./remote.ts";
 
 export async function getDiskUsage(path: string): Promise<string> {
 	try {
@@ -239,14 +240,16 @@ async function getSyncDetails(projectName: string): Promise<SyncDetails> {
 
 async function getRemoteDiskUsage(projectName: string): Promise<string> {
 	try {
-		const config = loadConfig();
-		if (!config) {
+		const projectRemote = getProjectRemote(projectName);
+		if (!projectRemote) {
 			return "unavailable";
 		}
-		const remotePath = `${config.remote.base_path}/${projectName}`;
+		const { remote } = projectRemote;
+		const host = getRemoteHost(remote);
+		const remotePath = `${remote.path}/${projectName}`;
 		const result = await execa(
 			"ssh",
-			[config.remote.host, `du -sh ${remotePath} 2>/dev/null | cut -f1`],
+			[host, `du -sh ${remotePath} 2>/dev/null | cut -f1`],
 			{ timeout: 10000 },
 		);
 		return result.stdout.trim() || "unknown";
@@ -257,7 +260,7 @@ async function getRemoteDiskUsage(projectName: string): Promise<string> {
 
 async function getProjectSummary(
 	projectName: string,
-	config: DevboxConfig | null,
+	config: DevboxConfigV2 | null,
 ): Promise<ProjectSummary> {
 	const projectPath = join(PROJECTS_DIR, projectName);
 
@@ -271,11 +274,15 @@ async function getProjectSummary(
 			getLastActive(projectPath),
 		]);
 
-	// Get lock status if config is available
+	// Get lock status if config is available and project has a remote
 	let lockDisplay = "unavailable";
 	if (config) {
-		const lockStatus = await getLockStatus(projectName, config);
-		lockDisplay = formatLockStatus(lockStatus);
+		const projectRemote = getProjectRemote(projectName, config);
+		if (projectRemote) {
+			const remoteInfo = createLockRemoteInfo(projectRemote.remote);
+			const lockStatus = await getLockStatus(projectName, remoteInfo);
+			lockDisplay = formatLockStatus(lockStatus);
+		}
 	}
 
 	// Map container status
@@ -432,6 +439,9 @@ async function showDetailed(projectName: string): Promise<void> {
 	// Load config for lock status
 	const config = loadConfig();
 
+	// Get project's remote for lock status
+	const projectRemote = config ? getProjectRemote(projectName, config) : null;
+
 	// Gather all details
 	const [container, sync, git, localDisk, remoteDisk, lockStatus] =
 		await Promise.all([
@@ -440,8 +450,11 @@ async function showDetailed(projectName: string): Promise<void> {
 			getGitInfo(projectPath),
 			getDiskUsage(projectPath),
 			getRemoteDiskUsage(projectName),
-			config
-				? getLockStatus(projectName, config)
+			projectRemote
+				? getLockStatus(
+						projectName,
+						createLockRemoteInfo(projectRemote.remote),
+					)
 				: Promise.resolve({ locked: false } as LockStatus),
 		]);
 
@@ -483,8 +496,10 @@ async function showDetailed(projectName: string): Promise<void> {
 	// Lock section
 	console.log();
 	console.log(chalk.bold("Lock"));
-	if (!config) {
-		console.log(`  Status:     ${chalk.dim("unavailable (no config)")}`);
+	if (!config || !projectRemote) {
+		console.log(
+			`  Status:     ${chalk.dim("unavailable (no remote configured)")}`,
+		);
 	} else if (!lockStatus.locked) {
 		console.log(`  Status:     ${chalk.green("unlocked")}`);
 	} else {

@@ -1,8 +1,16 @@
 // src/lib/lock.ts
 
 import { hostname, userInfo } from "node:os";
-import type { DevboxConfig, LockInfo, LockStatus } from "../types/index.ts";
+import type { LockInfo, LockStatus, RemoteEntry } from "../types/index.ts";
 import { runRemoteCommand } from "./ssh.ts";
+
+/**
+ * Remote connection info needed for lock operations.
+ */
+export interface LockRemoteInfo {
+	host: string; // SSH connection string (user@host or just host)
+	basePath: string; // Base path for projects on remote
+}
 
 /**
  * Returns the machine name (hostname) for lock identification.
@@ -26,16 +34,24 @@ function getLocksDir(basePath: string): string {
 }
 
 /**
+ * Create LockRemoteInfo from a RemoteEntry.
+ */
+export function createLockRemoteInfo(remote: RemoteEntry): LockRemoteInfo {
+	const host = remote.user ? `${remote.user}@${remote.host}` : remote.host;
+	return { host, basePath: remote.path };
+}
+
+/**
  * Read lock file from remote and return the lock status.
  */
 export async function getLockStatus(
 	project: string,
-	config: DevboxConfig,
+	remoteInfo: LockRemoteInfo,
 ): Promise<LockStatus> {
-	const lockPath = getLockPath(project, config.remote.base_path);
+	const lockPath = getLockPath(project, remoteInfo.basePath);
 	const command = `cat ${lockPath} 2>/dev/null`;
 
-	const result = await runRemoteCommand(config.remote.host, command);
+	const result = await runRemoteCommand(remoteInfo.host, command);
 
 	if (!result.success || !result.stdout || result.stdout.trim() === "") {
 		return { locked: false };
@@ -72,21 +88,21 @@ function createLockInfo(): LockInfo {
  */
 export async function acquireLock(
 	project: string,
-	config: DevboxConfig,
+	remoteInfo: LockRemoteInfo,
 ): Promise<{ success: boolean; error?: string; existingLock?: LockInfo }> {
 	// Check for existing lock
-	const status = await getLockStatus(project, config);
+	const status = await getLockStatus(project, remoteInfo);
 
 	if (status.locked) {
 		if (status.ownedByMe) {
 			// Update timestamp on existing lock
 			const lockInfo = createLockInfo();
-			const lockPath = getLockPath(project, config.remote.base_path);
-			const locksDir = getLocksDir(config.remote.base_path);
+			const lockPath = getLockPath(project, remoteInfo.basePath);
+			const locksDir = getLocksDir(remoteInfo.basePath);
 			const json = JSON.stringify(lockInfo);
 
 			const command = `mkdir -p ${locksDir} && echo '${json}' > ${lockPath}`;
-			const result = await runRemoteCommand(config.remote.host, command);
+			const result = await runRemoteCommand(remoteInfo.host, command);
 
 			if (!result.success) {
 				return {
@@ -107,12 +123,12 @@ export async function acquireLock(
 
 	// No existing lock, create new one
 	const lockInfo = createLockInfo();
-	const lockPath = getLockPath(project, config.remote.base_path);
-	const locksDir = getLocksDir(config.remote.base_path);
+	const lockPath = getLockPath(project, remoteInfo.basePath);
+	const locksDir = getLocksDir(remoteInfo.basePath);
 	const json = JSON.stringify(lockInfo);
 
 	const command = `mkdir -p ${locksDir} && echo '${json}' > ${lockPath}`;
-	const result = await runRemoteCommand(config.remote.host, command);
+	const result = await runRemoteCommand(remoteInfo.host, command);
 
 	if (!result.success) {
 		return { success: false, error: result.error || "Failed to create lock" };
@@ -127,12 +143,12 @@ export async function acquireLock(
  */
 export async function releaseLock(
 	project: string,
-	config: DevboxConfig,
+	remoteInfo: LockRemoteInfo,
 ): Promise<{ success: boolean; error?: string }> {
-	const lockPath = getLockPath(project, config.remote.base_path);
+	const lockPath = getLockPath(project, remoteInfo.basePath);
 	const command = `rm -f ${lockPath}`;
 
-	const result = await runRemoteCommand(config.remote.host, command);
+	const result = await runRemoteCommand(remoteInfo.host, command);
 
 	if (!result.success) {
 		return { success: false, error: result.error || "Failed to release lock" };

@@ -25,9 +25,11 @@ describe("init command integration", () => {
 		const { saveConfig } = await import("../../lib/config.ts");
 
 		const config = {
-			remote: { host: "test", base_path: "~/code" },
 			editor: "cursor",
 			defaults: { sync_mode: "two-way-resolved", ignore: [] },
+			remotes: {
+				default: { host: "test", user: "root", path: "~/code", key: null },
+			},
 			projects: {},
 		};
 
@@ -41,9 +43,11 @@ describe("init command integration", () => {
 		const { saveConfig } = await import("../../lib/config.ts");
 
 		const config = {
-			remote: { host: "myserver", base_path: "~/projects" },
 			editor: "vim",
 			defaults: { sync_mode: "two-way-resolved", ignore: ["node_modules"] },
+			remotes: {
+				myserver: { host: "myserver", user: "root", path: "~/projects", key: null },
+			},
 			projects: {},
 		};
 

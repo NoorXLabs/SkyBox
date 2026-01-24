@@ -182,7 +182,8 @@ describe("remote command", () => {
 			await addRemoteDirect("server2", "user2@host2:~/code2");
 
 			const config = loadConfig();
-			expect(Object.keys(config?.remotes)).toHaveLength(2);
+			expect(config).not.toBeNull();
+			expect(Object.keys(config!.remotes)).toHaveLength(2);
 			expect(config?.remotes.server1).toBeDefined();
 			expect(config?.remotes.server2).toBeDefined();
 		});

@@ -7,7 +7,8 @@ import {
 } from "../lib/projectTemplates.ts";
 import { runRemoteCommand } from "../lib/ssh.ts";
 import { error, header, info, spinner, success } from "../lib/ui.ts";
-import type { DevboxConfig } from "../types/index.ts";
+import type { DevboxConfigV2, RemoteEntry } from "../types/index.ts";
+import { getRemoteHost, selectRemote } from "./remote.ts";
 
 export async function newCommand(): Promise<void> {
 	// Check config exists
@@ -23,6 +24,11 @@ export async function newCommand(): Promise<void> {
 	}
 
 	header("Create a new project");
+
+	// Select which remote to create the project on
+	const remoteName = await selectRemote(config);
+	const remote = config.remotes[remoteName];
+	const host = getRemoteHost(remote);
 
 	// Step 1: Get project name
 	const { projectName } = await inquirer.prompt([
@@ -40,8 +46,8 @@ export async function newCommand(): Promise<void> {
 	// Step 2: Check if project exists on remote
 	const checkSpin = spinner("Checking remote...");
 	const checkResult = await runRemoteCommand(
-		config.remote.host,
-		`test -d ${config.remote.base_path}/${projectName} && echo "EXISTS" || echo "NOT_FOUND"`,
+		host,
+		`test -d ${remote.path}/${projectName} && echo "EXISTS" || echo "NOT_FOUND"`,
 	);
 
 	if (checkResult.stdout?.includes("EXISTS")) {
@@ -68,17 +74,18 @@ export async function newCommand(): Promise<void> {
 	]);
 
 	if (projectType === "empty") {
-		await createEmptyProject(config, projectName);
+		await createEmptyProject(remote, projectName);
 	} else {
-		await createFromTemplate(config, projectName);
+		await createFromTemplate(remote, projectName);
 	}
 }
 
 async function createEmptyProject(
-	config: DevboxConfig,
+	remote: RemoteEntry,
 	projectName: string,
 ): Promise<void> {
-	const remotePath = `${config.remote.base_path}/${projectName}`;
+	const host = getRemoteHost(remote);
+	const remotePath = `${remote.path}/${projectName}`;
 
 	// Create project directory with devcontainer
 	const createSpin = spinner("Creating project on remote...");
@@ -97,7 +104,7 @@ async function createEmptyProject(
 
 	const createCmd = `mkdir -p ${remotePath}/.devcontainer && echo '${escapedJson}' > ${remotePath}/.devcontainer/devcontainer.json`;
 
-	const createResult = await runRemoteCommand(config.remote.host, createCmd);
+	const createResult = await runRemoteCommand(host, createCmd);
 
 	if (!createResult.success) {
 		createSpin.fail("Failed to create project");
@@ -108,11 +115,11 @@ async function createEmptyProject(
 	createSpin.succeed("Project created on remote");
 
 	// Offer to clone locally
-	await offerClone(config, projectName);
+	await offerClone(projectName);
 }
 
 async function createFromTemplate(
-	config: DevboxConfig,
+	remote: RemoteEntry,
 	projectName: string,
 ): Promise<void> {
 	const { builtIn, user } = getAllTemplates();
@@ -203,16 +210,17 @@ async function createFromTemplate(
 		keepHistory = historyChoice === "keep";
 	}
 
-	await cloneTemplateToRemote(config, projectName, templateUrl, keepHistory);
+	await cloneTemplateToRemote(remote, projectName, templateUrl, keepHistory);
 }
 
 async function cloneTemplateToRemote(
-	config: DevboxConfig,
+	remote: RemoteEntry,
 	projectName: string,
 	templateUrl: string,
 	keepHistory: boolean,
 ): Promise<void> {
-	const remotePath = `${config.remote.base_path}/${projectName}`;
+	const host = getRemoteHost(remote);
+	const remotePath = `${remote.path}/${projectName}`;
 
 	const cloneSpin = spinner("Cloning template to remote...");
 
@@ -226,7 +234,7 @@ async function cloneTemplateToRemote(
 		cloneCmd = `git clone ${templateUrl} ${tempPath} && rm -rf ${tempPath}/.git && git -C ${tempPath} init && mv ${tempPath} ${remotePath}`;
 	}
 
-	const cloneResult = await runRemoteCommand(config.remote.host, cloneCmd);
+	const cloneResult = await runRemoteCommand(host, cloneCmd);
 
 	if (!cloneResult.success) {
 		cloneSpin.fail("Failed to clone template");
@@ -247,9 +255,9 @@ async function cloneTemplateToRemote(
 		]);
 
 		if (retryChoice === "retry") {
-			return cloneTemplateToRemote(config, projectName, templateUrl, keepHistory);
+			return cloneTemplateToRemote(remote, projectName, templateUrl, keepHistory);
 		} else if (retryChoice === "back") {
-			return createFromTemplate(config, projectName);
+			return createFromTemplate(remote, projectName);
 		} else {
 			process.exit(1);
 		}
@@ -259,7 +267,7 @@ async function cloneTemplateToRemote(
 
 	// Check if devcontainer.json exists, add if not
 	const checkDevcontainer = await runRemoteCommand(
-		config.remote.host,
+		host,
 		`test -f ${remotePath}/.devcontainer/devcontainer.json && echo "EXISTS" || echo "NOT_FOUND"`,
 	);
 
@@ -277,7 +285,7 @@ async function cloneTemplateToRemote(
 		const escapedJson = devcontainerJson.replace(/'/g, "'\\''");
 
 		await runRemoteCommand(
-			config.remote.host,
+			host,
 			`mkdir -p ${remotePath}/.devcontainer && echo '${escapedJson}' > ${remotePath}/.devcontainer/devcontainer.json`,
 		);
 
@@ -285,11 +293,10 @@ async function cloneTemplateToRemote(
 	}
 
 	// Offer to clone locally
-	await offerClone(config, projectName);
+	await offerClone(projectName);
 }
 
 async function offerClone(
-	_config: DevboxConfig,
 	projectName: string,
 ): Promise<void> {
 	console.log();
