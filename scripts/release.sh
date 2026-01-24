@@ -32,7 +32,7 @@ if git rev-parse "$TAG" >/dev/null 2>&1; then
 fi
 
 # Update version in package.json
-sed -i'' -e "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" package.json
+sed -i '' "s/\"version\": \"[^\"]*\"/\"version\": \"${VERSION}\"/" package.json
 
 # Commit version bump
 git add package.json
