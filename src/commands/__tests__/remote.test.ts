@@ -3,6 +3,13 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { saveConfig, loadConfig } from "../../lib/config.ts";
+import {
+	parseRemoteString,
+	addRemoteDirect,
+	removeRemote,
+	renameRemote,
+} from "../remote.ts";
 
 describe("remote command", () => {
 	let testDir: string;
@@ -28,8 +35,7 @@ describe("remote command", () => {
 
 	describe("parseRemoteString", () => {
 		test("parses valid user@host:path format", async () => {
-			const { parseRemoteString } = await import("../remote.ts");
-
+			
 			const result = parseRemoteString("root@192.168.1.100:~/code");
 			expect(result).not.toBeNull();
 			expect(result?.user).toBe("root");
@@ -38,8 +44,7 @@ describe("remote command", () => {
 		});
 
 		test("parses hostname with domain", async () => {
-			const { parseRemoteString } = await import("../remote.ts");
-
+			
 			const result = parseRemoteString(
 				"dev@server.example.com:/home/dev/projects",
 			);
@@ -50,8 +55,7 @@ describe("remote command", () => {
 		});
 
 		test("handles complex paths", async () => {
-			const { parseRemoteString } = await import("../remote.ts");
-
+			
 			const result = parseRemoteString("admin@myserver:/var/www/html/projects");
 			expect(result).not.toBeNull();
 			expect(result?.user).toBe("admin");
@@ -60,29 +64,25 @@ describe("remote command", () => {
 		});
 
 		test("returns null for invalid format - missing @", async () => {
-			const { parseRemoteString } = await import("../remote.ts");
-
+			
 			const result = parseRemoteString("root192.168.1.100:~/code");
 			expect(result).toBeNull();
 		});
 
 		test("returns null for invalid format - missing :", async () => {
-			const { parseRemoteString } = await import("../remote.ts");
-
+			
 			const result = parseRemoteString("root@192.168.1.100/code");
 			expect(result).toBeNull();
 		});
 
 		test("returns null for invalid format - missing path", async () => {
-			const { parseRemoteString } = await import("../remote.ts");
-
+			
 			const result = parseRemoteString("root@192.168.1.100:");
 			expect(result).toBeNull();
 		});
 
 		test("returns null for empty string", async () => {
-			const { parseRemoteString } = await import("../remote.ts");
-
+			
 			const result = parseRemoteString("");
 			expect(result).toBeNull();
 		});
@@ -90,9 +90,7 @@ describe("remote command", () => {
 
 	describe("addRemoteDirect", () => {
 		test("adds remote to config", async () => {
-			const { addRemoteDirect } = await import("../remote.ts");
-			const { loadConfig } = await import("../../lib/config.ts");
-
+			
 			const result = await addRemoteDirect(
 				"myserver",
 				"root@192.168.1.100:~/code",
@@ -111,9 +109,7 @@ describe("remote command", () => {
 		});
 
 		test("adds remote with custom key", async () => {
-			const { addRemoteDirect } = await import("../remote.ts");
-			const { loadConfig } = await import("../../lib/config.ts");
-
+			
 			const result = await addRemoteDirect(
 				"workserver",
 				"dev@work.example.com:/home/dev/projects",
@@ -127,8 +123,7 @@ describe("remote command", () => {
 		});
 
 		test("rejects duplicate remote name", async () => {
-			const { addRemoteDirect } = await import("../remote.ts");
-
+			
 			// Add first remote
 			const result1 = await addRemoteDirect(
 				"myserver",
@@ -146,8 +141,7 @@ describe("remote command", () => {
 		});
 
 		test("rejects invalid remote format", async () => {
-			const { addRemoteDirect } = await import("../remote.ts");
-
+			
 			const result = await addRemoteDirect("bad", "invalid-format");
 
 			expect(result.success).toBe(false);
@@ -155,9 +149,7 @@ describe("remote command", () => {
 		});
 
 		test("creates config if none exists", async () => {
-			const { addRemoteDirect } = await import("../remote.ts");
-			const { loadConfig } = await import("../../lib/config.ts");
-
+			
 			// Ensure no config exists
 			expect(loadConfig()).toBeNull();
 
@@ -172,9 +164,7 @@ describe("remote command", () => {
 		});
 
 		test("preserves existing remotes when adding new", async () => {
-			const { addRemoteDirect } = await import("../remote.ts");
-			const { loadConfig } = await import("../../lib/config.ts");
-
+			
 			// Add first remote
 			await addRemoteDirect("server1", "user1@host1:~/code1");
 
@@ -182,7 +172,8 @@ describe("remote command", () => {
 			await addRemoteDirect("server2", "user2@host2:~/code2");
 
 			const config = loadConfig();
-			expect(Object.keys(config?.remotes)).toHaveLength(2);
+			expect(config).not.toBeNull();
+			expect(Object.keys(config!.remotes)).toHaveLength(2);
 			expect(config?.remotes.server1).toBeDefined();
 			expect(config?.remotes.server2).toBeDefined();
 		});
@@ -190,9 +181,7 @@ describe("remote command", () => {
 
 	describe("removeRemote", () => {
 		test("removes remote from config", async () => {
-			const { addRemoteDirect, removeRemote } = await import("../remote.ts");
-			const { loadConfig } = await import("../../lib/config.ts");
-
+			
 			// Add remote first
 			await addRemoteDirect("toremove", "root@host:~/code");
 
@@ -206,9 +195,7 @@ describe("remote command", () => {
 		});
 
 		test("handles non-existent remote", async () => {
-			const { addRemoteDirect, removeRemote } = await import("../remote.ts");
-			const { loadConfig } = await import("../../lib/config.ts");
-
+			
 			// Create a config with one remote
 			await addRemoteDirect("existing", "root@host:~/code");
 
@@ -223,9 +210,7 @@ describe("remote command", () => {
 
 	describe("renameRemote", () => {
 		test("renames remote and preserves config", async () => {
-			const { addRemoteDirect, renameRemote } = await import("../remote.ts");
-			const { loadConfig } = await import("../../lib/config.ts");
-
+			
 			// Add remote first
 			await addRemoteDirect("oldname", "root@192.168.1.100:~/code");
 
@@ -240,9 +225,7 @@ describe("remote command", () => {
 		});
 
 		test("updates project references on rename", async () => {
-			const { addRemoteDirect, renameRemote } = await import("../remote.ts");
-			const { loadConfig, saveConfig } = await import("../../lib/config.ts");
-
+			
 			// Add remote first
 			await addRemoteDirect("oldserver", "root@host:~/code");
 
@@ -259,9 +242,7 @@ describe("remote command", () => {
 		});
 
 		test("handles non-existent old name", async () => {
-			const { addRemoteDirect, renameRemote } = await import("../remote.ts");
-			const { loadConfig } = await import("../../lib/config.ts");
-
+			
 			// Create a config with one remote
 			await addRemoteDirect("existing", "root@host:~/code");
 
@@ -275,9 +256,7 @@ describe("remote command", () => {
 		});
 
 		test("rejects rename to existing name", async () => {
-			const { addRemoteDirect, renameRemote } = await import("../remote.ts");
-			const { loadConfig } = await import("../../lib/config.ts");
-
+			
 			// Add two remotes
 			await addRemoteDirect("remote1", "root@host1:~/code");
 			await addRemoteDirect("remote2", "root@host2:~/code");

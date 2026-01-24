@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { resolveProjectFromCwd, getLocalProjects } from "../project.ts";
 
 describe("project resolution", () => {
 	let testDir: string;
@@ -30,8 +31,7 @@ describe("project resolution", () => {
 	});
 
 	test("resolveProjectFromCwd returns null when not in projects dir", async () => {
-		const { resolveProjectFromCwd } = await import("../project.ts");
-		const result = resolveProjectFromCwd();
+				const result = resolveProjectFromCwd();
 		expect(result).toBeNull();
 	});
 
@@ -41,14 +41,12 @@ describe("project resolution", () => {
 		mkdirSync(projectDir, { recursive: true });
 		process.chdir(projectDir);
 
-		const { resolveProjectFromCwd } = await import("../project.ts");
-		const result = resolveProjectFromCwd();
+				const result = resolveProjectFromCwd();
 		expect(result).toBe("myapp");
 	});
 
 	test("getLocalProjects returns empty array when no projects", async () => {
-		const { getLocalProjects } = await import("../project.ts");
-		const projects = getLocalProjects();
+				const projects = getLocalProjects();
 		expect(projects).toEqual([]);
 	});
 
@@ -57,8 +55,7 @@ describe("project resolution", () => {
 		mkdirSync(join(projectsDir, "app1"), { recursive: true });
 		mkdirSync(join(projectsDir, "app2"), { recursive: true });
 
-		const { getLocalProjects } = await import("../project.ts");
-		const projects = getLocalProjects();
+				const projects = getLocalProjects();
 		expect(projects).toContain("app1");
 		expect(projects).toContain("app2");
 	});

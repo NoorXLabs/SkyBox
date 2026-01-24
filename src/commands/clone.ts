@@ -13,6 +13,7 @@ import {
 import { PROJECTS_DIR } from "../lib/paths.ts";
 import { runRemoteCommand } from "../lib/ssh.ts";
 import { error, header, info, spinner, success } from "../lib/ui.ts";
+import { getRemoteHost, getRemotePath, selectRemote } from "./remote.ts";
 
 async function checkRemoteProjectExists(
 	host: string,
@@ -43,17 +44,17 @@ export async function cloneCommand(project: string): Promise<void> {
 		process.exit(1);
 	}
 
-	header(
-		`Cloning '${project}' from ${config.remote.host}:${config.remote.base_path}/${project}...`,
-	);
+	// Select which remote to clone from
+	const remoteName = await selectRemote(config);
+	const remote = config.remotes[remoteName];
+	const host = getRemoteHost(remote);
+	const remotePath = getRemotePath(remote, project);
+
+	header(`Cloning '${project}' from ${host}:${remotePath}...`);
 
 	// Check project exists on remote
 	const checkSpin = spinner("Checking remote project...");
-	const exists = await checkRemoteProjectExists(
-		config.remote.host,
-		config.remote.base_path,
-		project,
-	);
+	const exists = await checkRemoteProjectExists(host, remote.path, project);
 
 	if (!exists) {
 		checkSpin.fail("Project not found on remote");
@@ -105,7 +106,6 @@ export async function cloneCommand(project: string): Promise<void> {
 
 	// Check if sync session already exists
 	const syncSpin = spinner("Setting up sync...");
-	const remotePath = `${config.remote.base_path}/${project}`;
 	const existingSync = await getSyncStatus(project);
 
 	if (existingSync.exists) {
@@ -119,7 +119,7 @@ export async function cloneCommand(project: string): Promise<void> {
 	const createResult = await createSyncSession(
 		project,
 		localPath,
-		config.remote.host,
+		host,
 		remotePath,
 		config.defaults.ignore,
 	);
@@ -144,8 +144,8 @@ export async function cloneCommand(project: string): Promise<void> {
 
 	syncSpin.succeed("Initial sync complete");
 
-	// Register in config
-	config.projects[project] = {};
+	// Register in config with remote reference
+	config.projects[project] = { remote: remoteName };
 	saveConfig(config);
 
 	// Offer to start container

@@ -3,6 +3,13 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import {
+	configExists,
+	loadConfig,
+	saveConfig,
+	getRemote,
+	listRemotes,
+} from "../config.ts";
 
 describe("config", () => {
 	let testDir: string;
@@ -27,20 +34,15 @@ describe("config", () => {
 	});
 
 	test("configExists returns false when no config", async () => {
-		const { configExists } = await import("../config.ts");
-		expect(configExists()).toBe(false);
+				expect(configExists()).toBe(false);
 	});
 
 	test("loadConfig returns null when no config", async () => {
-		const { loadConfig } = await import("../config.ts");
-		expect(loadConfig()).toBeNull();
+				expect(loadConfig()).toBeNull();
 	});
 
 	test("saveConfig creates config file with V2 format", async () => {
-		const { saveConfig, loadConfig, configExists } = await import(
-			"../config.ts"
-		);
-		const config = {
+				const config = {
 			editor: "cursor",
 			defaults: { sync_mode: "two-way-resolved", ignore: ["node_modules"] },
 			remotes: {
@@ -76,8 +78,7 @@ projects:
 `;
 		writeFileSync(join(testDir, "config.yaml"), oldConfig);
 
-		const { loadConfig } = await import("../config.ts");
-		const config = loadConfig();
+				const config = loadConfig();
 
 		expect(config).not.toBeNull();
 		expect(config!.remotes).toBeDefined();
@@ -108,8 +109,7 @@ projects:
 `;
 		writeFileSync(join(testDir, "config.yaml"), v2Config);
 
-		const { loadConfig } = await import("../config.ts");
-		const config = loadConfig();
+				const config = loadConfig();
 
 		expect(config).not.toBeNull();
 		expect(config!.remotes).toBeDefined();
@@ -118,8 +118,7 @@ projects:
 	});
 
 	test("getRemote returns remote by name", async () => {
-		const { saveConfig, getRemote } = await import("../config.ts");
-		const config = {
+				const config = {
 			editor: "cursor",
 			defaults: { sync_mode: "two-way-resolved", ignore: [] },
 			remotes: {
@@ -157,13 +156,11 @@ projects:
 	});
 
 	test("getRemote returns null when no config", async () => {
-		const { getRemote } = await import("../config.ts");
-		expect(getRemote("any")).toBeNull();
+				expect(getRemote("any")).toBeNull();
 	});
 
 	test("listRemotes returns all remotes with names", async () => {
-		const { saveConfig, listRemotes } = await import("../config.ts");
-		const config = {
+				const config = {
 			editor: "cursor",
 			defaults: { sync_mode: "two-way-resolved", ignore: [] },
 			remotes: {
@@ -199,13 +196,11 @@ projects:
 	});
 
 	test("listRemotes returns empty array when no config", async () => {
-		const { listRemotes } = await import("../config.ts");
-		expect(listRemotes()).toEqual([]);
+				expect(listRemotes()).toEqual([]);
 	});
 
 	test("listRemotes returns empty array when no remotes", async () => {
-		const { saveConfig, listRemotes } = await import("../config.ts");
-		const config = {
+				const config = {
 			editor: "cursor",
 			defaults: { sync_mode: "two-way-resolved", ignore: [] },
 			remotes: {},

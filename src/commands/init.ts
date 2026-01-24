@@ -23,7 +23,7 @@ import {
 	success,
 	warn,
 } from "../lib/ui.ts";
-import { DEFAULT_IGNORE, type DevboxConfig } from "../types/index.ts";
+import { DEFAULT_IGNORE, type DevboxConfigV2 } from "../types/index.ts";
 
 async function checkDependencies(): Promise<boolean> {
 	header("Checking dependencies...");
@@ -77,8 +77,11 @@ async function handleMutagen(): Promise<boolean> {
 }
 
 async function configureRemote(): Promise<{
+	name: string;
 	host: string;
+	user: string;
 	basePath: string;
+	key: string | null;
 } | null> {
 	header("Configure remote server");
 
@@ -100,9 +103,11 @@ async function configureRemote(): Promise<{
 		},
 	]);
 
-	let sshHost: string; // The host name for config (friendly name or existing host)
+	let remoteName: string; // The friendly name for the remote
+	let remoteHostname: string; // The actual hostname or IP
+	let remoteUser: string; // The SSH username
 	let sshConnectString: string; // The actual connection string for SSH commands
-	let identityFile: string | undefined; // SSH key path (for new servers with custom keys)
+	let identityFile: string | null = null; // SSH key path (for new servers with custom keys)
 
 	if (hostChoice === "__new__") {
 		const { hostname, username, friendlyName } = await inquirer.prompt([
@@ -120,7 +125,9 @@ async function configureRemote(): Promise<{
 			},
 		]);
 
-		sshHost = friendlyName;
+		remoteName = friendlyName;
+		remoteHostname = hostname;
+		remoteUser = username;
 		sshConnectString = `${username}@${hostname}`;
 
 		// For new servers, ask about SSH key FIRST before testing connection
@@ -150,12 +157,12 @@ async function configureRemote(): Promise<{
 			]);
 			identityFile = customPath.replace(/^~/, process.env.HOME || "");
 		} else {
-			identityFile = keyChoice;
+			identityFile = keyChoice as string;
 		}
 
 		// Test connection with the specified key
 		const spin = spinner("Testing SSH connection...");
-		const connResult = await testConnection(sshConnectString, identityFile);
+		const connResult = await testConnection(sshConnectString, identityFile ?? undefined);
 
 		if (connResult.success) {
 			spin.succeed("SSH connection successful");
@@ -202,7 +209,7 @@ Host ${friendlyName}
 					// Re-test connection with identity file
 					const retestResult = await testConnection(
 						sshConnectString,
-						identityFile,
+						identityFile ?? undefined,
 					);
 					if (!retestResult.success) {
 						error("Connection still failing after key setup");
@@ -242,7 +249,11 @@ Host ${friendlyName}
 			}
 		}
 	} else {
-		sshHost = hostChoice;
+		// For existing SSH config hosts, use the host name for all fields
+		// The SSH config will handle the actual connection details
+		remoteName = hostChoice;
+		remoteHostname = hostChoice;
+		remoteUser = ""; // Will use SSH config's default
 		sshConnectString = hostChoice;
 
 		// For existing hosts, test connection first
@@ -273,7 +284,7 @@ Host ${friendlyName}
 	const checkResult = await runRemoteCommand(
 		sshConnectString,
 		`ls -d ${basePath} 2>/dev/null || echo "__NOT_FOUND__"`,
-		identityFile,
+		identityFile ?? undefined,
 	);
 
 	if (checkResult.stdout?.includes("__NOT_FOUND__")) {
@@ -291,7 +302,7 @@ Host ${friendlyName}
 			const mkdirResult = await runRemoteCommand(
 				sshConnectString,
 				`mkdir -p ${basePath}`,
-				identityFile,
+				identityFile ?? undefined,
 			);
 			if (mkdirResult.success) {
 				success("Created remote directory");
@@ -309,7 +320,7 @@ Host ${friendlyName}
 		const lsResult = await runRemoteCommand(
 			sshConnectString,
 			`ls -1 ${basePath} 2>/dev/null | head -10`,
-			identityFile,
+			identityFile ?? undefined,
 		);
 		if (lsResult.stdout?.trim()) {
 			info("Existing projects on remote:");
@@ -319,7 +330,7 @@ Host ${friendlyName}
 		}
 	}
 
-	return { host: sshHost, basePath };
+	return { name: remoteName, host: remoteHostname, user: remoteUser, basePath, key: identityFile };
 }
 
 async function configureEditor(): Promise<string> {
@@ -361,8 +372,12 @@ export async function initCommand(): Promise<void> {
 		const existingConfig = loadConfig();
 		if (existingConfig) {
 			header("Current Configuration");
-			console.log(`  Remote Host:  ${existingConfig.remote.host}`);
-			console.log(`  Base Path:    ${existingConfig.remote.base_path}`);
+			const remoteCount = Object.keys(existingConfig.remotes).length;
+			console.log(`  Remotes:      ${remoteCount} configured`);
+			for (const [name, remote] of Object.entries(existingConfig.remotes)) {
+				const userPart = remote.user ? `${remote.user}@` : "";
+				console.log(`                - ${name} (${userPart}${remote.host})`);
+			}
 			console.log(`  Editor:       ${existingConfig.editor}`);
 			const projectCount = Object.keys(existingConfig.projects).length;
 			console.log(`  Projects:     ${projectCount} registered`);
@@ -425,15 +440,19 @@ export async function initCommand(): Promise<void> {
 	success(`Created ${DEVBOX_HOME}`);
 
 	// Save config
-	const config: DevboxConfig = {
-		remote: {
-			host: remote.host,
-			base_path: remote.basePath,
-		},
+	const config: DevboxConfigV2 = {
 		editor,
 		defaults: {
 			sync_mode: "two-way-resolved",
 			ignore: DEFAULT_IGNORE,
+		},
+		remotes: {
+			[remote.name]: {
+				host: remote.host,
+				user: remote.user,
+				path: remote.basePath,
+				key: remote.key,
+			},
 		},
 		projects: {},
 	};

@@ -87,6 +87,8 @@ devbox down my-project
 | `devbox status [project]` | Show project status |
 | `devbox editor` | Configure default editor |
 | `devbox rm <project>` | Remove local project |
+| `devbox remote <subcommand>` | Manage remote servers |
+| `devbox config [key] [value]` | View or modify configuration |
 
 ### Options
 
@@ -97,14 +99,61 @@ devbox up myproject --rebuild   # Rebuild the container
 devbox down myproject --cleanup # Remove container and volumes
 ```
 
+### Remote Management
+
+DevBox supports multiple remote servers. Each project is associated with a specific remote.
+
+```bash
+# Add a remote server
+devbox remote add work user@work-server:~/code
+devbox remote add personal user@home-server:~/projects
+
+# Interactive remote setup (prompts for details and SSH key)
+devbox remote add
+
+# List configured remotes
+devbox remote list
+
+# Remove a remote
+devbox remote remove work
+
+# Rename a remote
+devbox remote rename work office
+```
+
+When cloning or pushing projects, DevBox will prompt you to select which remote to use.
+
+### Configuration Commands
+
+```bash
+# Show current configuration
+devbox config
+
+# Validate connections to all remotes
+devbox config --validate
+
+# Set a configuration value
+devbox config editor cursor
+devbox config defaults.sync_mode two-way-resolved
+```
+
 ## Configuration
 
 Config is stored at `~/.devbox/config.yaml`:
 
 ```yaml
-remote:
-  host: myserver          # SSH host from ~/.ssh/config
-  base_path: ~/code       # Remote storage path
+# Multiple remote servers
+remotes:
+  work:
+    host: work-server     # SSH host from ~/.ssh/config
+    user: null            # null = use SSH config default
+    path: ~/code          # Remote storage path
+    key: null             # null = use SSH config default
+  personal:
+    host: home-server
+    user: deploy
+    path: ~/projects
+    key: ~/.ssh/personal_key
 
 editor: cursor            # cursor | code | vim | nvim | zed
 
@@ -117,7 +166,18 @@ defaults:
     - dist
     - build
     - .next
+
+# Projects are associated with remotes
+projects:
+  my-app:
+    remote: work
+  side-project:
+    remote: personal
 ```
+
+### Config Migration
+
+If you have an existing single-remote config, DevBox automatically migrates it to the multi-remote format on first use. Your existing remote becomes a named remote using the hostname as the name.
 
 ## Multi-Machine Workflow
 
