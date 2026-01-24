@@ -2,3 +2,6 @@ telemetry = false
 
 [install]
 exact = true
+
+[test]
+preload = ["./src/test/setup.ts"]

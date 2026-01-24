@@ -1,30 +1,15 @@
 // src/lib/__tests__/lock.test.ts
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { hostname, userInfo } from "node:os";
+import { mockRunRemoteCommand } from "../../test/setup.ts";
 import type { LockInfo } from "../../types/index.ts";
-import type { LockRemoteInfo } from "../lock.ts";
-
-// Import all original exports from ssh.ts to re-export them
-import * as originalSsh from "../ssh.ts";
-
-// Mock the runRemoteCommand function
-const mockRunRemoteCommand = mock(
-	(
-		_host: string,
-		_command: string,
-	): Promise<{ success: boolean; stdout?: string; error?: string }> =>
-		Promise.resolve({ success: true, stdout: "" }),
-);
-
-// We need to mock before importing the module, but re-export all other functions
-mock.module("../ssh.ts", () => ({
-	...originalSsh,
-	runRemoteCommand: mockRunRemoteCommand,
-}));
-
-// Now import the lock module
-const { getMachineName, getLockStatus, acquireLock, releaseLock } =
-	await import("../lock.ts");
+import {
+	acquireLock,
+	getLockStatus,
+	getMachineName,
+	type LockRemoteInfo,
+	releaseLock,
+} from "../lock.ts";
 
 describe("lock", () => {
 	const testRemoteInfo: LockRemoteInfo = {

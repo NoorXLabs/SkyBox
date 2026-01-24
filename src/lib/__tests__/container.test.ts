@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { mockExeca } from "../../test/setup.ts";
 import { ContainerStatus } from "../../types/index.ts";
 import {
 	attachToShell,
@@ -17,7 +18,12 @@ import {
 } from "../container.ts";
 
 describe("container module", () => {
+	beforeEach(() => {
+		mockExeca.mockReset();
+	});
+
 	test("getContainerStatus returns NotFound for non-existent container", async () => {
+		mockExeca.mockResolvedValueOnce({ stdout: "", stderr: "", exitCode: 0 });
 		const status = await getContainerStatus("/nonexistent/path");
 		expect(status).toBe(ContainerStatus.NotFound);
 	});

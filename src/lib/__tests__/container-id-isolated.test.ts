@@ -1,12 +1,8 @@
-// src/lib/__tests__/container-id.test.ts
-// Isolated test file for getContainerId to avoid execa mock polluting other tests
-import { beforeEach, describe, expect, mock, test } from "bun:test";
-
-// Mock execa for getContainerId tests
-const mockExeca = mock(() => Promise.resolve({ stdout: "" }));
-mock.module("execa", () => ({
-	execa: mockExeca,
-}));
+// src/lib/__tests__/container-id-isolated.test.ts
+// Tests for getContainerId using global execa mock from test setup
+import { beforeEach, describe, expect, test } from "bun:test";
+import { mockExeca } from "../../test/setup.ts";
+import { getContainerId } from "../container.ts";
 
 describe("getContainerId", () => {
 	beforeEach(() => {
@@ -14,18 +10,20 @@ describe("getContainerId", () => {
 	});
 
 	test("returns container ID when container exists", async () => {
-		mockExeca.mockResolvedValueOnce({ stdout: "abc123def456\n" });
+		mockExeca.mockResolvedValueOnce({
+			stdout: "abc123def456\n",
+			stderr: "",
+			exitCode: 0,
+		});
 
-		const { getContainerId } = await import("../container.ts");
 		const result = await getContainerId("/path/to/project");
 
 		expect(result).toBe("abc123def456");
 	});
 
 	test("returns null when no container found", async () => {
-		mockExeca.mockResolvedValueOnce({ stdout: "" });
+		mockExeca.mockResolvedValueOnce({ stdout: "", stderr: "", exitCode: 0 });
 
-		const { getContainerId } = await import("../container.ts");
 		const result = await getContainerId("/path/to/project");
 
 		expect(result).toBeNull();
