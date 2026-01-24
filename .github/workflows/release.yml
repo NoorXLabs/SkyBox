@@ -9,21 +9,8 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        include:
-          - os: macos-latest
-            target: bun-darwin-arm64
-            artifact: devbox-darwin-arm64
-          - os: macos-13
-            target: bun-darwin-x64
-            artifact: devbox-darwin-x64
-          - os: ubuntu-latest
-            target: bun-linux-x64
-            artifact: devbox-linux-x64
-
-    runs-on: ${{ matrix.os }}
+  build-and-release:
+    runs-on: self-hosted
 
     steps:
       - uses: actions/checkout@v4
@@ -35,64 +22,43 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Build binary
-        run: bun build ./src/index.ts --compile --target=${{ matrix.target }} --outfile=${{ matrix.artifact }}
+      - name: Build all platforms
+        run: |
+          bun build ./src/index.ts --compile --target=bun-darwin-arm64 --outfile=devbox-darwin-arm64
+          bun build ./src/index.ts --compile --target=bun-darwin-x64 --outfile=devbox-darwin-x64
+          bun build ./src/index.ts --compile --target=bun-linux-x64 --outfile=devbox-linux-x64
 
-      - name: Create tarball
-        run: tar -czvf ${{ matrix.artifact }}.tar.gz ${{ matrix.artifact }}
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact }}
-          path: ${{ matrix.artifact }}.tar.gz
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-
-    steps:
-      - uses: actions/checkout@v4
+      - name: Create tarballs
+        run: |
+          tar -czvf devbox-darwin-arm64.tar.gz devbox-darwin-arm64
+          tar -czvf devbox-darwin-x64.tar.gz devbox-darwin-x64
+          tar -czvf devbox-linux-x64.tar.gz devbox-linux-x64
 
       - name: Get version
         id: version
         run: echo "version=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
 
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/**/*.tar.gz
+          files: |
+            devbox-darwin-arm64.tar.gz
+            devbox-darwin-x64.tar.gz
+            devbox-linux-x64.tar.gz
           generate_release_notes: true
-
-  update-homebrew:
-    needs: release
-    runs-on: ubuntu-latest
-    if: ${{ !contains(github.ref, '-') }}  # Skip for pre-releases (v1.0.0-beta)
-
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
 
       - name: Compute SHA256 hashes
         id: sha
         run: |
-          echo "darwin_arm64=$(shasum -a 256 artifacts/devbox-darwin-arm64/devbox-darwin-arm64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
-          echo "darwin_x64=$(shasum -a 256 artifacts/devbox-darwin-x64/devbox-darwin-x64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
-          echo "linux_x64=$(shasum -a 256 artifacts/devbox-linux-x64/devbox-linux-x64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "darwin_arm64=$(shasum -a 256 devbox-darwin-arm64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "darwin_x64=$(shasum -a 256 devbox-darwin-x64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "linux_x64=$(shasum -a 256 devbox-linux-x64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
 
       - name: Update Homebrew formula
+        if: ${{ !contains(github.ref, '-') }}
         env:
           HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-          VERSION: ${{ needs.release.outputs.version }}
+          VERSION: ${{ steps.version.outputs.version }}
           SHA_DARWIN_ARM64: ${{ steps.sha.outputs.darwin_arm64 }}
           SHA_DARWIN_X64: ${{ steps.sha.outputs.darwin_x64 }}
           SHA_LINUX_X64: ${{ steps.sha.outputs.linux_x64 }}
@@ -152,14 +118,17 @@ jobs:
           end
           FORMULA
 
-          # Replace placeholders
-          sed -i "s/VERSION_PLACEHOLDER/${VERSION}/g" Formula/devbox.rb
-          sed -i "s/SHA_DARWIN_ARM64_PLACEHOLDER/${SHA_DARWIN_ARM64}/g" Formula/devbox.rb
-          sed -i "s/SHA_DARWIN_X64_PLACEHOLDER/${SHA_DARWIN_X64}/g" Formula/devbox.rb
-          sed -i "s/SHA_LINUX_X64_PLACEHOLDER/${SHA_LINUX_X64}/g" Formula/devbox.rb
+          sed -i'' -e "s/VERSION_PLACEHOLDER/${VERSION}/g" Formula/devbox.rb
+          sed -i'' -e "s/SHA_DARWIN_ARM64_PLACEHOLDER/${SHA_DARWIN_ARM64}/g" Formula/devbox.rb
+          sed -i'' -e "s/SHA_DARWIN_X64_PLACEHOLDER/${SHA_DARWIN_X64}/g" Formula/devbox.rb
+          sed -i'' -e "s/SHA_LINUX_X64_PLACEHOLDER/${SHA_LINUX_X64}/g" Formula/devbox.rb
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Formula/devbox.rb
           git commit -m "Update devbox to v${VERSION}"
           git push
+
+      - name: Cleanup
+        if: always()
+        run: rm -rf devbox-* homebrew-tap
