@@ -46,9 +46,9 @@ export interface DevboxConfig {
 // New remote entry type (replaces single RemoteConfig)
 export interface RemoteEntry {
 	host: string; // SSH host (hostname or IP)
-	user: string; // SSH username
+	user: string | null; // SSH username (null = use SSH config default)
 	path: string; // Remote projects directory
-	key?: string; // Path to SSH private key (optional)
+	key?: string | null; // Path to SSH private key (null = use SSH config default)
 }
 
 // Updated config with remotes map

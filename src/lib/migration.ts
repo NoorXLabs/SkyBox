@@ -19,9 +19,9 @@ export function migrateConfig(oldConfig: DevboxConfig): DevboxConfigV2 {
 
 	const newRemote: RemoteEntry = {
 		host: oldConfig.remote.host,
-		user: null as unknown as string, // Will use SSH config
+		user: null, // Will use SSH config
 		path: oldConfig.remote.base_path,
-		key: null as unknown as string,  // Will use SSH config
+		key: null, // Will use SSH config
 	};
 
 	// Update all projects to reference the migrated remote
