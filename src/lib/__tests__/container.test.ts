@@ -119,34 +119,4 @@ describe("getDevcontainerConfig", () => {
 	});
 });
 
-// Mock execa for getContainerId tests
-import { mock } from "bun:test";
-
-const mockExeca = mock(() => Promise.resolve({ stdout: "" }));
-mock.module("execa", () => ({
-	execa: mockExeca,
-}));
-
-describe("getContainerId", () => {
-	beforeEach(() => {
-		mockExeca.mockReset();
-	});
-
-	test("returns container ID when container exists", async () => {
-		mockExeca.mockResolvedValueOnce({ stdout: "abc123def456\n" });
-
-		const { getContainerId } = await import("../container.ts");
-		const result = await getContainerId("/path/to/project");
-
-		expect(result).toBe("abc123def456");
-	});
-
-	test("returns null when no container found", async () => {
-		mockExeca.mockResolvedValueOnce({ stdout: "" });
-
-		const { getContainerId } = await import("../container.ts");
-		const result = await getContainerId("/path/to/project");
-
-		expect(result).toBeNull();
-	});
-});
+// Note: getContainerId tests are in container-id-isolated.test.ts to avoid execa mock polluting other tests
