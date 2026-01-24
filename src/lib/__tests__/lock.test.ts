@@ -1,8 +1,32 @@
 // src/lib/__tests__/lock.test.ts
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import { hostname, userInfo } from "node:os";
-import { mockRunRemoteCommand } from "../../test/setup.ts";
 import type { LockInfo } from "../../types/index.ts";
+
+// Mock execa BEFORE importing any modules that use it
+const mockExeca = mock(() =>
+	Promise.resolve({ stdout: "", stderr: "", exitCode: 0 }),
+);
+mock.module("execa", () => ({ execa: mockExeca }));
+
+// Mock runRemoteCommand for lock tests
+const mockRunRemoteCommand = mock(
+	(
+		_host: string,
+		_command: string,
+	): Promise<{ success: boolean; stdout?: string; error?: string }> =>
+		Promise.resolve({ success: true, stdout: "" }),
+);
+
+// Import original ssh module to spread its exports
+import * as originalSsh from "../ssh.ts";
+
+mock.module("../ssh.ts", () => ({
+	...originalSsh,
+	runRemoteCommand: mockRunRemoteCommand,
+}));
+
+// Now import lock module (which uses ssh.ts)
 import {
 	acquireLock,
 	getLockStatus,

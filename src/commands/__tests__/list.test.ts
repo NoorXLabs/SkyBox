@@ -1,24 +1,13 @@
 // src/commands/__tests__/list.test.ts
 //
-// NOTE: Some tests require real execa (git commands).
-// They may fail if run after test files that mock execa at module level.
-// In that case, run this file separately: bun test src/commands/__tests__/list.test.ts
+// Tests for list command. Some tests require real git commands.
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { execa as realExeca } from "execa";
-
-// Check if execa is mocked (returns undefined or wrong type)
-const execaIsMocked = async (): Promise<boolean> => {
-	try {
-		const result = await realExeca("echo", ["test"]);
-		return typeof result?.stdout !== "string";
-	} catch {
-		return true;
-	}
-};
+import { execa } from "execa";
+import { isExecaMocked } from "../../lib/__tests__/test-utils.ts";
 
 describe("list command", () => {
 	let testDir: string;
@@ -61,28 +50,27 @@ describe("list command", () => {
 	});
 
 	test("gets git branch from project", async () => {
-		if (await execaIsMocked()) return; // Skip if execa mocked
+		// Skip if execa is mocked by another test file
+		if (await isExecaMocked()) return;
 
 		// Create a fake project with git
 		const projectPath = join(projectsDir, "myapp");
 		mkdirSync(projectPath);
 
 		// Initialize git repo
-		await realExeca("git", ["init"], { cwd: projectPath });
-		await realExeca("git", ["config", "user.email", "test@test.com"], {
+		await execa("git", ["init"], { cwd: projectPath });
+		await execa("git", ["config", "user.email", "test@test.com"], {
 			cwd: projectPath,
 		});
-		await realExeca("git", ["config", "user.name", "Test"], {
-			cwd: projectPath,
-		});
+		await execa("git", ["config", "user.name", "Test"], { cwd: projectPath });
 
 		// Create initial commit to establish branch
 		writeFileSync(join(projectPath, "README.md"), "# Test");
-		await realExeca("git", ["add", "."], { cwd: projectPath });
-		await realExeca("git", ["commit", "-m", "init"], { cwd: projectPath });
+		await execa("git", ["add", "."], { cwd: projectPath });
+		await execa("git", ["commit", "-m", "init"], { cwd: projectPath });
 
 		// Get branch
-		const result = await realExeca("git", [
+		const result = await execa("git", [
 			"-C",
 			projectPath,
 			"branch",
