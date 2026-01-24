@@ -6,6 +6,7 @@
     "devbox": "./bin/devbox"
   },
   "scripts": {
+    "prepare": "lefthook install",
     "dev": "bun run src/index.ts",
     "build": "bun build ./src/index.ts --compile --outfile=devbox-bin",
     "test": "bun test",
@@ -32,6 +33,8 @@
     "@types/bun": "1.3.6",
     "@types/inquirer": "9.0.9",
     "@types/tar": "6.1.13",
+    "lefthook": "2.0.15",
+    "typescript": "5.9.3",
     "vitepress": "1.6.4"
   }
 }

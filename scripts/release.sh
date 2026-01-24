@@ -5,7 +5,15 @@ set -euo pipefail
 #
 # Usage: ./scripts/release.sh <version>
 # Example: ./scripts/release.sh 0.5.0
+# Example: ./scripts/release.sh 0.5.0-beta
 
+# Check if script is run from root directory
+if [[ ! -f "package.json" ]]; then
+    echo "Error: This script must be run from the root directory of the project."
+    exit 1
+fi
+
+# Check if version is provided
 VERSION="${1:-}"
 
 if [[ -z "$VERSION" ]]; then

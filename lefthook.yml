@@ -1,0 +1,11 @@
+pre-commit:
+  piped: true
+  commands:
+    check:
+      priority: 1
+      glob: "*.{js,ts,json}"
+      run: bun run check
+      stage_fixed: true
+    typecheck:
+      priority: 2
+      run: bun run typecheck
