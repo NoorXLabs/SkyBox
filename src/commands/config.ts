@@ -62,8 +62,7 @@ export async function validateConfig(): Promise<void> {
 	const projectCounts: Record<string, number> = {};
 	for (const project of Object.values(config.projects)) {
 		if (project.remote) {
-			projectCounts[project.remote] =
-				(projectCounts[project.remote] || 0) + 1;
+			projectCounts[project.remote] = (projectCounts[project.remote] || 0) + 1;
 		}
 	}
 
@@ -131,12 +130,8 @@ function showHelp(): void {
 	console.log(`${chalk.bold("Usage:")} devbox config [subcommand] [options]`);
 	console.log();
 	console.log(chalk.bold("Subcommands:"));
-	console.log(
-		"  (none)                       Show current configuration",
-	);
-	console.log(
-		"  set <key> <value>            Set a configuration value",
-	);
+	console.log("  (none)                       Show current configuration");
+	console.log("  set <key> <value>            Set a configuration value");
 	console.log();
 	console.log(chalk.bold("Options:"));
 	console.log(
@@ -144,7 +139,9 @@ function showHelp(): void {
 	);
 	console.log();
 	console.log(chalk.bold("Settable keys:"));
-	console.log("  editor                       Default editor (cursor, code, etc.)");
+	console.log(
+		"  editor                       Default editor (cursor, code, etc.)",
+	);
 	console.log();
 	console.log(chalk.bold("Examples:"));
 	console.log("  devbox config                # Show current configuration");

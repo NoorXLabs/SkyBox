@@ -3,10 +3,10 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { saveConfig, loadConfig } from "../../lib/config.ts";
+import { loadConfig, saveConfig } from "../../lib/config.ts";
 import {
-	parseRemoteString,
 	addRemoteDirect,
+	parseRemoteString,
 	removeRemote,
 	renameRemote,
 } from "../remote.ts";
@@ -35,7 +35,6 @@ describe("remote command", () => {
 
 	describe("parseRemoteString", () => {
 		test("parses valid user@host:path format", async () => {
-			
 			const result = parseRemoteString("root@192.168.1.100:~/code");
 			expect(result).not.toBeNull();
 			expect(result?.user).toBe("root");
@@ -44,7 +43,6 @@ describe("remote command", () => {
 		});
 
 		test("parses hostname with domain", async () => {
-			
 			const result = parseRemoteString(
 				"dev@server.example.com:/home/dev/projects",
 			);
@@ -55,7 +53,6 @@ describe("remote command", () => {
 		});
 
 		test("handles complex paths", async () => {
-			
 			const result = parseRemoteString("admin@myserver:/var/www/html/projects");
 			expect(result).not.toBeNull();
 			expect(result?.user).toBe("admin");
@@ -64,25 +61,21 @@ describe("remote command", () => {
 		});
 
 		test("returns null for invalid format - missing @", async () => {
-			
 			const result = parseRemoteString("root192.168.1.100:~/code");
 			expect(result).toBeNull();
 		});
 
 		test("returns null for invalid format - missing :", async () => {
-			
 			const result = parseRemoteString("root@192.168.1.100/code");
 			expect(result).toBeNull();
 		});
 
 		test("returns null for invalid format - missing path", async () => {
-			
 			const result = parseRemoteString("root@192.168.1.100:");
 			expect(result).toBeNull();
 		});
 
 		test("returns null for empty string", async () => {
-			
 			const result = parseRemoteString("");
 			expect(result).toBeNull();
 		});
@@ -90,7 +83,6 @@ describe("remote command", () => {
 
 	describe("addRemoteDirect", () => {
 		test("adds remote to config", async () => {
-			
 			const result = await addRemoteDirect(
 				"myserver",
 				"root@192.168.1.100:~/code",
@@ -109,7 +101,6 @@ describe("remote command", () => {
 		});
 
 		test("adds remote with custom key", async () => {
-			
 			const result = await addRemoteDirect(
 				"workserver",
 				"dev@work.example.com:/home/dev/projects",
@@ -123,7 +114,6 @@ describe("remote command", () => {
 		});
 
 		test("rejects duplicate remote name", async () => {
-			
 			// Add first remote
 			const result1 = await addRemoteDirect(
 				"myserver",
@@ -141,7 +131,6 @@ describe("remote command", () => {
 		});
 
 		test("rejects invalid remote format", async () => {
-			
 			const result = await addRemoteDirect("bad", "invalid-format");
 
 			expect(result.success).toBe(false);
@@ -149,7 +138,6 @@ describe("remote command", () => {
 		});
 
 		test("creates config if none exists", async () => {
-			
 			// Ensure no config exists
 			expect(loadConfig()).toBeNull();
 
@@ -164,7 +152,6 @@ describe("remote command", () => {
 		});
 
 		test("preserves existing remotes when adding new", async () => {
-			
 			// Add first remote
 			await addRemoteDirect("server1", "user1@host1:~/code1");
 
@@ -173,7 +160,7 @@ describe("remote command", () => {
 
 			const config = loadConfig();
 			expect(config).not.toBeNull();
-			expect(Object.keys(config!.remotes)).toHaveLength(2);
+			expect(Object.keys(config?.remotes ?? {})).toHaveLength(2);
 			expect(config?.remotes.server1).toBeDefined();
 			expect(config?.remotes.server2).toBeDefined();
 		});
@@ -181,7 +168,6 @@ describe("remote command", () => {
 
 	describe("removeRemote", () => {
 		test("removes remote from config", async () => {
-			
 			// Add remote first
 			await addRemoteDirect("toremove", "root@host:~/code");
 
@@ -195,7 +181,6 @@ describe("remote command", () => {
 		});
 
 		test("handles non-existent remote", async () => {
-			
 			// Create a config with one remote
 			await addRemoteDirect("existing", "root@host:~/code");
 
@@ -210,7 +195,6 @@ describe("remote command", () => {
 
 	describe("renameRemote", () => {
 		test("renames remote and preserves config", async () => {
-			
 			// Add remote first
 			await addRemoteDirect("oldname", "root@192.168.1.100:~/code");
 
@@ -225,7 +209,6 @@ describe("remote command", () => {
 		});
 
 		test("updates project references on rename", async () => {
-			
 			// Add remote first
 			await addRemoteDirect("oldserver", "root@host:~/code");
 
@@ -242,7 +225,6 @@ describe("remote command", () => {
 		});
 
 		test("handles non-existent old name", async () => {
-			
 			// Create a config with one remote
 			await addRemoteDirect("existing", "root@host:~/code");
 
@@ -256,7 +238,6 @@ describe("remote command", () => {
 		});
 
 		test("rejects rename to existing name", async () => {
-			
 			// Add two remotes
 			await addRemoteDirect("remote1", "root@host1:~/code");
 			await addRemoteDirect("remote2", "root@host2:~/code");

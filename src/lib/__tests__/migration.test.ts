@@ -1,7 +1,7 @@
 // src/lib/__tests__/migration.test.ts
 import { describe, expect, test } from "bun:test";
-import { migrateConfig, needsMigration } from "../migration.ts";
 import type { DevboxConfig } from "../../types/index.ts";
+import { migrateConfig, needsMigration } from "../migration.ts";
 
 describe("config migration", () => {
 	describe("needsMigration", () => {
@@ -19,7 +19,9 @@ describe("config migration", () => {
 			const newConfig = {
 				editor: "cursor",
 				defaults: { sync_mode: "two-way-resolved", ignore: [] },
-				remotes: { "my-server": { host: "my-server", user: "root", path: "~/code" } },
+				remotes: {
+					"my-server": { host: "my-server", user: "root", path: "~/code" },
+				},
 				projects: {},
 			};
 			expect(needsMigration(newConfig)).toBe(false);

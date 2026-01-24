@@ -28,7 +28,7 @@ describe("browse command", () => {
 	});
 
 	test("exits with error when no config exists", async () => {
-				expect(configExists()).toBe(false);
+		expect(configExists()).toBe(false);
 	});
 
 	test("parses project list from SSH output", async () => {

@@ -8,8 +8,8 @@ import { downCommand } from "./commands/down.ts";
 import { editorCommand } from "./commands/editor.ts";
 import { initCommand } from "./commands/init.ts";
 import { listCommand } from "./commands/list.ts";
-import { pushCommand } from "./commands/push.ts";
 import { newCommand } from "./commands/new.ts";
+import { pushCommand } from "./commands/push.ts";
 import { remoteCommand } from "./commands/remote.ts";
 import { rmCommand } from "./commands/rm.ts";
 import { shellCommand } from "./commands/shell.ts";
@@ -104,7 +104,9 @@ program
 	.command("remote [subcommand] [arg1] [arg2]")
 	.description("Manage remote servers")
 	.option("-k, --key <path>", "SSH key path")
-	.action((subcommand, arg1, arg2, options) => remoteCommand(subcommand, arg1, arg2, options));
+	.action((subcommand, arg1, arg2, options) =>
+		remoteCommand(subcommand, arg1, arg2, options),
+	);
 
 program
 	.command("config [key] [value]")

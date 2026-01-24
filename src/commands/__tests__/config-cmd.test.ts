@@ -1,10 +1,10 @@
 // src/commands/__tests__/config-cmd.test.ts
-import { afterEach, beforeEach, describe, expect, test, spyOn } from "bun:test";
+import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { saveConfig, loadConfig } from "../../lib/config.ts";
-import { configCommand, showConfig, setConfigValue } from "../config.ts";
+import { loadConfig, saveConfig } from "../../lib/config.ts";
+import { configCommand, setConfigValue, showConfig } from "../config.ts";
 
 describe("config command", () => {
 	let testDir: string;
@@ -23,9 +23,7 @@ describe("config command", () => {
 		consoleLogSpy = spyOn(console, "log").mockImplementation(
 			(...args: unknown[]) => {
 				logOutput.push(
-					args
-						.map((a) => (typeof a === "string" ? a : String(a)))
-						.join(" "),
+					args.map((a) => (typeof a === "string" ? a : String(a))).join(" "),
 				);
 			},
 		);

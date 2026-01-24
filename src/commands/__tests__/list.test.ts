@@ -72,7 +72,9 @@ describe("list command", () => {
 		await realExeca("git", ["config", "user.email", "test@test.com"], {
 			cwd: projectPath,
 		});
-		await realExeca("git", ["config", "user.name", "Test"], { cwd: projectPath });
+		await realExeca("git", ["config", "user.name", "Test"], {
+			cwd: projectPath,
+		});
 
 		// Create initial commit to establish branch
 		writeFileSync(join(projectPath, "README.md"), "# Test");

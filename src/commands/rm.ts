@@ -9,7 +9,11 @@ import {
 	stopContainer,
 } from "../lib/container.ts";
 import { getErrorMessage } from "../lib/errors.ts";
-import { createLockRemoteInfo, getLockStatus, releaseLock } from "../lib/lock.ts";
+import {
+	createLockRemoteInfo,
+	getLockStatus,
+	releaseLock,
+} from "../lib/lock.ts";
 import { terminateSession } from "../lib/mutagen.ts";
 import { getProjectPath, projectExists } from "../lib/project.ts";
 import { error, header, info, spinner, success } from "../lib/ui.ts";

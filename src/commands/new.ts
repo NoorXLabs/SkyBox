@@ -125,7 +125,9 @@ async function createFromTemplate(
 	const { builtIn, user } = getAllTemplates();
 
 	// Build choices with separators
-	type ChoiceItem = { name: string; value: string } | InstanceType<typeof inquirer.Separator>;
+	type ChoiceItem =
+		| { name: string; value: string }
+		| InstanceType<typeof inquirer.Separator>;
 	const choices: ChoiceItem[] = [];
 
 	// Built-in templates
@@ -255,7 +257,12 @@ async function cloneTemplateToRemote(
 		]);
 
 		if (retryChoice === "retry") {
-			return cloneTemplateToRemote(remote, projectName, templateUrl, keepHistory);
+			return cloneTemplateToRemote(
+				remote,
+				projectName,
+				templateUrl,
+				keepHistory,
+			);
 		} else if (retryChoice === "back") {
 			return createFromTemplate(remote, projectName);
 		} else {
@@ -296,9 +303,7 @@ async function cloneTemplateToRemote(
 	await offerClone(projectName);
 }
 
-async function offerClone(
-	projectName: string,
-): Promise<void> {
+async function offerClone(projectName: string): Promise<void> {
 	console.log();
 	const { shouldClone } = await inquirer.prompt([
 		{

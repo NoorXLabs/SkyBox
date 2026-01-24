@@ -208,7 +208,10 @@ export async function downCommand(
 
 			if (projectRemoteInfo) {
 				const host = getRemoteHost(projectRemoteInfo.remote);
-				const remotePath = getRemotePath(projectRemoteInfo.remote, project ?? "");
+				const remotePath = getRemotePath(
+					projectRemoteInfo.remote,
+					project ?? "",
+				);
 				info(`Remote copy preserved at ${host}:${remotePath}`);
 			}
 			info(`Run 'devbox clone ${project}' to restore locally.`);

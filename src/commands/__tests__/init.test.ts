@@ -23,7 +23,6 @@ describe("init command integration", () => {
 	});
 
 	test("creates required directories on save config", async () => {
-		
 		const config = {
 			editor: "cursor",
 			defaults: { sync_mode: "two-way-resolved", ignore: [] },
@@ -40,12 +39,16 @@ describe("init command integration", () => {
 	});
 
 	test("config file contains expected content", async () => {
-		
 		const config = {
 			editor: "vim",
 			defaults: { sync_mode: "two-way-resolved", ignore: ["node_modules"] },
 			remotes: {
-				myserver: { host: "myserver", user: "root", path: "~/projects", key: null },
+				myserver: {
+					host: "myserver",
+					user: "root",
+					path: "~/projects",
+					key: null,
+				},
 			},
 			projects: {},
 		};

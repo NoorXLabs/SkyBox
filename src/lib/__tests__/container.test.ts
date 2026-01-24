@@ -106,13 +106,13 @@ describe("getDevcontainerConfig", () => {
 			JSON.stringify({ workspaceFolder: "/custom/workspace" }),
 		);
 
-				const config = getDevcontainerConfig(testDir);
+		const config = getDevcontainerConfig(testDir);
 
 		expect(config?.workspaceFolder).toBe("/custom/workspace");
 	});
 
 	test("returns null when no devcontainer.json exists", async () => {
-				const config = getDevcontainerConfig(testDir);
+		const config = getDevcontainerConfig(testDir);
 
 		expect(config).toBeNull();
 	});

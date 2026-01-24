@@ -6,9 +6,9 @@ import { join } from "node:path";
 import { stringify } from "yaml";
 import {
 	BUILT_IN_TEMPLATES,
+	getAllTemplates,
 	getBuiltInTemplates,
 	getUserTemplates,
-	getAllTemplates,
 	validateProjectName,
 } from "../projectTemplates.ts";
 

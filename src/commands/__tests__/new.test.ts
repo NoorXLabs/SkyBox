@@ -76,7 +76,7 @@ describe("new command", () => {
 		});
 
 		test("escapes single quotes in JSON for shell", () => {
-			const json = "{ \"name\": \"project's name\" }";
+			const json = '{ "name": "project\'s name" }';
 			const escaped = json.replace(/'/g, "'\\''");
 			expect(escaped).toContain("'\\''");
 		});

@@ -5,10 +5,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
 	configExists,
-	loadConfig,
-	saveConfig,
 	getRemote,
 	listRemotes,
+	loadConfig,
+	saveConfig,
 } from "../config.ts";
 
 describe("config", () => {
@@ -34,15 +34,15 @@ describe("config", () => {
 	});
 
 	test("configExists returns false when no config", async () => {
-				expect(configExists()).toBe(false);
+		expect(configExists()).toBe(false);
 	});
 
 	test("loadConfig returns null when no config", async () => {
-				expect(loadConfig()).toBeNull();
+		expect(loadConfig()).toBeNull();
 	});
 
 	test("saveConfig creates config file with V2 format", async () => {
-				const config = {
+		const config = {
 			editor: "cursor",
 			defaults: { sync_mode: "two-way-resolved", ignore: ["node_modules"] },
 			remotes: {
@@ -78,17 +78,17 @@ projects:
 `;
 		writeFileSync(join(testDir, "config.yaml"), oldConfig);
 
-				const config = loadConfig();
+		const config = loadConfig();
 
 		expect(config).not.toBeNull();
-		expect(config!.remotes).toBeDefined();
-		expect(config!.remotes["my-server"]).toBeDefined();
-		expect(config!.remotes["my-server"].host).toBe("my-server");
-		expect(config!.remotes["my-server"].path).toBe("~/code");
-		expect((config as any).remote).toBeUndefined();
+		expect(config?.remotes).toBeDefined();
+		expect(config?.remotes["my-server"]).toBeDefined();
+		expect(config?.remotes["my-server"].host).toBe("my-server");
+		expect(config?.remotes["my-server"].path).toBe("~/code");
+		expect("remote" in (config ?? {})).toBe(false);
 		// Check that projects got updated with remote reference
-		expect(config!.projects["my-app"]).toBeDefined();
-		expect(config!.projects["my-app"].remote).toBe("my-server");
+		expect(config?.projects["my-app"]).toBeDefined();
+		expect(config?.projects["my-app"].remote).toBe("my-server");
 	});
 
 	test("does not re-migrate already migrated config", async () => {
@@ -109,16 +109,16 @@ projects:
 `;
 		writeFileSync(join(testDir, "config.yaml"), v2Config);
 
-				const config = loadConfig();
+		const config = loadConfig();
 
 		expect(config).not.toBeNull();
-		expect(config!.remotes).toBeDefined();
-		expect(config!.remotes["my-server"]).toBeDefined();
-		expect(config!.remotes["my-server"].host).toBe("my-server");
+		expect(config?.remotes).toBeDefined();
+		expect(config?.remotes["my-server"]).toBeDefined();
+		expect(config?.remotes["my-server"].host).toBe("my-server");
 	});
 
 	test("getRemote returns remote by name", async () => {
-				const config = {
+		const config = {
 			editor: "cursor",
 			defaults: { sync_mode: "two-way-resolved", ignore: [] },
 			remotes: {
@@ -142,25 +142,25 @@ projects:
 
 		const workRemote = getRemote("work-server");
 		expect(workRemote).not.toBeNull();
-		expect(workRemote!.host).toBe("192.168.1.100");
-		expect(workRemote!.user).toBe("dev");
-		expect(workRemote!.path).toBe("/home/dev/projects");
+		expect(workRemote?.host).toBe("192.168.1.100");
+		expect(workRemote?.user).toBe("dev");
+		expect(workRemote?.path).toBe("/home/dev/projects");
 
 		const personalRemote = getRemote("personal-server");
 		expect(personalRemote).not.toBeNull();
-		expect(personalRemote!.host).toBe("my-nas.local");
-		expect(personalRemote!.user).toBeNull();
+		expect(personalRemote?.host).toBe("my-nas.local");
+		expect(personalRemote?.user).toBeNull();
 
 		const nonexistent = getRemote("nonexistent");
 		expect(nonexistent).toBeNull();
 	});
 
 	test("getRemote returns null when no config", async () => {
-				expect(getRemote("any")).toBeNull();
+		expect(getRemote("any")).toBeNull();
 	});
 
 	test("listRemotes returns all remotes with names", async () => {
-				const config = {
+		const config = {
 			editor: "cursor",
 			defaults: { sync_mode: "two-way-resolved", ignore: [] },
 			remotes: {
@@ -187,20 +187,20 @@ projects:
 
 		const workRemote = remotes.find((r) => r.name === "work-server");
 		expect(workRemote).toBeDefined();
-		expect(workRemote!.host).toBe("192.168.1.100");
-		expect(workRemote!.user).toBe("dev");
+		expect(workRemote?.host).toBe("192.168.1.100");
+		expect(workRemote?.user).toBe("dev");
 
 		const personalRemote = remotes.find((r) => r.name === "personal-server");
 		expect(personalRemote).toBeDefined();
-		expect(personalRemote!.host).toBe("my-nas.local");
+		expect(personalRemote?.host).toBe("my-nas.local");
 	});
 
 	test("listRemotes returns empty array when no config", async () => {
-				expect(listRemotes()).toEqual([]);
+		expect(listRemotes()).toEqual([]);
 	});
 
 	test("listRemotes returns empty array when no remotes", async () => {
-				const config = {
+		const config = {
 			editor: "cursor",
 			defaults: { sync_mode: "two-way-resolved", ignore: [] },
 			remotes: {},

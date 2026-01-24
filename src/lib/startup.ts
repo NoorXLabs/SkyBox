@@ -35,22 +35,65 @@ function printDockerBanner(status: DockerStatus): void {
 	const bold = chalk.bold;
 
 	console.log();
-	console.log(yellow("╭─────────────────────────────────────────────────────────╮"));
+	console.log(
+		yellow("╭─────────────────────────────────────────────────────────╮"),
+	);
 
 	if (!status.installed) {
-		console.log(yellow("│"), bold("  Docker is not installed."), "                              ", yellow("│"));
-		console.log(yellow("│"), "                                                        ", yellow("│"));
-		console.log(yellow("│"), "  Install Docker Desktop:                              ", yellow("│"));
-		console.log(yellow("│"), dim("    brew install --cask docker"), "                        ", yellow("│"));
-		console.log(yellow("│"), "                                                        ", yellow("│"));
-		console.log(yellow("│"), "  Then start Docker Desktop before using DevBox.       ", yellow("│"));
+		console.log(
+			yellow("│"),
+			bold("  Docker is not installed."),
+			"                              ",
+			yellow("│"),
+		);
+		console.log(
+			yellow("│"),
+			"                                                        ",
+			yellow("│"),
+		);
+		console.log(
+			yellow("│"),
+			"  Install Docker Desktop:                              ",
+			yellow("│"),
+		);
+		console.log(
+			yellow("│"),
+			dim("    brew install --cask docker"),
+			"                        ",
+			yellow("│"),
+		);
+		console.log(
+			yellow("│"),
+			"                                                        ",
+			yellow("│"),
+		);
+		console.log(
+			yellow("│"),
+			"  Then start Docker Desktop before using DevBox.       ",
+			yellow("│"),
+		);
 	} else if (!status.running) {
-		console.log(yellow("│"), bold("  Docker is not running."), "                                 ", yellow("│"));
-		console.log(yellow("│"), "                                                        ", yellow("│"));
-		console.log(yellow("│"), "  Start Docker Desktop before using DevBox.            ", yellow("│"));
+		console.log(
+			yellow("│"),
+			bold("  Docker is not running."),
+			"                                 ",
+			yellow("│"),
+		);
+		console.log(
+			yellow("│"),
+			"                                                        ",
+			yellow("│"),
+		);
+		console.log(
+			yellow("│"),
+			"  Start Docker Desktop before using DevBox.            ",
+			yellow("│"),
+		);
 	}
 
-	console.log(yellow("╰─────────────────────────────────────────────────────────╯"));
+	console.log(
+		yellow("╰─────────────────────────────────────────────────────────╯"),
+	);
 	console.log();
 }
 

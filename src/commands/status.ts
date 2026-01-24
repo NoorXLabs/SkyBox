@@ -451,10 +451,7 @@ async function showDetailed(projectName: string): Promise<void> {
 			getDiskUsage(projectPath),
 			getRemoteDiskUsage(projectName),
 			projectRemote
-				? getLockStatus(
-						projectName,
-						createLockRemoteInfo(projectRemote.remote),
-					)
+				? getLockStatus(projectName, createLockRemoteInfo(projectRemote.remote))
 				: Promise.resolve({ locked: false } as LockStatus),
 		]);
 

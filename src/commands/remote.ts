@@ -82,7 +82,10 @@ export function getRemoteHost(remote: RemoteEntry): string {
 /**
  * Build remote path for a project on a given remote.
  */
-export function getRemotePath(remote: RemoteEntry, projectName: string): string {
+export function getRemotePath(
+	remote: RemoteEntry,
+	projectName: string,
+): string {
 	return `${remote.path}/${projectName}`;
 }
 

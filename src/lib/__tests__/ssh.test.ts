@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { parseSSHConfig, findSSHKeys } from "../ssh.ts";
+import { findSSHKeys, parseSSHConfig } from "../ssh.ts";
 
 describe("ssh", () => {
 	describe("parseSSHConfig", () => {
@@ -27,7 +27,7 @@ describe("ssh", () => {
 		});
 
 		test("returns empty array when no ssh config", async () => {
-						const hosts = parseSSHConfig();
+			const hosts = parseSSHConfig();
 			expect(hosts).toEqual([]);
 		});
 
@@ -45,7 +45,7 @@ Host workserver
 `;
 			writeFileSync(join(testDir, ".ssh", "config"), sshConfig);
 
-						const hosts = parseSSHConfig();
+			const hosts = parseSSHConfig();
 
 			expect(hosts.length).toBe(2);
 			expect(hosts[0].name).toBe("myserver");
@@ -57,7 +57,7 @@ Host workserver
 
 	describe("findSSHKeys", () => {
 		test("finds existing ssh keys", async () => {
-						const keys = findSSHKeys();
+			const keys = findSSHKeys();
 			// This will depend on the actual system, just verify it returns an array
 			expect(Array.isArray(keys)).toBe(true);
 		});

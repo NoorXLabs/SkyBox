@@ -15,7 +15,7 @@ import { join } from "node:path";
 import { execa as realExeca } from "execa";
 
 // Import only the helper functions that don't depend on PROJECTS_DIR
-import { getGitInfo, getDiskUsage, getLastActive } from "../status.ts";
+import { getDiskUsage, getGitInfo, getLastActive } from "../status.ts";
 
 // Check if execa is mocked (returns undefined or wrong type)
 const execaIsMocked = async (): Promise<boolean> => {

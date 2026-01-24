@@ -243,8 +243,12 @@ projects: {}
 			const { shellCommand } = await import("../shell.ts");
 			await shellCommand("myapp", {});
 
-			const calls = mockExeca.mock.calls as [string, string[], unknown][];
-			const lastCall = calls[calls.length - 1];
+			const calls = mockExeca.mock.calls;
+			const lastCall = calls[calls.length - 1] as unknown as [
+				string,
+				string[],
+				unknown,
+			];
 			expect(lastCall[1]).toContain("-it");
 		});
 
@@ -252,8 +256,12 @@ projects: {}
 			const { shellCommand } = await import("../shell.ts");
 			await shellCommand("myapp", { command: "npm test" });
 
-			const calls = mockExeca.mock.calls as [string, string[], unknown][];
-			const lastCall = calls[calls.length - 1];
+			const calls = mockExeca.mock.calls;
+			const lastCall = calls[calls.length - 1] as unknown as [
+				string,
+				string[],
+				unknown,
+			];
 			expect(lastCall[1]).toContain("-c");
 			expect(lastCall[1]).toContain("npm test");
 			expect(lastCall[1]).not.toContain("-it");

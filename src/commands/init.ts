@@ -162,7 +162,10 @@ async function configureRemote(): Promise<{
 
 		// Test connection with the specified key
 		const spin = spinner("Testing SSH connection...");
-		const connResult = await testConnection(sshConnectString, identityFile ?? undefined);
+		const connResult = await testConnection(
+			sshConnectString,
+			identityFile ?? undefined,
+		);
 
 		if (connResult.success) {
 			spin.succeed("SSH connection successful");
@@ -330,7 +333,13 @@ Host ${friendlyName}
 		}
 	}
 
-	return { name: remoteName, host: remoteHostname, user: remoteUser, basePath, key: identityFile };
+	return {
+		name: remoteName,
+		host: remoteHostname,
+		user: remoteUser,
+		basePath,
+		key: identityFile,
+	};
 }
 
 async function configureEditor(): Promise<string> {

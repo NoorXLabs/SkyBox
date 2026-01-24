@@ -1,5 +1,9 @@
 // src/lib/migration.ts
-import type { DevboxConfig, DevboxConfigV2, RemoteEntry } from "../types/index.ts";
+import type {
+	DevboxConfig,
+	DevboxConfigV2,
+	RemoteEntry,
+} from "../types/index.ts";
 
 /**
  * Check if config needs migration from old single-remote format
@@ -25,7 +29,10 @@ export function migrateConfig(oldConfig: DevboxConfig): DevboxConfigV2 {
 	};
 
 	// Update all projects to reference the migrated remote
-	const migratedProjects: Record<string, { remote: string; ignore?: string[]; editor?: string }> = {};
+	const migratedProjects: Record<
+		string,
+		{ remote: string; ignore?: string[]; editor?: string }
+	> = {};
 	for (const [name, project] of Object.entries(oldConfig.projects)) {
 		migratedProjects[name] = {
 			...project,
