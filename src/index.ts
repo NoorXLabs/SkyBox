@@ -13,6 +13,18 @@ import { rmCommand } from "./commands/rm.ts";
 import { shellCommand } from "./commands/shell.ts";
 import { statusCommand } from "./commands/status.ts";
 import { upCommand } from "./commands/up.ts";
+import { runStartupChecks } from "./lib/startup.ts";
+
+// Run Docker check on bare `devbox` (no args) or `devbox init`
+const args = process.argv.slice(2);
+const command = args[0];
+const showDockerBanner =
+	args.length === 0 || // bare `devbox`
+	command === "init"; // `devbox init`
+
+if (showDockerBanner) {
+	runStartupChecks();
+}
 
 program
 	.name("devbox")
