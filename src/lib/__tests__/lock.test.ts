@@ -4,7 +4,10 @@ import { hostname, userInfo } from "node:os";
 import type { LockInfo } from "../../types/index.ts";
 import type { LockRemoteInfo } from "../lock.ts";
 
-// Mock the ssh module
+// Import all original exports from ssh.ts to re-export them
+import * as originalSsh from "../ssh.ts";
+
+// Mock the runRemoteCommand function
 const mockRunRemoteCommand = mock(
 	(
 		_host: string,
@@ -13,8 +16,9 @@ const mockRunRemoteCommand = mock(
 		Promise.resolve({ success: true, stdout: "" }),
 );
 
-// We need to mock before importing the module
+// We need to mock before importing the module, but re-export all other functions
 mock.module("../ssh.ts", () => ({
+	...originalSsh,
 	runRemoteCommand: mockRunRemoteCommand,
 }));
 

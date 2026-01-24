@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { configExists } from "../../lib/config.ts";
 
 describe("browse command", () => {
 	let testDir: string;
@@ -27,8 +28,7 @@ describe("browse command", () => {
 	});
 
 	test("exits with error when no config exists", async () => {
-		const { configExists } = await import("../../lib/config.ts");
-		expect(configExists()).toBe(false);
+				expect(configExists()).toBe(false);
 	});
 
 	test("parses project list from SSH output", async () => {

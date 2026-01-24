@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { saveConfig } from "../../lib/config.ts";
 
 // This tests the individual pieces that init uses
 describe("init command integration", () => {
@@ -22,8 +23,7 @@ describe("init command integration", () => {
 	});
 
 	test("creates required directories on save config", async () => {
-		const { saveConfig } = await import("../../lib/config.ts");
-
+		
 		const config = {
 			editor: "cursor",
 			defaults: { sync_mode: "two-way-resolved", ignore: [] },
@@ -40,8 +40,7 @@ describe("init command integration", () => {
 	});
 
 	test("config file contains expected content", async () => {
-		const { saveConfig } = await import("../../lib/config.ts");
-
+		
 		const config = {
 			editor: "vim",
 			defaults: { sync_mode: "two-way-resolved", ignore: ["node_modules"] },

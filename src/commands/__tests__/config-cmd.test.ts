@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, test, spyOn } from "bun:test";
 import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { saveConfig, loadConfig } from "../../lib/config.ts";
+import { configCommand, showConfig, setConfigValue } from "../config.ts";
 
 describe("config command", () => {
 	let testDir: string;
@@ -43,9 +45,6 @@ describe("config command", () => {
 
 	describe("showConfig", () => {
 		test("shows config with remotes", async () => {
-			const { saveConfig } = await import("../../lib/config.ts");
-			const { showConfig } = await import("../config.ts");
-
 			// Create test config with remotes
 			saveConfig({
 				editor: "cursor",
@@ -83,9 +82,6 @@ describe("config command", () => {
 		});
 
 		test("shows message when no remotes configured", async () => {
-			const { saveConfig } = await import("../../lib/config.ts");
-			const { showConfig } = await import("../config.ts");
-
 			// Create test config without remotes
 			saveConfig({
 				editor: "code",
@@ -106,9 +102,6 @@ describe("config command", () => {
 		});
 
 		test("shows remote without user part when user is null", async () => {
-			const { saveConfig } = await import("../../lib/config.ts");
-			const { showConfig } = await import("../config.ts");
-
 			// Create test config with remote that has null user
 			saveConfig({
 				editor: "vim",
@@ -139,9 +132,6 @@ describe("config command", () => {
 
 	describe("setConfigValue", () => {
 		test("sets editor value", async () => {
-			const { saveConfig, loadConfig } = await import("../../lib/config.ts");
-			const { setConfigValue } = await import("../config.ts");
-
 			// Create initial config
 			saveConfig({
 				editor: "cursor",
@@ -160,9 +150,6 @@ describe("config command", () => {
 		});
 
 		test("rejects unknown config key", async () => {
-			const { saveConfig, loadConfig } = await import("../../lib/config.ts");
-			const { setConfigValue } = await import("../config.ts");
-
 			// Create initial config
 			saveConfig({
 				editor: "cursor",
@@ -187,9 +174,6 @@ describe("config command", () => {
 
 	describe("configCommand", () => {
 		test("shows config when called without options", async () => {
-			const { saveConfig } = await import("../../lib/config.ts");
-			const { configCommand } = await import("../config.ts");
-
 			// Create test config
 			saveConfig({
 				editor: "code",
@@ -217,9 +201,6 @@ describe("config command", () => {
 		});
 
 		test("handles set subcommand", async () => {
-			const { saveConfig, loadConfig } = await import("../../lib/config.ts");
-			const { configCommand } = await import("../config.ts");
-
 			// Create initial config
 			saveConfig({
 				editor: "cursor",
@@ -238,9 +219,6 @@ describe("config command", () => {
 		});
 
 		test("shows error when set missing arguments", async () => {
-			const { saveConfig } = await import("../../lib/config.ts");
-			const { configCommand } = await import("../config.ts");
-
 			saveConfig({
 				editor: "cursor",
 				defaults: {
@@ -258,9 +236,6 @@ describe("config command", () => {
 		});
 
 		test("shows error for unknown subcommand", async () => {
-			const { saveConfig } = await import("../../lib/config.ts");
-			const { configCommand } = await import("../config.ts");
-
 			saveConfig({
 				editor: "cursor",
 				defaults: {

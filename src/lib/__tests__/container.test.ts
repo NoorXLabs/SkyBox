@@ -7,6 +7,7 @@ import { ContainerStatus } from "../../types/index.ts";
 import {
 	attachToShell,
 	getContainerStatus,
+	getDevcontainerConfig,
 	hasLocalDevcontainerConfig,
 	openInEditor,
 	removeContainer,
@@ -105,15 +106,13 @@ describe("getDevcontainerConfig", () => {
 			JSON.stringify({ workspaceFolder: "/custom/workspace" }),
 		);
 
-		const { getDevcontainerConfig } = await import("../container.ts");
-		const config = getDevcontainerConfig(testDir);
+				const config = getDevcontainerConfig(testDir);
 
 		expect(config?.workspaceFolder).toBe("/custom/workspace");
 	});
 
 	test("returns null when no devcontainer.json exists", async () => {
-		const { getDevcontainerConfig } = await import("../container.ts");
-		const config = getDevcontainerConfig(testDir);
+				const config = getDevcontainerConfig(testDir);
 
 		expect(config).toBeNull();
 	});
