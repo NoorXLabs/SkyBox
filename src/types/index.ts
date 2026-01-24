@@ -41,6 +41,32 @@ export interface DevboxConfig {
 	templates?: Record<string, string>; // name -> git URL
 }
 
+// Multi-remote support types (V2)
+
+// New remote entry type (replaces single RemoteConfig)
+export interface RemoteEntry {
+	host: string; // SSH host (hostname or IP)
+	user: string; // SSH username
+	path: string; // Remote projects directory
+	key?: string; // Path to SSH private key (optional)
+}
+
+// Updated config with remotes map
+export interface DevboxConfigV2 {
+	editor: string;
+	defaults: SyncDefaults;
+	remotes: Record<string, RemoteEntry>; // name -> remote
+	projects: Record<string, ProjectConfigV2>;
+	templates?: Record<string, string>;
+}
+
+// Updated project config with remote reference
+export interface ProjectConfigV2 {
+	remote: string; // Name of the remote this project belongs to
+	ignore?: string[];
+	editor?: string;
+}
+
 export enum ContainerStatus {
 	Running = "running",
 	Stopped = "stopped",
