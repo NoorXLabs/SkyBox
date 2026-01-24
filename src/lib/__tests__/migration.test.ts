@@ -45,7 +45,7 @@ describe("config migration", () => {
 				key: null,
 			});
 			expect(result.projects["my-app"].remote).toBe("my-server");
-			expect(result.remote).toBeUndefined();
+			expect("remote" in result).toBe(false);
 		});
 
 		test("preserves existing project settings during migration", () => {
