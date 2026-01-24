@@ -9,3 +9,6 @@ pre-commit:
     typecheck:
       priority: 2
       run: bun run typecheck
+    test:
+      priority: 3
+      run: bun run test
