@@ -1,6 +1,6 @@
 # Configuration Reference
 
-DevBox uses a YAML configuration file to store global settings, sync preferences, and project-specific configurations.
+DevBox uses a YAML configuration file to store global settings, remote server connections, sync preferences, and project-specific configurations.
 
 ## Config File Location
 
@@ -25,23 +25,45 @@ DevBox creates the following directory structure:
 ```
 ~/.devbox/
 ├── config.yaml      # Main configuration file
-├── projects/        # Local project files
-├── bin/             # Binary tools (mutagen)
-└── logs/            # Log files
+├── Projects/        # Local synced project copies
+│   ├── my-app/
+│   └── backend/
+└── bin/
+    ├── mutagen                # Auto-downloaded sync binary
+    └── mutagen-agents.tar.gz  # Mutagen agents archive
 ```
 
 ## Configuration Schema
 
 The configuration file has four main sections:
 
-### `remote`
+### `remotes`
 
-Remote server connection settings.
+A map of named remote server configurations. Each remote represents a server where projects can be stored and synced.
 
-| Option | Type | Required | Description |
-|--------|------|----------|-------------|
-| `host` | `string` | Yes | SSH host name (from ~/.ssh/config or user@hostname) |
-| `base_path` | `string` | Yes | Base directory for projects on the remote server |
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `host` | `string` | Yes | SSH hostname or IP address |
+| `user` | `string` | No | SSH username (null to use SSH config default) |
+| `path` | `string` | Yes | Base directory for projects on the remote |
+| `key` | `string` | No | Path to SSH private key (null to use SSH config default) |
+
+Example:
+
+```yaml
+remotes:
+  production:
+    host: prod.example.com
+    user: deploy
+    path: ~/code
+    key: ~/.ssh/id_ed25519
+
+  personal:
+    host: home-server
+    user: null          # Uses SSH config
+    path: ~/projects
+    key: null           # Uses SSH config
+```
 
 ### `editor`
 
@@ -52,6 +74,7 @@ Remote server connection settings.
 Supported editors include:
 - `cursor` - Cursor editor
 - `code` - Visual Studio Code
+- `code-insiders` - VS Code Insiders
 - `zed` - Zed editor
 - `vim` - Vim
 - `nvim` - Neovim
@@ -101,24 +124,53 @@ The `sync_mode` option accepts Mutagen sync mode values:
 
 ### `projects`
 
-A map of project names to project-specific configurations.
+A map of project names to project-specific configurations. Each project references a remote by name.
 
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
-| `remote` | `string` | No | Override remote path for this project |
+| `remote` | `string` | Yes | Name of the remote this project belongs to |
 | `ignore` | `string[]` | No | Additional ignore patterns for this project |
 | `editor` | `string` | No | Override editor for this project |
+
+Example:
+
+```yaml
+projects:
+  my-web-app:
+    remote: production
+    ignore:
+      - ".cache"
+      - "coverage"
+    editor: code
+
+  backend-api:
+    remote: production
+    ignore:
+      - "*.log"
+      - "tmp"
+
+  side-project:
+    remote: personal
+    editor: nvim
+```
+
+### `templates` (Optional)
+
+Custom project templates as git repository URLs.
+
+```yaml
+templates:
+  company-starter: https://github.com/myorg/starter-template.git
+  react-app: https://github.com/myorg/react-template.git
+```
+
+These templates appear in `devbox new` when selecting "From a template".
 
 ## Complete Example
 
 Here is a complete example configuration file:
 
 ```yaml
-# Remote server configuration
-remote:
-  host: dev-server           # SSH host name
-  base_path: ~/code          # Base path for projects on remote
-
 # Default editor command
 editor: cursor
 
@@ -150,26 +202,55 @@ defaults:
     # DevBox local files
     - ".devbox-local"
 
+# Remote server configurations
+remotes:
+  production:
+    host: prod.example.com
+    user: deploy
+    path: ~/code
+    key: ~/.ssh/id_ed25519
+
+  staging:
+    host: staging.example.com
+    user: deploy
+    path: ~/code
+    key: ~/.ssh/id_ed25519
+
+  personal:
+    host: home-server
+    user: null
+    path: ~/projects
+    key: null
+
 # Project-specific configurations
 projects:
   my-web-app:
-    remote: ~/code/my-web-app
+    remote: production
     ignore:
       - ".cache"
       - "coverage"
     editor: code
 
   backend-api:
-    remote: ~/code/services/backend-api
+    remote: production
     ignore:
       - "*.log"
       - "tmp"
 
   data-pipeline:
+    remote: staging
     editor: nvim
     ignore:
       - "data/*.csv"
       - "output"
+
+  side-project:
+    remote: personal
+
+# Custom project templates
+templates:
+  company-starter: https://github.com/myorg/starter.git
+  react-app: https://github.com/myorg/react-template.git
 ```
 
 ## Environment Variables
@@ -188,12 +269,33 @@ devbox init
 
 This interactive command will:
 1. Check for required dependencies (Docker, Node.js)
-2. Install Mutagen for file synchronization
-3. Configure your remote SSH server
+2. Download and install Mutagen for file synchronization
+3. Configure your first remote SSH server
 4. Set your preferred editor
 5. Create the configuration file
 
 ## Modifying Configuration
+
+### Using DevBox Commands
+
+```bash
+# View current configuration
+devbox config
+
+# Change editor
+devbox config set editor vim
+
+# Add a new remote
+devbox remote add myserver user@host:~/code
+
+# Remove a remote
+devbox remote remove myserver
+
+# Validate all remote connections
+devbox config --validate
+```
+
+### Direct File Editing
 
 You can edit the configuration file directly:
 
@@ -210,11 +312,13 @@ Changes take effect immediately for new commands. Running containers or sync ses
 
 ## Per-Project Overrides
 
-Projects can override global settings by adding entries to the `projects` section:
+Projects can override global settings:
 
 ```yaml
 projects:
   my-project:
+    remote: production
+
     # Use a different editor for this project
     editor: nvim
 
@@ -222,17 +326,42 @@ projects:
     ignore:
       - "local-only/"
       - "*.local"
-
-    # Custom remote path (if different from base_path/project-name)
-    remote: ~/code/special/my-project
 ```
 
 ## Validation
 
 DevBox validates the configuration file on load. Common issues include:
 
-- **Missing required fields**: Ensure `remote.host` and `remote.base_path` are set
+- **Missing remotes section**: At least one remote must be configured
+- **Invalid project remote reference**: Project references a non-existent remote
 - **Invalid YAML syntax**: Check for proper indentation and formatting
 - **Invalid sync mode**: Use one of the supported Mutagen sync modes
 
 If the configuration is invalid, DevBox commands will fail with an error message indicating the issue.
+
+## Migration from Old Format
+
+If you have an older configuration with a single `remote` section (instead of `remotes`), DevBox will automatically migrate it on first use:
+
+**Old format:**
+```yaml
+remote:
+  host: my-server
+  base_path: ~/code
+```
+
+**New format (auto-migrated):**
+```yaml
+remotes:
+  my-server:           # Name derived from host
+    host: my-server
+    user: null
+    path: ~/code
+    key: null
+
+projects:
+  existing-project:
+    remote: my-server  # Updated to reference new remote name
+```
+
+The migration happens automatically and preserves all your existing projects.

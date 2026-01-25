@@ -162,14 +162,19 @@ Sync is managed automatically by DevBox:
 
 ## Remote Server
 
-The **remote server** stores your project backups and enables multi-machine workflows.
+The **remote server** stores your project backups and enables multi-machine workflows. DevBox supports **multiple remotes**, allowing you to organize projects across different servers (e.g., work server, personal server).
 
 ### Server Setup
 
-During `devbox init`, you configure:
+During `devbox init`, you configure your first remote. You can add more remotes later with `devbox remote add`.
 
+For each remote, you specify:
+
+- **Name** - A friendly identifier (e.g., "production", "personal")
 - **SSH Host** - The server to connect to
+- **SSH User** - Username for SSH connection
 - **Base Path** - Directory where projects are stored (e.g., `~/code`)
+- **SSH Key** - Optional path to SSH private key
 
 ### Remote Directory Structure
 
@@ -234,10 +239,6 @@ Taking over is safe when:
 DevBox stores its configuration in `~/.devbox/config.yaml`:
 
 ```yaml
-remote:
-  host: my-server          # SSH host name
-  base_path: ~/code        # Remote directory
-
 editor: cursor             # Default editor
 
 defaults:
@@ -247,9 +248,23 @@ defaults:
     - .git/*.lock
     # ... more patterns
 
+remotes:                   # Multiple remote servers
+  production:
+    host: prod.example.com
+    user: deploy
+    path: ~/code
+    key: ~/.ssh/id_ed25519
+  personal:
+    host: home-server
+    user: null             # Uses SSH config
+    path: ~/projects
+    key: null
+
 projects:
-  my-app: {}               # Registered projects
+  my-app:
+    remote: production     # Which remote this project belongs to
   other-project:
+    remote: personal
     editor: code           # Per-project overrides
 ```
 

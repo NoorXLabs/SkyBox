@@ -46,11 +46,12 @@ Unlike cloud-based development environments, DevBox runs containers on your mach
 
 ### Seamless Remote Backup
 
-Your code is automatically synced to a remote server:
+Your code is automatically synced to remote servers:
 
 - Never lose work due to local machine issues
 - Easy to switch between work laptop and home desktop
 - Built-in lock system prevents simultaneous edits from different machines
+- Multi-remote support for organizing projects across different servers
 
 ### Developer Experience
 
