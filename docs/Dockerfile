@@ -6,8 +6,8 @@ WORKDIR /app
 # Copy package files
 COPY package.json ./
 
-# Install dependencies
-RUN bun install
+# Install dependencies (skip prepare script - no git in container)
+RUN bun install --ignore-scripts
 
 # Copy source files
 COPY . .
