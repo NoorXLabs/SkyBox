@@ -9,11 +9,15 @@ DevBox provides a set of commands for managing your local-first development envi
 | [`devbox init`](/reference/init) | Interactive setup wizard |
 | [`devbox up`](/reference/up) | Start a development container |
 | [`devbox down`](/reference/down) | Stop a development container |
+| [`devbox shell`](/reference/shell) | Access shell inside container |
 | [`devbox clone`](/reference/clone) | Clone remote project locally |
 | [`devbox push`](/reference/push) | Push local project to remote |
+| [`devbox new`](/reference/new) | Create new project on remote |
 | [`devbox browse`](/reference/browse) | List projects on remote server |
 | [`devbox list`](/reference/list) | List local projects |
 | [`devbox status`](/reference/status) | Show project status |
+| [`devbox remote`](/reference/remote) | Manage remote servers |
+| [`devbox config`](/reference/config) | View/modify configuration |
 | [`devbox editor`](/reference/editor) | Change default editor |
 | [`devbox rm`](/reference/rm) | Remove project locally (keeps remote) |
 
@@ -34,8 +38,33 @@ All commands support these global options:
 # Initial setup
 devbox init
 
+# View configuration
+devbox config
+
+# Test remote connections
+devbox config --validate
+
 # Change default editor
 devbox editor
+
+# Or via config
+devbox config set editor vim
+```
+
+### Managing Remote Servers
+
+```bash
+# Add a new remote
+devbox remote add myserver user@host:~/code
+
+# List configured remotes
+devbox remote list
+
+# Remove a remote
+devbox remote remove myserver
+
+# Rename a remote
+devbox remote rename myserver production
 ```
 
 ### Working with Projects
@@ -46,6 +75,12 @@ devbox up my-project
 
 # Stop a project
 devbox down my-project
+
+# Access shell inside container
+devbox shell my-project
+
+# Run a command in container
+devbox shell my-project -c "npm test"
 
 # Check project status
 devbox status my-project
@@ -62,6 +97,9 @@ devbox clone my-project
 
 # Push a local project to remote
 devbox push ./my-project
+
+# Create a new project on remote
+devbox new
 ```
 
 ### Cleanup
