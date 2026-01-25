@@ -43,7 +43,7 @@ Mutagen is downloaded automatically during setup.
 
 For installation, quick start, commands, and configuration:
 
-**[devbox.noorchasib.com](https://devbox.noorchasib.com)**
+**[Please visit the documentation](https://devbox.noorchasib.com)**
 
 ## License
 
