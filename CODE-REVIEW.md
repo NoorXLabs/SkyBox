@@ -1,8 +1,11 @@
 # Comprehensive Code Review - DevBox
 
-**Date:** 2026-01-25
+**Date:** 2026-01-25 (Updated: 2026-01-25)
 **Reviewer:** Automated Code Analysis
 **Scope:** Complete codebase review including commands, libraries, types, tests, and configuration
+
+**Updates:**
+- 2026-01-25: Added 17 additional findings in "Additional Findings" section
 
 ---
 
@@ -34,8 +37,10 @@ DevBox is a well-architected CLI tool with clear separation of concerns and comp
 |----------|-------------|----------|
 | Critical (Security/Bugs) | 3 | Immediate |
 | High Priority | 18 | This Sprint |
-| Medium Priority | 45 | Next Sprint |
+| Medium Priority | 45 + 17 new | Next Sprint |
 | Low Priority | 85+ | Backlog |
+
+**Note:** 17 additional findings were added on 2026-01-25 (see "Additional Findings" section).
 
 ### Areas Requiring Most Attention
 1. **Security:** Shell injection vulnerability in lock.ts
@@ -1593,6 +1598,305 @@ const MUTAGEN_VERSION = "0.17.5";
 2. Documentation improvements
 3. Configuration enhancements
 4. Minor consistency fixes
+
+---
+
+## Additional Findings (2026-01-25 Update)
+
+The following additional issues were identified during a subsequent code review pass and are not duplicates of the items above.
+
+---
+
+### NEW-1. Missing Timeout on SSH Test Connection
+
+**Location:** `src/lib/ssh.ts:84`
+**Severity:** Medium
+**Type:** Reliability Issue
+
+```typescript
+const args = ["-o", "BatchMode=yes", "-o", "ConnectTimeout=5"];
+// ...
+await execa("ssh", args);  // No execa timeout option
+```
+
+**Problem:** While the SSH-level timeout is set to 5 seconds, there is no execa timeout option. If the SSH process hangs for reasons other than connection (e.g., DNS resolution), it will wait indefinitely.
+
+**Fix:**
+```typescript
+await execa("ssh", args, { timeout: 10000 });  // 10 second hard limit
+```
+
+---
+
+### NEW-2. Inconsistent Process Exit Codes
+
+**Locations:**
+- `src/commands/init.ts:415-416` uses `process.exit(1)`
+- `src/commands/init.ts:438-439` uses `process.exit(1)`
+- Other commands use `return` after error
+
+**Problem:** Some commands exit the process directly on errors while others return and let the caller handle it. This inconsistency makes error handling and testing more difficult.
+
+**Suggestion:** Consider throwing errors and handling them at the top-level CLI instead of calling `process.exit()` directly in command functions.
+
+---
+
+### NEW-3. Missing Null Check for Config.projects
+
+**Location:** `src/commands/down.ts:204`
+
+```typescript
+if (config.projects?.[project ?? ""]) {
+  delete config.projects[project ?? ""];
+```
+
+**Problem:** The optional chaining `?.` suggests `projects` could be undefined, but this is not consistent with the `DevboxConfigV2` type which defines `projects` as required.
+
+**Fix:** Either make the type reflect reality (optional projects) or remove the unnecessary optional chaining for consistency.
+
+---
+
+### NEW-4. Recursive Call Without Base Case Protection in newCommand
+
+**Location:** `src/commands/new.ts:59-60`
+
+```typescript
+if (checkResult.stdout?.includes("EXISTS")) {
+  checkSpin.fail("Project already exists");
+  // ...
+  return newCommand();  // Recursive call
+}
+```
+
+**Problem:** If the user keeps entering project names that exist, this creates unbounded recursion. While unlikely in practice, it could cause stack overflow in edge cases.
+
+**Fix:** Add a retry counter or use a loop instead:
+```typescript
+let attempts = 0;
+const MAX_ATTEMPTS = 3;
+while (attempts < MAX_ATTEMPTS) {
+  // prompt and check
+  attempts++;
+}
+if (attempts >= MAX_ATTEMPTS) {
+  error("Too many attempts. Exiting.");
+  return;
+}
+```
+
+---
+
+### NEW-5. Unused getRemoteHost and getRemotePath Imports
+
+**Location:** `src/commands/down.ts:23`
+
+```typescript
+import { getProjectRemote, getRemoteHost, getRemotePath } from "./remote.ts";
+```
+
+**Problem:** `getRemoteHost` and `getRemotePath` are imported but only used conditionally at lines 210-215 inside an if block that may not execute. While Biome should catch unused imports, this particular pattern passes because they ARE used - just in code that is only conditionally reached.
+
+---
+
+### NEW-6. No Validation of SSH Config Host Names
+
+**Location:** `src/lib/ssh.ts:29`
+
+```typescript
+if (trimmed.toLowerCase().startsWith("host ") && !trimmed.includes("*")) {
+  if (currentHost) {
+    hosts.push(currentHost);
+  }
+  currentHost = { name: trimmed.slice(5).trim() };
+}
+```
+
+**Problem:** The SSH config parser accepts any host name without validation. Host names with special characters could cause issues downstream when used in commands.
+
+---
+
+### NEW-7. Missing Test Coverage for projectTemplates.ts
+
+**Location:** `src/lib/__tests__/projectTemplates.test.ts`
+
+The test file exists but only tests `validateProjectName`. The following functions lack test coverage:
+- `getBuiltInTemplates()`
+- `getUserTemplates()`
+- `getAllTemplates()`
+
+---
+
+### NEW-8. Hardcoded Template Repository URLs Are Placeholder
+
+**Location:** `src/lib/projectTemplates.ts:7-29`
+
+```typescript
+// TODO: Replace with your actual template repo URLs
+export const BUILT_IN_TEMPLATES: BuiltInTemplate[] = [
+  {
+    id: "node",
+    name: "Node.js",
+    url: "https://github.com/devbox-templates/node-starter",  // This domain may not exist
+  },
+```
+
+**Problem:** The built-in templates reference URLs under `devbox-templates` organization that may not exist. This could cause confusing errors for users who try to use these templates.
+
+---
+
+### NEW-9. Silent Config Save After Auto-Migration
+
+**Location:** `src/lib/config.ts:33-37`
+
+```typescript
+if (needsMigration(rawConfig)) {
+  const migrated = migrateConfig(rawConfig as DevboxConfig);
+  saveConfig(migrated);
+  // Note: don't call info() here as it may not be available in tests
+  return migrated;
+}
+```
+
+**Problem:** The config is silently migrated and saved without any user notification (the comment explains why info() is not called). Users may be surprised to find their config.yaml modified.
+
+**Suggestion:** Consider logging the migration after the function returns, or creating a backup of the original config.
+
+---
+
+### NEW-10. Potential Race Condition in Lock Acquisition
+
+**Location:** `src/lib/lock.ts:89-138`
+
+```typescript
+export async function acquireLock(...) {
+  const status = await getLockStatus(project, remoteInfo);  // Check
+  // ... time passes ...
+  const command = `mkdir -p ${locksDir} && echo '${json}' > ${lockPath}`;  // Write
+```
+
+**Problem:** There's a time-of-check-to-time-of-use (TOCTOU) race condition. Between checking the lock status and writing the lock file, another machine could acquire the lock.
+
+**Fix:** Use atomic lock acquisition with shell:
+```typescript
+// Atomic test-and-set using shell
+const command = `
+  if [ ! -f "${lockPath}" ]; then
+    echo '${escapedJson}' > "${lockPath}" && echo "ACQUIRED"
+  else
+    echo "EXISTS"
+  fi
+`;
+```
+
+---
+
+### NEW-11. Download Progress Callback Not Used for Extraction Phase
+
+**Location:** `src/lib/download.ts:86-93`
+
+```typescript
+onProgress?.("Extracting...");
+
+await extract({
+  file: tarPath,
+  cwd: BIN_DIR,
+  filter: (path) => path === "mutagen" || path === "mutagen-agents.tar.gz",
+});
+```
+
+**Problem:** The extraction progress only shows a static "Extracting..." message. For large archives or slow disks, there's no indication of progress.
+
+---
+
+### NEW-12. Mutagen Session Name Does Not Escape Special Characters
+
+**Location:** `src/lib/mutagen.ts:7-9`
+
+```typescript
+export function sessionName(project: string): string {
+  return `devbox-${project}`;
+}
+```
+
+**Problem:** If a project name contains characters that are invalid for Mutagen session names (spaces, special chars), this could fail silently or cause cryptic errors.
+
+**Fix:**
+```typescript
+export function sessionName(project: string): string {
+  // Mutagen session names must be DNS-compatible labels
+  const sanitized = project.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase();
+  return `devbox-${sanitized}`;
+}
+```
+
+---
+
+### NEW-13. Missing Test for Invalid YAML Config Loading
+
+**Location:** `src/lib/__tests__/config.test.ts`
+
+The test suite does not test what happens when config.yaml contains invalid YAML syntax. This is related to the "Missing YAML Parse Error Handling" issue already documented, but specifically calls out the missing test.
+
+---
+
+### NEW-14. Inconsistent Use of inquirer.Separator
+
+**Location:** `src/commands/new.ts:135, 150`
+
+```typescript
+choices.push(new inquirer.Separator("──── Built-in ────"));
+// ...
+choices.push(new inquirer.Separator("────────────────"));
+```
+
+**Problem:** Different separator styles used within the same function. One uses "Built-in"/"Custom" labels, the last one is just dashes.
+
+---
+
+### NEW-15. No Cleanup on Partial Clone Failure
+
+**Location:** `src/commands/clone.ts:103-144`
+
+```typescript
+mkdirSync(localPath, { recursive: true });
+// ... if sync creation fails, the empty directory is left behind
+```
+
+**Problem:** If the clone fails after creating the local directory but before completing sync, the empty directory is not cleaned up.
+
+**Fix:** Add cleanup in error paths:
+```typescript
+try {
+  // ... clone operations
+} catch (err) {
+  // Cleanup on failure
+  if (existsSync(localPath)) {
+    rmSync(localPath, { recursive: true });
+  }
+  throw err;
+}
+```
+
+---
+
+### NEW-16. Status Command Swallows Git Errors Silently
+
+**Location:** `src/commands/status.ts:72-115`
+
+The `getGitInfo` function catches all errors and returns null without any logging or indication of what went wrong. This makes debugging issues difficult.
+
+---
+
+### NEW-17. Template Config Object Uses Loose Typing
+
+**Location:** `src/lib/templates.ts:27-113`
+
+```typescript
+const COMMON_FEATURES = { ... };  // No type annotation
+const COMMON_MOUNTS = [ ... ];    // No type annotation
+```
+
+**Problem:** These template configuration objects lack explicit type annotations, relying on type inference. This makes it harder to catch mistakes when modifying template configurations.
 
 ---
 
