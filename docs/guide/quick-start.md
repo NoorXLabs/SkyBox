@@ -277,9 +277,13 @@ devbox up my-project --rebuild
 | `devbox list` | List local projects |
 | `devbox push <path>` | Push local project to remote |
 | `devbox clone <project>` | Clone remote project locally |
+| `devbox new` | Create new project on remote |
 | `devbox up [project]` | Start development container |
 | `devbox down [project]` | Stop development container |
+| `devbox shell <project>` | Access shell inside container |
 | `devbox status [project]` | Show project status |
+| `devbox remote <subcommand>` | Manage remote servers |
+| `devbox config` | View/modify configuration |
 | `devbox editor` | Change default editor |
 | `devbox rm <project>` | Remove local project |
 

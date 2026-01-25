@@ -34,8 +34,11 @@ If DevBox is already configured, you'll be asked whether to reconfigure.
 
 ### Remote Configuration
 
+The wizard configures your first remote server. You can add more remotes later with `devbox remote add`.
+
 The wizard allows you to:
 
+- Enter a name for the remote (e.g., "production", "personal")
 - Select an existing SSH host from your `~/.ssh/config`
 - Add a new server with hostname, username, and SSH key
 - Test the SSH connection
@@ -73,6 +76,7 @@ Installing mutagen...
   Mutagen installed
 
 Configure remote server
+? Remote name: production
 ? Select SSH host: my-server (192.168.1.100)
   SSH connection successful
 
@@ -92,19 +96,22 @@ Next steps:
   Push a local project: devbox push ./my-project
   Clone from remote: devbox clone <project-name>
   Browse remote projects: devbox browse
+  Add another remote: devbox remote add
 ```
 
 ## Configuration File
 
 After running `init`, DevBox creates a configuration file at `~/.devbox/config.yaml` containing:
 
-- Remote server host and base path
+- Remote server configurations (supports multiple remotes)
 - Default editor
 - Sync settings and ignore patterns
-- Registered projects
+- Registered projects with remote associations
 
 ## See Also
 
+- [devbox remote](/reference/remote) - Add more remote servers
+- [devbox config](/reference/config) - View and modify configuration
 - [devbox editor](/reference/editor) - Change the default editor later
 - [devbox browse](/reference/browse) - View projects on remote server
 - [devbox push](/reference/push) - Push a local project to remote
