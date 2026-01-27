@@ -185,11 +185,33 @@ export interface RmOptions {
 }
 
 // Template types
+
+/**
+ * Devcontainer configuration structure.
+ * Based on the devcontainer.json specification.
+ */
+export interface DevcontainerConfig {
+	name?: string;
+	image?: string;
+	features?: Record<string, unknown>;
+	customizations?: {
+		vscode?: {
+			extensions?: string[];
+			settings?: Record<string, unknown>;
+		};
+	};
+	mounts?: string[];
+	postCreateCommand?: string;
+	postStartCommand?: string;
+	workspaceFolder?: string;
+	workspaceMount?: string;
+}
+
 export interface Template {
 	id: string;
 	name: string;
 	description: string;
-	config: object;
+	config: DevcontainerConfig;
 }
 
 // User-defined project templates (git repos)
