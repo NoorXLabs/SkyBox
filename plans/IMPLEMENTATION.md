@@ -4,7 +4,7 @@
 >
 > **Started:** 2025 (CLI Development)
 >
-> **Progress:** 14/14 commands complete | Code quality improvements in progress
+> **Progress:** 14/14 commands complete | 14/55 code quality tasks complete
 
 ---
 
@@ -73,10 +73,11 @@
   - Fix: Always wrap paths in double quotes
   - Commit: `f30c765`
 
-- [ ] **Task 3:** Fix conflicting TypeScript compiler options
+- [x] **Task 3:** Fix conflicting TypeScript compiler options
   - Location: `tsconfig.json:11, 13`
   - `declaration: true` conflicts with `noEmit: true`
   - Fix: Choose one approach (either emit declarations or don't emit)
+  - Commit: `6a3a098`
 
 ---
 
@@ -86,66 +87,76 @@
 
 ### Code Duplication
 
-- [ ] **Task 4:** Extract Docker label constant
+- [x] **Task 4:** Extract Docker label constant
   - Location: `src/lib/container.ts:59, 78, 106, 153, 181, 212, 252`
   - Magic string `devcontainer.local_folder` repeated 7 times
   - Fix: Create `DOCKER_LABEL_KEY` constant and `getDockerLabelFilter()` helper
+  - Commit: `304a43b`
 
-- [ ] **Task 5:** Extract `checkRemoteProjectExists` to shared module
+- [x] **Task 5:** Extract `checkRemoteProjectExists` to shared module
   - Locations: `src/commands/clone.ts:18-28`, `src/commands/push.ts:16-26`
   - Identical function in both files
   - Fix: Move to `src/lib/remote.ts`
+  - Commit: `383f1c3`
 
-- [ ] **Task 6:** Extract lock status checking pattern
+- [~] **Task 6:** Extract lock status checking pattern
   - Locations: `src/commands/rm.ts:65-95`, `src/commands/down.ts`, `src/commands/status.ts`, `src/commands/up.ts`
-  - Same pattern repeated in 4 files
-  - Fix: Create `checkAndReportLockStatus()` in `src/lib/lock.ts`
+  - Review: Patterns differ significantly (check/release, acquire/takeover, display-only) - extraction not beneficial
+  - Status: Skipped after review
 
-- [ ] **Task 7:** Extract SSH config magic numbers
+- [x] **Task 7:** Extract SSH config magic numbers
   - Location: `src/lib/ssh.ts:33, 37, 39, 41, 43`
   - Hard-coded slice lengths (5, 9, 13, etc.)
-  - Fix: Create `SSH_PREFIXES` constant object
+  - Fix: Create `SSH_KEYWORDS` constant object with prefixes and lengths
+  - Commit: `80de7a7`
 
-- [ ] **Task 8:** Extract Mutagen command execution pattern
+- [x] **Task 8:** Extract Mutagen command execution pattern
   - Location: `src/lib/mutagen.ts` (5+ functions)
   - Same try/catch pattern repeated
   - Fix: Create `executeMutagenCommand()` helper
+  - Commit: `80de7a7`
 
 ### Configuration
 
-- [ ] **Task 9:** Fix Biome VCS settings
+- [x] **Task 9:** Fix Biome VCS settings
   - Location: `biome.json:6`
   - VCS disabled, `.gitignore` not respected
   - Fix: Enable VCS with `clientKind: "git"` and `useIgnoreFile: true`
+  - Commit: `7d5e7e8`
 
 ### Type Safety
 
-- [ ] **Task 10:** Add proper type for Template.config
+- [x] **Task 10:** Add proper type for Template.config
   - Location: `src/types/index.ts:192`
   - Uses loose `object` type
   - Fix: Create `DevcontainerConfig` interface
+  - Commit: `e09275d`
 
-- [ ] **Task 11:** Use ContainerStatus enum consistently
+- [x] **Task 11:** Use ContainerStatus enum consistently
   - Location: `src/types/index.ts:70-75, 110, 120`
   - Enum exists but not used in `ProjectSummary` and `ContainerDetails`
   - Fix: Add `Unknown` to enum, use in interfaces
+  - Commit: `80de7a7`
 
-- [ ] **Task 12:** Create SyncStatusValue type
+- [x] **Task 12:** Create SyncStatusValue type
   - Location: `src/types/index.ts:212`
   - `status: string` is too vague
   - Fix: Create union type `"syncing" | "paused" | "none" | "error"`
+  - Commit: `80de7a7`
 
 ### Reliability
 
-- [ ] **Task 13:** Add timeout to SSH test connection
+- [x] **Task 13:** Add timeout to SSH test connection
   - Location: `src/lib/ssh.ts:84`
   - No execa timeout option
   - Fix: Add `{ timeout: 10000 }` to execa call
+  - Commit: `80de7a7`
 
-- [ ] **Task 14:** Fix TOCTOU race condition in lock acquisition
+- [x] **Task 14:** Fix TOCTOU race condition in lock acquisition
   - Location: `src/lib/lock.ts:89-138`
   - Time-of-check-to-time-of-use vulnerability
   - Fix: Use atomic test-and-set with shell command
+  - Commit: `029ec0b`
 
 ---
 
@@ -268,9 +279,10 @@
 
 ### Test Infrastructure
 
-- [ ] **Task 34:** Extract shared test setup to test-utils.ts
+- [x] **Task 34:** Extract shared test setup to test-utils.ts
   - Problem: 15+ test files with identical beforeEach/afterEach
   - Fix: Create `createTestContext()` helper
+  - Commit: `0af385f`
 
 - [ ] **Task 35:** Unify mock detection logic
   - Locations: `container.test.ts`, `container-id-isolated.test.ts`, `status.test.ts`
@@ -501,6 +513,14 @@
 |--------|---------|-------|
 | `f2910a5` | fix(security): prevent shell injection in lock.ts | Task 1 |
 | `f30c765` | fix(security): quote all paths in shell commands | Task 2 |
+| `6a3a098` | fix(config): remove conflicting tsconfig options | Task 3 |
+| `304a43b` | refactor: extract Docker label key to constants | Task 4 |
+| `383f1c3` | refactor: extract checkRemoteProjectExists to shared module | Task 5 |
+| `7d5e7e8` | fix(config): enable gitignore support in Biome | Task 9 |
+| `e09275d` | feat(types): add DevcontainerConfig interface | Task 10 |
+| `0af385f` | feat(test): add shared test utilities module | Task 34 |
+| `029ec0b` | fix(security): prevent TOCTOU race in lock acquisition | Task 14 |
+| `80de7a7` | refactor: improve type safety and reduce duplication | Tasks 7, 8, 11, 12, 13 |
 
 ---
 
