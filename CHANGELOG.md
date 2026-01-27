@@ -13,10 +13,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Warns if no lock is held
   - Blocks if project is locked by another machine
   - `--force` flag to bypass lock check
+- **Type Safety Improvements**:
+  - `SyncStatusValue` type for sync status values (`"syncing" | "paused" | "none" | "error"`)
+  - `ContainerStatus.Unknown` enum variant
+  - `DevcontainerConfig` interface for devcontainer.json structure
 
 ### Changed
 
 - Template URLs documented as placeholders requiring setup
+- Extracted shared code into new modules:
+  - `src/lib/constants.ts` - Shared constants (Docker labels, etc.)
+  - `src/lib/remote.ts` - Remote project operations
+  - `src/lib/shell.ts` - Shell escaping utilities
+- Improved SSH module with keyword constants and 10s timeout
+- Mutagen module uses `executeMutagenCommand()` helper to reduce duplication
+
+### Fixed
+
+- **Security**: TOCTOU race condition in lock acquisition now uses atomic test-and-set
+- **Security**: Conflicting TypeScript compiler options (`declaration` vs `noEmit`)
+- Biome now respects `.gitignore` patterns
 
 ## [0.5.0] - 2026-01-25
 

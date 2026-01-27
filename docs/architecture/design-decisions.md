@@ -171,14 +171,18 @@ projects: {}               # Per-project overrides
 
 ```
 devbox up myproject
-  └─> Check lock on remote
-      ├─> Unlocked → Create lock, proceed
-      ├─> Locked by me → Proceed (reconnecting)
-      └─> Locked by other → Prompt for takeover
+  └─> Atomic lock acquisition (shell noclobber mode)
+      ├─> Success → Lock acquired, proceed
+      ├─> File exists, owned by me → Update timestamp, proceed
+      └─> File exists, owned by other → Prompt for takeover
 
 devbox down myproject
   └─> Flush sync → Stop container → Release lock
 ```
+
+**Race Condition Prevention:**
+
+Lock acquisition uses shell's noclobber mode (`set -C`) for atomic test-and-set. This prevents TOCTOU (time-of-check to time-of-use) race conditions where two machines could simultaneously detect "unlocked" and both create locks.
 
 **Lock File Format:**
 

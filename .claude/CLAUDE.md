@@ -40,16 +40,19 @@ src/
 │   └── __tests__/        # Command unit tests
 ├── lib/                  # Shared libraries
 │   ├── config.ts         # YAML config operations
+│   ├── constants.ts      # Shared constants (Docker labels, etc.)
 │   ├── container.ts      # Docker/devcontainer operations
 │   ├── mutagen.ts        # Sync session management
 │   ├── ssh.ts            # SSH operations and host parsing
-│   ├── lock.ts           # Multi-machine lock system
+│   ├── lock.ts           # Multi-machine lock system (atomic acquisition)
+│   ├── remote.ts         # Remote project operations
 │   ├── project.ts        # Project path resolution
 │   ├── download.ts       # Binary downloads (Mutagen)
 │   ├── templates.ts      # Devcontainer templates
 │   ├── migration.ts      # Config format migration
 │   ├── paths.ts          # Path constants
 │   ├── errors.ts         # Error handling utilities
+│   ├── shell.ts          # Shell escaping utilities
 │   ├── ui.ts             # Terminal UI (colors, spinners)
 │   ├── startup.ts        # Dependency checks
 │   └── __tests__/        # Library unit tests
@@ -286,6 +289,7 @@ Multi-machine lock prevents conflicts when same project is opened on multiple ma
 - Lock file stored on remote: `~/.devbox-locks/<project>.lock`
 - Contains: machine name, user, timestamp, PID
 - Acquired by `devbox up`, released by `devbox down`
+- Uses atomic test-and-set (shell noclobber mode) to prevent race conditions
 - See `src/lib/lock.ts` for implementation
 
 ### Sync System

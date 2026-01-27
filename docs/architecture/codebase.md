@@ -14,35 +14,42 @@ devbox/
 ├── src/
 │   ├── index.ts           # CLI entry point, commander setup
 │   ├── commands/          # One file per CLI command
-│   │   ├── init.ts
-│   │   ├── clone.ts
-│   │   ├── push.ts
-│   │   ├── up.ts
-│   │   ├── down.ts
-│   │   ├── status.ts
-│   │   ├── browse.ts
-│   │   ├── list.ts
-│   │   ├── editor.ts
-│   │   ├── rm.ts
+│   │   ├── init.ts        # Interactive setup wizard
+│   │   ├── clone.ts       # Clone remote project locally
+│   │   ├── push.ts        # Push local project to remote
+│   │   ├── up.ts          # Start container + acquire lock
+│   │   ├── down.ts        # Stop container + release lock
+│   │   ├── status.ts      # Show project status
+│   │   ├── browse.ts      # List remote projects
+│   │   ├── list.ts        # List local projects
+│   │   ├── editor.ts      # Configure default editor
+│   │   ├── rm.ts          # Remove local project
+│   │   ├── shell.ts       # Enter container shell
+│   │   ├── new.ts         # Create new project on remote
+│   │   ├── config.ts      # View/edit configuration
+│   │   ├── remote.ts      # Manage multiple remotes
 │   │   └── __tests__/     # Command tests
 │   ├── lib/               # Shared functionality
 │   │   ├── config.ts      # Config file operations
+│   │   ├── constants.ts   # Shared constants
 │   │   ├── container.ts   # Docker/devcontainer ops
 │   │   ├── mutagen.ts     # Sync management
 │   │   ├── ssh.ts         # SSH operations
-│   │   ├── lock.ts        # Lock file management
+│   │   ├── lock.ts        # Lock file management (atomic)
+│   │   ├── remote.ts      # Remote project operations
 │   │   ├── project.ts     # Project resolution
 │   │   ├── download.ts    # Binary downloads
 │   │   ├── templates.ts   # Devcontainer templates
 │   │   ├── paths.ts       # Path constants
 │   │   ├── errors.ts      # Error utilities
+│   │   ├── shell.ts       # Shell escaping utilities
 │   │   ├── ui.ts          # Terminal UI helpers
 │   │   └── __tests__/     # Library tests
 │   └── types/
 │       └── index.ts       # All TypeScript interfaces
 ├── docs/                  # VitePress documentation
-│   └── plans/             # Design documents
-└── SPEC.md                # Feature specification
+├── plans/                 # Implementation plans and tracker
+└── CHANGELOG.md           # Version history
 ```
 
 ## Key Files
@@ -102,21 +109,27 @@ All TypeScript interfaces in one place:
 
 ```typescript
 // Configuration types
-interface DevboxConfig { ... }
-interface ProjectConfig { ... }
+interface DevboxConfigV2 { ... }  // Multi-remote config format
+interface RemoteEntry { ... }     // Remote server definition
+interface ProjectConfigV2 { ... } // Project with remote reference
 
 // Runtime types
-enum ContainerStatus { Running, Stopped, NotFound, Error }
+enum ContainerStatus { Running, Stopped, NotFound, Error, Unknown }
 interface ContainerInfo { ... }
-interface SyncStatus { ... }
+interface SyncStatus { exists, paused, status: SyncStatusValue }
+type SyncStatusValue = "syncing" | "paused" | "none" | "error"
 
 // Lock types
-interface LockInfo { ... }
-type LockStatus = { locked: false } | { locked: true; ... }
+interface LockInfo { machine, user, timestamp, pid }
+type LockStatus = { locked: false } | { locked: true; ownedByMe; info }
+
+// Template types
+interface DevcontainerConfig { ... }  // devcontainer.json structure
+interface Template { id, name, description, config }
 
 // Command option types
-interface UpOptions { ... }
-interface DownOptions { ... }
+interface UpOptions { editor?, attach?, rebuild?, noPrompt? }
+interface DownOptions { cleanup?, force?, noPrompt? }
 ```
 
 ## Adding a New Command
