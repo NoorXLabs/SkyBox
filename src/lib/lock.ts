@@ -86,58 +86,75 @@ function createLockInfo(): LockInfo {
  * Acquire a lock for the specified project.
  * Returns success if no lock exists or if the current machine already owns the lock.
  * Fails if another machine holds the lock.
+ *
+ * Uses atomic test-and-set to prevent TOCTOU race conditions:
+ * - First attempts atomic creation with shell's noclobber mode (set -C)
+ * - If file exists, checks ownership and updates if we own it
  */
 export async function acquireLock(
 	project: string,
 	remoteInfo: LockRemoteInfo,
 ): Promise<{ success: boolean; error?: string; existingLock?: LockInfo }> {
-	// Check for existing lock
-	const status = await getLockStatus(project, remoteInfo);
-
-	if (status.locked) {
-		if (status.ownedByMe) {
-			// Update timestamp on existing lock
-			const lockInfo = createLockInfo();
-			const lockPath = getLockPath(project, remoteInfo.basePath);
-			const locksDir = getLocksDir(remoteInfo.basePath);
-			const json = JSON.stringify(lockInfo);
-			const jsonBase64 = Buffer.from(json).toString("base64");
-
-			const command = `mkdir -p ${escapeShellArg(locksDir)} && echo '${jsonBase64}' | base64 -d > ${escapeShellArg(lockPath)}`;
-			const result = await runRemoteCommand(remoteInfo.host, command);
-
-			if (!result.success) {
-				return {
-					success: false,
-					error: result.error || "Failed to update lock",
-				};
-			}
-
-			return { success: true };
-		}
-		// Locked by different machine
-		return {
-			success: false,
-			error: `Project is locked by ${status.info.machine} (${status.info.user})`,
-			existingLock: status.info,
-		};
-	}
-
-	// No existing lock, create new one
 	const lockInfo = createLockInfo();
 	const lockPath = getLockPath(project, remoteInfo.basePath);
 	const locksDir = getLocksDir(remoteInfo.basePath);
 	const json = JSON.stringify(lockInfo);
 	const jsonBase64 = Buffer.from(json).toString("base64");
 
-	const command = `mkdir -p ${escapeShellArg(locksDir)} && echo '${jsonBase64}' | base64 -d > ${escapeShellArg(lockPath)}`;
-	const result = await runRemoteCommand(remoteInfo.host, command);
+	// Attempt atomic lock creation using noclobber mode (set -C)
+	// This fails if the file already exists, preventing TOCTOU races
+	const atomicCreateCommand = `mkdir -p ${escapeShellArg(locksDir)} && (set -C; echo '${jsonBase64}' | base64 -d > ${escapeShellArg(lockPath)}) 2>/dev/null`;
+	const createResult = await runRemoteCommand(
+		remoteInfo.host,
+		atomicCreateCommand,
+	);
 
-	if (!result.success) {
-		return { success: false, error: result.error || "Failed to create lock" };
+	if (createResult.success) {
+		// Lock acquired atomically
+		return { success: true };
 	}
 
-	return { success: true };
+	// Atomic creation failed - lock file likely exists
+	// Check if we already own it
+	const status = await getLockStatus(project, remoteInfo);
+
+	if (!status.locked) {
+		// Lock file existed but is now gone or invalid - retry once
+		const retryResult = await runRemoteCommand(
+			remoteInfo.host,
+			atomicCreateCommand,
+		);
+		if (retryResult.success) {
+			return { success: true };
+		}
+		// Still failing, report error
+		return {
+			success: false,
+			error: "Failed to acquire lock (concurrent access detected)",
+		};
+	}
+
+	if (status.ownedByMe) {
+		// We own the lock - update timestamp (non-atomic is fine here)
+		const updateCommand = `echo '${jsonBase64}' | base64 -d > ${escapeShellArg(lockPath)}`;
+		const updateResult = await runRemoteCommand(remoteInfo.host, updateCommand);
+
+		if (!updateResult.success) {
+			return {
+				success: false,
+				error: updateResult.error || "Failed to update lock",
+			};
+		}
+
+		return { success: true };
+	}
+
+	// Locked by different machine
+	return {
+		success: false,
+		error: `Project is locked by ${status.info?.machine} (${status.info?.user})`,
+		existingLock: status.info,
+	};
 }
 
 /**

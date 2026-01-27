@@ -140,13 +140,8 @@ describe("lock", () => {
 	});
 
 	describe("acquireLock", () => {
-		test("creates lock when no existing lock", async () => {
-			// First call: check for existing lock (none found)
-			mockRunRemoteCommand.mockResolvedValueOnce({
-				success: true,
-				stdout: "",
-			});
-			// Second call: create lock
+		test("creates lock atomically when no existing lock", async () => {
+			// Atomic create succeeds immediately
 			mockRunRemoteCommand.mockResolvedValueOnce({
 				success: true,
 			});
@@ -154,13 +149,14 @@ describe("lock", () => {
 			const result = await acquireLock("myproject", testRemoteInfo);
 
 			expect(result.success).toBe(true);
-			expect(mockRunRemoteCommand).toHaveBeenCalledTimes(2);
-			// Verify the second call creates the lock with escaped paths and base64 encoding
+			expect(mockRunRemoteCommand).toHaveBeenCalledTimes(1);
+			// Verify the atomic create command uses noclobber (set -C)
 			const calls = mockRunRemoteCommand.mock.calls as [string, string][];
-			expect(calls[1][0]).toBe("testhost");
-			expect(calls[1][1]).toContain("mkdir -p '~/code/.devbox-locks'");
-			expect(calls[1][1]).toContain("| base64 -d >");
-			expect(calls[1][1]).toContain("'~/code/.devbox-locks/myproject.lock'");
+			expect(calls[0][0]).toBe("testhost");
+			expect(calls[0][1]).toContain("mkdir -p '~/code/.devbox-locks'");
+			expect(calls[0][1]).toContain("set -C");
+			expect(calls[0][1]).toContain("| base64 -d >");
+			expect(calls[0][1]).toContain("'~/code/.devbox-locks/myproject.lock'");
 		});
 
 		test("updates timestamp when lock is owned by current machine", async () => {
@@ -171,12 +167,16 @@ describe("lock", () => {
 				pid: 12345,
 			};
 
-			// First call: check for existing lock (owned by current machine)
+			// First call: atomic create fails (file exists)
+			mockRunRemoteCommand.mockResolvedValueOnce({
+				success: false,
+			});
+			// Second call: check lock status (owned by current machine)
 			mockRunRemoteCommand.mockResolvedValueOnce({
 				success: true,
 				stdout: JSON.stringify(lockInfo),
 			});
-			// Second call: update lock
+			// Third call: update lock
 			mockRunRemoteCommand.mockResolvedValueOnce({
 				success: true,
 			});
@@ -184,7 +184,7 @@ describe("lock", () => {
 			const result = await acquireLock("myproject", testRemoteInfo);
 
 			expect(result.success).toBe(true);
-			expect(mockRunRemoteCommand).toHaveBeenCalledTimes(2);
+			expect(mockRunRemoteCommand).toHaveBeenCalledTimes(3);
 		});
 
 		test("fails when lock is owned by different machine", async () => {
@@ -195,7 +195,11 @@ describe("lock", () => {
 				pid: 12345,
 			};
 
-			// Check for existing lock (owned by different machine)
+			// First call: atomic create fails (file exists)
+			mockRunRemoteCommand.mockResolvedValueOnce({
+				success: false,
+			});
+			// Second call: check lock status (owned by different machine)
 			mockRunRemoteCommand.mockResolvedValueOnce({
 				success: true,
 				stdout: JSON.stringify(lockInfo),
@@ -207,26 +211,49 @@ describe("lock", () => {
 			expect(result.error).toContain("other-machine");
 			expect(result.error).toContain("otheruser");
 			expect(result.existingLock).toEqual(lockInfo);
-			// Should only call once (to check lock status)
-			expect(mockRunRemoteCommand).toHaveBeenCalledTimes(1);
+			expect(mockRunRemoteCommand).toHaveBeenCalledTimes(2);
 		});
 
-		test("returns error when lock creation fails", async () => {
-			// First call: check for existing lock (none found)
+		test("retries when lock file disappears during check", async () => {
+			// First call: atomic create fails (file exists)
+			mockRunRemoteCommand.mockResolvedValueOnce({
+				success: false,
+			});
+			// Second call: check lock status (lock gone - race condition)
 			mockRunRemoteCommand.mockResolvedValueOnce({
 				success: true,
 				stdout: "",
 			});
-			// Second call: create lock fails
+			// Third call: retry atomic create (succeeds)
+			mockRunRemoteCommand.mockResolvedValueOnce({
+				success: true,
+			});
+
+			const result = await acquireLock("myproject", testRemoteInfo);
+
+			expect(result.success).toBe(true);
+			expect(mockRunRemoteCommand).toHaveBeenCalledTimes(3);
+		});
+
+		test("returns error when retry also fails", async () => {
+			// First call: atomic create fails
 			mockRunRemoteCommand.mockResolvedValueOnce({
 				success: false,
-				error: "Permission denied",
+			});
+			// Second call: check lock status (lock gone)
+			mockRunRemoteCommand.mockResolvedValueOnce({
+				success: true,
+				stdout: "",
+			});
+			// Third call: retry atomic create (fails again)
+			mockRunRemoteCommand.mockResolvedValueOnce({
+				success: false,
 			});
 
 			const result = await acquireLock("myproject", testRemoteInfo);
 
 			expect(result.success).toBe(false);
-			expect(result.error).toBe("Permission denied");
+			expect(result.error).toContain("concurrent access");
 		});
 	});
 
