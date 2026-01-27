@@ -320,9 +320,9 @@ Uses Docker with devcontainer spec:
 
 ## Documentation
 
-- **User docs:** `docs/` (VitePress)
+- **User docs:** `docs/` (VitePress) - do NOT use for plans or internal docs
 - **Architecture:** `docs/architecture/`
 - **Command reference:** `docs/reference/`
-- **Design docs:** `design/plans/`
-- **Specification:** `SPEC.md`
+- **Implementation plans:** `plans/` - all implementation plans go here, NOT in docs/
+- **Implementation tracker:** `plans/IMPLEMENTATION.md` - consolidated task tracker with all tasks, code review items, and future features
 - **Changelog:** `CHANGELOG.md`
