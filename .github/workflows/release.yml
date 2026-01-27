@@ -63,31 +63,31 @@ jobs:
           SHA_DARWIN_X64: ${{ steps.sha.outputs.darwin_x64 }}
           SHA_LINUX_X64: ${{ steps.sha.outputs.linux_x64 }}
         run: |
-          git clone https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/noorchasib/homebrew-tap.git
+          git clone https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/NoorXLabs/homebrew-tap.git
           cd homebrew-tap
 
           cat > Formula/devbox.rb << 'FORMULA'
           class Devbox < Formula
             desc "Local-first development container manager"
-            homepage "https://github.com/noorchasib/DevBox"
+            homepage "https://github.com/NoorXLabs/DevBox"
             version "VERSION_PLACEHOLDER"
             license "Apache-2.0"
 
             on_macos do
               on_arm do
-                url "https://github.com/noorchasib/DevBox/releases/download/vVERSION_PLACEHOLDER/devbox-darwin-arm64.tar.gz"
+                url "https://github.com/NoorXLabs/DevBox/releases/download/vVERSION_PLACEHOLDER/devbox-darwin-arm64.tar.gz"
                 sha256 "SHA_DARWIN_ARM64_PLACEHOLDER"
               end
 
               on_intel do
-                url "https://github.com/noorchasib/DevBox/releases/download/vVERSION_PLACEHOLDER/devbox-darwin-x64.tar.gz"
+                url "https://github.com/NoorXLabs/DevBox/releases/download/vVERSION_PLACEHOLDER/devbox-darwin-x64.tar.gz"
                 sha256 "SHA_DARWIN_X64_PLACEHOLDER"
               end
             end
 
             on_linux do
               on_intel do
-                url "https://github.com/noorchasib/DevBox/releases/download/vVERSION_PLACEHOLDER/devbox-linux-x64.tar.gz"
+                url "https://github.com/NoorXLabs/DevBox/releases/download/vVERSION_PLACEHOLDER/devbox-linux-x64.tar.gz"
                 sha256 "SHA_LINUX_X64_PLACEHOLDER"
               end
             end

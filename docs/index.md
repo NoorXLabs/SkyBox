@@ -14,7 +14,7 @@ hero:
       link: /guide/
     - theme: alt
       text: GitHub
-      link: https://github.com/noorchasib/DevBox
+      link: https://github.com/NoorXLabs/DevBox
 
 features:
   - icon: 💻

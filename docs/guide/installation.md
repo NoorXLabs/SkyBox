@@ -48,7 +48,7 @@ curl -fsSL https://bun.sh/install | bash
 Install DevBox from source:
 
 ```bash
-git clone https://github.com/noorchasib/DevBox.git
+git clone https://github.com/NoorXLabs/DevBox.git
 cd DevBox
 bun install
 bun link

@@ -88,7 +88,7 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/noorchasib/DevBox' },
+      { icon: 'github', link: 'https://github.com/NoorXLabs/DevBox' },
     ],
 
     footer: {
