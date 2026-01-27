@@ -215,6 +215,7 @@ export interface SyncStatus {
 // Shell command types
 export interface ShellOptions {
 	command?: string;
+	force?: boolean;
 }
 
 // Lock types

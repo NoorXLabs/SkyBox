@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { ShellOptions } from "../../types/index.ts";
 
 describe("shell command", () => {
 	let testDir: string;
@@ -70,5 +71,13 @@ Projects: {}
 	test("config file exists", () => {
 		const configPath = join(testDir, "config.yaml");
 		expect(existsSync(configPath)).toBe(true);
+	});
+
+	describe("lock status checking", () => {
+		test("ShellOptions type includes force flag", () => {
+			// Type-level test - if this compiles, the type is correct
+			const options: ShellOptions = { force: true };
+			expect(options.force).toBe(true);
+		});
 	});
 });
