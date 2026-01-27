@@ -98,6 +98,7 @@ program
 	.command("shell <project>")
 	.description("Enter container shell")
 	.option("-c, --command <cmd>", "Run a single command and exit")
+	.option("-f, --force", "Bypass lock check")
 	.action(shellCommand);
 
 program

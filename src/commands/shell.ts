@@ -8,9 +8,11 @@ import {
 	getContainerStatus,
 	getDevcontainerConfig,
 } from "../lib/container.ts";
+import { createLockRemoteInfo, getLockStatus } from "../lib/lock.ts";
 import { getProjectPath, projectExists } from "../lib/project.ts";
-import { error, header, info } from "../lib/ui.ts";
+import { error, header, info, warn } from "../lib/ui.ts";
 import { ContainerStatus, type ShellOptions } from "../types/index.ts";
+import { getProjectRemote } from "./remote.ts";
 import { upCommand } from "./up.ts";
 
 export async function shellCommand(
@@ -39,13 +41,28 @@ export async function shellCommand(
 
 	const projectPath = getProjectPath(project);
 
-	// Step 3: Check lock status (stubbed - being implemented elsewhere)
-	// TODO: Integrate with lock.ts when available
-	// const lockInfo = await checkLock(project, config.remote.host);
-	// if (lockInfo.locked && !isLockedByThisMachine(lockInfo)) {
-	//   error(`Project '${project}' is locked by machine '${lockInfo.machine}'.`);
-	//   process.exit(1);
-	// }
+	// Step 3: Check lock status
+	if (!options.force) {
+		const projectRemote = getProjectRemote(project, config);
+		if (projectRemote) {
+			const remoteInfo = createLockRemoteInfo(projectRemote.remote);
+			const lockStatus = await getLockStatus(project, remoteInfo);
+
+			if (lockStatus.locked && !lockStatus.ownedByMe) {
+				error(
+					`Project '${project}' is locked by ${lockStatus.info.machine} (${lockStatus.info.user}).`,
+				);
+				info("Use --force to bypass lock check (use with caution).");
+				process.exit(1);
+			}
+
+			if (!lockStatus.locked) {
+				warn(
+					"No lock held. Run 'devbox up' first to acquire lock for safe editing.",
+				);
+			}
+		}
+	}
 
 	// Step 4: Check container status
 	const containerStatus = await getContainerStatus(projectPath);
