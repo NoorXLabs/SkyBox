@@ -1,11 +1,24 @@
 // src/lib/mutagen.ts
 import { execa } from "execa";
-import type { SyncStatus } from "../types/index.ts";
+import type { SyncStatus, SyncStatusValue } from "../types/index.ts";
 import { getExecaErrorMessage } from "./errors.ts";
 import { MUTAGEN_PATH } from "./paths.ts";
 
 export function sessionName(project: string): string {
 	return `devbox-${project}`;
+}
+
+/** Standard result type for Mutagen operations */
+type MutagenResult = { success: boolean; error?: string };
+
+/** Execute a Mutagen command and return a standardized result */
+async function executeMutagenCommand(args: string[]): Promise<MutagenResult> {
+	try {
+		await execa(MUTAGEN_PATH, args);
+		return { success: true };
+	} catch (error: unknown) {
+		return { success: false, error: getExecaErrorMessage(error) };
+	}
 }
 
 export async function createSyncSession(
@@ -14,15 +27,14 @@ export async function createSyncSession(
 	remoteHost: string,
 	remotePath: string,
 	ignores: string[],
-): Promise<{ success: boolean; error?: string }> {
+): Promise<MutagenResult> {
 	const name = sessionName(project);
-	const alpha = localPath;
 	const beta = `${remoteHost}:${remotePath}`;
 
 	const args = [
 		"sync",
 		"create",
-		alpha,
+		localPath,
 		beta,
 		"--name",
 		name,
@@ -35,12 +47,7 @@ export async function createSyncSession(
 		args.push("--ignore", pattern);
 	}
 
-	try {
-		await execa(MUTAGEN_PATH, args);
-		return { success: true };
-	} catch (error: unknown) {
-		return { success: false, error: getExecaErrorMessage(error) };
-	}
+	return executeMutagenCommand(args);
 }
 
 export async function getSyncStatus(project: string): Promise<SyncStatus> {
@@ -59,7 +66,7 @@ export async function getSyncStatus(project: string): Promise<SyncStatus> {
 
 		// Check for paused status - mutagen shows "[Paused]" in status line
 		const paused = result.stdout.includes("[Paused]");
-		const status = paused ? "paused" : "syncing";
+		const status: SyncStatusValue = paused ? "paused" : "syncing";
 
 		return { exists: true, paused, status };
 	} catch (error: unknown) {
@@ -75,54 +82,29 @@ export async function getSyncStatus(project: string): Promise<SyncStatus> {
 export async function waitForSync(
 	project: string,
 	onProgress?: (message: string) => void,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<MutagenResult> {
 	const name = sessionName(project);
-
-	try {
-		onProgress?.("Waiting for sync to complete...");
-		await execa(MUTAGEN_PATH, ["sync", "flush", name]);
+	onProgress?.("Waiting for sync to complete...");
+	const result = await executeMutagenCommand(["sync", "flush", name]);
+	if (result.success) {
 		onProgress?.("Sync complete");
-		return { success: true };
-	} catch (error: unknown) {
-		return { success: false, error: getExecaErrorMessage(error) };
 	}
+	return result;
 }
 
-export async function pauseSync(
-	project: string,
-): Promise<{ success: boolean; error?: string }> {
+export async function pauseSync(project: string): Promise<MutagenResult> {
 	const name = sessionName(project);
-
-	try {
-		await execa(MUTAGEN_PATH, ["sync", "pause", name]);
-		return { success: true };
-	} catch (error: unknown) {
-		return { success: false, error: getExecaErrorMessage(error) };
-	}
+	return executeMutagenCommand(["sync", "pause", name]);
 }
 
-export async function resumeSync(
-	project: string,
-): Promise<{ success: boolean; error?: string }> {
+export async function resumeSync(project: string): Promise<MutagenResult> {
 	const name = sessionName(project);
-
-	try {
-		await execa(MUTAGEN_PATH, ["sync", "resume", name]);
-		return { success: true };
-	} catch (error: unknown) {
-		return { success: false, error: getExecaErrorMessage(error) };
-	}
+	return executeMutagenCommand(["sync", "resume", name]);
 }
 
 export async function terminateSession(
 	project: string,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<MutagenResult> {
 	const name = sessionName(project);
-
-	try {
-		await execa(MUTAGEN_PATH, ["sync", "terminate", name]);
-		return { success: true };
-	} catch (error: unknown) {
-		return { success: false, error: getExecaErrorMessage(error) };
-	}
+	return executeMutagenCommand(["sync", "terminate", name]);
 }

@@ -72,7 +72,11 @@ export enum ContainerStatus {
 	Stopped = "stopped",
 	NotFound = "not_found",
 	Error = "error",
+	Unknown = "unknown",
 }
+
+/** Valid sync status values */
+export type SyncStatusValue = "syncing" | "paused" | "none" | "error";
 
 export interface ContainerResult {
 	success: boolean;
@@ -231,7 +235,7 @@ export interface BuiltInTemplate {
 export interface SyncStatus {
 	exists: boolean;
 	paused: boolean;
-	status: string;
+	status: SyncStatusValue;
 }
 
 // Shell command types

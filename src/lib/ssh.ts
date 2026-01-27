@@ -7,6 +7,18 @@ import { execa } from "execa";
 import type { SSHConfigEntry, SSHHost } from "../types/index.ts";
 import { getErrorMessage, getExecaErrorMessage } from "./errors.ts";
 
+/** SSH config keyword prefixes with their lengths for parsing */
+const SSH_KEYWORDS = {
+	HOST: { prefix: "host ", length: 5 },
+	HOSTNAME: { prefix: "hostname ", length: 9 },
+	USER: { prefix: "user ", length: 5 },
+	PORT: { prefix: "port ", length: 5 },
+	IDENTITY_FILE: { prefix: "identityfile ", length: 13 },
+} as const;
+
+/** Default timeout for SSH operations in milliseconds */
+const SSH_TIMEOUT_MS = 10_000;
+
 function getSSHDir(): string {
 	const home = process.env.HOME || homedir();
 	return join(home, ".ssh");
@@ -25,22 +37,29 @@ export function parseSSHConfig(): SSHHost[] {
 
 	for (const line of content.split("\n")) {
 		const trimmed = line.trim();
+		const lower = trimmed.toLowerCase();
 
-		if (trimmed.toLowerCase().startsWith("host ") && !trimmed.includes("*")) {
+		if (lower.startsWith(SSH_KEYWORDS.HOST.prefix) && !trimmed.includes("*")) {
 			if (currentHost) {
 				hosts.push(currentHost);
 			}
-			currentHost = { name: trimmed.slice(5).trim() };
+			currentHost = { name: trimmed.slice(SSH_KEYWORDS.HOST.length).trim() };
 		} else if (currentHost) {
-			const lower = trimmed.toLowerCase();
-			if (lower.startsWith("hostname ")) {
-				currentHost.hostname = trimmed.slice(9).trim();
-			} else if (lower.startsWith("user ")) {
-				currentHost.user = trimmed.slice(5).trim();
-			} else if (lower.startsWith("port ")) {
-				currentHost.port = parseInt(trimmed.slice(5).trim(), 10);
-			} else if (lower.startsWith("identityfile ")) {
-				currentHost.identityFile = trimmed.slice(13).trim();
+			if (lower.startsWith(SSH_KEYWORDS.HOSTNAME.prefix)) {
+				currentHost.hostname = trimmed
+					.slice(SSH_KEYWORDS.HOSTNAME.length)
+					.trim();
+			} else if (lower.startsWith(SSH_KEYWORDS.USER.prefix)) {
+				currentHost.user = trimmed.slice(SSH_KEYWORDS.USER.length).trim();
+			} else if (lower.startsWith(SSH_KEYWORDS.PORT.prefix)) {
+				currentHost.port = parseInt(
+					trimmed.slice(SSH_KEYWORDS.PORT.length).trim(),
+					10,
+				);
+			} else if (lower.startsWith(SSH_KEYWORDS.IDENTITY_FILE.prefix)) {
+				currentHost.identityFile = trimmed
+					.slice(SSH_KEYWORDS.IDENTITY_FILE.length)
+					.trim();
 			}
 		}
 	}
@@ -86,7 +105,7 @@ export async function testConnection(
 			args.push("-i", identityFile);
 		}
 		args.push(host, "echo", "ok");
-		await execa("ssh", args);
+		await execa("ssh", args, { timeout: SSH_TIMEOUT_MS });
 		return { success: true };
 	} catch (error: unknown) {
 		return { success: false, error: getExecaErrorMessage(error) };
