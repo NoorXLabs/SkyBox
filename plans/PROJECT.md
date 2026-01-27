@@ -282,22 +282,22 @@ The original spec had a separate `devbox handoff` command. This was merged into 
 
 ### Code TODOs
 
-| File | Line | Description | Priority |
-|------|------|-------------|----------|
-| `src/commands/shell.ts` | 43 | Integrate lock checking before shell access | Low |
-| `src/lib/projectTemplates.ts` | 7 | Replace placeholder template repo URLs | Medium |
+| File | Line | Description | Priority | Status |
+|------|------|-------------|----------|--------|
+| `src/commands/shell.ts` | 43 | Integrate lock checking before shell access | Low | Done |
+| `src/lib/projectTemplates.ts` | 7 | Replace placeholder template repo URLs | Medium | Documented |
 
 ### Minor Improvements
 
-- [ ] Add lock status check in `shell` command (currently bypassed)
+- [x] Add lock status check in `shell` command (currently bypassed)
 - [ ] Create actual template repositories or remove template feature
-- [ ] Add `--force` flag to `shell` to bypass lock check
+- [x] Add `--force` flag to `shell` to bypass lock check
 
 ### Documentation Updates
 
-- [ ] Update CHANGELOG.md for v0.5.x changes (remote, config commands)
+- [x] Update CHANGELOG.md for v0.5.x changes (remote, config commands)
 - [ ] Review and update VitePress docs for accuracy
-- [ ] Add troubleshooting section to docs
+- [x] Add troubleshooting section to docs
 
 ---
 
@@ -432,17 +432,17 @@ Based on the codebase review, here are recommended improvements:
 - [ ] Installation instructions tested on clean machine
 - [ ] All commands documented with examples
 - [ ] Configuration options documented
-- [ ] Troubleshooting section added
+- [x] Troubleshooting section added
 
 ### Repository Cleanup
 
-- [ ] Remove `SPEC.md` (consolidated into PROJECT.md)
-- [ ] Remove `REMAINING-WORK.md` (consolidated into PROJECT.md)
-- [ ] Move `design/plans/` to archive or remove
-- [ ] Move `docs/plans/` to archive or remove
+- [x] Remove `SPEC.md` (consolidated into PROJECT.md)
+- [x] Remove `REMAINING-WORK.md` (consolidated into PROJECT.md)
+- [x] Move `design/plans/` to archive or remove
+- [x] Move `plans/` to archive or remove
 - [ ] Clean up worktrees after merging
-- [ ] Update package.json repository URL
-- [ ] Verify LICENSE file
+- [x] Update package.json repository URL
+- [x] Verify LICENSE file
 
 ### Release Preparation
 
