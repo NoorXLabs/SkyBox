@@ -68,7 +68,7 @@ describe("lock", () => {
 			expect(status.locked).toBe(false);
 			expect(mockRunRemoteCommand).toHaveBeenCalledWith(
 				"testhost",
-				"cat ~/code/.devbox-locks/myproject.lock 2>/dev/null",
+				"cat '~/code/.devbox-locks/myproject.lock' 2>/dev/null",
 			);
 		});
 
@@ -155,11 +155,12 @@ describe("lock", () => {
 
 			expect(result.success).toBe(true);
 			expect(mockRunRemoteCommand).toHaveBeenCalledTimes(2);
-			// Verify the second call creates the lock
+			// Verify the second call creates the lock with escaped paths and base64 encoding
 			const calls = mockRunRemoteCommand.mock.calls as [string, string][];
 			expect(calls[1][0]).toBe("testhost");
-			expect(calls[1][1]).toContain("mkdir -p ~/code/.devbox-locks");
-			expect(calls[1][1]).toContain("~/code/.devbox-locks/myproject.lock");
+			expect(calls[1][1]).toContain("mkdir -p '~/code/.devbox-locks'");
+			expect(calls[1][1]).toContain("| base64 -d >");
+			expect(calls[1][1]).toContain("'~/code/.devbox-locks/myproject.lock'");
 		});
 
 		test("updates timestamp when lock is owned by current machine", async () => {
@@ -240,7 +241,7 @@ describe("lock", () => {
 			expect(result.success).toBe(true);
 			expect(mockRunRemoteCommand).toHaveBeenCalledWith(
 				"testhost",
-				"rm -f ~/code/.devbox-locks/myproject.lock",
+				"rm -f '~/code/.devbox-locks/myproject.lock'",
 			);
 		});
 

@@ -2,6 +2,7 @@
 
 import { hostname, userInfo } from "node:os";
 import type { LockInfo, LockStatus, RemoteEntry } from "../types/index.ts";
+import { escapeShellArg } from "./shell.ts";
 import { runRemoteCommand } from "./ssh.ts";
 
 /**
@@ -49,7 +50,7 @@ export async function getLockStatus(
 	remoteInfo: LockRemoteInfo,
 ): Promise<LockStatus> {
 	const lockPath = getLockPath(project, remoteInfo.basePath);
-	const command = `cat ${lockPath} 2>/dev/null`;
+	const command = `cat ${escapeShellArg(lockPath)} 2>/dev/null`;
 
 	const result = await runRemoteCommand(remoteInfo.host, command);
 
@@ -100,8 +101,9 @@ export async function acquireLock(
 			const lockPath = getLockPath(project, remoteInfo.basePath);
 			const locksDir = getLocksDir(remoteInfo.basePath);
 			const json = JSON.stringify(lockInfo);
+			const jsonBase64 = Buffer.from(json).toString("base64");
 
-			const command = `mkdir -p ${locksDir} && echo '${json}' > ${lockPath}`;
+			const command = `mkdir -p ${escapeShellArg(locksDir)} && echo '${jsonBase64}' | base64 -d > ${escapeShellArg(lockPath)}`;
 			const result = await runRemoteCommand(remoteInfo.host, command);
 
 			if (!result.success) {
@@ -126,8 +128,9 @@ export async function acquireLock(
 	const lockPath = getLockPath(project, remoteInfo.basePath);
 	const locksDir = getLocksDir(remoteInfo.basePath);
 	const json = JSON.stringify(lockInfo);
+	const jsonBase64 = Buffer.from(json).toString("base64");
 
-	const command = `mkdir -p ${locksDir} && echo '${json}' > ${lockPath}`;
+	const command = `mkdir -p ${escapeShellArg(locksDir)} && echo '${jsonBase64}' | base64 -d > ${escapeShellArg(lockPath)}`;
 	const result = await runRemoteCommand(remoteInfo.host, command);
 
 	if (!result.success) {
@@ -146,7 +149,7 @@ export async function releaseLock(
 	remoteInfo: LockRemoteInfo,
 ): Promise<{ success: boolean; error?: string }> {
 	const lockPath = getLockPath(project, remoteInfo.basePath);
-	const command = `rm -f ${lockPath}`;
+	const command = `rm -f ${escapeShellArg(lockPath)}`;
 
 	const result = await runRemoteCommand(remoteInfo.host, command);
 
