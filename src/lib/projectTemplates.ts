@@ -3,8 +3,10 @@
 import type { BuiltInTemplate, UserTemplate } from "../types/index.ts";
 import { loadConfig } from "./config.ts";
 
-// Built-in project templates - git repos with starter projects
-// TODO: Replace with your actual template repo URLs
+// Built-in project templates
+// Note: These templates require creating actual repos at these URLs,
+// or users should define their own templates via config.
+// See: devbox config templates.mytemplate https://github.com/user/template
 export const BUILT_IN_TEMPLATES: BuiltInTemplate[] = [
 	{
 		id: "node",
