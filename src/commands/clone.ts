@@ -22,7 +22,7 @@ async function checkRemoteProjectExists(
 ): Promise<boolean> {
 	const result = await runRemoteCommand(
 		host,
-		`test -d ${basePath}/${project} && echo "EXISTS" || echo "NOT_FOUND"`,
+		`test -d "${basePath}/${project}" && echo "EXISTS" || echo "NOT_FOUND"`,
 	);
 	return result.stdout?.includes("EXISTS") ?? false;
 }

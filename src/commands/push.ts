@@ -20,7 +20,7 @@ async function checkRemoteProjectExists(
 ): Promise<boolean> {
 	const result = await runRemoteCommand(
 		host,
-		`test -d ${basePath}/${project} && echo "EXISTS" || echo "NOT_FOUND"`,
+		`test -d "${basePath}/${project}" && echo "EXISTS" || echo "NOT_FOUND"`,
 	);
 	return result.stdout?.includes("EXISTS") ?? false;
 }
@@ -137,14 +137,14 @@ export async function pushCommand(
 		}
 
 		// Remove remote directory
-		await runRemoteCommand(host, `rm -rf ${remotePath}`);
+		await runRemoteCommand(host, `rm -rf "${remotePath}"`);
 	} else {
 		checkSpin.succeed("Remote path available");
 	}
 
 	// Create remote directory
 	const mkdirSpin = spinner("Creating remote directory...");
-	const mkdirResult = await runRemoteCommand(host, `mkdir -p ${remotePath}`);
+	const mkdirResult = await runRemoteCommand(host, `mkdir -p "${remotePath}"`);
 
 	if (!mkdirResult.success) {
 		mkdirSpin.fail("Failed to create remote directory");

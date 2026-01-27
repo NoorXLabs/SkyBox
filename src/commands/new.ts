@@ -47,7 +47,7 @@ export async function newCommand(): Promise<void> {
 	const checkSpin = spinner("Checking remote...");
 	const checkResult = await runRemoteCommand(
 		host,
-		`test -d ${remote.path}/${projectName} && echo "EXISTS" || echo "NOT_FOUND"`,
+		`test -d "${remote.path}/${projectName}" && echo "EXISTS" || echo "NOT_FOUND"`,
 	);
 
 	if (checkResult.stdout?.includes("EXISTS")) {
@@ -102,7 +102,7 @@ async function createEmptyProject(
 	// Escape the JSON for shell
 	const escapedJson = devcontainerJson.replace(/'/g, "'\\''");
 
-	const createCmd = `mkdir -p ${remotePath}/.devcontainer && echo '${escapedJson}' > ${remotePath}/.devcontainer/devcontainer.json`;
+	const createCmd = `mkdir -p "${remotePath}/.devcontainer" && echo '${escapedJson}' > "${remotePath}/.devcontainer/devcontainer.json"`;
 
 	const createResult = await runRemoteCommand(host, createCmd);
 
@@ -231,9 +231,9 @@ async function cloneTemplateToRemote(
 
 	let cloneCmd: string;
 	if (keepHistory) {
-		cloneCmd = `git clone ${templateUrl} ${tempPath} && mv ${tempPath} ${remotePath}`;
+		cloneCmd = `git clone "${templateUrl}" "${tempPath}" && mv "${tempPath}" "${remotePath}"`;
 	} else {
-		cloneCmd = `git clone ${templateUrl} ${tempPath} && rm -rf ${tempPath}/.git && git -C ${tempPath} init && mv ${tempPath} ${remotePath}`;
+		cloneCmd = `git clone "${templateUrl}" "${tempPath}" && rm -rf "${tempPath}/.git" && git -C "${tempPath}" init && mv "${tempPath}" "${remotePath}"`;
 	}
 
 	const cloneResult = await runRemoteCommand(host, cloneCmd);
@@ -275,7 +275,7 @@ async function cloneTemplateToRemote(
 	// Check if devcontainer.json exists, add if not
 	const checkDevcontainer = await runRemoteCommand(
 		host,
-		`test -f ${remotePath}/.devcontainer/devcontainer.json && echo "EXISTS" || echo "NOT_FOUND"`,
+		`test -f "${remotePath}/.devcontainer/devcontainer.json" && echo "EXISTS" || echo "NOT_FOUND"`,
 	);
 
 	if (checkDevcontainer.stdout?.includes("NOT_FOUND")) {
@@ -293,7 +293,7 @@ async function cloneTemplateToRemote(
 
 		await runRemoteCommand(
 			host,
-			`mkdir -p ${remotePath}/.devcontainer && echo '${escapedJson}' > ${remotePath}/.devcontainer/devcontainer.json`,
+			`mkdir -p "${remotePath}/.devcontainer" && echo '${escapedJson}' > "${remotePath}/.devcontainer/devcontainer.json"`,
 		);
 
 		addSpin.succeed("Added devcontainer.json");

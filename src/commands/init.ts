@@ -286,7 +286,7 @@ Host ${friendlyName}
 	const checkSpin = spinner("Checking remote directory...");
 	const checkResult = await runRemoteCommand(
 		sshConnectString,
-		`ls -d ${basePath} 2>/dev/null || echo "__NOT_FOUND__"`,
+		`ls -d "${basePath}" 2>/dev/null || echo "__NOT_FOUND__"`,
 		identityFile ?? undefined,
 	);
 
@@ -304,7 +304,7 @@ Host ${friendlyName}
 		if (createDir) {
 			const mkdirResult = await runRemoteCommand(
 				sshConnectString,
-				`mkdir -p ${basePath}`,
+				`mkdir -p "${basePath}"`,
 				identityFile ?? undefined,
 			);
 			if (mkdirResult.success) {
@@ -322,7 +322,7 @@ Host ${friendlyName}
 		// List existing projects
 		const lsResult = await runRemoteCommand(
 			sshConnectString,
-			`ls -1 ${basePath} 2>/dev/null | head -10`,
+			`ls -1 "${basePath}" 2>/dev/null | head -10`,
 			identityFile ?? undefined,
 		);
 		if (lsResult.stdout?.trim()) {

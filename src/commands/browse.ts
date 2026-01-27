@@ -10,7 +10,7 @@ async function getRemoteProjects(
 	host: string,
 	basePath: string,
 ): Promise<RemoteProject[]> {
-	const script = `for d in ${basePath}/*/; do
+	const script = `for d in "${basePath}"/*/; do
     [ -d "$d" ] || continue
     name=$(basename "$d")
     branch=$(git -C "$d" branch --show-current 2>/dev/null || echo "-")

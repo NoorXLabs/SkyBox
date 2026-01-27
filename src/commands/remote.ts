@@ -291,7 +291,7 @@ export async function addRemoteInteractive(): Promise<void> {
 	const checkSpin = spinner("Checking remote directory...");
 	const checkResult = await runRemoteCommand(
 		sshConnectString,
-		`ls -d ${path} 2>/dev/null || echo "__NOT_FOUND__"`,
+		`ls -d "${path}" 2>/dev/null || echo "__NOT_FOUND__"`,
 		identityFile ?? undefined,
 	);
 
@@ -309,7 +309,7 @@ export async function addRemoteInteractive(): Promise<void> {
 		if (createDir) {
 			const mkdirResult = await runRemoteCommand(
 				sshConnectString,
-				`mkdir -p ${path}`,
+				`mkdir -p "${path}"`,
 				identityFile ?? undefined,
 			);
 			if (mkdirResult.success) {
