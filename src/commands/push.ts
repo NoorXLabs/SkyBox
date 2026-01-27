@@ -8,22 +8,11 @@ import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
 import { getErrorMessage } from "../lib/errors.ts";
 import { createSyncSession, waitForSync } from "../lib/mutagen.ts";
 import { PROJECTS_DIR } from "../lib/paths.ts";
+import { checkRemoteProjectExists } from "../lib/remote.ts";
 import { runRemoteCommand } from "../lib/ssh.ts";
 import { error, header, info, spinner, success } from "../lib/ui.ts";
 import { getRemoteHost, getRemotePath, selectRemote } from "./remote.ts";
 import { upCommand } from "./up.ts";
-
-async function checkRemoteProjectExists(
-	host: string,
-	basePath: string,
-	project: string,
-): Promise<boolean> {
-	const result = await runRemoteCommand(
-		host,
-		`test -d "${basePath}/${project}" && echo "EXISTS" || echo "NOT_FOUND"`,
-	);
-	return result.stdout?.includes("EXISTS") ?? false;
-}
 
 async function isGitRepo(path: string): Promise<boolean> {
 	return existsSync(join(path, ".git"));

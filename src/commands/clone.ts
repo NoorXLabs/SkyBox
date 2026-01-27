@@ -11,21 +11,9 @@ import {
 	waitForSync,
 } from "../lib/mutagen.ts";
 import { PROJECTS_DIR } from "../lib/paths.ts";
-import { runRemoteCommand } from "../lib/ssh.ts";
+import { checkRemoteProjectExists } from "../lib/remote.ts";
 import { error, header, info, spinner, success } from "../lib/ui.ts";
 import { getRemoteHost, getRemotePath, selectRemote } from "./remote.ts";
-
-async function checkRemoteProjectExists(
-	host: string,
-	basePath: string,
-	project: string,
-): Promise<boolean> {
-	const result = await runRemoteCommand(
-		host,
-		`test -d "${basePath}/${project}" && echo "EXISTS" || echo "NOT_FOUND"`,
-	);
-	return result.stdout?.includes("EXISTS") ?? false;
-}
 
 export async function cloneCommand(project: string): Promise<void> {
 	if (!project) {
