@@ -49,6 +49,12 @@ export default defineConfig({
             { text: 'Team Sharing', link: '/guide/workflows/team-sharing' },
           ],
         },
+        {
+          text: 'Help',
+          items: [
+            { text: 'Troubleshooting', link: '/guide/troubleshooting' },
+          ],
+        },
       ],
 
       '/reference/': [
