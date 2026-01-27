@@ -3,6 +3,7 @@
 import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { join } from "node:path";
 import { execa } from "execa";
+import { DOCKER_LABEL_KEY } from "./constants.ts";
 
 // Normalize path to real case (important for macOS case-insensitive filesystem)
 // Docker labels use exact string match, so paths must match exactly
@@ -56,7 +57,7 @@ export async function getContainerId(
 			"ps",
 			"-q",
 			"--filter",
-			`label=devcontainer.local_folder=${projectPath}`,
+			`label=${DOCKER_LABEL_KEY}=${projectPath}`,
 		]);
 		const containerId = result.stdout.trim();
 		return containerId || null;
@@ -75,7 +76,7 @@ export async function getContainerStatus(
 			"ps",
 			"-a",
 			"--filter",
-			`label=devcontainer.local_folder=${normalizedPath}`,
+			`label=${DOCKER_LABEL_KEY}=${normalizedPath}`,
 			"--format",
 			"{{.Status}}",
 		]);
@@ -103,7 +104,7 @@ export async function getContainerInfo(
 			"ps",
 			"-a",
 			"--filter",
-			`label=devcontainer.local_folder=${normalizedPath}`,
+			`label=${DOCKER_LABEL_KEY}=${normalizedPath}`,
 			"--format",
 			"{{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Image}}",
 		]);
@@ -150,7 +151,7 @@ export async function stopContainer(
 			"ps",
 			"-q",
 			"--filter",
-			`label=devcontainer.local_folder=${normalizedPath}`,
+			`label=${DOCKER_LABEL_KEY}=${normalizedPath}`,
 		]);
 
 		const containerId = result.stdout.trim();
@@ -178,7 +179,7 @@ export async function removeContainer(
 			"-a",
 			"-q",
 			"--filter",
-			`label=devcontainer.local_folder=${normalizedPath}`,
+			`label=${DOCKER_LABEL_KEY}=${normalizedPath}`,
 		]);
 
 		const containerId = result.stdout.trim();
@@ -209,7 +210,7 @@ export async function listDevboxContainers(): Promise<ContainerInfo[]> {
 			"ps",
 			"-a",
 			"--filter",
-			"label=devcontainer.local_folder",
+			`label=${DOCKER_LABEL_KEY}`,
 			"--format",
 			"{{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Image}}",
 		]);
@@ -249,7 +250,7 @@ export async function openInEditor(
 			"ps",
 			"-q",
 			"--filter",
-			`label=devcontainer.local_folder=${normalizedPath}`,
+			`label=${DOCKER_LABEL_KEY}=${normalizedPath}`,
 		]);
 
 		const containerId = containerResult.stdout.trim();
