@@ -3,6 +3,7 @@
 import { execSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import chalk from "chalk";
+import { configExists, loadConfig } from "../lib/config.ts";
 import { getMutagenPath } from "../lib/paths.ts";
 import type {
 	DoctorCheckResult,
@@ -101,6 +102,55 @@ function checkMutagen(): DoctorCheckResult {
 	}
 }
 
+function checkConfig(): DoctorCheckResult {
+	const name = "Configuration";
+
+	try {
+		if (!configExists()) {
+			return {
+				name,
+				status: "warn",
+				message: "DevBox not configured",
+				fix: "Run 'devbox init' to set up DevBox",
+			};
+		}
+
+		const config = loadConfig();
+		if (!config) {
+			return {
+				name,
+				status: "fail",
+				message: "Config file exists but failed to load",
+				fix: "Check ~/.devbox/config.yaml for syntax errors",
+			};
+		}
+
+		// Check for remotes
+		const remoteCount = Object.keys(config.remotes || {}).length;
+		if (remoteCount === 0) {
+			return {
+				name,
+				status: "warn",
+				message: "No remotes configured",
+				fix: "Run 'devbox init' or 'devbox remote add' to add a remote",
+			};
+		}
+
+		return {
+			name,
+			status: "pass",
+			message: `Config loaded (${remoteCount} remote${remoteCount > 1 ? "s" : ""})`,
+		};
+	} catch (err) {
+		return {
+			name,
+			status: "fail",
+			message: `Config error: ${err instanceof Error ? err.message : "unknown"}`,
+			fix: "Check ~/.devbox/config.yaml for errors",
+		};
+	}
+}
+
 function printResult(result: DoctorCheckResult): void {
 	const icon = icons[result.status];
 	console.log(`  ${icon} ${result.name}: ${result.message}`);
@@ -153,6 +203,7 @@ export async function doctorCommand(): Promise<void> {
 	// Run all checks
 	checks.push(checkDocker());
 	checks.push(checkMutagen());
+	checks.push(checkConfig());
 
 	// Calculate summary
 	const passed = checks.filter((c) => c.status === "pass").length;
