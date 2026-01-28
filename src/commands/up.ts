@@ -174,6 +174,34 @@ async function handleLockAcquisition(
 	return { success: false, remoteInfo };
 }
 
+/**
+ * Check sync status and resume if paused.
+ * Non-fatal - container can start without sync.
+ */
+async function checkAndResumeSync(project: string): Promise<void> {
+	const syncSpin = spinner("Checking sync status...");
+	const syncStatus = await getSyncStatus(project);
+
+	if (!syncStatus.exists) {
+		syncSpin.warn("No sync session found - remote backup not active");
+		info("Run 'devbox push' to set up remote sync.");
+		return;
+	}
+
+	if (syncStatus.paused) {
+		syncSpin.text = "Resuming sync...";
+		const resumeResult = await resumeSync(project);
+		if (!resumeResult.success) {
+			syncSpin.warn("Failed to resume sync - continuing without remote backup");
+		} else {
+			syncSpin.succeed("Sync resumed");
+		}
+		return;
+	}
+
+	syncSpin.succeed("Sync is active");
+}
+
 export async function upCommand(
 	projectArg: string | undefined,
 	options: UpOptions,
@@ -209,23 +237,7 @@ export async function upCommand(
 	}
 
 	// Step 3: Ensure sync is running (background sync to remote)
-	const syncSpin = spinner("Checking sync status...");
-	const syncStatus = await getSyncStatus(project ?? "");
-
-	if (!syncStatus.exists) {
-		syncSpin.warn("No sync session found - remote backup not active");
-		info("Run 'devbox push' to set up remote sync.");
-	} else if (syncStatus.paused) {
-		syncSpin.text = "Resuming sync...";
-		const resumeResult = await resumeSync(project ?? "");
-		if (!resumeResult.success) {
-			syncSpin.warn("Failed to resume sync - continuing without remote backup");
-		} else {
-			syncSpin.succeed("Sync resumed");
-		}
-	} else {
-		syncSpin.succeed("Sync is active");
-	}
+	await checkAndResumeSync(project);
 
 	// Step 4: Check container status
 	const containerStatus = await getContainerStatus(projectPath);
