@@ -22,6 +22,37 @@ import {
 } from "../types/index.ts";
 import { getExecaErrorMessage, hasExitCode } from "./errors.ts";
 
+/**
+ * Query Docker for containers matching a label filter.
+ * Centralizes the common Docker query pattern used throughout the codebase.
+ */
+async function queryDockerContainers(options: {
+	projectPath?: string;
+	includeAll?: boolean; // Include stopped containers (-a)
+	idsOnly?: boolean; // Return only container IDs (-q)
+	format?: string; // Custom format string
+}): Promise<string> {
+	const { projectPath, includeAll = false, idsOnly = false, format } = options;
+
+	const args = ["ps"];
+	if (includeAll) args.push("-a");
+	if (idsOnly) args.push("-q");
+
+	// Filter by label
+	if (projectPath) {
+		args.push("--filter", `label=${DOCKER_LABEL_KEY}=${projectPath}`);
+	} else {
+		args.push("--filter", `label=${DOCKER_LABEL_KEY}`);
+	}
+
+	if (format) {
+		args.push("--format", format);
+	}
+
+	const result = await execa("docker", args);
+	return result.stdout.trim();
+}
+
 export interface DevcontainerConfig {
 	workspaceFolder?: string;
 }
@@ -53,13 +84,10 @@ export async function getContainerId(
 	projectPath: string,
 ): Promise<string | null> {
 	try {
-		const result = await execa("docker", [
-			"ps",
-			"-q",
-			"--filter",
-			`label=${DOCKER_LABEL_KEY}=${projectPath}`,
-		]);
-		const containerId = result.stdout.trim();
+		const containerId = await queryDockerContainers({
+			projectPath,
+			idsOnly: true,
+		});
 		return containerId || null;
 	} catch {
 		return null;
@@ -72,16 +100,12 @@ export async function getContainerStatus(
 ): Promise<ContainerStatus> {
 	const normalizedPath = normalizePath(projectPath);
 	try {
-		const result = await execa("docker", [
-			"ps",
-			"-a",
-			"--filter",
-			`label=${DOCKER_LABEL_KEY}=${normalizedPath}`,
-			"--format",
-			"{{.Status}}",
-		]);
+		const status = await queryDockerContainers({
+			projectPath: normalizedPath,
+			includeAll: true,
+			format: "{{.Status}}",
+		});
 
-		const status = result.stdout.trim();
 		if (!status) {
 			return ContainerStatus.NotFound;
 		}
@@ -100,16 +124,12 @@ export async function getContainerInfo(
 ): Promise<ContainerInfo | null> {
 	const normalizedPath = normalizePath(projectPath);
 	try {
-		const result = await execa("docker", [
-			"ps",
-			"-a",
-			"--filter",
-			`label=${DOCKER_LABEL_KEY}=${normalizedPath}`,
-			"--format",
-			"{{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Image}}",
-		]);
+		const line = await queryDockerContainers({
+			projectPath: normalizedPath,
+			includeAll: true,
+			format: "{{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Image}}",
+		});
 
-		const line = result.stdout.trim();
 		if (!line) return null;
 
 		const [id, name, status, image] = line.split("\t");
@@ -147,14 +167,11 @@ export async function stopContainer(
 ): Promise<ContainerResult> {
 	const normalizedPath = normalizePath(projectPath);
 	try {
-		const result = await execa("docker", [
-			"ps",
-			"-q",
-			"--filter",
-			`label=${DOCKER_LABEL_KEY}=${normalizedPath}`,
-		]);
+		const containerId = await queryDockerContainers({
+			projectPath: normalizedPath,
+			idsOnly: true,
+		});
 
-		const containerId = result.stdout.trim();
 		if (!containerId) {
 			return { success: true }; // Already stopped
 		}
@@ -174,15 +191,12 @@ export async function removeContainer(
 	const normalizedPath = normalizePath(projectPath);
 	try {
 		// Get container ID
-		const result = await execa("docker", [
-			"ps",
-			"-a",
-			"-q",
-			"--filter",
-			`label=${DOCKER_LABEL_KEY}=${normalizedPath}`,
-		]);
+		const containerId = await queryDockerContainers({
+			projectPath: normalizedPath,
+			includeAll: true,
+			idsOnly: true,
+		});
 
-		const containerId = result.stdout.trim();
 		if (!containerId) {
 			return { success: true }; // No container to remove
 		}
@@ -206,24 +220,17 @@ export async function removeContainer(
 // Get all devbox-related containers
 export async function listDevboxContainers(): Promise<ContainerInfo[]> {
 	try {
-		const result = await execa("docker", [
-			"ps",
-			"-a",
-			"--filter",
-			`label=${DOCKER_LABEL_KEY}`,
-			"--format",
-			"{{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Image}}",
-		]);
+		const output = await queryDockerContainers({
+			includeAll: true,
+			format: "{{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Image}}",
+		});
 
-		if (!result.stdout.trim()) return [];
+		if (!output) return [];
 
-		return result.stdout
-			.trim()
-			.split("\n")
-			.map((line) => {
-				const [id, name, status, image] = line.split("\t");
-				return { id, name, status, image };
-			});
+		return output.split("\n").map((line) => {
+			const [id, name, status, image] = line.split("\t");
+			return { id, name, status, image };
+		});
 	} catch {
 		return [];
 	}
@@ -246,14 +253,11 @@ export async function openInEditor(
 	const normalizedPath = normalizePath(projectPath);
 	try {
 		// Get the container ID for this project
-		const containerResult = await execa("docker", [
-			"ps",
-			"-q",
-			"--filter",
-			`label=${DOCKER_LABEL_KEY}=${normalizedPath}`,
-		]);
+		const containerId = await queryDockerContainers({
+			projectPath: normalizedPath,
+			idsOnly: true,
+		});
 
-		const containerId = containerResult.stdout.trim();
 		if (!containerId) {
 			return {
 				success: false,

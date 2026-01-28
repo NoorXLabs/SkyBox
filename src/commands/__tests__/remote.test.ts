@@ -97,7 +97,7 @@ describe("remote command", () => {
 			expect(config?.remotes.myserver.host).toBe("192.168.1.100");
 			expect(config?.remotes.myserver.user).toBe("root");
 			expect(config?.remotes.myserver.path).toBe("~/code");
-			expect(config?.remotes.myserver.key).toBeNull();
+			expect(config?.remotes.myserver.key).toBeUndefined();
 		});
 
 		test("adds remote with custom key", async () => {

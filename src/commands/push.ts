@@ -11,7 +11,14 @@ import { getProjectsDir } from "../lib/paths.ts";
 import { validateProjectName } from "../lib/projectTemplates.ts";
 import { checkRemoteProjectExists } from "../lib/remote.ts";
 import { runRemoteCommand } from "../lib/ssh.ts";
-import { error, header, info, spinner, success } from "../lib/ui.ts";
+import {
+	confirmDestructiveAction,
+	error,
+	header,
+	info,
+	spinner,
+	success,
+} from "../lib/ui.ts";
 import { getRemoteHost, getRemotePath, selectRemote } from "./remote.ts";
 import { upCommand } from "./up.ts";
 
@@ -105,31 +112,13 @@ export async function pushCommand(
 	if (remoteExists) {
 		checkSpin.warn("Project already exists on remote");
 
-		const { overwrite } = await inquirer.prompt([
-			{
-				type: "confirm",
-				name: "overwrite",
-				message: "Project already exists on remote. Overwrite?",
-				default: false,
-			},
-		]);
+		const confirmed = await confirmDestructiveAction({
+			firstPrompt: "Project already exists on remote. Overwrite?",
+			secondPrompt: "Are you sure? All remote changes will be lost.",
+			cancelMessage: "Push cancelled.",
+		});
 
-		if (!overwrite) {
-			info("Push cancelled.");
-			return;
-		}
-
-		const { confirmOverwrite } = await inquirer.prompt([
-			{
-				type: "confirm",
-				name: "confirmOverwrite",
-				message: "Are you sure? All remote changes will be lost.",
-				default: false,
-			},
-		]);
-
-		if (!confirmOverwrite) {
-			info("Push cancelled.");
+		if (!confirmed) {
 			return;
 		}
 

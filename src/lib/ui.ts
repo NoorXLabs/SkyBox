@@ -1,5 +1,6 @@
 // src/lib/ui.ts
 import chalk from "chalk";
+import inquirer from "inquirer";
 import ora, { type Ora } from "ora";
 
 export function success(message: string): void {
@@ -36,4 +37,46 @@ export function printNextSteps(steps: string[]): void {
 		console.log(chalk.dim(`  ${i + 1}.`), step);
 	});
 	console.log();
+}
+
+/**
+ * Prompt for double confirmation before a destructive action.
+ * Returns true if user confirms both prompts, false otherwise.
+ */
+export async function confirmDestructiveAction(options: {
+	firstPrompt: string;
+	secondPrompt: string;
+	cancelMessage?: string;
+}): Promise<boolean> {
+	const { firstPrompt, secondPrompt, cancelMessage = "Cancelled." } = options;
+
+	const { confirmed } = await inquirer.prompt([
+		{
+			type: "confirm",
+			name: "confirmed",
+			message: firstPrompt,
+			default: false,
+		},
+	]);
+
+	if (!confirmed) {
+		info(cancelMessage);
+		return false;
+	}
+
+	const { doubleConfirmed } = await inquirer.prompt([
+		{
+			type: "confirm",
+			name: "doubleConfirmed",
+			message: secondPrompt,
+			default: false,
+		},
+	]);
+
+	if (!doubleConfirmed) {
+		info(cancelMessage);
+		return false;
+	}
+
+	return true;
 }

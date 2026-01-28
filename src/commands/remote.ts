@@ -144,7 +144,7 @@ export async function addRemoteDirect(
 		host: parsed.host,
 		user: parsed.user,
 		path: parsed.path,
-		key: options?.key ?? null,
+		key: options?.key,
 	};
 
 	config.remotes[name] = newRemote;
@@ -215,7 +215,7 @@ export async function addRemoteInteractive(): Promise<void> {
 		},
 	]);
 
-	let identityFile: string | null = null;
+	let identityFile: string | undefined;
 	if (keyChoice === "__custom__") {
 		const { customPath } = await inquirer.prompt([
 			{
@@ -233,10 +233,7 @@ export async function addRemoteInteractive(): Promise<void> {
 	// Test connection
 	const sshConnectString = `${user}@${host}`;
 	const spin = spinner("Testing SSH connection...");
-	const connResult = await testConnection(
-		sshConnectString,
-		identityFile ?? undefined,
-	);
+	const connResult = await testConnection(sshConnectString, identityFile);
 
 	if (connResult.success) {
 		spin.succeed("SSH connection successful");
@@ -268,7 +265,7 @@ export async function addRemoteInteractive(): Promise<void> {
 				// Re-test connection
 				const retestResult = await testConnection(
 					sshConnectString,
-					identityFile ?? undefined,
+					identityFile,
 				);
 				if (!retestResult.success) {
 					error("Connection still failing after key setup");
@@ -292,7 +289,7 @@ export async function addRemoteInteractive(): Promise<void> {
 	const checkResult = await runRemoteCommand(
 		sshConnectString,
 		`ls -d "${path}" 2>/dev/null || echo "__NOT_FOUND__"`,
-		identityFile ?? undefined,
+		identityFile,
 	);
 
 	if (checkResult.stdout?.includes("__NOT_FOUND__")) {
@@ -310,7 +307,7 @@ export async function addRemoteInteractive(): Promise<void> {
 			const mkdirResult = await runRemoteCommand(
 				sshConnectString,
 				`mkdir -p "${path}"`,
-				identityFile ?? undefined,
+				identityFile,
 			);
 			if (mkdirResult.success) {
 				success("Created remote directory");

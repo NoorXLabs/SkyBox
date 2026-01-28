@@ -81,9 +81,9 @@ async function handleMutagen(): Promise<boolean> {
 async function configureRemote(): Promise<{
 	name: string;
 	host: string;
-	user: string;
+	user?: string;
 	basePath: string;
-	key: string | null;
+	key?: string;
 } | null> {
 	header("Configure remote server");
 
@@ -107,9 +107,9 @@ async function configureRemote(): Promise<{
 
 	let remoteName: string; // The friendly name for the remote
 	let remoteHostname: string; // The actual hostname or IP
-	let remoteUser: string; // The SSH username
+	let remoteUser: string | undefined; // The SSH username (undefined = use SSH config default)
 	let sshConnectString: string; // The actual connection string for SSH commands
-	let identityFile: string | null = null; // SSH key path (for new servers with custom keys)
+	let identityFile: string | undefined; // SSH key path (undefined = use SSH config default)
 
 	if (hostChoice === "__new__") {
 		const { hostname, username, friendlyName } = await inquirer.prompt([
@@ -258,7 +258,7 @@ Host ${friendlyName}
 		// The SSH config will handle the actual connection details
 		remoteName = hostChoice;
 		remoteHostname = hostChoice;
-		remoteUser = ""; // Will use SSH config's default
+		remoteUser = undefined; // Will use SSH config's default
 		sshConnectString = hostChoice;
 
 		// For existing hosts, test connection first

@@ -48,9 +48,7 @@ describe("config", () => {
 			remotes: {
 				myserver: {
 					host: "myserver",
-					user: null,
 					path: "~/code",
-					key: null,
 				},
 			},
 			projects: {},
@@ -130,9 +128,7 @@ projects:
 				},
 				"personal-server": {
 					host: "my-nas.local",
-					user: null,
 					path: "~/code",
-					key: null,
 				},
 			},
 			projects: {},
@@ -149,7 +145,7 @@ projects:
 		const personalRemote = getRemote("personal-server");
 		expect(personalRemote).not.toBeNull();
 		expect(personalRemote?.host).toBe("my-nas.local");
-		expect(personalRemote?.user).toBeNull();
+		expect(personalRemote?.user).toBeUndefined();
 
 		const nonexistent = getRemote("nonexistent");
 		expect(nonexistent).toBeNull();
@@ -168,13 +164,10 @@ projects:
 					host: "192.168.1.100",
 					user: "dev",
 					path: "/home/dev/projects",
-					key: null,
 				},
 				"personal-server": {
 					host: "my-nas.local",
-					user: null,
 					path: "~/code",
-					key: null,
 				},
 			},
 			projects: {},

@@ -55,7 +55,6 @@ describe("config command", () => {
 						host: "192.168.1.100",
 						user: "root",
 						path: "~/code",
-						key: null,
 					},
 					production: {
 						host: "prod.example.com",
@@ -99,8 +98,8 @@ describe("config command", () => {
 			expect(output).toContain("editor: code");
 		});
 
-		test("shows remote without user part when user is null", async () => {
-			// Create test config with remote that has null user
+		test("shows remote without user part when user is undefined", async () => {
+			// Create test config with remote that has no user (uses SSH config default)
 			saveConfig({
 				editor: "vim",
 				defaults: {
@@ -110,9 +109,7 @@ describe("config command", () => {
 				remotes: {
 					sshconfig: {
 						host: "myhost",
-						user: null,
 						path: "~/projects",
-						key: null,
 					},
 				},
 				projects: {},
@@ -123,7 +120,7 @@ describe("config command", () => {
 			const output = logOutput.join("\n");
 			expect(output).toContain("sshconfig");
 			expect(output).toContain("myhost:~/projects");
-			// Should NOT contain @ before host when user is null
+			// Should NOT contain @ before host when user is undefined
 			expect(output).not.toContain("@myhost");
 		});
 	});
@@ -184,7 +181,6 @@ describe("config command", () => {
 						host: "test.host",
 						user: "testuser",
 						path: "~/test",
-						key: null,
 					},
 				},
 				projects: {},

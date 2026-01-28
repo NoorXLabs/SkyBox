@@ -42,9 +42,9 @@ describe("config migration", () => {
 			expect(result.remotes).toBeDefined();
 			expect(result.remotes["my-server"]).toEqual({
 				host: "my-server",
-				user: null,
+				user: undefined,
 				path: "~/code",
-				key: null,
+				key: undefined,
 			});
 			expect(result.projects["my-app"].remote).toBe("my-server");
 			expect("remote" in result).toBe(false);

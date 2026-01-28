@@ -27,7 +27,7 @@ describe("init command integration", () => {
 			editor: "cursor",
 			defaults: { sync_mode: "two-way-resolved", ignore: [] },
 			remotes: {
-				default: { host: "test", user: "root", path: "~/code", key: null },
+				default: { host: "test", user: "root", path: "~/code" },
 			},
 			projects: {},
 		};
@@ -47,7 +47,6 @@ describe("init command integration", () => {
 					host: "myserver",
 					user: "root",
 					path: "~/projects",
-					key: null,
 				},
 			},
 			projects: {},

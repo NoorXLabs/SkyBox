@@ -13,7 +13,14 @@ import {
 import { getProjectsDir } from "../lib/paths.ts";
 import { validateProjectName } from "../lib/projectTemplates.ts";
 import { checkRemoteProjectExists } from "../lib/remote.ts";
-import { error, header, info, spinner, success } from "../lib/ui.ts";
+import {
+	confirmDestructiveAction,
+	error,
+	header,
+	info,
+	spinner,
+	success,
+} from "../lib/ui.ts";
 import { getRemoteHost, getRemotePath, selectRemote } from "./remote.ts";
 
 export async function cloneCommand(project: string): Promise<void> {
@@ -65,31 +72,13 @@ export async function cloneCommand(project: string): Promise<void> {
 	const localPath = join(getProjectsDir(), project);
 
 	if (existsSync(localPath)) {
-		const { overwrite } = await inquirer.prompt([
-			{
-				type: "confirm",
-				name: "overwrite",
-				message: "Project already exists locally. Overwrite?",
-				default: false,
-			},
-		]);
+		const confirmed = await confirmDestructiveAction({
+			firstPrompt: "Project already exists locally. Overwrite?",
+			secondPrompt: "Are you sure? All local changes will be lost.",
+			cancelMessage: "Clone cancelled.",
+		});
 
-		if (!overwrite) {
-			info("Clone cancelled.");
-			return;
-		}
-
-		const { confirmOverwrite } = await inquirer.prompt([
-			{
-				type: "confirm",
-				name: "confirmOverwrite",
-				message: "Are you sure? All local changes will be lost.",
-				default: false,
-			},
-		]);
-
-		if (!confirmOverwrite) {
-			info("Clone cancelled.");
+		if (!confirmed) {
 			return;
 		}
 
