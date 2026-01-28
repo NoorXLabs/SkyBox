@@ -424,6 +424,77 @@ async function startContainerWithRetry(
 	startSpin.succeed("Container started");
 }
 
+type PostStartAction = "editor" | "shell" | "both" | "none";
+
+/**
+ * Determine what post-start action to take based on options or user prompt.
+ */
+async function determinePostStartAction(
+	config: DevboxConfigV2,
+	options: UpOptions,
+): Promise<{ action: PostStartAction; editor: string | undefined }> {
+	// Handle flags for non-interactive mode
+	if (options.editor && options.attach) {
+		return { action: "both", editor: config.editor || "cursor" };
+	}
+	if (options.editor) {
+		return { action: "editor", editor: config.editor || "cursor" };
+	}
+	if (options.attach) {
+		return { action: "shell", editor: undefined };
+	}
+	if (options.noPrompt) {
+		return { action: "none", editor: undefined };
+	}
+
+	// Interactive mode - may need to select editor
+	let editor = config.editor;
+
+	if (!editor) {
+		const { selectedEditor } = await inquirer.prompt([
+			{
+				type: "rawlist",
+				name: "selectedEditor",
+				message: "Which editor would you like to use?",
+				choices: [
+					...SUPPORTED_EDITORS.map((e) => ({ name: e.name, value: e.id })),
+					{ name: "Other (specify command)", value: "other" },
+				],
+			},
+		]);
+
+		if (selectedEditor === "other") {
+			const { customEditor } = await inquirer.prompt([
+				{
+					type: "input",
+					name: "customEditor",
+					message: "Enter editor command:",
+				},
+			]);
+			editor = customEditor;
+		} else {
+			editor = selectedEditor;
+		}
+	}
+
+	// Ask what to do
+	const { action } = await inquirer.prompt([
+		{
+			type: "rawlist",
+			name: "action",
+			message: "What would you like to do?",
+			choices: [
+				{ name: "Open in editor", value: "editor" },
+				{ name: "Attach to shell", value: "shell" },
+				{ name: "Both", value: "both" },
+				{ name: "Neither (just exit)", value: "none" },
+			],
+		},
+	]);
+
+	return { action, editor };
+}
+
 async function handlePostStart(
 	projectPath: string,
 	config: DevboxConfigV2,
