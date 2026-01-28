@@ -106,6 +106,74 @@ async function resolveProject(
 	return { project: project ?? "", projectPath: normalizedPath };
 }
 
+/**
+ * Acquire lock for the project on the remote server.
+ * Handles lock conflicts with optional takeover prompt.
+ * Returns true if lock acquired (or no remote), false if user cancelled.
+ */
+async function handleLockAcquisition(
+	project: string,
+	config: DevboxConfigV2,
+	options: UpOptions,
+): Promise<{ success: boolean; remoteInfo: LockRemoteInfo | null }> {
+	const projectRemote = getProjectRemote(project, config);
+
+	if (!projectRemote) {
+		warn("No remote configured for this project - skipping lock");
+		return { success: true, remoteInfo: null };
+	}
+
+	const remoteInfo = createLockRemoteInfo(projectRemote.remote);
+	const lockResult = await acquireLock(project, remoteInfo);
+
+	if (lockResult.success) {
+		info("Lock acquired");
+		return { success: true, remoteInfo };
+	}
+
+	if (lockResult.existingLock) {
+		const { machine, timestamp } = lockResult.existingLock;
+		warn(`Project locked by '${machine}' since ${timestamp}`);
+
+		if (options.noPrompt) {
+			error("Cannot take over lock with --no-prompt. Exiting.");
+			return { success: false, remoteInfo };
+		}
+
+		const { takeover } = await inquirer.prompt([
+			{
+				type: "confirm",
+				name: "takeover",
+				message: "Take over lock anyway?",
+				default: false,
+			},
+		]);
+
+		if (!takeover) {
+			info("Exiting without starting.");
+			return { success: false, remoteInfo };
+		}
+
+		const releaseResult = await releaseLock(project, remoteInfo);
+		if (!releaseResult.success) {
+			error(`Failed to release existing lock: ${releaseResult.error}`);
+			return { success: false, remoteInfo };
+		}
+
+		const forceResult = await acquireLock(project, remoteInfo);
+		if (!forceResult.success) {
+			error(`Failed to acquire lock: ${forceResult.error}`);
+			return { success: false, remoteInfo };
+		}
+
+		success("Lock acquired (forced takeover)");
+		return { success: true, remoteInfo };
+	}
+
+	error(`Failed to acquire lock: ${lockResult.error}`);
+	return { success: false, remoteInfo };
+}
+
 export async function upCommand(
 	projectArg: string | undefined,
 	options: UpOptions,
@@ -132,63 +200,12 @@ export async function upCommand(
 	header(`Starting '${project}'...`);
 
 	// Step 2.5: Acquire lock before any container/sync operations
-	// Get the project's remote for lock operations
-	const projectRemote = getProjectRemote(project ?? "", config);
-	let remoteInfo: LockRemoteInfo | null = null;
-
-	if (projectRemote) {
-		remoteInfo = createLockRemoteInfo(projectRemote.remote);
-		const lockResult = await acquireLock(project ?? "", remoteInfo);
-
-		if (!lockResult.success) {
-			if (lockResult.existingLock) {
-				// Lock conflict - another machine holds the lock
-				const { machine, timestamp } = lockResult.existingLock;
-				warn(`Project locked by '${machine}' since ${timestamp}`);
-
-				if (options.noPrompt) {
-					error("Cannot take over lock with --no-prompt. Exiting.");
-					process.exit(1);
-				}
-
-				const { takeover } = await inquirer.prompt([
-					{
-						type: "confirm",
-						name: "takeover",
-						message: "Take over lock anyway?",
-						default: false,
-					},
-				]);
-
-				if (!takeover) {
-					info("Exiting without starting.");
-					return;
-				}
-
-				// Force acquire: release the existing lock, then acquire
-				const releaseResult = await releaseLock(project ?? "", remoteInfo);
-				if (!releaseResult.success) {
-					error(`Failed to release existing lock: ${releaseResult.error}`);
-					process.exit(1);
-				}
-
-				const forceResult = await acquireLock(project ?? "", remoteInfo);
-				if (!forceResult.success) {
-					error(`Failed to acquire lock: ${forceResult.error}`);
-					process.exit(1);
-				}
-
-				success("Lock acquired (forced takeover)");
-			} else {
-				// Some other error (e.g., network/SSH failure)
-				error(`Failed to acquire lock: ${lockResult.error}`);
-				process.exit(1);
-			}
-		} else {
-			info("Lock acquired");
+	const lockResult = await handleLockAcquisition(project, config, options);
+	if (!lockResult.success) {
+		if (lockResult.remoteInfo) {
+			process.exit(1);
 		}
-	} else {
-		warn("No remote configured for this project - skipping lock");
+		return;
 	}
 
 	// Step 3: Ensure sync is running (background sync to remote)
