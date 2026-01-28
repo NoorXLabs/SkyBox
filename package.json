@@ -1,6 +1,6 @@
 {
   "name": "devbox",
-  "version": "0.5.1-beta",
+  "version": "0.6.0-beta",
   "description": "Local-first dev containers with remote sync",
   "repository": {
     "type": "git",
