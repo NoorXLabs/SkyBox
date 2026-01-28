@@ -254,6 +254,59 @@ async function handleContainerStatus(
 	return { action: "continue" };
 }
 
+/**
+ * Ensure project has devcontainer.json, creating from template if needed.
+ * Returns true if config exists (or was created), false if user cancelled.
+ */
+async function ensureDevcontainerConfig(
+	projectPath: string,
+	project: string,
+	options: UpOptions,
+): Promise<boolean> {
+	if (hasLocalDevcontainerConfig(projectPath)) {
+		return true;
+	}
+
+	if (options.noPrompt) {
+		error("No devcontainer.json found and --no-prompt is set.");
+		return false;
+	}
+
+	warn("No devcontainer.json found");
+
+	const { createTemplate } = await inquirer.prompt([
+		{
+			type: "confirm",
+			name: "createTemplate",
+			message: "Would you like to create a devcontainer.json from a template?",
+			default: true,
+		},
+	]);
+
+	if (!createTemplate) {
+		info("Please add a .devcontainer/devcontainer.json and try again.");
+		return false;
+	}
+
+	const { templateId } = await inquirer.prompt([
+		{
+			type: "rawlist",
+			name: "templateId",
+			message: "Select a template:",
+			choices: TEMPLATES.map((t) => ({
+				name: `${t.name} - ${t.description}`,
+				value: t.id,
+			})),
+		},
+	]);
+
+	createDevcontainerConfig(projectPath, templateId, project);
+	success("Created .devcontainer/devcontainer.json");
+
+	await commitDevcontainerConfig(projectPath);
+	return true;
+}
+
 export async function upCommand(
 	projectArg: string | undefined,
 	options: UpOptions,
@@ -305,47 +358,13 @@ export async function upCommand(
 	}
 
 	// Step 5: Check for devcontainer.json
-	if (!hasLocalDevcontainerConfig(projectPath)) {
-		if (options.noPrompt) {
-			error("No devcontainer.json found and --no-prompt is set.");
-			process.exit(1);
-		}
-
-		warn("No devcontainer.json found");
-
-		// Offer to create template
-		const { createTemplate } = await inquirer.prompt([
-			{
-				type: "confirm",
-				name: "createTemplate",
-				message:
-					"Would you like to create a devcontainer.json from a template?",
-				default: true,
-			},
-		]);
-
-		if (!createTemplate) {
-			info("Please add a .devcontainer/devcontainer.json and try again.");
-			return;
-		}
-
-		const { templateId } = await inquirer.prompt([
-			{
-				type: "rawlist",
-				name: "templateId",
-				message: "Select a template:",
-				choices: TEMPLATES.map((t) => ({
-					name: `${t.name} - ${t.description}`,
-					value: t.id,
-				})),
-			},
-		]);
-
-		createDevcontainerConfig(projectPath, templateId, project);
-		success("Created .devcontainer/devcontainer.json");
-
-		// Commit the new config
-		await commitDevcontainerConfig(projectPath);
+	const hasConfig = await ensureDevcontainerConfig(
+		projectPath,
+		project,
+		options,
+	);
+	if (!hasConfig) {
+		return;
 	}
 
 	// Step 6: Start container locally with retry
