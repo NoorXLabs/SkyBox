@@ -415,12 +415,12 @@ async function startContainerWithRetry(
 	startSpin.succeed("Container started");
 }
 
-type PostStartAction = "editor" | "shell" | "both" | "none";
+export type PostStartAction = "editor" | "shell" | "both" | "none";
 
 /**
  * Determine what post-start action to take based on options or user prompt.
  */
-async function determinePostStartAction(
+export async function determinePostStartAction(
 	config: DevboxConfigV2,
 	options: UpOptions,
 ): Promise<{ action: PostStartAction; editor: string | undefined }> {
@@ -489,7 +489,7 @@ async function determinePostStartAction(
 /**
  * Execute the determined post-start action (open editor, attach shell, or both).
  */
-async function executePostStartAction(
+export async function executePostStartAction(
 	projectPath: string,
 	action: PostStartAction,
 	editor: string | undefined,
