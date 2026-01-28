@@ -1,0 +1,128 @@
+// src/commands/doctor.ts
+
+import { execSync } from "node:child_process";
+import chalk from "chalk";
+import type {
+	DoctorCheckResult,
+	DoctorCheckStatus,
+	DoctorReport,
+} from "../types/index.ts";
+
+// Check icons
+const icons: Record<DoctorCheckStatus, string> = {
+	pass: chalk.green("✓"),
+	warn: chalk.yellow("!"),
+	fail: chalk.red("✗"),
+};
+
+function checkDocker(): DoctorCheckResult {
+	const name = "Docker";
+
+	// Check if Docker is installed
+	try {
+		execSync("docker --version", { stdio: "pipe" });
+	} catch {
+		return {
+			name,
+			status: "fail",
+			message: "Docker is not installed",
+			fix: "Install Docker Desktop: brew install --cask docker",
+		};
+	}
+
+	// Check if Docker daemon is running
+	try {
+		execSync("docker info", { stdio: "pipe", timeout: 5000 });
+	} catch {
+		return {
+			name,
+			status: "fail",
+			message: "Docker is installed but not running",
+			fix: "Start Docker Desktop application",
+		};
+	}
+
+	// Check Docker version
+	try {
+		const result = execSync("docker --version", { encoding: "utf-8" });
+		const versionMatch = result.match(/Docker version (\d+\.\d+)/);
+		const version = versionMatch ? versionMatch[1] : "unknown";
+		return {
+			name,
+			status: "pass",
+			message: `Docker ${version} is running`,
+		};
+	} catch {
+		return {
+			name,
+			status: "pass",
+			message: "Docker is running",
+		};
+	}
+}
+
+function printResult(result: DoctorCheckResult): void {
+	const icon = icons[result.status];
+	console.log(`  ${icon} ${result.name}: ${result.message}`);
+	if (result.fix && result.status !== "pass") {
+		console.log(chalk.dim(`      Fix: ${result.fix}`));
+	}
+}
+
+function printReport(report: DoctorReport): void {
+	console.log();
+	console.log(chalk.bold("DevBox Doctor"));
+	console.log(chalk.dim("─".repeat(40)));
+	console.log();
+
+	for (const check of report.checks) {
+		printResult(check);
+	}
+
+	console.log();
+	console.log(chalk.dim("─".repeat(40)));
+
+	const summary = [];
+	if (report.passed > 0) summary.push(chalk.green(`${report.passed} passed`));
+	if (report.warned > 0)
+		summary.push(chalk.yellow(`${report.warned} warnings`));
+	if (report.failed > 0) summary.push(chalk.red(`${report.failed} failed`));
+
+	console.log(`  ${summary.join(", ")}`);
+	console.log();
+
+	if (report.failed > 0) {
+		console.log(
+			chalk.red("  Some checks failed. Please fix the issues above."),
+		);
+	} else if (report.warned > 0) {
+		console.log(
+			chalk.yellow(
+				"  Some checks have warnings. DevBox should work but may have issues.",
+			),
+		);
+	} else {
+		console.log(chalk.green("  All checks passed. DevBox is ready to use!"));
+	}
+	console.log();
+}
+
+export async function doctorCommand(): Promise<void> {
+	const checks: DoctorCheckResult[] = [];
+
+	// Run all checks
+	checks.push(checkDocker());
+
+	// Calculate summary
+	const passed = checks.filter((c) => c.status === "pass").length;
+	const warned = checks.filter((c) => c.status === "warn").length;
+	const failed = checks.filter((c) => c.status === "fail").length;
+
+	const report: DoctorReport = { checks, passed, warned, failed };
+	printReport(report);
+
+	// Exit with error code if any checks failed
+	if (failed > 0) {
+		process.exit(1);
+	}
+}
