@@ -5,11 +5,13 @@ import { existsSync } from "node:fs";
 import chalk from "chalk";
 import { configExists, loadConfig } from "../lib/config.ts";
 import { getMutagenPath } from "../lib/paths.ts";
+import { testConnection } from "../lib/ssh.ts";
 import type {
 	DoctorCheckResult,
 	DoctorCheckStatus,
 	DoctorReport,
 } from "../types/index.ts";
+import { getRemoteHost } from "./remote.ts";
 
 // Check icons
 const icons: Record<DoctorCheckStatus, string> = {
@@ -151,6 +153,55 @@ function checkConfig(): DoctorCheckResult {
 	}
 }
 
+async function checkSSHConnectivity(): Promise<DoctorCheckResult[]> {
+	const results: DoctorCheckResult[] = [];
+
+	try {
+		if (!configExists()) {
+			return []; // Skip if no config
+		}
+
+		const config = loadConfig();
+		if (!config || !config.remotes) {
+			return [];
+		}
+
+		for (const [remoteName, remote] of Object.entries(config.remotes)) {
+			const name = `SSH: ${remoteName}`;
+			try {
+				const host = getRemoteHost(remote);
+				const result = await testConnection(host, remote.key);
+
+				if (result.success) {
+					results.push({
+						name,
+						status: "pass",
+						message: `Connected to ${remote.host}`,
+					});
+				} else {
+					results.push({
+						name,
+						status: "fail",
+						message: `Cannot connect: ${result.error}`,
+						fix: `Check SSH key and host configuration for '${remoteName}'`,
+					});
+				}
+			} catch (err) {
+				results.push({
+					name,
+					status: "fail",
+					message: `Connection failed: ${err instanceof Error ? err.message : "unknown"}`,
+					fix: `Verify SSH access to ${remote.host}`,
+				});
+			}
+		}
+	} catch {
+		// If we can't load config, skip SSH checks
+	}
+
+	return results;
+}
+
 function printResult(result: DoctorCheckResult): void {
 	const icon = icons[result.status];
 	console.log(`  ${icon} ${result.name}: ${result.message}`);
@@ -200,10 +251,14 @@ function printReport(report: DoctorReport): void {
 export async function doctorCommand(): Promise<void> {
 	const checks: DoctorCheckResult[] = [];
 
-	// Run all checks
+	// Run sync checks
 	checks.push(checkDocker());
 	checks.push(checkMutagen());
 	checks.push(checkConfig());
+
+	// Run async checks
+	const sshChecks = await checkSSHConnectivity();
+	checks.push(...sshChecks);
 
 	// Calculate summary
 	const passed = checks.filter((c) => c.status === "pass").length;
