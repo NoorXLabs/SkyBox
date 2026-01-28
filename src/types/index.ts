@@ -261,3 +261,20 @@ export interface LockInfo {
 export type LockStatus =
 	| { locked: false }
 	| { locked: true; ownedByMe: boolean; info: LockInfo };
+
+// Doctor command types
+export type DoctorCheckStatus = "pass" | "warn" | "fail";
+
+export interface DoctorCheckResult {
+	name: string;
+	status: DoctorCheckStatus;
+	message: string;
+	fix?: string; // Suggested fix for warn/fail
+}
+
+export interface DoctorReport {
+	checks: DoctorCheckResult[];
+	passed: number;
+	warned: number;
+	failed: number;
+}
