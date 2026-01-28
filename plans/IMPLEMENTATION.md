@@ -4,7 +4,7 @@
 >
 > **Started:** 2025 (CLI Development)
 >
-> **Progress:** 14/14 commands complete | 29/55 code quality tasks complete
+> **Progress:** 15/15 commands complete | 29/55 code quality tasks complete
 
 ---
 
@@ -24,7 +24,7 @@
 
 ## Completed Work
 
-### Commands (14/14 Complete)
+### Commands (15/15 Complete)
 
 - [x] `devbox init` - Interactive setup wizard
 - [x] `devbox browse` - List projects on remote server
@@ -34,6 +34,7 @@
 - [x] `devbox up` - Start container with lock acquisition
 - [x] `devbox down` - Stop container with sync flush and lock release
 - [x] `devbox status` - Show detailed project status
+- [x] `devbox open` - Open editor/shell for running container
 - [x] `devbox editor` - Configure default editor
 - [x] `devbox rm` - Remove local project
 - [x] `devbox shell` - Enter container shell
@@ -422,7 +423,8 @@
 ### High Priority
 
 - [ ] **Create Template Repositories:** Built-in templates (Node.js, Bun, Python, Go) reference non-existent GitHub repos at `devbox-templates/*-starter`. Either create these repos or replace with working alternatives (e.g., official devcontainer templates).
-- [ ] **Open Command:** `devbox open [project]` - Show action menu (editor/shell/both) for running containers without restarting
+- [x] **Open Command:** `devbox open [project]` - Show action menu (editor/shell/both) for running containers without restarting
+  - Commit: `63b2f16`
 - [ ] **Status Dashboard (TUI):** Full-screen terminal UI with real-time sync status, container resources, one-key actions
 - [ ] **Selective Sync:** Sync specific subdirectories for large monorepos
 - [ ] **Hooks System:** Pre/post sync and container start hooks for custom workflows
