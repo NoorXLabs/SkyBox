@@ -428,7 +428,9 @@
 - [ ] **Status Dashboard (TUI):** Full-screen terminal UI with real-time sync status, container resources, one-key actions
 - [ ] **Selective Sync:** Sync specific subdirectories for large monorepos
 - [ ] **Hooks System:** Pre/post sync and container start hooks for custom workflows
-- [ ] **Health Check Command:** `devbox doctor` to diagnose common issues
+- [x] **Health Check Command:** `devbox doctor` to diagnose common issues
+  - Checks: Docker, Mutagen, Devcontainer CLI, Config, SSH connectivity
+  - Commits: `0a1a775`, `9ed4095`, `6116e95`, `8c6a18a`, `3510e97`, `779368b`, `fa27fb3`, `2530888`
 
 ### Medium Priority
 
