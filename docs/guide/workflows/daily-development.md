@@ -187,7 +187,24 @@ Note: Each project acquires its own lock, so the same project cannot be actively
 
 ## Working with Running Containers
 
-### Attach to a Running Container
+### Quick Access with `devbox open`
+
+For running containers, use `devbox open` for quick access without the full startup flow:
+
+```bash
+# Open action menu (editor/shell/both)
+devbox open my-project
+
+# Open editor directly
+devbox open my-project --editor
+
+# Attach to shell directly
+devbox open my-project --shell
+```
+
+This is faster than `devbox up` because it skips lock acquisition and sync checks.
+
+### Using `devbox up` with Running Containers
 
 If a container is already running:
 
@@ -213,6 +230,21 @@ devbox editor my-project
 ```
 
 Opens your configured editor pointing to the running container.
+
+### Multiple Shell Sessions
+
+Open additional shells for a running container:
+
+```bash
+# Terminal 1: Main work
+devbox up my-project --attach
+
+# Terminal 2: Run tests
+devbox open my-project --shell
+
+# Terminal 3: Watch logs
+devbox open my-project --shell
+```
 
 ### List Local Projects
 

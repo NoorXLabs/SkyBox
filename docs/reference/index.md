@@ -9,6 +9,7 @@ DevBox provides a set of commands for managing your local-first development envi
 | [`devbox init`](/reference/init) | Interactive setup wizard |
 | [`devbox up`](/reference/up) | Start a development container |
 | [`devbox down`](/reference/down) | Stop a development container |
+| [`devbox open`](/reference/open) | Open editor/shell for running container |
 | [`devbox shell`](/reference/shell) | Access shell inside container |
 | [`devbox clone`](/reference/clone) | Clone remote project locally |
 | [`devbox push`](/reference/push) | Push local project to remote |
@@ -75,6 +76,9 @@ devbox up my-project
 
 # Stop a project
 devbox down my-project
+
+# Open editor/shell for running container
+devbox open my-project
 
 # Access shell inside container
 devbox shell my-project
