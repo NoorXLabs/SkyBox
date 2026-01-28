@@ -32,15 +32,6 @@ import {
 } from "../types/index.ts";
 import { getProjectRemote } from "./remote.ts";
 
-/** Context passed between up command phases */
-interface UpContext {
-	project: string;
-	projectPath: string;
-	config: DevboxConfigV2;
-	options: UpOptions;
-	remoteInfo: LockRemoteInfo | null;
-}
-
 /** Result of project resolution phase */
 interface ResolvedProject {
 	project: string;

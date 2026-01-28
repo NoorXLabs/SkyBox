@@ -4,7 +4,7 @@
 >
 > **Started:** 2025 (CLI Development)
 >
-> **Progress:** 14/14 commands complete | 27/55 code quality tasks complete
+> **Progress:** 14/14 commands complete | 29/55 code quality tasks complete
 
 ---
 
@@ -166,15 +166,17 @@
 
 ### Function Complexity
 
-- [ ] **Task 15:** Refactor `upCommand` (234 lines)
-  - Location: `src/commands/up.ts:35-268`
+- [x] **Task 15:** Refactor `upCommand` (243 lines → 65 lines)
+  - Location: `src/commands/up.ts:301-366`
   - Complex nested conditions
-  - Fix: Extract `handleLockAcquisition()`, `handleContainerStartup()`, `handlePostStart()`
+  - Fix: Extracted `resolveProject()`, `handleLockAcquisition()`, `checkAndResumeSync()`, `handleContainerStatus()`, `ensureDevcontainerConfig()`
+  - Commits: `af46d68`, `f76a47a`, `7ec47a7`, `ba1e6ea`, `4a13534`, `2c2c07e`
 
-- [ ] **Task 16:** Refactor `handlePostStart` (109 lines)
-  - Location: `src/commands/up.ts:320-428`
+- [x] **Task 16:** Refactor `handlePostStart` (109 lines → 32 lines)
+  - Location: `src/commands/up.ts:523-555`
   - Complex multi-branch logic
-  - Fix: Extract `determinePostStartAction()` and `executePostStartAction()`
+  - Fix: Extracted `determinePostStartAction()` and `executePostStartAction()`
+  - Commits: `35361d5`, `4c1e540`, `ef7f222`
 
 ### Path Management
 
@@ -539,6 +541,15 @@
 | `0af385f` | feat(test): add shared test utilities module | Task 34 |
 | `029ec0b` | fix(security): prevent TOCTOU race in lock acquisition | Task 14 |
 | `80de7a7` | refactor: improve type safety and reduce duplication | Tasks 7, 8, 11, 12, 13 |
+| `af46d68` | refactor(up): add parameter interfaces for extracted functions | Task 15 |
+| `f76a47a` | refactor(up): extract resolveProject() function | Task 15 |
+| `7ec47a7` | refactor(up): extract handleLockAcquisition() function | Task 15 |
+| `ba1e6ea` | refactor(up): extract checkAndResumeSync() function | Task 15 |
+| `4a13534` | refactor(up): extract handleContainerStatus() function | Task 15 |
+| `2c2c07e` | refactor(up): extract ensureDevcontainerConfig() function | Task 15 |
+| `35361d5` | refactor(up): add determinePostStartAction() function | Task 16 |
+| `4c1e540` | refactor(up): add executePostStartAction() function | Task 16 |
+| `ef7f222` | refactor(up): simplify handlePostStart() using extracted functions | Task 16 |
 
 ---
 
