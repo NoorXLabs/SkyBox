@@ -244,6 +244,12 @@ export interface ShellOptions {
 	force?: boolean;
 }
 
+export interface OpenOptions {
+	editor?: boolean;
+	shell?: boolean;
+	noPrompt?: boolean;
+}
+
 // Lock types
 export interface LockInfo {
 	machine: string; // hostname of machine holding lock
