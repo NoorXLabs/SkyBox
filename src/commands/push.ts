@@ -7,7 +7,7 @@ import inquirer from "inquirer";
 import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
 import { getErrorMessage } from "../lib/errors.ts";
 import { createSyncSession, waitForSync } from "../lib/mutagen.ts";
-import { PROJECTS_DIR } from "../lib/paths.ts";
+import { getProjectsDir } from "../lib/paths.ts";
 import { checkRemoteProjectExists } from "../lib/remote.ts";
 import { runRemoteCommand } from "../lib/ssh.ts";
 import { error, header, info, spinner, success } from "../lib/ui.ts";
@@ -143,13 +143,14 @@ export async function pushCommand(
 	mkdirSpin.succeed("Created remote directory");
 
 	// Copy to devbox projects directory
-	const localPath = join(PROJECTS_DIR, projectName);
+	const projectsDir = getProjectsDir();
+	const localPath = join(projectsDir, projectName);
 
 	if (absolutePath !== localPath) {
 		if (existsSync(localPath)) {
 			rmSync(localPath, { recursive: true });
 		}
-		mkdirSync(PROJECTS_DIR, { recursive: true });
+		mkdirSync(projectsDir, { recursive: true });
 		cpSync(absolutePath, localPath, { recursive: true });
 		success(`Copied to ${localPath}`);
 	}

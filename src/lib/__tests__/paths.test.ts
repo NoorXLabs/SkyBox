@@ -1,10 +1,22 @@
 // src/lib/__tests__/paths.test.ts
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { homedir } from "node:os";
-import { BIN_DIR, CONFIG_PATH, MUTAGEN_PATH, PROJECTS_DIR } from "../paths.ts";
+import { join } from "node:path";
+import {
+	getBinDir,
+	getConfigPath,
+	getDevboxHome,
+	getLogsDir,
+	getMutagenPath,
+	getProjectsDir,
+} from "../paths.ts";
 
 describe("paths", () => {
-	const originalEnv = process.env.DEVBOX_HOME;
+	let originalEnv: string | undefined;
+
+	beforeEach(() => {
+		originalEnv = process.env.DEVBOX_HOME;
+	});
 
 	afterEach(() => {
 		if (originalEnv) {
@@ -14,26 +26,60 @@ describe("paths", () => {
 		}
 	});
 
-	test("uses default home when DEVBOX_HOME not set", () => {
+	test("getDevboxHome uses default when DEVBOX_HOME not set", () => {
 		delete process.env.DEVBOX_HOME;
-		// Re-import to get fresh values
-		const paths = require("../paths.ts");
-		expect(paths.DEVBOX_HOME).toBe(`${homedir()}/.devbox`);
+		expect(getDevboxHome()).toBe(join(homedir(), ".devbox"));
 	});
 
-	test("CONFIG_PATH is under DEVBOX_HOME", () => {
-		expect(CONFIG_PATH).toContain("config.yaml");
+	test("getDevboxHome uses DEVBOX_HOME when set", () => {
+		process.env.DEVBOX_HOME = "/custom/path";
+		expect(getDevboxHome()).toBe("/custom/path");
 	});
 
-	test("PROJECTS_DIR is under DEVBOX_HOME", () => {
-		expect(PROJECTS_DIR).toContain("Projects");
+	test("getDevboxHome returns fresh value after env change", () => {
+		process.env.DEVBOX_HOME = "/first/path";
+		expect(getDevboxHome()).toBe("/first/path");
+
+		process.env.DEVBOX_HOME = "/second/path";
+		expect(getDevboxHome()).toBe("/second/path");
 	});
 
-	test("BIN_DIR is under DEVBOX_HOME", () => {
-		expect(BIN_DIR).toContain("bin");
+	test("getConfigPath returns config.yaml under DEVBOX_HOME", () => {
+		process.env.DEVBOX_HOME = "/test/home";
+		expect(getConfigPath()).toBe("/test/home/config.yaml");
 	});
 
-	test("MUTAGEN_PATH is under BIN_DIR", () => {
-		expect(MUTAGEN_PATH).toContain("mutagen");
+	test("getProjectsDir returns Projects under DEVBOX_HOME", () => {
+		process.env.DEVBOX_HOME = "/test/home";
+		expect(getProjectsDir()).toBe("/test/home/Projects");
+	});
+
+	test("getBinDir returns bin under DEVBOX_HOME", () => {
+		process.env.DEVBOX_HOME = "/test/home";
+		expect(getBinDir()).toBe("/test/home/bin");
+	});
+
+	test("getMutagenPath returns mutagen under bin", () => {
+		process.env.DEVBOX_HOME = "/test/home";
+		expect(getMutagenPath()).toBe("/test/home/bin/mutagen");
+	});
+
+	test("getLogsDir returns logs under DEVBOX_HOME", () => {
+		process.env.DEVBOX_HOME = "/test/home";
+		expect(getLogsDir()).toBe("/test/home/logs");
+	});
+
+	test("all paths update when DEVBOX_HOME changes", () => {
+		process.env.DEVBOX_HOME = "/path/a";
+		expect(getDevboxHome()).toBe("/path/a");
+		expect(getConfigPath()).toBe("/path/a/config.yaml");
+		expect(getProjectsDir()).toBe("/path/a/Projects");
+		expect(getBinDir()).toBe("/path/a/bin");
+
+		process.env.DEVBOX_HOME = "/path/b";
+		expect(getDevboxHome()).toBe("/path/b");
+		expect(getConfigPath()).toBe("/path/b/config.yaml");
+		expect(getProjectsDir()).toBe("/path/b/Projects");
+		expect(getBinDir()).toBe("/path/b/bin");
 	});
 });

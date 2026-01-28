@@ -2,7 +2,7 @@
 import { execa } from "execa";
 import type { SyncStatus, SyncStatusValue } from "../types/index.ts";
 import { getExecaErrorMessage } from "./errors.ts";
-import { MUTAGEN_PATH } from "./paths.ts";
+import { getMutagenPath } from "./paths.ts";
 
 export function sessionName(project: string): string {
 	return `devbox-${project}`;
@@ -14,7 +14,7 @@ type MutagenResult = { success: boolean; error?: string };
 /** Execute a Mutagen command and return a standardized result */
 async function executeMutagenCommand(args: string[]): Promise<MutagenResult> {
 	try {
-		await execa(MUTAGEN_PATH, args);
+		await execa(getMutagenPath(), args);
 		return { success: true };
 	} catch (error: unknown) {
 		return { success: false, error: getExecaErrorMessage(error) };
@@ -55,7 +55,7 @@ export async function getSyncStatus(project: string): Promise<SyncStatus> {
 
 	try {
 		// List session by name directly
-		const result = await execa(MUTAGEN_PATH, ["sync", "list", name]);
+		const result = await execa(getMutagenPath(), ["sync", "list", name]);
 
 		if (
 			!result.stdout ||

@@ -8,7 +8,7 @@ import { configExists, loadConfig } from "../lib/config.ts";
 import { getContainerInfo, getContainerStatus } from "../lib/container.ts";
 import { createLockRemoteInfo, getLockStatus } from "../lib/lock.ts";
 import { getSyncStatus, sessionName } from "../lib/mutagen.ts";
-import { PROJECTS_DIR } from "../lib/paths.ts";
+import { getProjectsDir } from "../lib/paths.ts";
 import { error, header } from "../lib/ui.ts";
 import {
 	type ContainerDetails,
@@ -262,7 +262,7 @@ async function getProjectSummary(
 	projectName: string,
 	config: DevboxConfigV2 | null,
 ): Promise<ProjectSummary> {
-	const projectPath = join(PROJECTS_DIR, projectName);
+	const projectPath = join(getProjectsDir(), projectName);
 
 	// Run checks in parallel
 	const [containerStatus, syncStatus, gitInfo, diskUsage, lastActive] =
@@ -390,7 +390,8 @@ export async function statusCommand(project?: string): Promise<void> {
 }
 
 async function showOverview(): Promise<void> {
-	if (!existsSync(PROJECTS_DIR)) {
+	const projectsDir = getProjectsDir();
+	if (!existsSync(projectsDir)) {
 		console.log();
 		console.log(
 			"No projects found. Use 'devbox clone' or 'devbox push' to get started.",
@@ -398,9 +399,9 @@ async function showOverview(): Promise<void> {
 		return;
 	}
 
-	const entries = readdirSync(PROJECTS_DIR);
+	const entries = readdirSync(projectsDir);
 	const projectDirs = entries.filter((entry) => {
-		const fullPath = join(PROJECTS_DIR, entry);
+		const fullPath = join(projectsDir, entry);
 		return statSync(fullPath).isDirectory();
 	});
 
@@ -427,7 +428,7 @@ async function showOverview(): Promise<void> {
 }
 
 async function showDetailed(projectName: string): Promise<void> {
-	const projectPath = join(PROJECTS_DIR, projectName);
+	const projectPath = join(getProjectsDir(), projectName);
 
 	if (!existsSync(projectPath)) {
 		error(

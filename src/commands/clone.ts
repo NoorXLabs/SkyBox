@@ -10,7 +10,7 @@ import {
 	terminateSession,
 	waitForSync,
 } from "../lib/mutagen.ts";
-import { PROJECTS_DIR } from "../lib/paths.ts";
+import { getProjectsDir } from "../lib/paths.ts";
 import { checkRemoteProjectExists } from "../lib/remote.ts";
 import { error, header, info, spinner, success } from "../lib/ui.ts";
 import { getRemoteHost, getRemotePath, selectRemote } from "./remote.ts";
@@ -54,7 +54,7 @@ export async function cloneCommand(project: string): Promise<void> {
 	checkSpin.succeed("Project found on remote");
 
 	// Check local doesn't exist
-	const localPath = join(PROJECTS_DIR, project);
+	const localPath = join(getProjectsDir(), project);
 
 	if (existsSync(localPath)) {
 		const { overwrite } = await inquirer.prompt([

@@ -8,13 +8,7 @@ import type {
 	RemoteEntry,
 } from "../types/index.ts";
 import { migrateConfig, needsMigration } from "./migration.ts";
-
-// Dynamic import to get fresh DEVBOX_HOME on each call
-function getConfigPath(): string {
-	const home =
-		process.env.DEVBOX_HOME || `${require("node:os").homedir()}/.devbox`;
-	return `${home}/config.yaml`;
-}
+import { getConfigPath } from "./paths.ts";
 
 export function configExists(): boolean {
 	return existsSync(getConfigPath());

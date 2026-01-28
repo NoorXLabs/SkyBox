@@ -5,7 +5,7 @@ import { execa } from "execa";
 import inquirer from "inquirer";
 import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
 import { downloadMutagen, isMutagenInstalled } from "../lib/download.ts";
-import { BIN_DIR, DEVBOX_HOME, PROJECTS_DIR } from "../lib/paths.ts";
+import { getBinDir, getDevboxHome, getProjectsDir } from "../lib/paths.ts";
 import {
 	copyKey,
 	findSSHKeys,
@@ -444,9 +444,9 @@ export async function initCommand(): Promise<void> {
 
 	// Create directories
 	header("Setting up devbox...");
-	mkdirSync(PROJECTS_DIR, { recursive: true });
-	mkdirSync(BIN_DIR, { recursive: true });
-	success(`Created ${DEVBOX_HOME}`);
+	mkdirSync(getProjectsDir(), { recursive: true });
+	mkdirSync(getBinDir(), { recursive: true });
+	success(`Created ${getDevboxHome()}`);
 
 	// Save config
 	const config: DevboxConfigV2 = {

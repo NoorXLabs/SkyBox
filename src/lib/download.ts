@@ -9,7 +9,7 @@ import {
 import { join } from "node:path";
 import { extract } from "tar";
 import { getErrorMessage } from "./errors.ts";
-import { BIN_DIR, MUTAGEN_PATH } from "./paths.ts";
+import { getBinDir, getMutagenPath } from "./paths.ts";
 
 const MUTAGEN_VERSION = "0.17.5";
 const MUTAGEN_REPO = "mutagen-io/mutagen";
@@ -29,12 +29,13 @@ export function getMutagenChecksumUrl(version: string): string {
 }
 
 export function isMutagenInstalled(): boolean {
-	if (!existsSync(MUTAGEN_PATH)) {
+	const mutagenPath = getMutagenPath();
+	if (!existsSync(mutagenPath)) {
 		return false;
 	}
 
 	try {
-		const result = Bun.spawnSync([MUTAGEN_PATH, "version"]);
+		const result = Bun.spawnSync([mutagenPath, "version"]);
 		return result.exitCode === 0;
 	} catch {
 		return false;
@@ -52,12 +53,13 @@ export async function downloadMutagen(
 	}
 
 	const url = getMutagenDownloadUrl(platform, arch, MUTAGEN_VERSION);
-	const tarPath = join(BIN_DIR, "mutagen.tar.gz");
+	const binDir = getBinDir();
+	const tarPath = join(binDir, "mutagen.tar.gz");
 
 	try {
 		// Create bin directory
-		if (!existsSync(BIN_DIR)) {
-			mkdirSync(BIN_DIR, { recursive: true });
+		if (!existsSync(binDir)) {
+			mkdirSync(binDir, { recursive: true });
 		}
 
 		onProgress?.(`Downloading mutagen v${MUTAGEN_VERSION}...`);
@@ -88,12 +90,12 @@ export async function downloadMutagen(
 		// Extract tar.gz
 		await extract({
 			file: tarPath,
-			cwd: BIN_DIR,
+			cwd: binDir,
 			filter: (path) => path === "mutagen" || path === "mutagen-agents.tar.gz",
 		});
 
 		// Make executable
-		chmodSync(MUTAGEN_PATH, 0o755);
+		chmodSync(getMutagenPath(), 0o755);
 
 		// Clean up tar file
 		unlinkSync(tarPath);

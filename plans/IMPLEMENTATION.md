@@ -4,7 +4,7 @@
 >
 > **Started:** 2025 (CLI Development)
 >
-> **Progress:** 14/14 commands complete | 14/55 code quality tasks complete
+> **Progress:** 14/14 commands complete | 16/55 code quality tasks complete
 
 ---
 
@@ -178,15 +178,17 @@
 
 ### Path Management
 
-- [ ] **Task 17:** Centralize DEVBOX_HOME computation
+- [x] **Task 17:** Centralize DEVBOX_HOME computation
   - Locations: `src/lib/paths.ts:5-6`, `src/lib/config.ts:14-16`, `src/lib/project.ts:8`
   - Same path computed in 3 different files
   - Fix: Use `src/lib/paths.ts` as single source of truth
+  - Commit: (pending)
 
-- [ ] **Task 18:** Use getters for dynamic paths
+- [x] **Task 18:** Use getters for dynamic paths
   - Location: `src/lib/paths.ts:5-11`
   - Paths computed at module load time, become stale
   - Fix: Convert to `getDevboxHome()`, `getConfigPath()`, etc.
+  - Commit: (pending)
 
 ### Error Handling
 

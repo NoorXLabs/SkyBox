@@ -1,13 +1,7 @@
 // src/lib/project.ts
 import { existsSync, readdirSync, realpathSync, statSync } from "node:fs";
-import { homedir } from "node:os";
 import { join, relative, sep } from "node:path";
-
-// Dynamic function to get fresh PROJECTS_DIR on each call
-function getProjectsDir(): string {
-	const home = process.env.DEVBOX_HOME || join(homedir(), ".devbox");
-	return join(home, "Projects");
-}
+import { getProjectsDir } from "./paths.ts";
 
 export function resolveProjectFromCwd(): string | null {
 	const cwd = process.cwd();

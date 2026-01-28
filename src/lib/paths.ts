@@ -2,10 +2,45 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-export const DEVBOX_HOME =
-	process.env.DEVBOX_HOME || join(homedir(), ".devbox");
-export const CONFIG_PATH = join(DEVBOX_HOME, "config.yaml");
-export const PROJECTS_DIR = join(DEVBOX_HOME, "Projects");
-export const BIN_DIR = join(DEVBOX_HOME, "bin");
-export const MUTAGEN_PATH = join(BIN_DIR, "mutagen");
-export const LOGS_DIR = join(DEVBOX_HOME, "logs");
+/**
+ * Get the DevBox home directory.
+ * Returns fresh value on each call to support dynamic DEVBOX_HOME changes (e.g., in tests).
+ */
+export function getDevboxHome(): string {
+	return process.env.DEVBOX_HOME || join(homedir(), ".devbox");
+}
+
+/**
+ * Get the path to the config file.
+ */
+export function getConfigPath(): string {
+	return join(getDevboxHome(), "config.yaml");
+}
+
+/**
+ * Get the path to the projects directory.
+ */
+export function getProjectsDir(): string {
+	return join(getDevboxHome(), "Projects");
+}
+
+/**
+ * Get the path to the bin directory.
+ */
+export function getBinDir(): string {
+	return join(getDevboxHome(), "bin");
+}
+
+/**
+ * Get the path to the Mutagen binary.
+ */
+export function getMutagenPath(): string {
+	return join(getBinDir(), "mutagen");
+}
+
+/**
+ * Get the path to the logs directory.
+ */
+export function getLogsDir(): string {
+	return join(getDevboxHome(), "logs");
+}

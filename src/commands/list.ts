@@ -4,7 +4,7 @@ import { existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { execa } from "execa";
 import { configExists } from "../lib/config.ts";
-import { PROJECTS_DIR } from "../lib/paths.ts";
+import { getProjectsDir } from "../lib/paths.ts";
 import { error, header, info } from "../lib/ui.ts";
 import type { LocalProject } from "../types/index.ts";
 
@@ -23,15 +23,16 @@ async function getGitBranch(projectPath: string): Promise<string> {
 }
 
 async function getLocalProjects(): Promise<LocalProject[]> {
-	if (!existsSync(PROJECTS_DIR)) {
+	const projectsDir = getProjectsDir();
+	if (!existsSync(projectsDir)) {
 		return [];
 	}
 
-	const entries = readdirSync(PROJECTS_DIR);
+	const entries = readdirSync(projectsDir);
 	const projects: LocalProject[] = [];
 
 	for (const entry of entries) {
-		const fullPath = join(PROJECTS_DIR, entry);
+		const fullPath = join(projectsDir, entry);
 		if (statSync(fullPath).isDirectory()) {
 			const branch = await getGitBranch(fullPath);
 			projects.push({
