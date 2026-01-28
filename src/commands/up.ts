@@ -534,59 +534,16 @@ async function handlePostStart(
 	config: DevboxConfigV2,
 	options: UpOptions,
 ): Promise<void> {
-	// Handle flags for non-interactive mode
-	if (options.editor && options.attach) {
-		const editor = config.editor || "cursor";
-		await openInEditor(projectPath, editor);
-		await attachToShell(projectPath);
-		return;
-	}
+	const { action, editor } = await determinePostStartAction(config, options);
 
-	if (options.editor) {
-		const editor = config.editor || "cursor";
-		await openInEditor(projectPath, editor);
-		return;
-	}
-
-	if (options.attach) {
-		await attachToShell(projectPath);
-		return;
-	}
-
-	if (options.noPrompt) {
-		success("Container ready.");
-		return;
-	}
-
-	// Interactive mode - check if we need to ask for editor preference
-	let editor = config.editor;
-
-	if (!editor) {
-		const { selectedEditor } = await inquirer.prompt([
-			{
-				type: "rawlist",
-				name: "selectedEditor",
-				message: "Which editor would you like to use?",
-				choices: [
-					...SUPPORTED_EDITORS.map((e) => ({ name: e.name, value: e.id })),
-					{ name: "Other (specify command)", value: "other" },
-				],
-			},
-		]);
-
-		if (selectedEditor === "other") {
-			const { customEditor } = await inquirer.prompt([
-				{
-					type: "input",
-					name: "customEditor",
-					message: "Enter editor command:",
-				},
-			]);
-			editor = customEditor;
-		} else {
-			editor = selectedEditor;
-		}
-
+	// Handle editor preference saving (only in interactive mode)
+	if (
+		!options.noPrompt &&
+		!options.editor &&
+		!options.attach &&
+		!config.editor &&
+		editor
+	) {
 		const { makeDefault } = await inquirer.prompt([
 			{
 				type: "confirm",
@@ -603,38 +560,5 @@ async function handlePostStart(
 		}
 	}
 
-	// Ask what to do
-	const { action } = await inquirer.prompt([
-		{
-			type: "rawlist",
-			name: "action",
-			message: "What would you like to do?",
-			choices: [
-				{ name: "Open in editor", value: "editor" },
-				{ name: "Attach to shell", value: "shell" },
-				{ name: "Both", value: "both" },
-				{ name: "Neither (just exit)", value: "none" },
-			],
-		},
-	]);
-
-	if (action === "editor" || action === "both") {
-		const openSpin = spinner(`Opening in ${editor}...`);
-		const openResult = await openInEditor(projectPath, editor);
-		if (openResult.success) {
-			openSpin.succeed(`Opened in ${editor}`);
-		} else {
-			openSpin.fail(`Failed to open in ${editor}`);
-			warn(openResult.error || "Unknown error");
-		}
-	}
-
-	if (action === "shell" || action === "both") {
-		info("Attaching to shell (Ctrl+D to exit)...");
-		await attachToShell(projectPath);
-	}
-
-	if (action === "none") {
-		success("Container ready. Run 'devbox up' again to open editor or attach.");
-	}
+	await executePostStartAction(projectPath, action, editor);
 }
