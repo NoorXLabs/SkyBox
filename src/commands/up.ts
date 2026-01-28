@@ -495,6 +495,40 @@ async function determinePostStartAction(
 	return { action, editor };
 }
 
+/**
+ * Execute the determined post-start action (open editor, attach shell, or both).
+ */
+async function executePostStartAction(
+	projectPath: string,
+	action: PostStartAction,
+	editor: string | undefined,
+): Promise<void> {
+	if (action === "none") {
+		success("Container ready. Run 'devbox up' again to open editor or attach.");
+		return;
+	}
+
+	if (action === "editor" || action === "both") {
+		if (!editor) {
+			warn("No editor configured");
+		} else {
+			const openSpin = spinner(`Opening in ${editor}...`);
+			const openResult = await openInEditor(projectPath, editor);
+			if (openResult.success) {
+				openSpin.succeed(`Opened in ${editor}`);
+			} else {
+				openSpin.fail(`Failed to open in ${editor}`);
+				warn(openResult.error || "Unknown error");
+			}
+		}
+	}
+
+	if (action === "shell" || action === "both") {
+		info("Attaching to shell (Ctrl+D to exit)...");
+		await attachToShell(projectPath);
+	}
+}
+
 async function handlePostStart(
 	projectPath: string,
 	config: DevboxConfigV2,
