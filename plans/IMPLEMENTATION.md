@@ -182,13 +182,13 @@
   - Locations: `src/lib/paths.ts:5-6`, `src/lib/config.ts:14-16`, `src/lib/project.ts:8`
   - Same path computed in 3 different files
   - Fix: Use `src/lib/paths.ts` as single source of truth
-  - Commit: (pending)
+  - Commit: `b421fa1`
 
 - [x] **Task 18:** Use getters for dynamic paths
   - Location: `src/lib/paths.ts:5-11`
   - Paths computed at module load time, become stale
   - Fix: Convert to `getDevboxHome()`, `getConfigPath()`, etc.
-  - Commit: (pending)
+  - Commit: `b421fa1`
 
 ### Error Handling
 
@@ -196,31 +196,31 @@
   - Location: `src/lib/config.ts:30`
   - Can throw on invalid YAML without user-friendly message
   - Fix: Wrap in try/catch, throw descriptive error
-  - Commit: (pending)
+  - Commit: `f9b7c61`
 
 - [x] **Task 20:** Fix unsafe HOME environment fallback
   - Location: `src/commands/init.ts:158`
   - Empty string fallback if HOME not set
   - Fix: Use `homedir()` from `node:os`
-  - Commit: (pending)
+  - Commit: `f9b7c61`
 
 - [x] **Task 21:** Add filesystem error handling in init
   - Location: `src/commands/init.ts:447-448`
   - `mkdirSync` calls without try/catch
   - Fix: Wrap in try/catch with user-friendly error message
-  - Commit: (pending)
+  - Commit: `f9b7c61`
 
 - [x] **Task 22:** Fix race condition in list.ts
   - Location: `src/commands/list.ts:33-42`
   - File could be deleted between readdir and stat
   - Fix: Wrap in try/catch, continue on error
-  - Commit: (pending)
+  - Commit: `f9b7c61`
 
 - [x] **Task 23:** Add stream error handling in download.ts
   - Location: `src/lib/download.ts:73-84`
   - Write errors not handled
   - Fix: Use promise wrapper with error event listener
-  - Commit: (pending)
+  - Commit: `f9b7c61`
 
 ### Validation
 
@@ -228,25 +228,26 @@
   - Location: Multiple files
   - No validation for path traversal, special chars
   - Fix: Used existing `validateProjectName()` in clone.ts and push.ts
-  - Commit: (pending)
+  - Commit: `43cf0f8`
 
 - [x] **Task 25:** Add type guards for execa errors
   - Location: `src/lib/errors.ts:32-38`
   - `hasExitCode` doesn't properly type narrow
   - Fix: Create proper `isExecaError` type guard
-  - Commit: (pending)
+  - Commit: `43cf0f8`
 
 ### Consistency
 
-- [ ] **Task 26:** Standardize null vs undefined
+- [x] **Task 26:** Standardize null vs undefined
   - Location: `src/types/index.ts:49, 51`
   - `user: string | null` but `key?: string | null`
-  - Fix: Pick one convention (prefer undefined for optional)
+  - Fix: Changed `RemoteEntry` to use optional properties with undefined
+  - Commit: `b945c5b`
 
-- [ ] **Task 27:** Standardize process exit vs return
+- [~] **Task 27:** Standardize process exit vs return
   - Locations: `src/commands/init.ts:415-416, 438-439` and others
   - Inconsistent error handling patterns
-  - Fix: Throw errors, handle at top-level CLI
+  - Status: Skipped - 70+ occurrences across 14 files, would require major refactor
 
 ### Additional Refactoring
 
@@ -254,35 +255,37 @@
   - Location: `src/lib/templates.ts:44, 66, 87, 107`
   - Same terminal setting repeated in 4 templates
   - Fix: Create `COMMON_VSCODE_SETTINGS` constant
-  - Commit: (pending)
+  - Commit: `43cf0f8`
 
-- [ ] **Task 29:** Extract Docker query helper
+- [x] **Task 29:** Extract Docker query helper
   - Location: `src/lib/container.ts` (6 variations)
   - Similar Docker query pattern repeated
-  - Fix: Create `queryDocker()` helper function
+  - Fix: Created `queryDockerContainers()` helper function
+  - Commit: `b945c5b`
 
-- [ ] **Task 30:** Extract confirmation prompt helper
+- [x] **Task 30:** Extract confirmation prompt helper
   - Location: `src/commands/clone.ts:72-98`, `src/commands/push.ts:111-137`
   - Double-confirmation pattern duplicated
-  - Fix: Create `confirmDestructiveAction()` in `src/lib/ui.ts`
+  - Fix: Created `confirmDestructiveAction()` in `src/lib/ui.ts`
+  - Commit: `b945c5b`
 
 - [x] **Task 31:** Fix recursive call in newCommand
   - Location: `src/commands/new.ts:59-60`
   - Unbounded recursion if user keeps entering existing names
   - Fix: Add retry counter with MAX_NAME_ATTEMPTS loop
-  - Commit: (pending)
+  - Commit: `43cf0f8`
 
 - [x] **Task 32:** Add cleanup on partial clone failure
   - Location: `src/commands/clone.ts:103-144`
   - Empty directory left behind on failure
   - Fix: Add cleanup in failure paths
-  - Commit: (pending)
+  - Commit: `43cf0f8`
 
 - [x] **Task 33:** Sanitize Mutagen session names
   - Location: `src/lib/mutagen.ts:7-9`
   - Project names with special chars could fail
   - Fix: Sanitize to safe characters (lowercase alphanumeric, hyphens, underscores)
-  - Commit: (pending)
+  - Commit: `43cf0f8`
 
 ---
 
