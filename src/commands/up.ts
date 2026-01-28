@@ -47,6 +47,65 @@ interface ResolvedProject {
 	projectPath: string;
 }
 
+/**
+ * Resolve which project to operate on from argument, cwd, or prompt.
+ * Returns null if no project could be resolved.
+ */
+async function resolveProject(
+	projectArg: string | undefined,
+	options: UpOptions,
+): Promise<ResolvedProject | null> {
+	let project = projectArg;
+
+	if (!project) {
+		project = resolveProjectFromCwd() ?? undefined;
+	}
+
+	if (!project) {
+		const projects = getLocalProjects();
+
+		if (projects.length === 0) {
+			error(
+				"No local projects found. Run 'devbox clone' or 'devbox push' first.",
+			);
+			return null;
+		}
+
+		if (options.noPrompt) {
+			error("No project specified and --no-prompt is set.");
+			return null;
+		}
+
+		const { selectedProject } = await inquirer.prompt([
+			{
+				type: "rawlist",
+				name: "selectedProject",
+				message: "Select a project:",
+				choices: projects,
+			},
+		]);
+		project = selectedProject;
+	}
+
+	if (!projectExists(project ?? "")) {
+		error(
+			`Project '${project}' not found locally. Run 'devbox clone ${project}' first.`,
+		);
+		return null;
+	}
+
+	const rawPath = getProjectPath(project ?? "");
+	const { realpathSync } = await import("node:fs");
+	let normalizedPath: string;
+	try {
+		normalizedPath = realpathSync(rawPath);
+	} catch {
+		normalizedPath = rawPath;
+	}
+
+	return { project: project ?? "", projectPath: normalizedPath };
+}
+
 export async function upCommand(
 	projectArg: string | undefined,
 	options: UpOptions,
@@ -64,58 +123,12 @@ export async function upCommand(
 	}
 
 	// Step 2: Resolve project
-	let project = projectArg;
-
-	if (!project) {
-		// Try to detect from current directory
-		project = resolveProjectFromCwd() ?? undefined;
-	}
-
-	if (!project) {
-		// Prompt for project selection
-		const projects = getLocalProjects();
-
-		if (projects.length === 0) {
-			error(
-				"No local projects found. Run 'devbox clone' or 'devbox push' first.",
-			);
-			process.exit(1);
-		}
-
-		if (options.noPrompt) {
-			error("No project specified and --no-prompt is set.");
-			process.exit(1);
-		}
-
-		const { selectedProject } = await inquirer.prompt([
-			{
-				type: "rawlist",
-				name: "selectedProject",
-				message: "Select a project:",
-				choices: projects,
-			},
-		]);
-		project = selectedProject;
-	}
-
-	// Verify project exists locally
-	if (!projectExists(project ?? "")) {
-		error(
-			`Project '${project}' not found locally. Run 'devbox clone ${project}' first.`,
-		);
+	const resolved = await resolveProject(projectArg, options);
+	if (!resolved) {
 		process.exit(1);
 	}
+	const { project, projectPath } = resolved;
 
-	const projectPath = getProjectPath(project ?? "");
-	// Normalize path early so container label matches query paths
-	// (macOS realpathSync can resolve symlinks differently)
-	const { realpathSync } = await import("node:fs");
-	let normalizedProjectPath: string;
-	try {
-		normalizedProjectPath = realpathSync(projectPath);
-	} catch {
-		normalizedProjectPath = projectPath;
-	}
 	header(`Starting '${project}'...`);
 
 	// Step 2.5: Acquire lock before any container/sync operations
@@ -198,7 +211,7 @@ export async function upCommand(
 	}
 
 	// Step 4: Check container status
-	const containerStatus = await getContainerStatus(normalizedProjectPath);
+	const containerStatus = await getContainerStatus(projectPath);
 
 	if (containerStatus === ContainerStatus.Running) {
 		if (options.noPrompt) {
@@ -219,7 +232,7 @@ export async function upCommand(
 
 			if (action === "restart" || action === "rebuild") {
 				const stopSpin = spinner("Stopping container...");
-				const stopResult = await stopContainer(normalizedProjectPath);
+				const stopResult = await stopContainer(projectPath);
 				if (!stopResult.success) {
 					stopSpin.fail("Failed to stop container");
 					error(stopResult.error || "Unknown error");
@@ -232,7 +245,7 @@ export async function upCommand(
 				}
 			} else {
 				// Skip to post-start options
-				await handlePostStart(normalizedProjectPath, config, options);
+				await handlePostStart(projectPath, config, options);
 				return;
 			}
 		}
@@ -241,7 +254,7 @@ export async function upCommand(
 	}
 
 	// Step 5: Check for devcontainer.json
-	if (!hasLocalDevcontainerConfig(normalizedProjectPath)) {
+	if (!hasLocalDevcontainerConfig(projectPath)) {
 		if (options.noPrompt) {
 			error("No devcontainer.json found and --no-prompt is set.");
 			process.exit(1);
@@ -277,18 +290,18 @@ export async function upCommand(
 			},
 		]);
 
-		createDevcontainerConfig(normalizedProjectPath, templateId, project);
+		createDevcontainerConfig(projectPath, templateId, project);
 		success("Created .devcontainer/devcontainer.json");
 
 		// Commit the new config
-		await commitDevcontainerConfig(normalizedProjectPath);
+		await commitDevcontainerConfig(projectPath);
 	}
 
 	// Step 6: Start container locally with retry
-	await startContainerWithRetry(normalizedProjectPath, options);
+	await startContainerWithRetry(projectPath, options);
 
 	// Step 7: Post-start options
-	await handlePostStart(normalizedProjectPath, config, options);
+	await handlePostStart(projectPath, config, options);
 }
 
 async function commitDevcontainerConfig(projectPath: string): Promise<void> {
