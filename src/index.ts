@@ -4,6 +4,7 @@ import pkg from "../package.json";
 import { browseCommand } from "./commands/browse.ts";
 import { cloneCommand } from "./commands/clone.ts";
 import { configCommand } from "./commands/config.ts";
+import { doctorCommand } from "./commands/doctor.ts";
 import { downCommand } from "./commands/down.ts";
 import { editorCommand } from "./commands/editor.ts";
 import { initCommand } from "./commands/init.ts";
@@ -123,5 +124,10 @@ program
 	.description("View or modify configuration")
 	.option("--validate", "Test connection to all remotes")
 	.action((key, value, options) => configCommand(options, key, value));
+
+program
+	.command("doctor")
+	.description("Diagnose common issues")
+	.action(doctorCommand);
 
 program.parse();
