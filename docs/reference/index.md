@@ -21,6 +21,7 @@ DevBox provides a set of commands for managing your local-first development envi
 | [`devbox config`](/reference/config) | View/modify configuration |
 | [`devbox editor`](/reference/editor) | Change default editor |
 | [`devbox rm`](/reference/rm) | Remove project locally (keeps remote) |
+| [`devbox doctor`](/reference/doctor) | Diagnose common issues |
 
 ## Global Options
 
@@ -38,6 +39,9 @@ All commands support these global options:
 ```bash
 # Initial setup
 devbox init
+
+# Diagnose common issues
+devbox doctor
 
 # View configuration
 devbox config

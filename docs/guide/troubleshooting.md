@@ -2,6 +2,16 @@
 
 Common issues and solutions for DevBox.
 
+## First Step: Run Doctor
+
+Before diving into specific issues, run the built-in diagnostic tool:
+
+```bash
+devbox doctor
+```
+
+This checks Docker, Mutagen, SSH connectivity, and configuration in one command. It will identify most common problems and suggest fixes.
+
 ## Connection Issues
 
 ### SSH Connection Failed
@@ -206,15 +216,20 @@ Common issues and solutions for DevBox.
 
 If these solutions don't help:
 
-1. **Check logs:**
+1. **Run diagnostics:**
    ```bash
-   devbox status myproject --detailed
+   devbox doctor
    ```
 
-2. **Run with verbose:**
+2. **Check project status:**
+   ```bash
+   devbox status myproject
+   ```
+
+3. **Run with verbose:**
    ```bash
    DEVBOX_DEBUG=1 devbox up myproject
    ```
 
-3. **Report an issue:**
+4. **Report an issue:**
    [GitHub Issues](https://github.com/NoorChasib/DevBox/issues)
