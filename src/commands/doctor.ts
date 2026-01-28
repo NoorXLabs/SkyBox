@@ -1,7 +1,9 @@
 // src/commands/doctor.ts
 
 import { execSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import chalk from "chalk";
+import { getMutagenPath } from "../lib/paths.ts";
 import type {
 	DoctorCheckResult,
 	DoctorCheckStatus,
@@ -61,6 +63,44 @@ function checkDocker(): DoctorCheckResult {
 	}
 }
 
+function checkMutagen(): DoctorCheckResult {
+	const name = "Mutagen";
+
+	// Check if Mutagen binary exists
+	try {
+		const mutagenPath = getMutagenPath();
+
+		if (!existsSync(mutagenPath)) {
+			return {
+				name,
+				status: "warn",
+				message: "Mutagen not installed (will be downloaded on first use)",
+				fix: "Run 'devbox init' to download Mutagen",
+			};
+		}
+
+		// Try to get version
+		const result = execSync(`"${mutagenPath}" version`, {
+			encoding: "utf-8",
+			timeout: 5000,
+		});
+		const version = result.trim().split("\n")[0] || "installed";
+
+		return {
+			name,
+			status: "pass",
+			message: `Mutagen ${version}`,
+		};
+	} catch {
+		return {
+			name,
+			status: "warn",
+			message: "Mutagen check failed",
+			fix: "Run 'devbox init' to reinstall Mutagen",
+		};
+	}
+}
+
 function printResult(result: DoctorCheckResult): void {
 	const icon = icons[result.status];
 	console.log(`  ${icon} ${result.name}: ${result.message}`);
@@ -112,6 +152,7 @@ export async function doctorCommand(): Promise<void> {
 
 	// Run all checks
 	checks.push(checkDocker());
+	checks.push(checkMutagen());
 
 	// Calculate summary
 	const passed = checks.filter((c) => c.status === "pass").length;
