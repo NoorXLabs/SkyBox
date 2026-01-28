@@ -202,6 +202,31 @@ async function checkSSHConnectivity(): Promise<DoctorCheckResult[]> {
 	return results;
 }
 
+function checkDevcontainerCLI(): DoctorCheckResult {
+	const name = "Devcontainer CLI";
+
+	try {
+		const result = execSync("devcontainer --version", {
+			encoding: "utf-8",
+			timeout: 5000,
+		});
+		const version = result.trim() || "installed";
+
+		return {
+			name,
+			status: "pass",
+			message: `devcontainer ${version}`,
+		};
+	} catch {
+		return {
+			name,
+			status: "warn",
+			message: "Devcontainer CLI not found",
+			fix: "npm install -g @devcontainers/cli",
+		};
+	}
+}
+
 function printResult(result: DoctorCheckResult): void {
 	const icon = icons[result.status];
 	console.log(`  ${icon} ${result.name}: ${result.message}`);
@@ -254,6 +279,7 @@ export async function doctorCommand(): Promise<void> {
 	// Run sync checks
 	checks.push(checkDocker());
 	checks.push(checkMutagen());
+	checks.push(checkDevcontainerCLI());
 	checks.push(checkConfig());
 
 	// Run async checks
