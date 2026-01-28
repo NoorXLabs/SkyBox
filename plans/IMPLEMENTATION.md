@@ -4,7 +4,7 @@
 >
 > **Started:** 2025 (CLI Development)
 >
-> **Progress:** 14/14 commands complete | 21/55 code quality tasks complete
+> **Progress:** 14/14 commands complete | 27/55 code quality tasks complete
 
 ---
 
@@ -224,15 +224,17 @@
 
 ### Validation
 
-- [ ] **Task 24:** Add project name validation
+- [x] **Task 24:** Add project name validation
   - Location: Multiple files
   - No validation for path traversal, special chars
-  - Fix: Create `validateProjectName()` in `src/lib/validation.ts`
+  - Fix: Used existing `validateProjectName()` in clone.ts and push.ts
+  - Commit: (pending)
 
-- [ ] **Task 25:** Add type guards for execa errors
+- [x] **Task 25:** Add type guards for execa errors
   - Location: `src/lib/errors.ts:32-38`
   - `hasExitCode` doesn't properly type narrow
   - Fix: Create proper `isExecaError` type guard
+  - Commit: (pending)
 
 ### Consistency
 
@@ -248,10 +250,11 @@
 
 ### Additional Refactoring
 
-- [ ] **Task 28:** Extract common VSCode settings in templates
+- [x] **Task 28:** Extract common VSCode settings in templates
   - Location: `src/lib/templates.ts:44, 66, 87, 107`
   - Same terminal setting repeated in 4 templates
   - Fix: Create `COMMON_VSCODE_SETTINGS` constant
+  - Commit: (pending)
 
 - [ ] **Task 29:** Extract Docker query helper
   - Location: `src/lib/container.ts` (6 variations)
@@ -263,20 +266,23 @@
   - Double-confirmation pattern duplicated
   - Fix: Create `confirmDestructiveAction()` in `src/lib/ui.ts`
 
-- [ ] **Task 31:** Fix recursive call in newCommand
+- [x] **Task 31:** Fix recursive call in newCommand
   - Location: `src/commands/new.ts:59-60`
   - Unbounded recursion if user keeps entering existing names
-  - Fix: Add retry counter or use loop with MAX_ATTEMPTS
+  - Fix: Add retry counter with MAX_NAME_ATTEMPTS loop
+  - Commit: (pending)
 
-- [ ] **Task 32:** Add cleanup on partial clone failure
+- [x] **Task 32:** Add cleanup on partial clone failure
   - Location: `src/commands/clone.ts:103-144`
   - Empty directory left behind on failure
-  - Fix: Add cleanup in catch block
+  - Fix: Add cleanup in failure paths
+  - Commit: (pending)
 
-- [ ] **Task 33:** Sanitize Mutagen session names
+- [x] **Task 33:** Sanitize Mutagen session names
   - Location: `src/lib/mutagen.ts:7-9`
   - Project names with special chars could fail
-  - Fix: Sanitize to DNS-compatible labels
+  - Fix: Sanitize to safe characters (lowercase alphanumeric, hyphens, underscores)
+  - Commit: (pending)
 
 ---
 

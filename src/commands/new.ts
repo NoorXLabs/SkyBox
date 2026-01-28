@@ -10,6 +10,8 @@ import { error, header, info, spinner, success } from "../lib/ui.ts";
 import type { RemoteEntry } from "../types/index.ts";
 import { getRemoteHost, selectRemote } from "./remote.ts";
 
+const MAX_NAME_ATTEMPTS = 5;
+
 export async function newCommand(): Promise<void> {
 	// Check config exists
 	if (!configExists()) {
@@ -30,35 +32,49 @@ export async function newCommand(): Promise<void> {
 	const remote = config.remotes[remoteName];
 	const host = getRemoteHost(remote);
 
-	// Step 1: Get project name
-	const { projectName } = await inquirer.prompt([
-		{
-			type: "input",
-			name: "projectName",
-			message: "Project name:",
-			validate: (input: string) => {
-				const result = validateProjectName(input);
-				return result.valid ? true : result.error || "Invalid name";
+	// Step 1: Get project name (with retry loop for existing names)
+	let projectName: string;
+	let nameAttempts = 0;
+
+	while (true) {
+		const { name } = await inquirer.prompt([
+			{
+				type: "input",
+				name: "name",
+				message: "Project name:",
+				validate: (input: string) => {
+					const result = validateProjectName(input);
+					return result.valid ? true : result.error || "Invalid name";
+				},
 			},
-		},
-	]);
+		]);
+		projectName = name;
 
-	// Step 2: Check if project exists on remote
-	const checkSpin = spinner("Checking remote...");
-	const checkResult = await runRemoteCommand(
-		host,
-		`test -d "${remote.path}/${projectName}" && echo "EXISTS" || echo "NOT_FOUND"`,
-	);
-
-	if (checkResult.stdout?.includes("EXISTS")) {
-		checkSpin.fail("Project already exists");
-		error(
-			`A project named '${projectName}' already exists on the remote. Please choose a different name.`,
+		// Step 2: Check if project exists on remote
+		const checkSpin = spinner("Checking remote...");
+		const checkResult = await runRemoteCommand(
+			host,
+			`test -d "${remote.path}/${projectName}" && echo "EXISTS" || echo "NOT_FOUND"`,
 		);
-		// Recursively call to re-prompt
-		return newCommand();
+
+		if (checkResult.stdout?.includes("EXISTS")) {
+			checkSpin.fail("Project already exists");
+			nameAttempts++;
+
+			if (nameAttempts >= MAX_NAME_ATTEMPTS) {
+				error("Too many attempts. Please try again later.");
+				process.exit(1);
+			}
+
+			info(
+				`A project named '${projectName}' already exists. Please choose a different name.`,
+			);
+			continue;
+		}
+
+		checkSpin.succeed("Name available");
+		break;
 	}
-	checkSpin.succeed("Name available");
 
 	// Step 3: Choose project type
 	const { projectType } = await inquirer.prompt([

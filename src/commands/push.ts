@@ -8,6 +8,7 @@ import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
 import { getErrorMessage } from "../lib/errors.ts";
 import { createSyncSession, waitForSync } from "../lib/mutagen.ts";
 import { getProjectsDir } from "../lib/paths.ts";
+import { validateProjectName } from "../lib/projectTemplates.ts";
 import { checkRemoteProjectExists } from "../lib/remote.ts";
 import { runRemoteCommand } from "../lib/ssh.ts";
 import { error, header, info, spinner, success } from "../lib/ui.ts";
@@ -53,6 +54,13 @@ export async function pushCommand(
 
 	// Determine project name
 	const projectName = name || basename(absolutePath);
+
+	// Validate project name to prevent path traversal and invalid characters
+	const validation = validateProjectName(projectName);
+	if (!validation.valid) {
+		error(validation.error || "Invalid project name");
+		process.exit(1);
+	}
 
 	// Select which remote to push to
 	const remoteName = await selectRemote(config);

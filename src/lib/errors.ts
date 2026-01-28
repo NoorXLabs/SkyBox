@@ -27,13 +27,33 @@ export function getExecaErrorMessage(error: unknown): string {
 }
 
 /**
- * Check if an error has a specific exit code (for execa errors).
+ * Type for execa-like errors with common properties.
  */
-export function hasExitCode(error: unknown, code: number): boolean {
+export interface ExecaLikeError {
+	exitCode?: number;
+	stderr?: string;
+	stdout?: string;
+	command?: string;
+	message?: string;
+}
+
+/**
+ * Type guard to check if an error is an execa-like error.
+ * Narrows the type for safe property access.
+ * Accepts both Error instances and plain objects with execa-like properties.
+ */
+export function isExecaError(error: unknown): error is ExecaLikeError {
 	return (
 		error !== null &&
 		typeof error === "object" &&
-		"exitCode" in error &&
-		error.exitCode === code
+		("exitCode" in error || "stderr" in error || "command" in error)
 	);
+}
+
+/**
+ * Check if an error has a specific exit code (for execa errors).
+ * Uses type guard for proper type narrowing.
+ */
+export function hasExitCode(error: unknown, code: number): boolean {
+	return isExecaError(error) && error.exitCode === code;
 }

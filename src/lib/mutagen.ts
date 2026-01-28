@@ -4,8 +4,19 @@ import type { SyncStatus, SyncStatusValue } from "../types/index.ts";
 import { getExecaErrorMessage } from "./errors.ts";
 import { getMutagenPath } from "./paths.ts";
 
+/**
+ * Generate a sanitized Mutagen session name from a project name.
+ * Mutagen session names should contain only alphanumeric characters, hyphens, and underscores.
+ */
 export function sessionName(project: string): string {
-	return `devbox-${project}`;
+	// Sanitize: lowercase, replace problematic characters with hyphens, collapse multiple hyphens
+	const sanitized = project
+		.toLowerCase()
+		.replace(/[^a-z0-9_-]/g, "-")
+		.replace(/-+/g, "-")
+		.replace(/^-|-$/g, ""); // Remove leading/trailing hyphens
+
+	return `devbox-${sanitized || "project"}`;
 }
 
 /** Standard result type for Mutagen operations */

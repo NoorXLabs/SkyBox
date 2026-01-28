@@ -23,6 +23,11 @@ const COMMON_MOUNTS = [
 const SSH_SYMLINK_COMMAND =
 	"[ ! -L $HOME/.ssh ] && rm -rf $HOME/.ssh && ln -s /var/ssh-config $HOME/.ssh || true";
 
+// Common VS Code settings for all templates
+const COMMON_VSCODE_SETTINGS = {
+	"terminal.integrated.defaultProfile.linux": "zsh",
+};
+
 // Template configs without workspace settings (added dynamically based on project)
 // All templates include: DooD, SSH passthrough, zsh
 export const TEMPLATES: Template[] = [
@@ -40,9 +45,7 @@ export const TEMPLATES: Template[] = [
 			customizations: {
 				vscode: {
 					extensions: ["dbaeumer.vscode-eslint"],
-					settings: {
-						"terminal.integrated.defaultProfile.linux": "zsh",
-					},
+					settings: COMMON_VSCODE_SETTINGS,
 				},
 			},
 		},
@@ -62,9 +65,7 @@ export const TEMPLATES: Template[] = [
 			customizations: {
 				vscode: {
 					extensions: ["ms-python.python"],
-					settings: {
-						"terminal.integrated.defaultProfile.linux": "zsh",
-					},
+					settings: COMMON_VSCODE_SETTINGS,
 				},
 			},
 		},
@@ -83,9 +84,7 @@ export const TEMPLATES: Template[] = [
 			customizations: {
 				vscode: {
 					extensions: ["golang.go"],
-					settings: {
-						"terminal.integrated.defaultProfile.linux": "zsh",
-					},
+					settings: COMMON_VSCODE_SETTINGS,
 				},
 			},
 		},
@@ -103,9 +102,7 @@ export const TEMPLATES: Template[] = [
 			customizations: {
 				vscode: {
 					extensions: [],
-					settings: {
-						"terminal.integrated.defaultProfile.linux": "zsh",
-					},
+					settings: COMMON_VSCODE_SETTINGS,
 				},
 			},
 		},

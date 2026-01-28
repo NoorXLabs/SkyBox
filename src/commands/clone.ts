@@ -11,6 +11,7 @@ import {
 	waitForSync,
 } from "../lib/mutagen.ts";
 import { getProjectsDir } from "../lib/paths.ts";
+import { validateProjectName } from "../lib/projectTemplates.ts";
 import { checkRemoteProjectExists } from "../lib/remote.ts";
 import { error, header, info, spinner, success } from "../lib/ui.ts";
 import { getRemoteHost, getRemotePath, selectRemote } from "./remote.ts";
@@ -18,6 +19,13 @@ import { getRemoteHost, getRemotePath, selectRemote } from "./remote.ts";
 export async function cloneCommand(project: string): Promise<void> {
 	if (!project) {
 		error("Usage: devbox clone <project>");
+		process.exit(1);
+	}
+
+	// Validate project name to prevent path traversal and invalid characters
+	const validation = validateProjectName(project);
+	if (!validation.valid) {
+		error(validation.error || "Invalid project name");
 		process.exit(1);
 	}
 
@@ -114,6 +122,8 @@ export async function cloneCommand(project: string): Promise<void> {
 
 	if (!createResult.success) {
 		syncSpin.fail("Failed to create sync session");
+		// Clean up the empty directory on failure
+		rmSync(localPath, { recursive: true, force: true });
 		error(createResult.error || "Unknown error");
 		process.exit(1);
 	}
@@ -126,6 +136,9 @@ export async function cloneCommand(project: string): Promise<void> {
 
 	if (!syncResult.success) {
 		syncSpin.fail("Sync failed");
+		// Clean up directory and terminate sync session on failure
+		await terminateSession(project);
+		rmSync(localPath, { recursive: true, force: true });
 		error(syncResult.error || "Unknown error");
 		process.exit(1);
 	}
