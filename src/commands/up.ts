@@ -202,6 +202,58 @@ async function checkAndResumeSync(project: string): Promise<void> {
 	syncSpin.succeed("Sync is active");
 }
 
+/**
+ * Handle existing container status (running or stopped).
+ * Returns 'skip' to skip to post-start, 'continue' to proceed, or 'exit' to abort.
+ */
+async function handleContainerStatus(
+	projectPath: string,
+	options: UpOptions,
+): Promise<{ action: "skip" | "continue" | "exit"; rebuild?: boolean }> {
+	const containerStatus = await getContainerStatus(projectPath);
+
+	if (containerStatus === ContainerStatus.Running) {
+		if (options.noPrompt) {
+			info("Container already running, continuing...");
+			return { action: "continue" };
+		}
+
+		const { action } = await inquirer.prompt([
+			{
+				type: "rawlist",
+				name: "action",
+				message: "Container already running. What would you like to do?",
+				choices: [
+					{ name: "Continue with existing container", value: "continue" },
+					{ name: "Restart container", value: "restart" },
+					{ name: "Rebuild container", value: "rebuild" },
+				],
+			},
+		]);
+
+		if (action === "continue") {
+			return { action: "skip" };
+		}
+
+		const stopSpin = spinner("Stopping container...");
+		const stopResult = await stopContainer(projectPath);
+		if (!stopResult.success) {
+			stopSpin.fail("Failed to stop container");
+			error(stopResult.error || "Unknown error");
+			return { action: "exit" };
+		}
+		stopSpin.succeed("Container stopped");
+
+		return { action: "continue", rebuild: action === "rebuild" };
+	}
+
+	if (containerStatus === ContainerStatus.Stopped) {
+		info("Found stopped container, will restart it...");
+	}
+
+	return { action: "continue" };
+}
+
 export async function upCommand(
 	projectArg: string | undefined,
 	options: UpOptions,
@@ -240,46 +292,16 @@ export async function upCommand(
 	await checkAndResumeSync(project);
 
 	// Step 4: Check container status
-	const containerStatus = await getContainerStatus(projectPath);
-
-	if (containerStatus === ContainerStatus.Running) {
-		if (options.noPrompt) {
-			info("Container already running, continuing...");
-		} else {
-			const { action } = await inquirer.prompt([
-				{
-					type: "rawlist",
-					name: "action",
-					message: "Container already running. What would you like to do?",
-					choices: [
-						{ name: "Continue with existing container", value: "continue" },
-						{ name: "Restart container", value: "restart" },
-						{ name: "Rebuild container", value: "rebuild" },
-					],
-				},
-			]);
-
-			if (action === "restart" || action === "rebuild") {
-				const stopSpin = spinner("Stopping container...");
-				const stopResult = await stopContainer(projectPath);
-				if (!stopResult.success) {
-					stopSpin.fail("Failed to stop container");
-					error(stopResult.error || "Unknown error");
-					process.exit(1);
-				}
-				stopSpin.succeed("Container stopped");
-
-				if (action === "rebuild") {
-					options.rebuild = true;
-				}
-			} else {
-				// Skip to post-start options
-				await handlePostStart(projectPath, config, options);
-				return;
-			}
-		}
-	} else if (containerStatus === ContainerStatus.Stopped) {
-		info("Found stopped container, will restart it...");
+	const statusResult = await handleContainerStatus(projectPath, options);
+	if (statusResult.action === "exit") {
+		process.exit(1);
+	}
+	if (statusResult.action === "skip") {
+		await handlePostStart(projectPath, config, options);
+		return;
+	}
+	if (statusResult.rebuild) {
+		options.rebuild = true;
 	}
 
 	// Step 5: Check for devcontainer.json
