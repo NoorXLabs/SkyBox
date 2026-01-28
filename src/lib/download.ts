@@ -70,20 +70,40 @@ export async function downloadMutagen(
 			return { success: false, error: `Download failed: ${response.status}` };
 		}
 
-		// Write to file
-		const fileStream = createWriteStream(tarPath);
+		// Write to file with proper error handling
 		const reader = response.body?.getReader();
 
 		if (!reader) {
 			return { success: false, error: "Failed to read response body" };
 		}
 
-		while (true) {
-			const { done, value } = await reader.read();
-			if (done) break;
-			fileStream.write(value);
-		}
-		fileStream.close();
+		await new Promise<void>((resolve, reject) => {
+			const fileStream = createWriteStream(tarPath);
+
+			fileStream.on("error", (err) => {
+				reject(new Error(`Failed to write file: ${err.message}`));
+			});
+
+			fileStream.on("finish", () => {
+				resolve();
+			});
+
+			(async () => {
+				try {
+					while (true) {
+						const { done, value } = await reader.read();
+						if (done) {
+							fileStream.end();
+							break;
+						}
+						fileStream.write(value);
+					}
+				} catch (err) {
+					fileStream.destroy();
+					reject(err);
+				}
+			})();
+		});
 
 		onProgress?.("Extracting...");
 

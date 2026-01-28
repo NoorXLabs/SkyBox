@@ -4,7 +4,7 @@
 >
 > **Started:** 2025 (CLI Development)
 >
-> **Progress:** 14/14 commands complete | 16/55 code quality tasks complete
+> **Progress:** 14/14 commands complete | 21/55 code quality tasks complete
 
 ---
 
@@ -192,30 +192,35 @@
 
 ### Error Handling
 
-- [ ] **Task 19:** Add YAML parse error handling
+- [x] **Task 19:** Add YAML parse error handling
   - Location: `src/lib/config.ts:30`
   - Can throw on invalid YAML without user-friendly message
   - Fix: Wrap in try/catch, throw descriptive error
+  - Commit: (pending)
 
-- [ ] **Task 20:** Fix unsafe HOME environment fallback
+- [x] **Task 20:** Fix unsafe HOME environment fallback
   - Location: `src/commands/init.ts:158`
   - Empty string fallback if HOME not set
-  - Fix: Use `homedir()` from `node:os`, throw if undefined
+  - Fix: Use `homedir()` from `node:os`
+  - Commit: (pending)
 
-- [ ] **Task 21:** Add filesystem error handling in init
+- [x] **Task 21:** Add filesystem error handling in init
   - Location: `src/commands/init.ts:447-448`
   - `mkdirSync` calls without try/catch
   - Fix: Wrap in try/catch with user-friendly error message
+  - Commit: (pending)
 
-- [ ] **Task 22:** Fix race condition in list.ts
+- [x] **Task 22:** Fix race condition in list.ts
   - Location: `src/commands/list.ts:33-42`
   - File could be deleted between readdir and stat
   - Fix: Wrap in try/catch, continue on error
+  - Commit: (pending)
 
-- [ ] **Task 23:** Add stream error handling in download.ts
+- [x] **Task 23:** Add stream error handling in download.ts
   - Location: `src/lib/download.ts:73-84`
   - Write errors not handled
   - Fix: Use promise wrapper with error event listener
+  - Commit: (pending)
 
 ### Validation
 

@@ -33,14 +33,16 @@ async function getLocalProjects(): Promise<LocalProject[]> {
 
 	for (const entry of entries) {
 		const fullPath = join(projectsDir, entry);
-		if (statSync(fullPath).isDirectory()) {
-			const branch = await getGitBranch(fullPath);
-			projects.push({
-				name: entry,
-				branch,
-				path: fullPath,
-			});
-		}
+		try {
+			if (statSync(fullPath).isDirectory()) {
+				const branch = await getGitBranch(fullPath);
+				projects.push({
+					name: entry,
+					branch,
+					path: fullPath,
+				});
+			}
+		} catch {}
 	}
 
 	return projects;

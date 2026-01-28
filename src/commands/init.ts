@@ -1,10 +1,12 @@
 // src/commands/init.ts
 
 import { mkdirSync } from "node:fs";
+import { homedir } from "node:os";
 import { execa } from "execa";
 import inquirer from "inquirer";
 import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
 import { downloadMutagen, isMutagenInstalled } from "../lib/download.ts";
+import { getErrorMessage } from "../lib/errors.ts";
 import { getBinDir, getDevboxHome, getProjectsDir } from "../lib/paths.ts";
 import {
 	copyKey,
@@ -155,7 +157,7 @@ async function configureRemote(): Promise<{
 					default: "~/.ssh/id_ed25519",
 				},
 			]);
-			identityFile = customPath.replace(/^~/, process.env.HOME || "");
+			identityFile = customPath.replace(/^~/, homedir());
 		} else {
 			identityFile = keyChoice as string;
 		}
@@ -444,8 +446,13 @@ export async function initCommand(): Promise<void> {
 
 	// Create directories
 	header("Setting up devbox...");
-	mkdirSync(getProjectsDir(), { recursive: true });
-	mkdirSync(getBinDir(), { recursive: true });
+	try {
+		mkdirSync(getProjectsDir(), { recursive: true });
+		mkdirSync(getBinDir(), { recursive: true });
+	} catch (err) {
+		error(`Failed to create devbox directories: ${getErrorMessage(err)}`);
+		process.exit(1);
+	}
 	success(`Created ${getDevboxHome()}`);
 
 	// Save config

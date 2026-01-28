@@ -21,7 +21,14 @@ export function loadConfig(): DevboxConfigV2 | null {
 	}
 
 	const content = readFileSync(configPath, "utf-8");
-	const rawConfig = parse(content);
+
+	let rawConfig: unknown;
+	try {
+		rawConfig = parse(content);
+	} catch (err) {
+		const message = err instanceof Error ? err.message : String(err);
+		throw new Error(`Failed to parse config file at ${configPath}: ${message}`);
+	}
 
 	// Auto-migrate old format
 	if (needsMigration(rawConfig)) {
