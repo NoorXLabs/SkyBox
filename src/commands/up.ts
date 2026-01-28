@@ -92,6 +92,15 @@ export async function upCommand(
 	}
 
 	const projectPath = getProjectPath(project ?? "");
+	// Normalize path early so container label matches query paths
+	// (macOS realpathSync can resolve symlinks differently)
+	const { realpathSync } = await import("node:fs");
+	let normalizedProjectPath: string;
+	try {
+		normalizedProjectPath = realpathSync(projectPath);
+	} catch {
+		normalizedProjectPath = projectPath;
+	}
 	header(`Starting '${project}'...`);
 
 	// Step 2.5: Acquire lock before any container/sync operations
@@ -174,7 +183,7 @@ export async function upCommand(
 	}
 
 	// Step 4: Check container status
-	const containerStatus = await getContainerStatus(projectPath);
+	const containerStatus = await getContainerStatus(normalizedProjectPath);
 
 	if (containerStatus === ContainerStatus.Running) {
 		if (options.noPrompt) {
@@ -195,7 +204,7 @@ export async function upCommand(
 
 			if (action === "restart" || action === "rebuild") {
 				const stopSpin = spinner("Stopping container...");
-				const stopResult = await stopContainer(projectPath);
+				const stopResult = await stopContainer(normalizedProjectPath);
 				if (!stopResult.success) {
 					stopSpin.fail("Failed to stop container");
 					error(stopResult.error || "Unknown error");
@@ -208,7 +217,7 @@ export async function upCommand(
 				}
 			} else {
 				// Skip to post-start options
-				await handlePostStart(projectPath, config, options);
+				await handlePostStart(normalizedProjectPath, config, options);
 				return;
 			}
 		}
@@ -217,7 +226,7 @@ export async function upCommand(
 	}
 
 	// Step 5: Check for devcontainer.json
-	if (!hasLocalDevcontainerConfig(projectPath)) {
+	if (!hasLocalDevcontainerConfig(normalizedProjectPath)) {
 		if (options.noPrompt) {
 			error("No devcontainer.json found and --no-prompt is set.");
 			process.exit(1);
@@ -253,18 +262,18 @@ export async function upCommand(
 			},
 		]);
 
-		createDevcontainerConfig(projectPath, templateId, project);
+		createDevcontainerConfig(normalizedProjectPath, templateId, project);
 		success("Created .devcontainer/devcontainer.json");
 
 		// Commit the new config
-		await commitDevcontainerConfig(projectPath);
+		await commitDevcontainerConfig(normalizedProjectPath);
 	}
 
 	// Step 6: Start container locally with retry
-	await startContainerWithRetry(projectPath, options);
+	await startContainerWithRetry(normalizedProjectPath, options);
 
 	// Step 7: Post-start options
-	await handlePostStart(projectPath, config, options);
+	await handlePostStart(normalizedProjectPath, config, options);
 }
 
 async function commitDevcontainerConfig(projectPath: string): Promise<void> {

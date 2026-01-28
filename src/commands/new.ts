@@ -1,4 +1,5 @@
 // src/commands/new.ts
+import { Separator, select } from "@inquirer/prompts";
 import inquirer from "inquirer";
 import { configExists, loadConfig } from "../lib/config.ts";
 import {
@@ -77,17 +78,13 @@ export async function newCommand(): Promise<void> {
 	}
 
 	// Step 3: Choose project type
-	const { projectType } = await inquirer.prompt([
-		{
-			type: "list",
-			name: "projectType",
-			message: "How would you like to create this project?",
-			choices: [
-				{ name: "Empty project (with devcontainer.json)", value: "empty" },
-				{ name: "From a template", value: "template" },
-			],
-		},
-	]);
+	const projectType = await select({
+		message: "How would you like to create this project?",
+		choices: [
+			{ name: "Empty project (with devcontainer.json)", value: "empty" },
+			{ name: "From a template", value: "template" },
+		],
+	});
 
 	if (projectType === "empty") {
 		await createEmptyProject(remote, projectName);
@@ -140,15 +137,15 @@ async function createFromTemplate(
 ): Promise<void> {
 	const { builtIn, user } = getAllTemplates();
 
-	// Build choices with separators
+	// Build choices with separators using @inquirer/prompts format
 	type ChoiceItem =
 		| { name: string; value: string }
-		| InstanceType<typeof inquirer.Separator>;
+		| InstanceType<typeof Separator>;
 	const choices: ChoiceItem[] = [];
 
 	// Built-in templates
 	if (builtIn.length > 0) {
-		choices.push(new inquirer.Separator("──── Built-in ────"));
+		choices.push(new Separator("──── Built-in ────"));
 		for (const t of builtIn) {
 			choices.push({ name: t.name, value: `builtin:${t.id}` });
 		}
@@ -156,24 +153,20 @@ async function createFromTemplate(
 
 	// User templates
 	if (user.length > 0) {
-		choices.push(new inquirer.Separator("──── Custom ────"));
+		choices.push(new Separator("──── Custom ────"));
 		for (const t of user) {
 			choices.push({ name: t.name, value: `user:${t.name}` });
 		}
 	}
 
 	// Git URL option
-	choices.push(new inquirer.Separator("────────────────"));
+	choices.push(new Separator("────────────────"));
 	choices.push({ name: "Enter git URL...", value: "custom" });
 
-	const { templateChoice } = await inquirer.prompt([
-		{
-			type: "list",
-			name: "templateChoice",
-			message: "Select a template:",
-			choices,
-		},
-	]);
+	const templateChoice = await select({
+		message: "Select a template:",
+		choices,
+	});
 
 	let templateUrl: string;
 
@@ -214,17 +207,13 @@ async function createFromTemplate(
 	// Ask about git history for custom URLs
 	let keepHistory = false;
 	if (templateChoice === "custom") {
-		const { historyChoice } = await inquirer.prompt([
-			{
-				type: "list",
-				name: "historyChoice",
-				message: "Git history:",
-				choices: [
-					{ name: "Start fresh (recommended)", value: "fresh" },
-					{ name: "Keep original history", value: "keep" },
-				],
-			},
-		]);
+		const historyChoice = await select({
+			message: "Git history:",
+			choices: [
+				{ name: "Start fresh (recommended)", value: "fresh" },
+				{ name: "Keep original history", value: "keep" },
+			],
+		});
 		keepHistory = historyChoice === "keep";
 	}
 
@@ -259,18 +248,14 @@ async function cloneTemplateToRemote(
 		error(cloneResult.error || "Unknown error");
 
 		// Offer to retry or go back
-		const { retryChoice } = await inquirer.prompt([
-			{
-				type: "list",
-				name: "retryChoice",
-				message: "What would you like to do?",
-				choices: [
-					{ name: "Try again", value: "retry" },
-					{ name: "Go back to template selection", value: "back" },
-					{ name: "Cancel", value: "cancel" },
-				],
-			},
-		]);
+		const retryChoice = await select({
+			message: "What would you like to do?",
+			choices: [
+				{ name: "Try again", value: "retry" },
+				{ name: "Go back to template selection", value: "back" },
+				{ name: "Cancel", value: "cancel" },
+			],
+		});
 
 		if (retryChoice === "retry") {
 			return cloneTemplateToRemote(

@@ -419,6 +419,8 @@
 
 ### High Priority
 
+- [ ] **Create Template Repositories:** Built-in templates (Node.js, Bun, Python, Go) reference non-existent GitHub repos at `devbox-templates/*-starter`. Either create these repos or replace with working alternatives (e.g., official devcontainer templates).
+- [ ] **Open Command:** `devbox open [project]` - Show action menu (editor/shell/both) for running containers without restarting
 - [ ] **Status Dashboard (TUI):** Full-screen terminal UI with real-time sync status, container resources, one-key actions
 - [ ] **Selective Sync:** Sync specific subdirectories for large monorepos
 - [ ] **Hooks System:** Pre/post sync and container start hooks for custom workflows
@@ -544,7 +546,7 @@
 
 - **Test coverage:** 26 test files with ~529 test/describe blocks
 - **Environment variables:** `DEVBOX_HOME`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`
-- **Template repos:** Placeholder URLs in `src/lib/projectTemplates.ts` need real repos or removal
+- **Template repos:** Placeholder URLs in `src/lib/projectTemplates.ts` need real repos or removal (tracked in Future Features > High Priority)
 
 ---
 

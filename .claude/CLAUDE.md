@@ -330,3 +330,9 @@ Uses Docker with devcontainer spec:
 - **Implementation plans:** `plans/` - all implementation plans go here, NOT in docs/
 - **Implementation tracker:** `plans/IMPLEMENTATION.md` - consolidated task tracker with all tasks, code review items, and future features
 - **Changelog:** `CHANGELOG.md`
+
+## Known Gotchas
+
+- **macOS path normalization**: Always normalize paths with `realpathSync()` BEFORE passing to `devcontainer` CLI or Docker queries. macOS symlinks (e.g., `/var` → `/private/var`) cause label mismatches between container creation and lookup.
+
+- **Inquirer v13 list prompts**: The legacy `inquirer.prompt()` with `type: "list"` doesn't render choices. Use `select()` from `@inquirer/prompts` or `type: "rawlist"` instead.
