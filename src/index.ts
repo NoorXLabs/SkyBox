@@ -9,6 +9,7 @@ import { editorCommand } from "./commands/editor.ts";
 import { initCommand } from "./commands/init.ts";
 import { listCommand } from "./commands/list.ts";
 import { newCommand } from "./commands/new.ts";
+import { openCommand } from "./commands/open.ts";
 import { pushCommand } from "./commands/push.ts";
 import { remoteCommand } from "./commands/remote.ts";
 import { rmCommand } from "./commands/rm.ts";
@@ -82,6 +83,14 @@ program
 	.command("status [project]")
 	.description("Show project status")
 	.action(statusCommand);
+
+program
+	.command("open [project]")
+	.description("Open editor/shell for running container")
+	.option("-e, --editor", "Open in editor only")
+	.option("-s, --shell", "Attach to shell only")
+	.option("--no-prompt", "Non-interactive mode")
+	.action(openCommand);
 
 program
 	.command("new")
