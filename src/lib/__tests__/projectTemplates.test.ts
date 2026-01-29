@@ -1,7 +1,6 @@
 // src/lib/__tests__/projectTemplates.test.ts
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { stringify } from "yaml";
 import {
@@ -11,25 +10,17 @@ import {
 	getUserTemplates,
 	validateProjectName,
 } from "../projectTemplates.ts";
+import { createTestContext, type TestContext } from "./test-utils.ts";
 
 describe("projectTemplates", () => {
-	let testDir: string;
-	let originalEnv: string | undefined;
+	let ctx: TestContext;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-templates-test-${Date.now()}`);
-		mkdirSync(testDir, { recursive: true });
-		originalEnv = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
+		ctx = createTestContext("templates");
 	});
 
 	afterEach(() => {
-		rmSync(testDir, { recursive: true });
-		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
-		} else {
-			delete process.env.DEVBOX_HOME;
-		}
+		ctx.cleanup();
 	});
 
 	describe("BUILT_IN_TEMPLATES", () => {
@@ -75,7 +66,7 @@ describe("projectTemplates", () => {
 				defaults: { sync_mode: "two-way-resolved", ignore: [] },
 				projects: {},
 			};
-			writeFileSync(join(testDir, "config.yaml"), stringify(config));
+			writeFileSync(join(ctx.testDir, "config.yaml"), stringify(config));
 
 			const templates = getUserTemplates();
 			expect(templates).toEqual([]);
@@ -92,7 +83,7 @@ describe("projectTemplates", () => {
 					rust: "https://github.com/user/rust-template",
 				},
 			};
-			writeFileSync(join(testDir, "config.yaml"), stringify(config));
+			writeFileSync(join(ctx.testDir, "config.yaml"), stringify(config));
 
 			const templates = getUserTemplates();
 			expect(templates).toHaveLength(2);
@@ -114,7 +105,7 @@ describe("projectTemplates", () => {
 					custom: "https://github.com/user/custom",
 				},
 			};
-			writeFileSync(join(testDir, "config.yaml"), stringify(config));
+			writeFileSync(join(ctx.testDir, "config.yaml"), stringify(config));
 
 			const all = getAllTemplates();
 			expect(all.builtIn.length).toBeGreaterThanOrEqual(4);

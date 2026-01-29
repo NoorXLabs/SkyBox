@@ -1,36 +1,22 @@
 // src/commands/__tests__/editor.test.ts
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import {
-	existsSync,
-	mkdirSync,
-	readFileSync,
-	rmSync,
-	writeFileSync,
-} from "node:fs";
-import { tmpdir } from "node:os";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse, stringify } from "yaml";
+import {
+	createTestContext,
+	type TestContext,
+} from "../../lib/__tests__/test-utils.ts";
 
 describe("editor command", () => {
-	let testDir: string;
-	let originalEnv: string | undefined;
+	let ctx: TestContext;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-editor-test-${Date.now()}`);
-		mkdirSync(testDir, { recursive: true });
-		originalEnv = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
+		ctx = createTestContext("editor");
 	});
 
 	afterEach(() => {
-		if (existsSync(testDir)) {
-			rmSync(testDir, { recursive: true });
-		}
-		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
-		} else {
-			delete process.env.DEVBOX_HOME;
-		}
+		ctx.cleanup();
 	});
 
 	test("can read editor from config", () => {
@@ -40,7 +26,7 @@ describe("editor command", () => {
 			defaults: { sync_mode: "two-way-resolved", ignore: [] },
 			projects: {},
 		};
-		const configPath = join(testDir, "config.yaml");
+		const configPath = join(ctx.testDir, "config.yaml");
 		writeFileSync(configPath, stringify(config));
 
 		const content = readFileSync(configPath, "utf-8");
@@ -55,7 +41,7 @@ describe("editor command", () => {
 			defaults: { sync_mode: "two-way-resolved", ignore: [] },
 			projects: {},
 		};
-		const configPath = join(testDir, "config.yaml");
+		const configPath = join(ctx.testDir, "config.yaml");
 		writeFileSync(configPath, stringify(config));
 
 		// Update editor
