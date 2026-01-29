@@ -17,23 +17,9 @@ import {
 	startContainer,
 	stopContainer,
 } from "../container.ts";
+import { isExecaMocked } from "./test-utils.ts";
 
-// Detect if module is mocked by shell-docker-isolated.test.ts
-// The mock always returns false for hasLocalDevcontainerConfig, even when file exists
-let _moduleMocked: boolean | null = null;
-const isModuleMocked = (): boolean => {
-	if (_moduleMocked !== null) return _moduleMocked;
-	const testPath = join(tmpdir(), `devbox-mock-check-${Date.now()}`);
-	try {
-		mkdirSync(join(testPath, ".devcontainer"), { recursive: true });
-		writeFileSync(join(testPath, ".devcontainer", "devcontainer.json"), "{}");
-		_moduleMocked = hasLocalDevcontainerConfig(testPath) === false;
-		rmSync(testPath, { recursive: true });
-	} catch {
-		_moduleMocked = true;
-	}
-	return _moduleMocked;
-};
+const execaMocked = await isExecaMocked();
 
 describe("container module exports", () => {
 	test("removeContainer is a function", () => {
@@ -76,21 +62,18 @@ describe("hasLocalDevcontainerConfig", () => {
 		}
 	});
 
-	test.skipIf(isModuleMocked())(
+	test.skipIf(execaMocked)(
 		"returns false when no devcontainer.json exists",
 		() => {
 			expect(hasLocalDevcontainerConfig(testDir)).toBe(false);
 		},
 	);
 
-	test.skipIf(isModuleMocked())(
-		"returns true when devcontainer.json exists",
-		() => {
-			mkdirSync(join(testDir, ".devcontainer"), { recursive: true });
-			writeFileSync(join(testDir, ".devcontainer", "devcontainer.json"), "{}");
-			expect(hasLocalDevcontainerConfig(testDir)).toBe(true);
-		},
-	);
+	test.skipIf(execaMocked)("returns true when devcontainer.json exists", () => {
+		mkdirSync(join(testDir, ".devcontainer"), { recursive: true });
+		writeFileSync(join(testDir, ".devcontainer", "devcontainer.json"), "{}");
+		expect(hasLocalDevcontainerConfig(testDir)).toBe(true);
+	});
 });
 
 describe("getDevcontainerConfig", () => {
@@ -107,7 +90,7 @@ describe("getDevcontainerConfig", () => {
 		}
 	});
 
-	test.skipIf(isModuleMocked())(
+	test.skipIf(execaMocked)(
 		"reads workspaceFolder from devcontainer.json",
 		() => {
 			mkdirSync(join(testDir, ".devcontainer"));
@@ -120,7 +103,7 @@ describe("getDevcontainerConfig", () => {
 		},
 	);
 
-	test.skipIf(isModuleMocked())(
+	test.skipIf(execaMocked)(
 		"returns null when no devcontainer.json exists",
 		() => {
 			const config = getDevcontainerConfig(testDir);

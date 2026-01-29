@@ -14,14 +14,15 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { execa as realExeca } from "execa";
+import { execa } from "execa";
+import { isExecaMocked } from "../../lib/__tests__/test-utils.ts";
 
 // Import only the helper functions that don't depend on PROJECTS_DIR
 import { getDiskUsage, getGitInfo, getLastActive } from "../status.ts";
 
 // These tests require real execa but when run in full suite, execa may be mocked
-// by other test files (shell-docker-isolated.test.ts). Skip unless explicitly enabled.
-const SKIP_EXECA_TESTS = !process.env.STATUS_TEST_ISOLATED;
+// by other test files (shell-docker-isolated.test.ts).
+const execaMocked = await isExecaMocked();
 
 describe("status command helpers", () => {
 	let testDir: string;
@@ -38,28 +39,25 @@ describe("status command helpers", () => {
 	});
 
 	describe("getGitInfo", () => {
-		test.skipIf(SKIP_EXECA_TESTS)(
-			"returns null for non-git directory",
-			async () => {
-				const result = await getGitInfo(testDir);
-				expect(result).toBeNull();
-			},
-		);
+		test.skipIf(execaMocked)("returns null for non-git directory", async () => {
+			const result = await getGitInfo(testDir);
+			expect(result).toBeNull();
+		});
 
-		test.skipIf(SKIP_EXECA_TESTS)(
+		test.skipIf(execaMocked)(
 			"returns branch and clean status for git repo",
 			async () => {
 				// Initialize git repo
-				await realExeca("git", ["init"], { cwd: testDir });
-				await realExeca("git", ["config", "user.email", "test@test.com"], {
+				await execa("git", ["init"], { cwd: testDir });
+				await execa("git", ["config", "user.email", "test@test.com"], {
 					cwd: testDir,
 				});
-				await realExeca("git", ["config", "user.name", "Test"], {
+				await execa("git", ["config", "user.name", "Test"], {
 					cwd: testDir,
 				});
 				writeFileSync(join(testDir, "README.md"), "# Test");
-				await realExeca("git", ["add", "."], { cwd: testDir });
-				await realExeca("git", ["commit", "-m", "init"], { cwd: testDir });
+				await execa("git", ["add", "."], { cwd: testDir });
+				await execa("git", ["commit", "-m", "init"], { cwd: testDir });
 
 				const result = await getGitInfo(testDir);
 
@@ -71,20 +69,20 @@ describe("status command helpers", () => {
 			},
 		);
 
-		test.skipIf(SKIP_EXECA_TESTS)(
+		test.skipIf(execaMocked)(
 			"returns dirty status for uncommitted changes",
 			async () => {
 				// Initialize git repo
-				await realExeca("git", ["init"], { cwd: testDir });
-				await realExeca("git", ["config", "user.email", "test@test.com"], {
+				await execa("git", ["init"], { cwd: testDir });
+				await execa("git", ["config", "user.email", "test@test.com"], {
 					cwd: testDir,
 				});
-				await realExeca("git", ["config", "user.name", "Test"], {
+				await execa("git", ["config", "user.name", "Test"], {
 					cwd: testDir,
 				});
 				writeFileSync(join(testDir, "README.md"), "# Test");
-				await realExeca("git", ["add", "."], { cwd: testDir });
-				await realExeca("git", ["commit", "-m", "init"], { cwd: testDir });
+				await execa("git", ["add", "."], { cwd: testDir });
+				await execa("git", ["commit", "-m", "init"], { cwd: testDir });
 
 				// Make uncommitted change
 				writeFileSync(join(testDir, "new.txt"), "new file");
@@ -98,21 +96,18 @@ describe("status command helpers", () => {
 	});
 
 	describe("getDiskUsage", () => {
-		test.skipIf(SKIP_EXECA_TESTS)(
-			"returns size string for directory",
-			async () => {
-				// Create some files
-				writeFileSync(join(testDir, "file1.txt"), "hello world");
-				writeFileSync(join(testDir, "file2.txt"), "more content");
+		test.skipIf(execaMocked)("returns size string for directory", async () => {
+			// Create some files
+			writeFileSync(join(testDir, "file1.txt"), "hello world");
+			writeFileSync(join(testDir, "file2.txt"), "more content");
 
-				const result = await getDiskUsage(testDir);
+			const result = await getDiskUsage(testDir);
 
-				// Should return something like "4.0K" or "8.0K" depending on filesystem
-				expect(result).toMatch(/^\d+(\.\d+)?[KMGT]?$/i);
-			},
-		);
+			// Should return something like "4.0K" or "8.0K" depending on filesystem
+			expect(result).toMatch(/^\d+(\.\d+)?[KMGT]?$/i);
+		});
 
-		test.skipIf(SKIP_EXECA_TESTS)("returns 'unknown' on error", async () => {
+		test.skipIf(execaMocked)("returns 'unknown' on error", async () => {
 			const result = await getDiskUsage(
 				"/nonexistent/path/that/does/not/exist",
 			);
@@ -121,20 +116,20 @@ describe("status command helpers", () => {
 	});
 
 	describe("getLastActive", () => {
-		test.skipIf(SKIP_EXECA_TESTS)(
+		test.skipIf(execaMocked)(
 			"returns date from git log if available",
 			async () => {
 				// Initialize git repo with a commit
-				await realExeca("git", ["init"], { cwd: testDir });
-				await realExeca("git", ["config", "user.email", "test@test.com"], {
+				await execa("git", ["init"], { cwd: testDir });
+				await execa("git", ["config", "user.email", "test@test.com"], {
 					cwd: testDir,
 				});
-				await realExeca("git", ["config", "user.name", "Test"], {
+				await execa("git", ["config", "user.name", "Test"], {
 					cwd: testDir,
 				});
 				writeFileSync(join(testDir, "README.md"), "# Test");
-				await realExeca("git", ["add", "."], { cwd: testDir });
-				await realExeca("git", ["commit", "-m", "init"], { cwd: testDir });
+				await execa("git", ["add", "."], { cwd: testDir });
+				await execa("git", ["commit", "-m", "init"], { cwd: testDir });
 
 				const result = await getLastActive(testDir);
 
@@ -144,7 +139,7 @@ describe("status command helpers", () => {
 			},
 		);
 
-		test.skipIf(SKIP_EXECA_TESTS)(
+		test.skipIf(execaMocked)(
 			"returns directory mtime for non-git directory",
 			async () => {
 				writeFileSync(join(testDir, "file.txt"), "content");
