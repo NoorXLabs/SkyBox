@@ -80,9 +80,26 @@ devbox clone backend-api
 4. **Initial Sync** - Downloads all files from remote
 5. **Optional Start** - Prompts to start the dev container
 
-## Option 3: Start from a Template
+## Option 3: Create a New Project with `devbox new`
 
-When starting a brand new project, DevBox can create a devcontainer configuration from templates.
+The `devbox new` command creates a project on the remote server from scratch, with full template selection:
+
+```bash
+devbox new my-app
+```
+
+DevBox walks you through the full setup:
+
+1. **Creates the project** on the remote server
+2. **Prompts for template selection** (see below)
+3. **Generates devcontainer configuration**
+4. **Sets up sync** and optionally starts the container
+
+This is the recommended way to start a brand new project.
+
+## Option 4: Start from a Template (Existing Directory)
+
+When pushing a project that has no `devcontainer.json`, DevBox automatically offers template selection during `devbox up`.
 
 ### Step 1: Create Project Directory
 
@@ -125,7 +142,24 @@ No devcontainer.json found
 | **Go** | Go 1.22 | Go tools, Go extension |
 | **Generic** | Debian | Basic dev tools |
 
-All templates include:
+You can also use a **custom template** by providing a git URL:
+
+```
+? Select a template:
+  1) Node.js
+  2) Python
+  3) Go
+  4) Generic
+  5) Custom (git URL)
+```
+
+When selecting "Custom", provide a git repository URL containing a `.devcontainer/devcontainer.json`:
+
+```
+? Git URL: https://github.com/my-org/custom-devcontainer.git
+```
+
+All built-in templates include:
 - Docker-outside-of-Docker (run containers from inside)
 - SSH passthrough (your keys work inside the container)
 - Zsh as default shell
