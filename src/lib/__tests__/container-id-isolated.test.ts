@@ -2,8 +2,12 @@
 //
 // Tests for getContainerId with isolated execa mocking.
 // This file mocks execa before importing container.ts.
+//
+// ISOLATION REQUIRED: Bun's mock.module() is permanent per process and cannot
+// be reset in afterEach. This file must run in its own test process. When run
+// alongside other test files, mock pollution may cause skipIf guards to activate.
 
-import { beforeEach, describe, expect, mock, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 
 // Mock execa BEFORE importing container.ts
 const mockExeca = mock(() =>
@@ -24,6 +28,10 @@ const isModuleMocked = (): boolean => {
 describe("getContainerId", () => {
 	beforeEach(() => {
 		mockExeca.mockReset();
+	});
+
+	afterEach(() => {
+		mockExeca.mockClear();
 	});
 
 	test.skipIf(isModuleMocked())(

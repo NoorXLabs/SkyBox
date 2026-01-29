@@ -1,6 +1,10 @@
-// src/commands/__tests__/shell-docker.test.ts
-// Tests for shell command that require execa mocking (docker exec calls)
-// Isolated to prevent polluting other test files
+// src/commands/__tests__/shell-docker-isolated.test.ts
+//
+// Tests for shell command that require execa mocking (docker exec calls).
+//
+// ISOLATION REQUIRED: Bun's mock.module() is permanent per process and cannot
+// be reset in afterEach. This file must run in its own test process. When run
+// alongside other test files, mock pollution may cause other tests to skip.
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { hostname, userInfo } from "node:os";
@@ -152,6 +156,7 @@ projects: {}
 
 	afterEach(() => {
 		ctx.cleanup();
+		mockExeca.mockClear();
 		process.exit = originalExit;
 	});
 
