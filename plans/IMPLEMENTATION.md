@@ -434,6 +434,16 @@
 - [ ] **Status Dashboard (TUI):** Full-screen terminal UI with real-time sync status, container resources, one-key actions
 - [x] **Selective Sync:** Added sync_paths to project config, selectiveSessionName, createSelectiveSyncSessions
 - [ ] **Hooks System:** Pre/post sync and container start hooks for custom workflows
+- [ ] **Version Update Notification:** After any command completes, show a one-line footer if a newer DevBox version is available. Checks GitHub Releases API once per day (cached to `~/.devbox/.update-check.json`). Channel-aware: general users (stable version) only see stable releases; beta users (version with `-beta` suffix) see all releases. Display: `Update available: 0.6.0-beta → 0.7.0. Run <install-specific-command> to update.`
+  - New file: `src/lib/update-check.ts` (`checkForUpdate()`, `displayUpdateNotice()`)
+  - Integration: end of main CLI flow in `src/index.ts`
+- [ ] **Install Method Detection:** Embed `INSTALL_METHOD` constant at build time (`homebrew`, `github-release`, `npm`, `source`). CI sets `DEVBOX_INSTALL_METHOD` env var per distribution channel. Used by update notification to show the correct upgrade command (e.g., `brew upgrade devbox`, download URL, `npm update -g`).
+  - Location: `src/lib/constants.ts`
+  - CI changes: `.github/workflows/release.yml` sets env var per build target
+- [ ] **Bundle Mutagen with DevBox:** Embed platform-specific Mutagen binary inside the compiled DevBox binary. On first run (or after DevBox update), extract to `~/.devbox/bin/mutagen` if missing or version mismatch. Pinned version in `MUTAGEN_VERSION` constant ensures all users run the exact tested version. Replaces the current download-from-GitHub flow in `devbox init`. Binary size increases ~15-20MB per platform.
+  - New file: `src/lib/mutagen-extract.ts` (`ensureMutagenExtracted()`)
+  - Build changes: `vendor/mutagen/` directory or CI download step, Bun `--compile` asset embedding
+  - Removes: `downloadMutagen()` from end-user flow; `devbox update` repurposed or removed
 - [x] **Interactive Remove (`devbox rm`):** Multi-select when no args
 - [x] **Remote Project Delete (`devbox rm --remote`):** With double confirmation
 - [x] **Devcontainer Repair:** edit/reset subcommands under config
