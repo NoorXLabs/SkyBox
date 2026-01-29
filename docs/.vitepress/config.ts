@@ -10,7 +10,7 @@ export default defineConfig({
       'script',
       {
         src: 'https://rybbit.jcjmrhjts.uk/api/script.js',
-        'data-site-id': '554e65b88847',
+        'data-site-id': '8bedf30d2eff',
         defer: ''
       }
     ],
