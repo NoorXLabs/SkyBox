@@ -21,20 +21,23 @@ devbox down [project] [options]
 | `-c, --cleanup` | Remove container and volumes after stopping |
 | `-f, --force` | Force stop even on errors |
 | `--no-prompt` | Non-interactive mode (fails if input would be required) |
+| `-A, --all` | Stop all local projects in batch mode (tallies success/failure counts) |
 
 ## Description
 
 The `down` command stops a running development container. It performs the following steps:
 
-1. **Project Resolution** - Determines which project to stop
+1. **Project Resolution** - Determines which project to stop (from argument, current directory, or interactive selection)
 2. **Sync Flush** - Waits for pending file changes to sync to remote
 3. **Container Stop** - Stops the running container
 4. **Lock Release** - Releases the lock so other machines can work on the project
 5. **Optional Cleanup** - Removes container and volumes if requested
+6. **Optional Local File Removal** - With cleanup, offers to delete local project files (double confirmation required)
+7. **Sync Pause** - If not cleaning up, offers to pause background sync to save resources
 
 ### Sync Safety
 
-Before stopping the container, DevBox ensures all pending file changes are synced to the remote server. This prevents data loss when switching between machines.
+Before stopping the container, DevBox waits for all pending file changes to sync to the remote server. This prevents data loss when switching between machines. If the sync flush fails, you are warned but the stop continues.
 
 ### Cleanup Options
 
@@ -42,13 +45,17 @@ When using `--cleanup`, DevBox will:
 
 - Remove the Docker container
 - Remove associated volumes
-- Optionally remove local project files (with confirmation)
+- Optionally remove local project files (with **double confirmation**)
 
-If you choose to remove local files, the remote copy is preserved, and you can restore with `devbox clone`.
+The first prompt asks if you want to remove local files. If you say yes, a second prompt confirms by showing the exact path that will be deleted. The remote copy is always preserved.
 
 ### Sync Pausing
 
-If you're not cleaning up, DevBox offers to pause the background sync session to save system resources when you're not actively working on the project.
+If you are not cleaning up, DevBox offers to pause the background sync session to save system resources when you are not actively working on the project. Sync is automatically resumed the next time you run `devbox up`.
+
+### Batch Mode
+
+With `-A, --all`, DevBox stops every local project sequentially and reports a summary of how many succeeded and how many failed.
 
 ## Examples
 
@@ -68,6 +75,9 @@ devbox down
 
 # Non-interactive stop (for scripts)
 devbox down my-project --no-prompt
+
+# Stop all local projects
+devbox down --all
 ```
 
 ### Workflow Example

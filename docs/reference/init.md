@@ -96,7 +96,6 @@ Next steps:
   Push a local project: devbox push ./my-project
   Clone from remote: devbox clone <project-name>
   Browse remote projects: devbox browse
-  Add another remote: devbox remote add
 ```
 
 ## Configuration File
