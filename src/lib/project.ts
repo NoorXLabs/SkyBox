@@ -1,4 +1,4 @@
-// src/lib/project.ts
+/** Local project path resolution and validation. */
 import { existsSync, readdirSync, realpathSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { getProjectsDir } from "./paths.ts";

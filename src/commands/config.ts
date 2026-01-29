@@ -1,9 +1,16 @@
 // src/commands/config.ts
 
+import { randomBytes } from "node:crypto";
+import { password } from "@inquirer/prompts";
 import chalk from "chalk";
 import { loadConfig, saveConfig } from "../lib/config.ts";
 import { testConnection } from "../lib/ssh.ts";
 import { error, header, info, spinner, success } from "../lib/ui.ts";
+import { validatePath } from "../lib/validation.ts";
+import {
+	devcontainerEditCommand,
+	devcontainerResetCommand,
+} from "./config-devcontainer.ts";
 
 /**
  * Display all configuration settings including remotes
@@ -132,6 +139,17 @@ function showHelp(): void {
 	console.log(chalk.bold("Subcommands:"));
 	console.log("  (none)                       Show current configuration");
 	console.log("  set <key> <value>            Set a configuration value");
+	console.log(
+		"  sync-paths <project> [paths] Show or set selective sync paths",
+	);
+	console.log(
+		"  devcontainer edit <project>  Edit devcontainer.json in editor",
+	);
+	console.log(
+		"  devcontainer reset <project> Reset devcontainer.json from template",
+	);
+	console.log("  encryption enable            Enable config encryption");
+	console.log("  encryption disable           Disable config encryption");
 	console.log();
 	console.log(chalk.bold("Options:"));
 	console.log(
@@ -165,6 +183,129 @@ export async function configCommand(
 ): Promise<void> {
 	if (options.validate) {
 		await validateConfig();
+		return;
+	}
+
+	if (subcommand === "devcontainer") {
+		if (arg1 === "edit") {
+			if (!arg2) {
+				error(
+					"Missing project name. Usage: devbox config devcontainer edit <project>",
+				);
+				return;
+			}
+			await devcontainerEditCommand(arg2);
+			return;
+		}
+		if (arg1 === "reset") {
+			if (!arg2) {
+				error(
+					"Missing project name. Usage: devbox config devcontainer reset <project>",
+				);
+				return;
+			}
+			await devcontainerResetCommand(arg2);
+			return;
+		}
+		error(`Unknown devcontainer action: ${arg1 || "(none)"}`);
+		info("Available actions: edit, reset");
+		return;
+	}
+
+	if (subcommand === "encryption") {
+		const config = loadConfig();
+		if (!config) {
+			error("devbox not configured. Run 'devbox init' first.");
+			process.exit(1);
+		}
+
+		if (arg1 === "enable") {
+			const passphrase = await password({
+				message: "Enter encryption passphrase:",
+			});
+			if (!passphrase) {
+				error("Passphrase is required.");
+				return;
+			}
+			const salt = randomBytes(16).toString("hex");
+			config.encryption = { enabled: true, salt };
+			saveConfig(config);
+			success(
+				"Encryption enabled. Keep your passphrase safe — it cannot be recovered.",
+			);
+			return;
+		}
+
+		if (arg1 === "disable") {
+			config.encryption = { enabled: false };
+			saveConfig(config);
+			success("Encryption disabled.");
+			return;
+		}
+
+		error(`Unknown encryption action: ${arg1 || "(none)"}`);
+		info("Available actions: enable, disable");
+		return;
+	}
+
+	if (subcommand === "sync-paths") {
+		const config = loadConfig();
+		if (!config) {
+			error("devbox not configured. Run 'devbox init' first.");
+			process.exit(1);
+		}
+
+		if (!arg1) {
+			error(
+				"Missing project name. Usage: devbox config sync-paths <project> [path1,path2,...]",
+			);
+			return;
+		}
+
+		const projectConfig = config.projects[arg1];
+		if (!projectConfig) {
+			error(`Project '${arg1}' not found in config.`);
+			return;
+		}
+
+		if (!arg2) {
+			// Show current sync paths
+			const paths = projectConfig.sync_paths;
+			if (paths && paths.length > 0) {
+				info(`Sync paths for '${arg1}':`);
+				for (const p of paths) {
+					console.log(`  ${p}`);
+				}
+			} else {
+				info(`No sync paths configured for '${arg1}' (syncs entire project).`);
+			}
+			return;
+		}
+
+		// Set sync paths
+		const paths = arg2
+			.split(",")
+			.map((p) => p.trim())
+			.filter(Boolean);
+
+		// Validate each path before saving
+		for (const p of paths) {
+			const check = validatePath(p);
+			if (!check.valid) {
+				error(`Invalid sync path "${p}": ${check.error}`);
+				return;
+			}
+		}
+
+		if (paths.length === 0) {
+			projectConfig.sync_paths = undefined;
+			saveConfig(config);
+			success(`Cleared sync paths for '${arg1}'. Will sync entire project.`);
+		} else {
+			projectConfig.sync_paths = paths;
+			saveConfig(config);
+			success(`Set sync paths for '${arg1}': ${paths.join(", ")}`);
+		}
 		return;
 	}
 

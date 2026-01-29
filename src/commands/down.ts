@@ -26,6 +26,30 @@ export async function downCommand(
 	projectArg: string | undefined,
 	options: DownOptions,
 ): Promise<void> {
+	// Batch mode: stop all local projects
+	if (options.all) {
+		const projects = getLocalProjects();
+		if (projects.length === 0) {
+			info("No local projects found.");
+			return;
+		}
+		info(`Stopping ${projects.length} projects...`);
+		let succeeded = 0;
+		let failed = 0;
+		for (const project of projects) {
+			try {
+				header(`\n${project}`);
+				await downCommand(project, { ...options, all: false });
+				succeeded++;
+			} catch (err) {
+				failed++;
+				error(`Failed: ${getErrorMessage(err)}`);
+			}
+		}
+		info(`\nDone: ${succeeded} stopped, ${failed} failed.`);
+		return;
+	}
+
 	// Check config exists
 	if (!configExists()) {
 		error("devbox not configured. Run 'devbox init' first.");

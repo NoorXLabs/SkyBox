@@ -11,4 +11,5 @@ pre-commit:
       run: bun run typecheck
     test:
       priority: 3
+      glob: "src/**/*.{ts,test.ts}"
       run: bun run test

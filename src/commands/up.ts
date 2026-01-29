@@ -10,6 +10,7 @@ import {
 	startContainer,
 	stopContainer,
 } from "../lib/container.ts";
+import { getErrorMessage } from "../lib/errors.ts";
 import {
 	acquireLock,
 	createLockRemoteInfo,
@@ -302,6 +303,30 @@ export async function upCommand(
 	projectArg: string | undefined,
 	options: UpOptions,
 ): Promise<void> {
+	// Batch mode: start all local projects
+	if (options.all) {
+		const projects = getLocalProjects();
+		if (projects.length === 0) {
+			info("No local projects found.");
+			return;
+		}
+		info(`Starting ${projects.length} projects...`);
+		let succeeded = 0;
+		let failed = 0;
+		for (const project of projects) {
+			try {
+				header(`\n${project}`);
+				await upCommand(project, { ...options, all: false });
+				succeeded++;
+			} catch (err) {
+				failed++;
+				error(`Failed: ${getErrorMessage(err)}`);
+			}
+		}
+		info(`\nDone: ${succeeded} started, ${failed} failed.`);
+		return;
+	}
+
 	// Step 1: Check config exists
 	if (!configExists()) {
 		error("devbox not configured. Run 'devbox init' first.");

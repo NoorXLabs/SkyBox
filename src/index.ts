@@ -9,6 +9,7 @@ import { downCommand } from "./commands/down.ts";
 import { editorCommand } from "./commands/editor.ts";
 import { initCommand } from "./commands/init.ts";
 import { listCommand } from "./commands/list.ts";
+import { logsCommand } from "./commands/logs.ts";
 import { newCommand } from "./commands/new.ts";
 import { openCommand } from "./commands/open.ts";
 import { pushCommand } from "./commands/push.ts";
@@ -17,6 +18,7 @@ import { rmCommand } from "./commands/rm.ts";
 import { shellCommand } from "./commands/shell.ts";
 import { statusCommand } from "./commands/status.ts";
 import { upCommand } from "./commands/up.ts";
+import { updateCommand } from "./commands/update.ts";
 import { runStartupChecks } from "./lib/startup.ts";
 
 // Run Docker check on bare `devbox` (no args) or `devbox init`
@@ -65,6 +67,7 @@ program
 	.option("-r, --rebuild", "Force container rebuild")
 	.option("--no-prompt", "Non-interactive mode")
 	.option("--verbose", "Show detailed output")
+	.option("-A, --all", "Start all local projects")
 	.action(upCommand);
 
 program
@@ -73,6 +76,7 @@ program
 	.option("-c, --cleanup", "Remove container and volumes")
 	.option("-f, --force", "Force stop even on errors")
 	.option("--no-prompt", "Non-interactive mode")
+	.option("-A, --all", "Stop all local projects")
 	.action(downCommand);
 
 program
@@ -99,9 +103,10 @@ program
 	.action(newCommand);
 
 program
-	.command("rm <project>")
+	.command("rm [project]")
 	.description("Remove project locally (keeps remote)")
 	.option("-f, --force", "Skip confirmation prompt")
+	.option("-r, --remote", "Also delete project from remote server")
 	.action(rmCommand);
 
 program
@@ -120,14 +125,29 @@ program
 	);
 
 program
-	.command("config [key] [value]")
+	.command("config [subcommand] [arg1] [arg2]")
 	.description("View or modify configuration")
 	.option("--validate", "Test connection to all remotes")
-	.action((key, value, options) => configCommand(options, key, value));
+	.action((subcommand, arg1, arg2, options) =>
+		configCommand(options, subcommand, arg1, arg2),
+	);
+
+program
+	.command("logs <project>")
+	.description("Show container or sync logs")
+	.option("-f, --follow", "follow log output")
+	.option("-n, --lines <number>", "number of lines to show", "50")
+	.option("-s, --sync", "show sync logs instead of container logs")
+	.action(logsCommand);
 
 program
 	.command("doctor")
 	.description("Diagnose common issues")
 	.action(doctorCommand);
+
+program
+	.command("update")
+	.description("Update Mutagen binary to latest bundled version")
+	.action(updateCommand);
 
 program.parse();

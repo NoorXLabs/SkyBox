@@ -1,6 +1,8 @@
 // src/types/index.ts
 
 // SSH types
+
+/** SSH host entry parsed from ~/.ssh/config */
 export interface SSHHost {
 	name: string;
 	hostname?: string;
@@ -9,6 +11,7 @@ export interface SSHHost {
 	identityFile?: string;
 }
 
+/** Fully resolved SSH config entry with all required connection fields */
 export interface SSHConfigEntry {
 	name: string;
 	hostname: string;
@@ -17,22 +20,26 @@ export interface SSHConfigEntry {
 	port?: number;
 }
 
+/** V1 remote server configuration (single remote) */
 export interface RemoteConfig {
 	host: string;
 	base_path: string;
 }
 
+/** Default sync configuration: mode and ignore patterns */
 export interface SyncDefaults {
 	sync_mode: string;
 	ignore: string[];
 }
 
+/** V1 per-project configuration with optional overrides */
 export interface ProjectConfig {
 	remote?: string;
 	ignore?: string[];
 	editor?: string;
 }
 
+/** V1 DevBox configuration (single remote, deprecated) */
 export interface DevboxConfig {
 	remote: RemoteConfig;
 	editor: string;
@@ -43,7 +50,7 @@ export interface DevboxConfig {
 
 // Multi-remote support types (V2)
 
-// New remote entry type (replaces single RemoteConfig)
+/** Named remote server connection details (V2 multi-remote) */
 export interface RemoteEntry {
 	host: string; // SSH host (hostname or IP)
 	user?: string; // SSH username (undefined = use SSH config default)
@@ -51,20 +58,27 @@ export interface RemoteEntry {
 	key?: string; // Path to SSH private key (undefined = use SSH config default)
 }
 
-// Updated config with remotes map
+export interface EncryptionConfig {
+	enabled: boolean;
+	salt?: string;
+}
+
+/** V2 DevBox configuration with multiple named remotes */
 export interface DevboxConfigV2 {
 	editor: string;
 	defaults: SyncDefaults;
 	remotes: Record<string, RemoteEntry>; // name -> remote
 	projects: Record<string, ProjectConfigV2>;
 	templates?: Record<string, string>;
+	encryption?: EncryptionConfig;
 }
 
-// Updated project config with remote reference
+/** V2 per-project configuration referencing a named remote */
 export interface ProjectConfigV2 {
 	remote: string; // Name of the remote this project belongs to
 	ignore?: string[];
 	editor?: string;
+	sync_paths?: string[]; // Selective sync: only sync these subdirectories
 }
 
 export enum ContainerStatus {
@@ -109,6 +123,8 @@ export const DEFAULT_IGNORE = [
 ];
 
 // Status command types
+
+/** Summary view of a local project for the list command */
 export interface ProjectSummary {
 	name: string;
 	container: "running" | "stopped" | "unknown";
@@ -120,6 +136,7 @@ export interface ProjectSummary {
 	path: string;
 }
 
+/** Detailed Docker container status and resource usage */
 export interface ContainerDetails {
 	status: "running" | "stopped" | "unknown";
 	image: string;
@@ -128,6 +145,7 @@ export interface ContainerDetails {
 	memory: string;
 }
 
+/** Mutagen sync session details and current state */
 export interface SyncDetails {
 	status: "syncing" | "paused" | "no session" | "error" | "unknown";
 	session: string;
@@ -135,6 +153,7 @@ export interface SyncDetails {
 	lastSync: string;
 }
 
+/** Git repository status: branch, clean/dirty, ahead/behind */
 export interface GitDetails {
 	branch: string;
 	status: "clean" | "dirty";
@@ -174,6 +193,7 @@ export interface DownOptions {
 	cleanup?: boolean;
 	force?: boolean;
 	noPrompt?: boolean;
+	all?: boolean;
 }
 
 export interface UpOptions {
@@ -182,10 +202,12 @@ export interface UpOptions {
 	rebuild?: boolean;
 	noPrompt?: boolean;
 	verbose?: boolean;
+	all?: boolean;
 }
 
 export interface RmOptions {
 	force?: boolean;
+	remote?: boolean;
 }
 
 // Template types
@@ -251,6 +273,7 @@ export interface OpenOptions {
 }
 
 // Lock types
+/** Information stored in a remote lock file */
 export interface LockInfo {
 	machine: string; // hostname of machine holding lock
 	user: string; // username
@@ -258,6 +281,7 @@ export interface LockInfo {
 	pid: number; // process ID
 }
 
+/** Lock check result: unlocked or locked with ownership info */
 export type LockStatus =
 	| { locked: false }
 	| { locked: true; ownedByMe: boolean; info: LockInfo };
@@ -265,6 +289,7 @@ export type LockStatus =
 // Doctor command types
 export type DoctorCheckStatus = "pass" | "warn" | "fail";
 
+/** Result of a single doctor diagnostic check */
 export interface DoctorCheckResult {
 	name: string;
 	status: DoctorCheckStatus;

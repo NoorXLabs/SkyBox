@@ -21,3 +21,11 @@
 export function escapeShellArg(arg: string): string {
 	return `'${arg.replace(/'/g, "'\\''")}'`;
 }
+
+/**
+ * Builds a shell command string with safely escaped arguments.
+ */
+export function buildShellCommand(command: string, args: string[]): string {
+	if (args.length === 0) return command;
+	return `${command} ${args.map(escapeShellArg).join(" ")}`;
+}

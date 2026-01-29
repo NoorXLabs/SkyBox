@@ -1,4 +1,4 @@
-// src/lib/startup.ts
+/** Dependency checks run at CLI startup. */
 import { execSync } from "node:child_process";
 import chalk from "chalk";
 

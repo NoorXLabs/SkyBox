@@ -1,4 +1,4 @@
-// src/lib/templates.ts
+/** Devcontainer template definitions and generation. */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Template } from "../types/index.ts";
