@@ -4,14 +4,19 @@
   "description": "Local-first dev containers with remote sync",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/NoorChasib/DevBox.git"
+    "url": "git+https://github.com/NoorXLabs/DevBox.git"
   },
   "bugs": {
-    "url": "https://github.com/NoorChasib/DevBox/issues"
+    "url": "https://github.com/NoorXLabs/DevBox/issues"
   },
-  "homepage": "https://github.com/NoorChasib/DevBox#readme",
+  "homepage": "https://github.com/NoorXLabs/DevBox#readme",
+  "keywords": ["devbox", "devcontainer", "docker", "remote-development", "sync", "mutagen", "cli"],
   "license": "Apache-2.0",
+  "author": "Noor Chasib",
   "type": "module",
+  "engines": {
+    "bun": ">=1.0.0"
+  },
   "bin": {
     "devbox": "./bin/devbox"
   },
