@@ -1,4 +1,4 @@
-// src/lib/download.ts
+/** Mutagen binary download and installation. */
 import {
 	chmodSync,
 	createWriteStream,
@@ -11,7 +11,9 @@ import { extract } from "tar";
 import { getErrorMessage } from "./errors.ts";
 import { getBinDir, getMutagenPath } from "./paths.ts";
 
-const MUTAGEN_VERSION = "0.17.5";
+/** Pinned Mutagen version for binary downloads. */
+export const MUTAGEN_VERSION = "0.17.5";
+/** GitHub repository path for Mutagen releases. */
 const MUTAGEN_REPO = "mutagen-io/mutagen";
 
 export function getMutagenDownloadUrl(
@@ -22,6 +24,23 @@ export function getMutagenDownloadUrl(
 	const os = platform === "darwin" ? "darwin" : "linux";
 	const cpu = arch === "arm64" ? "arm64" : "amd64";
 	return `https://github.com/${MUTAGEN_REPO}/releases/download/v${version}/mutagen_${os}_${cpu}_v${version}.tar.gz`;
+}
+
+/**
+ * Parse a SHA256SUMS file and return the hash for the given filename.
+ * Returns null if the filename is not found.
+ */
+export function parseSHA256Sums(
+	content: string,
+	filename: string,
+): string | null {
+	for (const line of content.split("\n")) {
+		const parts = line.trim().split(/\s+/);
+		if (parts.length === 2 && parts[1] === filename) {
+			return parts[0];
+		}
+	}
+	return null;
 }
 
 export function getMutagenChecksumUrl(version: string): string {
@@ -39,6 +58,20 @@ export function isMutagenInstalled(): boolean {
 		return result.exitCode === 0;
 	} catch {
 		return false;
+	}
+}
+
+export async function getInstalledMutagenVersion(): Promise<string | null> {
+	const mutagenPath = getMutagenPath();
+	if (!existsSync(mutagenPath)) return null;
+	try {
+		const result = Bun.spawnSync([mutagenPath, "version"]);
+		if (result.exitCode === 0) {
+			return result.stdout.toString().trim();
+		}
+		return null;
+	} catch {
+		return null;
 	}
 }
 

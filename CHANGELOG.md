@@ -5,6 +5,30 @@ All notable changes to DevBox will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0-beta] - 2026-01-28
+
+### Added
+
+- **New Commands**:
+  - `devbox logs` — Show container or sync logs with follow mode and filtering
+  - `devbox update` — Update Mutagen binary to latest bundled version
+  - `devbox doctor` — Diagnose common issues (Docker, Mutagen, SSH, config)
+  - `devbox open` — Open editor/shell for a running container
+- **Batch Operations**: `up --all` and `down --all` to start/stop all projects at once
+- **Interactive rm**: Multi-select checkbox UI when `devbox rm` is called without arguments
+- **Remote Delete**: `rm --remote` flag with double confirmation to delete project from remote server
+- **Selective Sync**: `config sync-paths` for per-project directory-level sync control
+- **Encryption**: `config encryption enable/disable` for AES-256-GCM config file encryption
+- **Devcontainer Repair**: `config devcontainer edit/reset` for editing or regenerating devcontainer.json
+- **Non-interactive Mode**: `--no-prompt` flag on `up`, `down`, and `open` commands
+- **Verbose Mode**: `up --verbose` for detailed error output during container startup
+- **Input Validation**: Path traversal prevention across all user inputs
+
+### Changed
+
+- Test infrastructure unified with shared helpers (`createTestContext`, `isExecaMocked`)
+- Comprehensive documentation update across all command references
+
 ## [0.5.1-beta] - 2026-01-27
 
 ### Added
@@ -147,6 +171,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Design documents for commands
   - Implementation plans
 
+[0.6.0-beta]: https://github.com/NoorChasib/DevBox/compare/v0.5.1-beta...v0.6.0-beta
 [0.5.1-beta]: https://github.com/NoorChasib/DevBox/compare/v0.5.0...v0.5.1-beta
 [0.5.0]: https://github.com/NoorChasib/DevBox/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/NoorChasib/DevBox/compare/v0.3.0...v0.4.0

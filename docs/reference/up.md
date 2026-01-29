@@ -21,8 +21,9 @@ devbox up [project] [options]
 | `-e, --editor` | Open in editor after container starts |
 | `-a, --attach` | Attach to shell after container starts |
 | `-r, --rebuild` | Force container rebuild |
-| `--no-prompt` | Non-interactive mode (fails if input would be required) |
-| `--verbose` | Show detailed output on errors |
+| `--no-prompt` | Non-interactive mode (errors instead of prompting) |
+| `--verbose` | Show detailed error output on container start failure |
+| `-A, --all` | Start all local projects in batch mode (tallies success/failure counts) |
 
 ## Description
 
@@ -30,14 +31,34 @@ The `up` command starts a development container for the specified project. It pe
 
 1. **Project Resolution** - Determines which project to start (from argument, current directory, or interactive selection)
 2. **Lock Acquisition** - Acquires a lock to prevent conflicts with other machines
-3. **Sync Check** - Ensures the Mutagen sync session is active
+3. **Sync Check** - Ensures the Mutagen sync session is active, resuming it if paused
 4. **Container Management** - Starts the container (or handles existing running containers)
 5. **Devcontainer Setup** - Creates devcontainer.json from templates if needed
 6. **Post-Start Actions** - Optionally opens editor or attaches to shell
 
+### Project Auto-Detection
+
+When no project argument is given, DevBox resolves the project in this order:
+
+1. Checks if the current working directory is inside a known project
+2. Prompts for selection from all local projects (unless `--no-prompt` is set)
+
 ### Lock System
 
-DevBox uses a lock system to prevent simultaneous editing from multiple machines. If another machine holds the lock, you'll be prompted to take it over (which notifies the other machine).
+DevBox uses a lock system to prevent simultaneous editing from multiple machines. When starting a project:
+
+- If the lock is free, it is acquired automatically
+- If another machine holds the lock, you are prompted to take it over
+- With `--no-prompt`, a lock conflict causes an error instead of a takeover prompt
+- If the project has no configured remote, the lock step is skipped
+
+### Sync Resume
+
+If the Mutagen sync session exists but is paused (e.g., from a previous `devbox down`), it is automatically resumed during startup.
+
+### Container Auto-Rebuild
+
+If the container fails to start on the first attempt, DevBox automatically retries with a full rebuild. If the rebuild also fails, the error is displayed. Use `--verbose` to see the full error output.
 
 ### Devcontainer Templates
 
@@ -50,6 +71,20 @@ If the container is already running, you can choose to:
 - Continue with the existing container
 - Restart the container
 - Rebuild the container from scratch
+
+### Post-Start Action Prompt
+
+After the container starts, DevBox determines what to do next:
+
+- If `-e` is passed: opens the configured editor
+- If `-a` is passed: attaches to the container shell
+- If both `-e` and `-a` are passed: opens editor then attaches shell
+- If `--no-prompt` is passed: exits without further action
+- Otherwise: prompts you to choose from editor, shell, both, or exit
+
+### Batch Mode
+
+With `-A, --all`, DevBox starts every local project sequentially and reports a summary of how many succeeded and how many failed.
 
 ## Examples
 
@@ -71,6 +106,12 @@ devbox up my-project --rebuild
 
 # Non-interactive start (for scripts)
 devbox up my-project --no-prompt
+
+# Show full error logs on failure
+devbox up my-project --verbose
+
+# Start all local projects
+devbox up --all
 
 # Start from within project directory
 cd ~/.devbox/Projects/my-project

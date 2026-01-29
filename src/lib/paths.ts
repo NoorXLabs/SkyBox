@@ -1,4 +1,4 @@
-// src/lib/paths.ts
+/** Centralized path computation for DevBox directories and binaries. */
 import { homedir } from "node:os";
 import { join } from "node:path";
 

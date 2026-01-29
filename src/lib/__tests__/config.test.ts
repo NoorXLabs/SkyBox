@@ -201,3 +201,57 @@ projects:
 		expect(() => loadConfig()).toThrow();
 	});
 });
+
+describe("config error paths", () => {
+	let ctx: TestContext;
+
+	beforeEach(() => {
+		ctx = createTestContext("config-errors");
+	});
+
+	afterEach(() => {
+		ctx.cleanup();
+	});
+
+	test("loadConfig on malformed YAML throws with config path", () => {
+		writeFileSync(join(ctx.testDir, "config.yaml"), ":\n  - :\n    bad:: [}{");
+		expect(() => loadConfig()).toThrow(/Failed to parse config file/);
+	});
+
+	test("loadConfig on empty config file returns null-ish", () => {
+		writeFileSync(join(ctx.testDir, "config.yaml"), "");
+		// Empty YAML parses to null/undefined, returned as-is
+		const result = loadConfig();
+		expect(result).toBeFalsy();
+	});
+
+	test("saveConfig creates parent directories if missing", () => {
+		const nestedDir = join(ctx.testDir, "nested", "deep");
+		process.env.DEVBOX_HOME = nestedDir;
+
+		const config = {
+			editor: "cursor",
+			defaults: { sync_mode: "two-way-resolved", ignore: [] },
+			remotes: {},
+			projects: {},
+		};
+
+		// Should not throw even though nested/deep doesn't exist
+		saveConfig(config);
+		expect(configExists()).toBe(true);
+	});
+
+	test("getRemote returns null for nonexistent remote with config present", () => {
+		const config = {
+			editor: "cursor",
+			defaults: { sync_mode: "two-way-resolved", ignore: [] },
+			remotes: {
+				existing: { host: "example.com", path: "~/code" },
+			},
+			projects: {},
+		};
+		saveConfig(config);
+
+		expect(getRemote("nonexistent")).toBeNull();
+	});
+});

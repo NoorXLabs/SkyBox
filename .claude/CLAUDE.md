@@ -4,7 +4,7 @@
 
 DevBox is a CLI tool for managing local-first development containers with remote synchronization. It solves disk bloat, latency, and multi-machine workflow complexity by running containers locally while syncing code bidirectionally with a remote server using Mutagen.
 
-**Version:** 0.5.1-beta
+**Version:** 0.6.0-beta
 **Runtime:** Bun (TypeScript)
 **License:** Apache 2.0
 
@@ -37,11 +37,16 @@ src/
 │   ├── rm.ts             # Remove local project
 │   ├── config.ts         # View/edit configuration
 │   ├── new.ts            # Create new project on remote
+│   ├── logs.ts            # Show container/sync logs
+│   ├── update.ts          # Update Mutagen binary
+│   ├── config-devcontainer.ts # Edit/reset devcontainer.json
 │   └── __tests__/        # Command unit tests
 ├── lib/                  # Shared libraries
 │   ├── config.ts         # YAML config operations
 │   ├── constants.ts      # Shared constants (Docker labels, etc.)
 │   ├── container.ts      # Docker/devcontainer operations
+│   ├── encryption.ts      # AES-256-GCM encryption primitives
+│   ├── validation.ts      # Path safety and input validation
 │   ├── mutagen.ts        # Sync session management
 │   ├── ssh.ts            # SSH operations and host parsing
 │   ├── lock.ts           # Multi-machine lock system (atomic acquisition)
@@ -318,6 +323,9 @@ Uses Docker with devcontainer spec:
 | `src/lib/lock.ts` | Multi-machine lock system |
 | `src/lib/ui.ts` | Terminal output helpers |
 | `src/lib/errors.ts` | Error handling utilities |
+| `src/lib/encryption.ts` | AES-256-GCM encrypt/decrypt for config values |
+| `src/lib/validation.ts` | Path traversal prevention, input validation |
+| `src/lib/shell.ts` | Shell escaping: `escapeShellArg()`, `buildShellCommand()` |
 | `biome.json` | Linting/formatting config |
 | `lefthook.yml` | Git hooks config |
 | `tsconfig.json` | TypeScript config |
@@ -336,3 +344,17 @@ Uses Docker with devcontainer spec:
 - **macOS path normalization**: Always normalize paths with `realpathSync()` BEFORE passing to `devcontainer` CLI or Docker queries. macOS symlinks (e.g., `/var` → `/private/var`) cause label mismatches between container creation and lookup.
 
 - **Inquirer v13 list prompts**: The legacy `inquirer.prompt()` with `type: "list"` doesn't render choices. Use `select()` from `@inquirer/prompts` or `type: "rawlist"` instead.
+
+- **`getLocalProjects()` returns `string[]`**: Project names only, not objects. No `.name` property.
+
+- **`normalizePath` in container.ts is private**: Cannot be imported. Define locally if needed in other modules.
+
+- **`TEMPLATES` export is uppercase**: In `src/lib/templates.ts`, use `TEMPLATES` not `templates`.
+
+- **`@inquirer/prompts` is transitive**: Available via `inquirer` dependency. Exports: `select`, `checkbox`, `password`, `confirm`, `input`.
+
+- **`exactOptionalPropertyTypes` not viable**: Causes 70+ errors across the codebase. Do not enable in tsconfig.json.
+
+- **`process.exit()` in commands breaks batch patterns**: Commands call `process.exit(1)` on errors, which kills the entire process. `try/catch` won't catch it. Known limitation for batch iteration (`--all`).
+
+- **Shell injection in remote commands**: Always use `escapeShellArg()` from `src/lib/shell.ts` when interpolating user input into SSH commands via `runRemoteCommand()`.

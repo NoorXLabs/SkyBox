@@ -28,11 +28,9 @@ DevBox has built-in support for:
 |--------|---------|
 | Cursor | `cursor` |
 | VS Code | `code` |
-| Zed | `zed` |
-| Vim | `vim` |
-| Neovim | `nvim` |
+| VS Code Insiders | `code-insiders` |
 
-You can also specify a custom editor command for any other editor.
+You can also specify a custom editor command by selecting "Other (specify command)".
 
 ### How Editors Are Opened
 
@@ -54,10 +52,8 @@ Current default: cursor
 ? Select default editor:
   1) Cursor (current)
   2) VS Code
-  3) Zed
-  4) Vim
-  5) Neovim
-  6) Other (specify command)
+  3) VS Code Insiders
+  4) Other (specify command)
 Answer: 2
 
 Default editor updated to code.

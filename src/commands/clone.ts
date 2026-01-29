@@ -5,6 +5,7 @@ import { join } from "node:path";
 import inquirer from "inquirer";
 import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
 import {
+	createSelectiveSyncSessions,
 	createSyncSession,
 	getSyncStatus,
 	terminateSession,
@@ -101,13 +102,19 @@ export async function cloneCommand(project: string): Promise<void> {
 
 	// Create new sync session
 	syncSpin.text = "Creating sync session...";
-	const createResult = await createSyncSession(
-		project,
-		localPath,
-		host,
-		remotePath,
-		config.defaults.ignore,
-	);
+	const projectConfig = config.projects[project];
+	const ignores = config.defaults.ignore;
+	const createResult =
+		projectConfig?.sync_paths && projectConfig.sync_paths.length > 0
+			? await createSelectiveSyncSessions(
+					project,
+					localPath,
+					host,
+					remotePath,
+					projectConfig.sync_paths,
+					ignores,
+				)
+			: await createSyncSession(project, localPath, host, remotePath, ignores);
 
 	if (!createResult.success) {
 		syncSpin.fail("Failed to create sync session");

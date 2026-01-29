@@ -17,7 +17,10 @@ async function getGitBranch(projectPath: string): Promise<string> {
 			"--show-current",
 		]);
 		return result.stdout.trim() || "-";
-	} catch {
+	} catch (err) {
+		if (process.env.DEBUG) {
+			console.error("[debug] getGitBranch:", err);
+		}
 		return "-";
 	}
 }
@@ -42,7 +45,11 @@ async function getLocalProjects(): Promise<LocalProject[]> {
 					path: fullPath,
 				});
 			}
-		} catch {}
+		} catch (err) {
+			if (process.env.DEBUG) {
+				console.error(`[debug] getLocalProjects entry "${entry}":`, err);
+			}
+		}
 	}
 
 	return projects;

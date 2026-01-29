@@ -22,6 +22,8 @@ DevBox provides a set of commands for managing your local-first development envi
 | [`devbox editor`](/reference/editor) | Change default editor |
 | [`devbox rm`](/reference/rm) | Remove project locally (keeps remote) |
 | [`devbox doctor`](/reference/doctor) | Diagnose common issues |
+| [`devbox logs`](/reference/logs) | Show container or sync logs |
+| [`devbox update`](/reference/update) | Update Mutagen binary |
 
 ## Global Options
 
@@ -108,6 +110,35 @@ devbox push ./my-project
 
 # Create a new project on remote
 devbox new
+```
+
+### Diagnostics & Maintenance
+
+```bash
+# Show container logs
+devbox logs my-project -f
+
+# Show sync logs
+devbox logs my-project --sync
+
+# Diagnose common issues
+devbox doctor
+
+# Update Mutagen binary
+devbox update
+```
+
+### Batch Operations
+
+```bash
+# Start all projects
+devbox up --all
+
+# Stop all projects
+devbox down --all
+
+# Remove multiple projects (interactive multi-select)
+devbox rm
 ```
 
 ### Cleanup

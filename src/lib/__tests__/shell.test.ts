@@ -1,6 +1,6 @@
 // src/lib/__tests__/shell.test.ts
 import { describe, expect, test } from "bun:test";
-import { escapeShellArg } from "../shell.ts";
+import { buildShellCommand, escapeShellArg } from "../shell.ts";
 
 describe("shell", () => {
 	describe("escapeShellArg", () => {
@@ -52,6 +52,38 @@ describe("shell", () => {
 		test("handles backticks", () => {
 			const result = escapeShellArg("`whoami`");
 			expect(result).toBe("'`whoami`'");
+		});
+
+		test("handles spaces in argument", () => {
+			const result = escapeShellArg("hello world");
+			expect(result).toBe("'hello world'");
+		});
+
+		test("handles semicolons and pipes", () => {
+			const result = escapeShellArg("cmd; echo pwned | cat");
+			expect(result).toBe("'cmd; echo pwned | cat'");
+		});
+
+		test("handles double quotes", () => {
+			const result = escapeShellArg('say "hello"');
+			expect(result).toBe("'say \"hello\"'");
+		});
+
+		test("handles tab characters", () => {
+			const result = escapeShellArg("col1\tcol2");
+			expect(result).toBe("'col1\tcol2'");
+		});
+	});
+
+	describe("buildShellCommand", () => {
+		test("buildShellCommand joins args with escaping", () => {
+			const result = buildShellCommand("ssh", ["host", "echo", "hello world"]);
+			expect(result).toBe("ssh 'host' 'echo' 'hello world'");
+		});
+
+		test("buildShellCommand handles empty args", () => {
+			const result = buildShellCommand("ls", []);
+			expect(result).toBe("ls");
 		});
 	});
 });

@@ -1,8 +1,14 @@
-// src/lib/errors.ts
+/** Error handling utilities: safe message extraction and type guards. */
 
 /**
  * Safely extract an error message from an unknown error type.
  * Use this in catch blocks for general errors.
+ *
+ * @example
+ * ```ts
+ * try { await riskyOp(); }
+ * catch (err) { error(getErrorMessage(err)); }
+ * ```
  */
 export function getErrorMessage(error: unknown): string {
 	if (error instanceof Error) return error.message;
@@ -13,6 +19,12 @@ export function getErrorMessage(error: unknown): string {
 /**
  * Safely extract an error message from execa errors.
  * Prefers stderr over message since command errors often have more detail there.
+ *
+ * @example
+ * ```ts
+ * try { await execa("docker", ["ps"]); }
+ * catch (err) { error(getExecaErrorMessage(err)); }
+ * ```
  */
 export function getExecaErrorMessage(error: unknown): string {
 	if (error && typeof error === "object") {
@@ -41,6 +53,11 @@ export interface ExecaLikeError {
  * Type guard to check if an error is an execa-like error.
  * Narrows the type for safe property access.
  * Accepts both Error instances and plain objects with execa-like properties.
+ *
+ * @example
+ * ```ts
+ * if (isExecaError(err)) { console.log(err.stderr); }
+ * ```
  */
 export function isExecaError(error: unknown): error is ExecaLikeError {
 	return (

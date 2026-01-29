@@ -301,13 +301,13 @@ Removes the container entirely (not just stops it). Useful for freeing disk spac
 
 ### Shutdown All Projects
 
-Stop all running containers:
+Stop all running containers at once using the `--all` flag:
 
 ```bash
-for project in $(devbox list --quiet); do
-  devbox down "$project" --no-prompt
-done
+devbox down --all
 ```
+
+This stops all running containers and releases all locks. If some projects fail to shut down, the command continues with the remaining projects and reports failures at the end.
 
 ## Managing Sync
 
@@ -369,6 +369,46 @@ Lock section shows:
 - Machine name
 - Username
 - Timestamp acquired
+
+## Debugging with Logs
+
+View container logs for a running project:
+
+```bash
+devbox logs my-project
+```
+
+Follow logs in real time (useful for debugging server processes):
+
+```bash
+devbox logs my-project -f
+```
+
+This streams container output continuously until you press `Ctrl+C`.
+
+## Diagnosing Issues with Doctor
+
+If something is not working as expected, run the built-in diagnostic tool:
+
+```bash
+devbox doctor
+```
+
+This checks Docker, Mutagen, SSH connectivity, and configuration in one command and suggests fixes for any problems found. Run this before diving into manual troubleshooting.
+
+## Batch Operations
+
+For multi-project workflows, use the `--all` flag to operate on all projects at once:
+
+```bash
+# Start all projects
+devbox up --all
+
+# Stop all projects
+devbox down --all
+```
+
+If individual projects fail during batch operations, the command continues with the remaining projects and reports failures at the end.
 
 ## Troubleshooting Common Issues
 

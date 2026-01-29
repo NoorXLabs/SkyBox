@@ -160,6 +160,76 @@ Sync is managed automatically by DevBox:
 - **Paused** when you run `devbox down`
 - **Terminated** when you run `devbox rm`
 
+### Selective Sync
+
+For large monorepos or projects where you only need a subset of directories, DevBox supports **selective sync**. Instead of syncing the entire project, you specify which subdirectories to sync, and DevBox creates a separate Mutagen session for each path.
+
+This is useful when:
+- Your repository is too large to sync entirely
+- You only work on specific packages in a monorepo
+- You want to reduce bandwidth and disk usage
+
+Configure selective sync per project:
+
+```bash
+devbox config sync-paths my-app packages/frontend,packages/shared,configs
+```
+
+Each listed path gets its own independent Mutagen session (e.g., `devbox-my-app-packages-frontend`), syncing only that subdirectory between local and remote. All sessions use the same sync mode and ignore patterns as full sync.
+
+## Templates
+
+When a project lacks a `.devcontainer/devcontainer.json`, DevBox offers **built-in templates** during `devbox up`. You can also specify a template when creating a project with `devbox new`.
+
+### Built-in Templates
+
+| Template | Base Image | Post-Create Command | Editor Extensions |
+|----------|-----------|---------------------|-------------------|
+| **Node.js** | `devcontainers/javascript-node:20` | `npm install` (if `package.json` exists) | ESLint |
+| **Python** | `devcontainers/python:3.12` | `pip install -r requirements.txt` (if exists) | Python |
+| **Go** | `devcontainers/go:1.22` | `go mod download` (if `go.mod` exists) | Go |
+| **Generic** | `devcontainers/base:debian` | None | None |
+
+All templates include these common features:
+- **Docker-outside-of-Docker (DooD)** -- access the host Docker daemon from inside the container
+- **Git** -- pre-installed for version control
+- **SSH passthrough** -- your host `~/.ssh` directory is bind-mounted read-only, so container Git operations use your existing SSH keys
+- **Zsh** -- configured as the default shell
+
+### Custom Templates
+
+You can also use a custom devcontainer configuration from a git repository by providing a template URL when running `devbox new`.
+
+## Encryption
+
+DevBox can encrypt sensitive values in your `config.yaml` using **AES-256-GCM** authenticated encryption with **PBKDF2** key derivation (100,000 iterations, SHA-512).
+
+### How It Works
+
+When encryption is enabled, sensitive configuration values (such as remote host details) are stored in an encrypted format:
+
+```
+ENC[base64-encoded-payload]
+```
+
+The payload contains the initialization vector (16 bytes), authentication tag (16 bytes), and the encrypted data, all concatenated and base64-encoded.
+
+### Enabling Encryption
+
+```bash
+devbox config encryption enable
+```
+
+You will be prompted to set a passphrase. This passphrase is used to derive the encryption key.
+
+::: warning
+**Your passphrase cannot be recovered if forgotten.** There is no reset mechanism. If you lose your passphrase, you will need to reconfigure DevBox from scratch.
+:::
+
+### What Is Protected
+
+Encryption protects the contents of your `config.yaml` file, which may contain remote server hostnames, usernames, paths, and SSH key paths. It does not encrypt your project files or sync traffic (sync traffic is protected by SSH).
+
 ## Remote Server
 
 The **remote server** stores your project backups and enables multi-machine workflows. DevBox supports **multiple remotes**, allowing you to organize projects across different servers (e.g., work server, personal server).
@@ -220,6 +290,14 @@ Lock file format (stored as JSON):
 | Locked (this machine) | Your current machine holds the lock |
 | Locked (other) | Another machine holds the lock |
 
+### Atomic Lock Acquisition
+
+Lock acquisition uses an atomic test-and-set approach via the shell's `noclobber` mode (`set -C`). This prevents race conditions where two machines try to acquire the same lock simultaneously -- only one will succeed in creating the file.
+
+If the atomic creation fails (file already exists), DevBox checks ownership:
+- If the current machine owns the lock, the timestamp is updated
+- If another machine owns it, the user is prompted to take over
+
 ### Taking Over a Lock
 
 If another machine holds the lock:
@@ -233,6 +311,28 @@ Taking over is safe when:
 - You know the other machine isn't actively working
 - The other machine is unreachable
 - You want to force work on this machine
+
+### Force Bypass
+
+You can bypass the lock check entirely when opening a shell:
+
+```bash
+devbox shell --force my-app
+```
+
+This skips lock verification and opens the container shell directly, without acquiring or checking the lock.
+
+## Non-interactive Mode
+
+For scripting and CI pipelines, DevBox supports a `--no-prompt` flag on commands that would normally prompt for user input:
+
+```bash
+devbox up --no-prompt my-app
+devbox down --no-prompt my-app
+devbox open --no-prompt my-app
+```
+
+When `--no-prompt` is set, DevBox will **error instead of prompting**. For example, if a lock is held by another machine, the command will exit with an error rather than asking whether to take over. This makes DevBox safe to use in automated workflows where no human is available to respond to prompts.
 
 ## Configuration
 

@@ -18,7 +18,7 @@ This command has no options.
 
 ## Description
 
-The `browse` command connects to your configured remote server and lists all projects in the configured base path. For each project, it shows:
+The `browse` command connects to your configured remote server and lists all projects in the configured base path. If multiple remotes are configured, you'll be prompted to select which remote to browse. For each project, it shows:
 
 - Project name (directory name)
 - Current git branch (if it's a git repository)

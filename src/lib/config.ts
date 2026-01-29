@@ -1,4 +1,4 @@
-// src/lib/config.ts
+/** YAML config file operations: load, save, query remotes and projects. */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { parse, stringify } from "yaml";
@@ -34,7 +34,9 @@ export function loadConfig(): DevboxConfigV2 | null {
 	if (needsMigration(rawConfig)) {
 		const migrated = migrateConfig(rawConfig as DevboxConfig);
 		saveConfig(migrated);
-		// Note: don't call info() here as it may not be available in tests
+		console.error(
+			"\x1b[33m[devbox]\x1b[0m Config auto-migrated from V1 to V2 format.",
+		);
 		return migrated;
 	}
 

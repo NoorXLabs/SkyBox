@@ -6,7 +6,11 @@ import { execa } from "execa";
 import inquirer from "inquirer";
 import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
 import { getErrorMessage } from "../lib/errors.ts";
-import { createSyncSession, waitForSync } from "../lib/mutagen.ts";
+import {
+	createSelectiveSyncSessions,
+	createSyncSession,
+	waitForSync,
+} from "../lib/mutagen.ts";
 import { getProjectsDir } from "../lib/paths.ts";
 import { validateProjectName } from "../lib/projectTemplates.ts";
 import { checkRemoteProjectExists } from "../lib/remote.ts";
@@ -155,13 +159,25 @@ export async function pushCommand(
 	// Create sync session
 	const syncSpin = spinner("Starting sync...");
 
-	const createResult = await createSyncSession(
-		projectName,
-		localPath,
-		host,
-		remotePath,
-		config.defaults.ignore,
-	);
+	const projectConfig = config.projects[projectName];
+	const ignores = config.defaults.ignore;
+	const createResult =
+		projectConfig?.sync_paths && projectConfig.sync_paths.length > 0
+			? await createSelectiveSyncSessions(
+					projectName,
+					localPath,
+					host,
+					remotePath,
+					projectConfig.sync_paths,
+					ignores,
+				)
+			: await createSyncSession(
+					projectName,
+					localPath,
+					host,
+					remotePath,
+					ignores,
+				);
 
 	if (!createResult.success) {
 		syncSpin.fail("Failed to create sync session");

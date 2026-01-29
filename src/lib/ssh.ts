@@ -1,4 +1,4 @@
-// src/lib/ssh.ts
+/** SSH operations: parse config, test connections, run remote commands. */
 
 import { appendFileSync, existsSync, readdirSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
