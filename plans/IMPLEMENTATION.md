@@ -4,7 +4,7 @@
 >
 > **Started:** 2025 (CLI Development)
 >
-> **Progress:** 15/15 commands complete | 35/55 code quality tasks complete
+> **Progress:** 15/15 commands complete | 36/55 code quality tasks complete
 
 ---
 
@@ -337,10 +337,10 @@
 
 ### Test Isolation
 
-- [ ] **Task 42:** Fix module-level mock pollution
-  - Locations: `shell-docker-isolated.test.ts:12`, `lock.test.ts:7-10`
-  - Global mocks affect subsequent tests
-  - Fix: Reset mocks in afterEach or use dependency injection
+- [x] **Task 42:** Document and mitigate module-level mock pollution
+  - Locations: `shell-docker-isolated.test.ts`, `lock.test.ts`, `container-id-isolated.test.ts`
+  - Added `mockClear()` in `afterEach` to reset call counts between tests
+  - Added header comments documenting Bun's `mock.module()` limitation (permanent per process)
 
 ---
 
