@@ -6,6 +6,8 @@ import {
 	createTestContext,
 	type TestContext,
 } from "../../lib/__tests__/test-utils.ts";
+import { getProjectPath } from "../../lib/project.ts";
+import { validateProjectName } from "../../lib/projectTemplates.ts";
 
 describe("clone command", () => {
 	let ctx: TestContext;
@@ -18,24 +20,25 @@ describe("clone command", () => {
 		ctx.cleanup();
 	});
 
-	test("requires project argument", async () => {
-		// Test that empty project name would be rejected
-		const projectName = "";
-		expect(projectName).toBeFalsy();
+	test("rejects empty project name", () => {
+		const result = validateProjectName("");
+		expect(result.valid).toBe(false);
+		expect(result.error).toContain("empty");
 	});
 
-	test("local path is constructed correctly", () => {
-		const projectsDir = join(ctx.testDir, "Projects");
-		const project = "myapp";
-		const localPath = join(projectsDir, project);
-		expect(localPath).toBe(`${ctx.testDir}/Projects/myapp`);
+	test("rejects project names with path traversal", () => {
+		const result = validateProjectName("../etc/passwd");
+		expect(result.valid).toBe(false);
 	});
 
-	test("detects existing local project", () => {
-		const projectsDir = join(ctx.testDir, "Projects");
-		const project = "myapp";
-		const localPath = join(projectsDir, project);
+	test("constructs correct local project path", () => {
+		const path = getProjectPath("myapp");
+		expect(path).toContain("myapp");
+	});
 
+	test("detects existing local project directory", () => {
+		const projectsDir = join(ctx.testDir, "Projects");
+		const localPath = join(projectsDir, "myapp");
 		mkdirSync(localPath, { recursive: true });
 		expect(existsSync(localPath)).toBe(true);
 	});
