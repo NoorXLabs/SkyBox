@@ -4,6 +4,7 @@ import {
 	getErrorMessage,
 	getExecaErrorMessage,
 	hasExitCode,
+	isExecaError,
 } from "../errors.ts";
 
 describe("getErrorMessage", () => {
@@ -84,5 +85,58 @@ describe("hasExitCode", () => {
 
 	test("returns false for non-object", () => {
 		expect(hasExitCode("error", 130)).toBe(false);
+	});
+});
+
+describe("isExecaError", () => {
+	test("returns true for object with exitCode", () => {
+		expect(isExecaError({ exitCode: 1 })).toBe(true);
+	});
+
+	test("returns true for object with stderr", () => {
+		expect(isExecaError({ stderr: "fail" })).toBe(true);
+	});
+
+	test("returns true for object with command", () => {
+		expect(isExecaError({ command: "ls" })).toBe(true);
+	});
+
+	test("returns false for null", () => {
+		expect(isExecaError(null)).toBe(false);
+	});
+
+	test("returns false for undefined", () => {
+		expect(isExecaError(undefined)).toBe(false);
+	});
+
+	test("returns false for string", () => {
+		expect(isExecaError("error")).toBe(false);
+	});
+
+	test("returns false for number", () => {
+		expect(isExecaError(42)).toBe(false);
+	});
+
+	test("returns false for plain object without execa properties", () => {
+		expect(isExecaError({ foo: "bar" })).toBe(false);
+	});
+
+	test("returns true for Error with exitCode", () => {
+		const err = Object.assign(new Error("fail"), { exitCode: 1 });
+		expect(isExecaError(err)).toBe(true);
+	});
+});
+
+describe("error edge cases", () => {
+	test("getExecaErrorMessage returns Unknown error for undefined", () => {
+		expect(getExecaErrorMessage(undefined)).toBe("Unknown error");
+	});
+
+	test("getExecaErrorMessage returns Unknown error for number", () => {
+		expect(getExecaErrorMessage(42)).toBe("Unknown error");
+	});
+
+	test("getExecaErrorMessage returns Unknown error for string", () => {
+		expect(getExecaErrorMessage("just a string")).toBe("Unknown error");
 	});
 });
