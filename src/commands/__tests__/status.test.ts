@@ -13,9 +13,9 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { execa } from "execa";
 import {
 	createTestContext,
+	createTestGitRepo,
 	isExecaMocked,
 	type TestContext,
 } from "../../lib/__tests__/test-utils.ts";
@@ -47,17 +47,7 @@ describe("status command helpers", () => {
 		test.skipIf(execaMocked)(
 			"returns branch and clean status for git repo",
 			async () => {
-				// Initialize git repo
-				await execa("git", ["init"], { cwd: ctx.testDir });
-				await execa("git", ["config", "user.email", "test@test.com"], {
-					cwd: ctx.testDir,
-				});
-				await execa("git", ["config", "user.name", "Test"], {
-					cwd: ctx.testDir,
-				});
-				writeFileSync(join(ctx.testDir, "README.md"), "# Test");
-				await execa("git", ["add", "."], { cwd: ctx.testDir });
-				await execa("git", ["commit", "-m", "init"], { cwd: ctx.testDir });
+				await createTestGitRepo(ctx.testDir);
 
 				const result = await getGitInfo(ctx.testDir);
 
@@ -72,17 +62,7 @@ describe("status command helpers", () => {
 		test.skipIf(execaMocked)(
 			"returns dirty status for uncommitted changes",
 			async () => {
-				// Initialize git repo
-				await execa("git", ["init"], { cwd: ctx.testDir });
-				await execa("git", ["config", "user.email", "test@test.com"], {
-					cwd: ctx.testDir,
-				});
-				await execa("git", ["config", "user.name", "Test"], {
-					cwd: ctx.testDir,
-				});
-				writeFileSync(join(ctx.testDir, "README.md"), "# Test");
-				await execa("git", ["add", "."], { cwd: ctx.testDir });
-				await execa("git", ["commit", "-m", "init"], { cwd: ctx.testDir });
+				await createTestGitRepo(ctx.testDir);
 
 				// Make uncommitted change
 				writeFileSync(join(ctx.testDir, "new.txt"), "new file");
@@ -119,17 +99,7 @@ describe("status command helpers", () => {
 		test.skipIf(execaMocked)(
 			"returns date from git log if available",
 			async () => {
-				// Initialize git repo with a commit
-				await execa("git", ["init"], { cwd: ctx.testDir });
-				await execa("git", ["config", "user.email", "test@test.com"], {
-					cwd: ctx.testDir,
-				});
-				await execa("git", ["config", "user.name", "Test"], {
-					cwd: ctx.testDir,
-				});
-				writeFileSync(join(ctx.testDir, "README.md"), "# Test");
-				await execa("git", ["add", "."], { cwd: ctx.testDir });
-				await execa("git", ["commit", "-m", "init"], { cwd: ctx.testDir });
+				await createTestGitRepo(ctx.testDir);
 
 				const result = await getLastActive(ctx.testDir);
 
