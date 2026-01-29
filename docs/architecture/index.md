@@ -57,6 +57,15 @@ Handles user input and orchestrates operations. Each command is a separate modul
 | `list` | List local projects |
 | `editor` | Change default editor |
 | `rm` | Remove local project |
+| `new` | Create new project on remote |
+| `config` | View/edit configuration |
+| `config-devcontainer` | Manage devcontainer.json from remote templates |
+| `remote` | Manage multiple remotes |
+| `shell` | Enter container shell |
+| `logs` | View container and sync logs |
+| `update` | Update Mutagen binary |
+| `open` | Open project in editor |
+| `doctor` | Diagnose environment issues |
 
 ### Library Layer (`src/lib/`)
 
@@ -75,6 +84,14 @@ Shared functionality used by commands:
 | `paths.ts` | Path constants |
 | `errors.ts` | Error handling utilities |
 | `ui.ts` | Terminal output (spinners, colors) |
+| `shell.ts` | Shell escaping utilities |
+| `constants.ts` | Shared constants (Docker labels, etc.) |
+| `remote.ts` | Remote project operations |
+| `migration.ts` | Config format migration |
+| `startup.ts` | Dependency checks at launch |
+| `encryption.ts` | AES-256-GCM encryption for secrets |
+| `validation.ts` | Input validation and path safety |
+| `projectTemplates.ts` | Built-in + user-defined project templates |
 
 ### Type Definitions (`src/types/`)
 
