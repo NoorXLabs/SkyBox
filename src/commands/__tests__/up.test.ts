@@ -1,40 +1,32 @@
 // src/commands/__tests__/up.test.ts
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { existsSync, mkdirSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
+import {
+	createTestContext,
+	type TestContext,
+} from "../../lib/__tests__/test-utils.ts";
 
 describe("up command", () => {
-	let testDir: string;
-	let originalEnv: string | undefined;
+	let ctx: TestContext;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-up-test-${Date.now()}`);
-		mkdirSync(testDir, { recursive: true });
-		originalEnv = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
+		ctx = createTestContext("up");
 	});
 
 	afterEach(() => {
-		if (existsSync(testDir)) {
-			rmSync(testDir, { recursive: true });
-		}
-		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
-		} else {
-			delete process.env.DEVBOX_HOME;
-		}
+		ctx.cleanup();
 	});
 
 	test("project path construction works", () => {
-		const projectsDir = join(testDir, "Projects");
+		const projectsDir = join(ctx.testDir, "Projects");
 		const project = "myapp";
 		const projectPath = join(projectsDir, project);
-		expect(projectPath).toBe(`${testDir}/Projects/myapp`);
+		expect(projectPath).toBe(`${ctx.testDir}/Projects/myapp`);
 	});
 
 	test("can detect missing config", () => {
-		const configPath = join(testDir, "config.yaml");
+		const configPath = join(ctx.testDir, "config.yaml");
 		expect(existsSync(configPath)).toBe(false);
 	});
 });

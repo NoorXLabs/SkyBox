@@ -1,7 +1,6 @@
 // src/lib/__tests__/config.test.ts
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
 	configExists,
@@ -10,27 +9,17 @@ import {
 	loadConfig,
 	saveConfig,
 } from "../config.ts";
+import { createTestContext, type TestContext } from "./test-utils.ts";
 
 describe("config", () => {
-	let testDir: string;
-	let originalEnv: string | undefined;
+	let ctx: TestContext;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-test-${Date.now()}`);
-		mkdirSync(testDir, { recursive: true });
-		originalEnv = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
+		ctx = createTestContext("config");
 	});
 
 	afterEach(() => {
-		if (existsSync(testDir)) {
-			rmSync(testDir, { recursive: true });
-		}
-		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
-		} else {
-			delete process.env.DEVBOX_HOME;
-		}
+		ctx.cleanup();
 	});
 
 	test("configExists returns false when no config", async () => {
@@ -74,7 +63,7 @@ defaults:
 projects:
   my-app: {}
 `;
-		writeFileSync(join(testDir, "config.yaml"), oldConfig);
+		writeFileSync(join(ctx.testDir, "config.yaml"), oldConfig);
 
 		const config = loadConfig();
 
@@ -105,7 +94,7 @@ projects:
   my-app:
     remote: my-server
 `;
-		writeFileSync(join(testDir, "config.yaml"), v2Config);
+		writeFileSync(join(ctx.testDir, "config.yaml"), v2Config);
 
 		const config = loadConfig();
 

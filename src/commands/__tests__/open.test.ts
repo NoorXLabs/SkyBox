@@ -1,26 +1,22 @@
 // src/commands/__tests__/open.test.ts
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import {
+	createTestContext,
+	type TestContext,
+} from "../../lib/__tests__/test-utils.ts";
 
 describe("open command", () => {
-	let testDir: string;
-	let originalEnv: string | undefined;
+	let ctx: TestContext;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-open-test-${Date.now()}`);
-		mkdirSync(testDir, { recursive: true });
-
-		originalEnv = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
+		ctx = createTestContext("open");
 
 		// Create minimal config
-		const configDir = testDir;
-		mkdirSync(configDir, { recursive: true });
 		writeFileSync(
-			join(configDir, "config.yaml"),
+			join(ctx.testDir, "config.yaml"),
 			`editor: cursor
 defaults:
   sync_mode: two-way-resolved
@@ -32,12 +28,7 @@ projects: {}
 	});
 
 	afterEach(() => {
-		rmSync(testDir, { recursive: true, force: true });
-		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
-		} else {
-			delete process.env.DEVBOX_HOME;
-		}
+		ctx.cleanup();
 	});
 
 	test("should require project to exist locally", async () => {
@@ -48,7 +39,7 @@ projects: {}
 
 	test("should detect project from cwd when in project directory", async () => {
 		// Create a project directory
-		const projectsDir = join(testDir, "projects");
+		const projectsDir = join(ctx.testDir, "projects");
 		mkdirSync(projectsDir, { recursive: true });
 		const projectPath = join(projectsDir, "myproject");
 		mkdirSync(projectPath, { recursive: true });

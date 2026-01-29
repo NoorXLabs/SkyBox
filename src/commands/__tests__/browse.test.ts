@@ -1,30 +1,20 @@
 // src/commands/__tests__/browse.test.ts
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { existsSync, mkdirSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import {
+	createTestContext,
+	type TestContext,
+} from "../../lib/__tests__/test-utils.ts";
 import { configExists } from "../../lib/config.ts";
 
 describe("browse command", () => {
-	let testDir: string;
-	let originalEnv: string | undefined;
+	let ctx: TestContext;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-browse-test-${Date.now()}`);
-		mkdirSync(testDir, { recursive: true });
-		originalEnv = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
+		ctx = createTestContext("browse");
 	});
 
 	afterEach(() => {
-		if (existsSync(testDir)) {
-			rmSync(testDir, { recursive: true });
-		}
-		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
-		} else {
-			delete process.env.DEVBOX_HOME;
-		}
+		ctx.cleanup();
 	});
 
 	test("exits with error when no config exists", async () => {

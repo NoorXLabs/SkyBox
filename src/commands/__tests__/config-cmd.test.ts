@@ -1,22 +1,19 @@
 // src/commands/__tests__/config-cmd.test.ts
 import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
-import { existsSync, mkdirSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import {
+	createTestContext,
+	type TestContext,
+} from "../../lib/__tests__/test-utils.ts";
 import { loadConfig, saveConfig } from "../../lib/config.ts";
 import { configCommand, setConfigValue, showConfig } from "../config.ts";
 
 describe("config command", () => {
-	let testDir: string;
-	let originalEnv: string | undefined;
+	let ctx: TestContext;
 	let consoleLogSpy: ReturnType<typeof spyOn>;
 	let logOutput: string[];
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-config-test-${Date.now()}`);
-		mkdirSync(testDir, { recursive: true });
-		originalEnv = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
+		ctx = createTestContext("config");
 
 		// Capture console.log output
 		logOutput = [];
@@ -30,14 +27,7 @@ describe("config command", () => {
 	});
 
 	afterEach(() => {
-		if (existsSync(testDir)) {
-			rmSync(testDir, { recursive: true });
-		}
-		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
-		} else {
-			delete process.env.DEVBOX_HOME;
-		}
+		ctx.cleanup();
 		consoleLogSpy.mockRestore();
 	});
 

@@ -1,8 +1,9 @@
 // src/commands/__tests__/remote.test.ts
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { existsSync, mkdirSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import {
+	createTestContext,
+	type TestContext,
+} from "../../lib/__tests__/test-utils.ts";
 import { loadConfig, saveConfig } from "../../lib/config.ts";
 import {
 	addRemoteDirect,
@@ -12,25 +13,14 @@ import {
 } from "../remote.ts";
 
 describe("remote command", () => {
-	let testDir: string;
-	let originalEnv: string | undefined;
+	let ctx: TestContext;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-remote-test-${Date.now()}`);
-		mkdirSync(testDir, { recursive: true });
-		originalEnv = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
+		ctx = createTestContext("remote");
 	});
 
 	afterEach(() => {
-		if (existsSync(testDir)) {
-			rmSync(testDir, { recursive: true });
-		}
-		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
-		} else {
-			delete process.env.DEVBOX_HOME;
-		}
+		ctx.cleanup();
 	});
 
 	describe("parseRemoteString", () => {

@@ -11,11 +11,14 @@
 //   STATUS_TEST_ISOLATED=1 bun test src/commands/__tests__/status.test.ts
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { execa } from "execa";
-import { isExecaMocked } from "../../lib/__tests__/test-utils.ts";
+import {
+	createTestContext,
+	isExecaMocked,
+	type TestContext,
+} from "../../lib/__tests__/test-utils.ts";
 
 // Import only the helper functions that don't depend on PROJECTS_DIR
 import { getDiskUsage, getGitInfo, getLastActive } from "../status.ts";
@@ -25,22 +28,19 @@ import { getDiskUsage, getGitInfo, getLastActive } from "../status.ts";
 const execaMocked = await isExecaMocked();
 
 describe("status command helpers", () => {
-	let testDir: string;
+	let ctx: TestContext;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-status-test-${Date.now()}`);
-		mkdirSync(testDir, { recursive: true });
+		ctx = createTestContext("status");
 	});
 
 	afterEach(() => {
-		if (existsSync(testDir)) {
-			rmSync(testDir, { recursive: true });
-		}
+		ctx.cleanup();
 	});
 
 	describe("getGitInfo", () => {
 		test.skipIf(execaMocked)("returns null for non-git directory", async () => {
-			const result = await getGitInfo(testDir);
+			const result = await getGitInfo(ctx.testDir);
 			expect(result).toBeNull();
 		});
 
@@ -48,18 +48,18 @@ describe("status command helpers", () => {
 			"returns branch and clean status for git repo",
 			async () => {
 				// Initialize git repo
-				await execa("git", ["init"], { cwd: testDir });
+				await execa("git", ["init"], { cwd: ctx.testDir });
 				await execa("git", ["config", "user.email", "test@test.com"], {
-					cwd: testDir,
+					cwd: ctx.testDir,
 				});
 				await execa("git", ["config", "user.name", "Test"], {
-					cwd: testDir,
+					cwd: ctx.testDir,
 				});
-				writeFileSync(join(testDir, "README.md"), "# Test");
-				await execa("git", ["add", "."], { cwd: testDir });
-				await execa("git", ["commit", "-m", "init"], { cwd: testDir });
+				writeFileSync(join(ctx.testDir, "README.md"), "# Test");
+				await execa("git", ["add", "."], { cwd: ctx.testDir });
+				await execa("git", ["commit", "-m", "init"], { cwd: ctx.testDir });
 
-				const result = await getGitInfo(testDir);
+				const result = await getGitInfo(ctx.testDir);
 
 				expect(result).not.toBeNull();
 				expect(result?.branch).toBeTruthy();
@@ -73,21 +73,21 @@ describe("status command helpers", () => {
 			"returns dirty status for uncommitted changes",
 			async () => {
 				// Initialize git repo
-				await execa("git", ["init"], { cwd: testDir });
+				await execa("git", ["init"], { cwd: ctx.testDir });
 				await execa("git", ["config", "user.email", "test@test.com"], {
-					cwd: testDir,
+					cwd: ctx.testDir,
 				});
 				await execa("git", ["config", "user.name", "Test"], {
-					cwd: testDir,
+					cwd: ctx.testDir,
 				});
-				writeFileSync(join(testDir, "README.md"), "# Test");
-				await execa("git", ["add", "."], { cwd: testDir });
-				await execa("git", ["commit", "-m", "init"], { cwd: testDir });
+				writeFileSync(join(ctx.testDir, "README.md"), "# Test");
+				await execa("git", ["add", "."], { cwd: ctx.testDir });
+				await execa("git", ["commit", "-m", "init"], { cwd: ctx.testDir });
 
 				// Make uncommitted change
-				writeFileSync(join(testDir, "new.txt"), "new file");
+				writeFileSync(join(ctx.testDir, "new.txt"), "new file");
 
-				const result = await getGitInfo(testDir);
+				const result = await getGitInfo(ctx.testDir);
 
 				expect(result).not.toBeNull();
 				expect(result?.status).toBe("dirty");
@@ -98,10 +98,10 @@ describe("status command helpers", () => {
 	describe("getDiskUsage", () => {
 		test.skipIf(execaMocked)("returns size string for directory", async () => {
 			// Create some files
-			writeFileSync(join(testDir, "file1.txt"), "hello world");
-			writeFileSync(join(testDir, "file2.txt"), "more content");
+			writeFileSync(join(ctx.testDir, "file1.txt"), "hello world");
+			writeFileSync(join(ctx.testDir, "file2.txt"), "more content");
 
-			const result = await getDiskUsage(testDir);
+			const result = await getDiskUsage(ctx.testDir);
 
 			// Should return something like "4.0K" or "8.0K" depending on filesystem
 			expect(result).toMatch(/^\d+(\.\d+)?[KMGT]?$/i);
@@ -120,18 +120,18 @@ describe("status command helpers", () => {
 			"returns date from git log if available",
 			async () => {
 				// Initialize git repo with a commit
-				await execa("git", ["init"], { cwd: testDir });
+				await execa("git", ["init"], { cwd: ctx.testDir });
 				await execa("git", ["config", "user.email", "test@test.com"], {
-					cwd: testDir,
+					cwd: ctx.testDir,
 				});
 				await execa("git", ["config", "user.name", "Test"], {
-					cwd: testDir,
+					cwd: ctx.testDir,
 				});
-				writeFileSync(join(testDir, "README.md"), "# Test");
-				await execa("git", ["add", "."], { cwd: testDir });
-				await execa("git", ["commit", "-m", "init"], { cwd: testDir });
+				writeFileSync(join(ctx.testDir, "README.md"), "# Test");
+				await execa("git", ["add", "."], { cwd: ctx.testDir });
+				await execa("git", ["commit", "-m", "init"], { cwd: ctx.testDir });
 
-				const result = await getLastActive(testDir);
+				const result = await getLastActive(ctx.testDir);
 
 				expect(result).toBeInstanceOf(Date);
 				// Should be recent (within last minute)
@@ -142,9 +142,9 @@ describe("status command helpers", () => {
 		test.skipIf(execaMocked)(
 			"returns directory mtime for non-git directory",
 			async () => {
-				writeFileSync(join(testDir, "file.txt"), "content");
+				writeFileSync(join(ctx.testDir, "file.txt"), "content");
 
-				const result = await getLastActive(testDir);
+				const result = await getLastActive(ctx.testDir);
 
 				expect(result).toBeInstanceOf(Date);
 			},

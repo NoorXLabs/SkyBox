@@ -3,34 +3,27 @@
 // Tests for list command. Some tests require real git commands.
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { execa } from "execa";
-import { isExecaMocked } from "../../lib/__tests__/test-utils.ts";
+import {
+	createTestContext,
+	isExecaMocked,
+	type TestContext,
+} from "../../lib/__tests__/test-utils.ts";
 
 describe("list command", () => {
-	let testDir: string;
+	let ctx: TestContext;
 	let projectsDir: string;
-	let originalEnv: string | undefined;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-list-test-${Date.now()}`);
-		projectsDir = join(testDir, "Projects");
+		ctx = createTestContext("list");
+		projectsDir = join(ctx.testDir, "Projects");
 		mkdirSync(projectsDir, { recursive: true });
-		originalEnv = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
 	});
 
 	afterEach(() => {
-		if (existsSync(testDir)) {
-			rmSync(testDir, { recursive: true });
-		}
-		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
-		} else {
-			delete process.env.DEVBOX_HOME;
-		}
+		ctx.cleanup();
 	});
 
 	test("returns empty array when projects dir is empty", async () => {

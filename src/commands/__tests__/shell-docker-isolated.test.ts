@@ -2,9 +2,13 @@
 // Tests for shell command that require execa mocking (docker exec calls)
 // Isolated to prevent polluting other test files
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
-import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { hostname, tmpdir, userInfo } from "node:os";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { hostname, userInfo } from "node:os";
 import { join } from "node:path";
+import {
+	createTestContext,
+	type TestContext,
+} from "../../lib/__tests__/test-utils.ts";
 import type { LockInfo, LockStatus } from "../../types/index.ts";
 
 // Mock execa first - this will persist globally for this file
@@ -84,21 +88,19 @@ mock.module("../up.ts", () => ({
 }));
 
 describe("shell command docker exec", () => {
-	let testDir: string;
-	let originalEnv: string | undefined;
+	let ctx: TestContext;
 	let originalExit: typeof process.exit;
 	let exitCode: number | undefined;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-shell-docker-test-${Date.now()}`);
-		mkdirSync(testDir, { recursive: true });
-		mkdirSync(join(testDir, "Projects", "myapp"), { recursive: true });
-		mkdirSync(join(testDir, "Projects", "myapp", ".devcontainer"), {
+		ctx = createTestContext("shell-docker");
+		mkdirSync(join(ctx.testDir, "Projects", "myapp"), { recursive: true });
+		mkdirSync(join(ctx.testDir, "Projects", "myapp", ".devcontainer"), {
 			recursive: true,
 		});
 
 		writeFileSync(
-			join(testDir, "config.yaml"),
+			join(ctx.testDir, "config.yaml"),
 			`remote:
   host: devbox-server
   base_path: ~/code
@@ -111,12 +113,15 @@ projects: {}
 		);
 
 		writeFileSync(
-			join(testDir, "Projects", "myapp", ".devcontainer", "devcontainer.json"),
+			join(
+				ctx.testDir,
+				"Projects",
+				"myapp",
+				".devcontainer",
+				"devcontainer.json",
+			),
 			JSON.stringify({ workspaceFolder: "/workspaces/myapp" }),
 		);
-
-		originalEnv = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
 
 		exitCode = undefined;
 		originalExit = process.exit;
@@ -146,14 +151,7 @@ projects: {}
 	});
 
 	afterEach(() => {
-		if (existsSync(testDir)) {
-			rmSync(testDir, { recursive: true });
-		}
-		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
-		} else {
-			delete process.env.DEVBOX_HOME;
-		}
+		ctx.cleanup();
 		process.exit = originalExit;
 	});
 

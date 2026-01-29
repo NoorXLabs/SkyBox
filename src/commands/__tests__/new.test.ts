@@ -1,28 +1,22 @@
 // src/commands/__tests__/new.test.ts
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { stringify } from "yaml";
+import {
+	createTestContext,
+	type TestContext,
+} from "../../lib/__tests__/test-utils.ts";
 
 describe("new command", () => {
-	let testDir: string;
-	let originalEnv: string | undefined;
+	let ctx: TestContext;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-new-test-${Date.now()}`);
-		mkdirSync(testDir, { recursive: true });
-		originalEnv = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
+		ctx = createTestContext("new");
 	});
 
 	afterEach(() => {
-		rmSync(testDir, { recursive: true });
-		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
-		} else {
-			delete process.env.DEVBOX_HOME;
-		}
+		ctx.cleanup();
 	});
 
 	describe("config validation", () => {
@@ -39,10 +33,10 @@ describe("new command", () => {
 				defaults: { sync_mode: "two-way-resolved", ignore: [] },
 				projects: {},
 			};
-			writeFileSync(join(testDir, "config.yaml"), stringify(config));
+			writeFileSync(join(ctx.testDir, "config.yaml"), stringify(config));
 
 			const content = require("node:fs").readFileSync(
-				join(testDir, "config.yaml"),
+				join(ctx.testDir, "config.yaml"),
 				"utf-8",
 			);
 			expect(content).toContain("test-server");

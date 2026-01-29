@@ -1,29 +1,22 @@
 // src/commands/__tests__/doctor.test.ts
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { writeFileSync } from "node:fs";
 import { join } from "node:path";
+import {
+	createTestContext,
+	type TestContext,
+} from "../../lib/__tests__/test-utils.ts";
 
 describe("doctor command", () => {
-	let testDir: string;
-	let originalEnv: string | undefined;
+	let ctx: TestContext;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-doctor-test-${Date.now()}`);
-		mkdirSync(testDir, { recursive: true });
-
-		originalEnv = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
+		ctx = createTestContext("doctor");
 	});
 
 	afterEach(() => {
-		rmSync(testDir, { recursive: true, force: true });
-		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
-		} else {
-			delete process.env.DEVBOX_HOME;
-		}
+		ctx.cleanup();
 	});
 
 	test("should detect missing config", async () => {
@@ -34,7 +27,7 @@ describe("doctor command", () => {
 	test("should detect valid config", async () => {
 		// Create minimal config
 		writeFileSync(
-			join(testDir, "config.yaml"),
+			join(ctx.testDir, "config.yaml"),
 			`editor: cursor
 defaults:
   sync_mode: two-way-resolved
@@ -57,7 +50,7 @@ projects: {}
 
 	test("should throw on invalid YAML config", async () => {
 		// Create invalid YAML
-		writeFileSync(join(testDir, "config.yaml"), "invalid: yaml: syntax:");
+		writeFileSync(join(ctx.testDir, "config.yaml"), "invalid: yaml: syntax:");
 
 		const { loadConfig } = await import("../../lib/config.ts");
 		expect(() => loadConfig()).toThrow();

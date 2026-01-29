@@ -1,25 +1,23 @@
 // src/commands/__tests__/init.test.ts
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import {
+	createTestContext,
+	type TestContext,
+} from "../../lib/__tests__/test-utils.ts";
 import { saveConfig } from "../../lib/config.ts";
 
 // This tests the individual pieces that init uses
 describe("init command integration", () => {
-	let testDir: string;
+	let ctx: TestContext;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-init-test-${Date.now()}`);
-		mkdirSync(testDir, { recursive: true });
-		process.env.DEVBOX_HOME = testDir;
+		ctx = createTestContext("init");
 	});
 
 	afterEach(() => {
-		if (existsSync(testDir)) {
-			rmSync(testDir, { recursive: true });
-		}
-		delete process.env.DEVBOX_HOME;
+		ctx.cleanup();
 	});
 
 	test("creates required directories on save config", async () => {
@@ -34,8 +32,8 @@ describe("init command integration", () => {
 
 		saveConfig(config);
 
-		expect(existsSync(testDir)).toBe(true);
-		expect(existsSync(join(testDir, "config.yaml"))).toBe(true);
+		expect(existsSync(ctx.testDir)).toBe(true);
+		expect(existsSync(join(ctx.testDir, "config.yaml"))).toBe(true);
 	});
 
 	test("config file contains expected content", async () => {
@@ -54,7 +52,7 @@ describe("init command integration", () => {
 
 		saveConfig(config);
 
-		const content = readFileSync(join(testDir, "config.yaml"), "utf-8");
+		const content = readFileSync(join(ctx.testDir, "config.yaml"), "utf-8");
 		expect(content).toContain("myserver");
 		expect(content).toContain("~/projects");
 		expect(content).toContain("vim");

@@ -1,33 +1,22 @@
 // src/lib/__tests__/project.test.ts
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { existsSync, mkdirSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { getLocalProjects, resolveProjectFromCwd } from "../project.ts";
+import { createTestContext, type TestContext } from "./test-utils.ts";
 
 describe("project resolution", () => {
-	let testDir: string;
+	let ctx: TestContext;
 	let originalCwd: string;
-	let originalEnv: string | undefined;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-project-test-${Date.now()}`);
-		mkdirSync(testDir, { recursive: true });
 		originalCwd = process.cwd();
-		originalEnv = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
+		ctx = createTestContext("project");
 	});
 
 	afterEach(() => {
 		process.chdir(originalCwd);
-		if (existsSync(testDir)) {
-			rmSync(testDir, { recursive: true });
-		}
-		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
-		} else {
-			delete process.env.DEVBOX_HOME;
-		}
+		ctx.cleanup();
 	});
 
 	test("resolveProjectFromCwd returns null when not in projects dir", async () => {
@@ -36,7 +25,7 @@ describe("project resolution", () => {
 	});
 
 	test("resolveProjectFromCwd returns project name when in project dir", async () => {
-		const projectsDir = join(testDir, "Projects");
+		const projectsDir = join(ctx.testDir, "Projects");
 		const projectDir = join(projectsDir, "myapp");
 		mkdirSync(projectDir, { recursive: true });
 		process.chdir(projectDir);
@@ -51,7 +40,7 @@ describe("project resolution", () => {
 	});
 
 	test("getLocalProjects returns project names", async () => {
-		const projectsDir = join(testDir, "Projects");
+		const projectsDir = join(ctx.testDir, "Projects");
 		mkdirSync(join(projectsDir, "app1"), { recursive: true });
 		mkdirSync(join(projectsDir, "app2"), { recursive: true });
 
