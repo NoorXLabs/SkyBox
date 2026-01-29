@@ -1,4 +1,4 @@
-// src/lib/container.ts
+/** Docker container operations: query, start, stop, inspect. */
 
 import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { join } from "node:path";

@@ -1,6 +1,7 @@
 // src/commands/rm.ts
 
 import { existsSync, rmSync } from "node:fs";
+import { checkbox } from "@inquirer/prompts";
 import inquirer from "inquirer";
 import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
 import {
@@ -15,15 +16,67 @@ import {
 	releaseLock,
 } from "../lib/lock.ts";
 import { terminateSession } from "../lib/mutagen.ts";
-import { getProjectPath, projectExists } from "../lib/project.ts";
-import { error, header, info, spinner, success } from "../lib/ui.ts";
-import { ContainerStatus, type RmOptions } from "../types/index.ts";
-import { getProjectRemote } from "./remote.ts";
+import {
+	getLocalProjects,
+	getProjectPath,
+	projectExists,
+} from "../lib/project.ts";
+import { escapeShellArg } from "../lib/shell.ts";
+import { runRemoteCommand } from "../lib/ssh.ts";
+import {
+	confirmDestructiveAction,
+	error,
+	header,
+	info,
+	spinner,
+	success,
+} from "../lib/ui.ts";
+import { validatePath } from "../lib/validation.ts";
+import {
+	ContainerStatus,
+	type DevboxConfigV2,
+	type RmOptions,
+} from "../types/index.ts";
+import { getProjectRemote, getRemoteHost } from "./remote.ts";
 
 export async function rmCommand(
-	project: string,
+	project: string | undefined,
 	options: RmOptions,
 ): Promise<void> {
+	// Interactive multi-select when no project argument given
+	if (!project) {
+		const localProjects = getLocalProjects();
+		if (localProjects.length === 0) {
+			info("No local projects found.");
+			return;
+		}
+
+		const selected = await checkbox({
+			message: "Select projects to remove:",
+			choices: localProjects.map((p) => ({
+				name: p,
+				value: p,
+			})),
+		});
+
+		if (selected.length === 0) {
+			info("No projects selected.");
+			return;
+		}
+
+		for (const projectName of selected) {
+			await rmCommand(projectName, options);
+		}
+		return;
+	}
+
+	// Validate project name
+	const pathCheck = validatePath(project);
+	if (!pathCheck.valid) {
+		error(`Invalid project name: ${pathCheck.error}`);
+		return;
+	}
+
 	// Check config exists
 	if (!configExists()) {
 		error("devbox not configured. Run 'devbox init' first.");
@@ -36,19 +89,32 @@ export async function rmCommand(
 		process.exit(1);
 	}
 
-	// Verify project exists locally
-	if (!projectExists(project)) {
+	const localExists = projectExists(project);
+
+	// If --remote only (no local project), skip local cleanup
+	if (!localExists && !options.remote) {
 		error(`Project '${project}' not found locally.`);
 		process.exit(1);
 	}
 
+	if (!localExists && options.remote) {
+		// Remote-only deletion: skip local cleanup, go straight to remote
+		header(`Removing '${project}' from remote...`);
+		await deleteFromRemote(project, config, options);
+		return;
+	}
+
 	// Prompt for confirmation unless --force is set
 	if (!options.force) {
+		const message = options.remote
+			? `Remove project '${project}' locally AND from the remote server?`
+			: `Remove project '${project}' locally? This will NOT delete remote files.`;
+
 		const { confirmed } = await inquirer.prompt([
 			{
 				type: "confirm",
 				name: "confirmed",
-				message: `Remove project '${project}' locally? This will NOT delete remote files.`,
+				message,
 				default: false,
 			},
 		]);
@@ -154,9 +220,77 @@ export async function rmCommand(
 
 	// Remove project from config if present
 	if (config.projects?.[project]) {
+		if (!options.remote) {
+			delete config.projects[project];
+			saveConfig(config);
+		}
+	}
+
+	// Handle remote deletion if --remote flag is set
+	if (options.remote) {
+		await deleteFromRemote(project, config, options);
+	} else {
+		success(`Project '${project}' removed locally. Remote copy preserved.`);
+	}
+}
+
+async function deleteFromRemote(
+	project: string,
+	config: DevboxConfigV2,
+	options: RmOptions,
+): Promise<void> {
+	const projectRemote = getProjectRemote(project, config);
+
+	if (!projectRemote) {
+		error(
+			`Project '${project}' has no configured remote. Cannot delete from remote.`,
+		);
+		return;
+	}
+
+	const { remote } = projectRemote;
+	const remotePath = `${remote.path}/${project}`;
+	const host = getRemoteHost(remote);
+
+	// Double confirmation for remote deletion unless --force
+	if (!options.force) {
+		const confirmed = await confirmDestructiveAction({
+			firstPrompt: `This will permanently delete '${project}' from ${host}:${remotePath}. Continue?`,
+			secondPrompt: `Are you absolutely sure? This action cannot be undone.`,
+			cancelMessage: "Remote deletion cancelled.",
+		});
+
+		if (!confirmed) {
+			return;
+		}
+	}
+
+	const remoteSpin = spinner(`Deleting '${project}' from remote...`);
+	try {
+		const result = await runRemoteCommand(
+			host,
+			`rm -rf ${escapeShellArg(remotePath)}`,
+			remote.key,
+		);
+
+		if (result.success) {
+			remoteSpin.succeed(`Deleted '${project}' from remote`);
+		} else {
+			remoteSpin.fail("Failed to delete from remote");
+			error(result.error || "Unknown error");
+			return;
+		}
+	} catch (err: unknown) {
+		remoteSpin.fail("Failed to delete from remote");
+		error(getErrorMessage(err));
+		return;
+	}
+
+	// Remove project from config after successful remote deletion
+	if (config.projects?.[project]) {
 		delete config.projects[project];
 		saveConfig(config);
 	}
 
-	success(`Project '${project}' removed locally. Remote copy preserved.`);
+	success(`Project '${project}' removed locally and from remote.`);
 }

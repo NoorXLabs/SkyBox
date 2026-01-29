@@ -14,16 +14,21 @@ devbox config [subcommand] [options]
 |------------|-------------|
 | (none) | Display current configuration |
 | `set <key> <value>` | Set a configuration value |
+| `sync-paths <project> [paths]` | View or set selective sync paths |
+| `encryption enable` | Enable AES-256-GCM config encryption |
+| `encryption disable` | Disable config encryption |
+| `devcontainer edit <project>` | Open devcontainer.json in editor |
+| `devcontainer reset <project>` | Reset devcontainer.json from template |
 
 ## Options
 
 | Option | Description |
 |--------|-------------|
-| `--validate` | Test SSH connection to all configured remotes |
+| `--validate` | Test SSH connection to all configured remotes and show project counts |
 
 ## Description
 
-The `config` command provides ways to view and modify your DevBox configuration. It shows your configured remotes and global settings.
+The `config` command provides ways to view and modify your DevBox configuration. It shows your configured remotes and global settings, manages selective sync paths, handles config encryption, and provides devcontainer configuration management.
 
 ### Display Configuration
 
@@ -41,6 +46,10 @@ Running `devbox config` without arguments shows:
 ```
 
 ### Set Configuration Values
+
+```bash
+devbox config set <key> <value>
+```
 
 Currently supported configuration keys:
 
@@ -74,6 +83,55 @@ If a connection fails:
 Some remotes failed to connect.
 ```
 
+### Selective Sync Paths
+
+View or set which paths to sync for a project. By default, DevBox syncs the entire project directory. Setting sync paths limits synchronization to only the specified subdirectories.
+
+```bash
+# View current sync paths
+devbox config sync-paths my-project
+
+# Set sync paths (comma-separated)
+devbox config sync-paths my-project src,docs,package.json
+
+# Clear sync paths (sync entire project)
+devbox config sync-paths my-project ""
+```
+
+Paths are validated before saving. When no sync paths are configured, the entire project is synced.
+
+### Encryption
+
+Enable or disable AES-256-GCM encryption for your DevBox configuration file.
+
+```bash
+# Enable encryption (prompts for passphrase)
+devbox config encryption enable
+
+# Disable encryption
+devbox config encryption disable
+```
+
+When enabling encryption, you will be prompted for a passphrase. Keep this passphrase safe -- it cannot be recovered.
+
+### Devcontainer Edit
+
+Open the project's `devcontainer.json` in your configured editor. After saving and closing the editor, the updated file is automatically pushed to the remote server.
+
+```bash
+devbox config devcontainer edit <project>
+```
+
+If no `devcontainer.json` exists for the project, you will be prompted to create one using `devcontainer reset`.
+
+### Devcontainer Reset
+
+Replace the project's `devcontainer.json` with a fresh copy from a template. An interactive prompt lets you select a template. After selection, the new file is pushed to the remote server.
+
+```bash
+devbox config devcontainer reset <project>
+```
+
 ## Examples
 
 ```bash
@@ -89,8 +147,23 @@ devbox config set editor code
 # Change default editor to Vim
 devbox config set editor vim
 
-# Change default editor to Cursor
-devbox config set editor cursor
+# View sync paths for a project
+devbox config sync-paths my-app
+
+# Set selective sync paths
+devbox config sync-paths my-app src,tests,package.json
+
+# Enable config encryption
+devbox config encryption enable
+
+# Disable config encryption
+devbox config encryption disable
+
+# Edit devcontainer.json for a project
+devbox config devcontainer edit my-app
+
+# Reset devcontainer.json from template
+devbox config devcontainer reset my-app
 ```
 
 ### Workflow Example
@@ -104,6 +177,12 @@ devbox config --validate
 
 # Switch editor preference
 devbox config set editor code
+
+# Limit sync to only source files for a large project
+devbox config sync-paths my-app src,package.json
+
+# Customize the devcontainer configuration
+devbox config devcontainer edit my-app
 ```
 
 ## Configuration File

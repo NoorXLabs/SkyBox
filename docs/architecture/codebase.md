@@ -27,7 +27,12 @@ devbox/
 │   │   ├── shell.ts       # Enter container shell
 │   │   ├── new.ts         # Create new project on remote
 │   │   ├── config.ts      # View/edit configuration
+│   │   ├── config-devcontainer.ts # Manage devcontainer.json from remote templates
 │   │   ├── remote.ts      # Manage multiple remotes
+│   │   ├── logs.ts        # View container and sync logs
+│   │   ├── update.ts      # Update Mutagen binary
+│   │   ├── open.ts        # Open project in editor
+│   │   ├── doctor.ts      # Diagnose environment issues
 │   │   └── __tests__/     # Command tests
 │   ├── lib/               # Shared functionality
 │   │   ├── config.ts      # Config file operations
@@ -40,10 +45,15 @@ devbox/
 │   │   ├── project.ts     # Project resolution
 │   │   ├── download.ts    # Binary downloads
 │   │   ├── templates.ts   # Devcontainer templates
+│   │   ├── projectTemplates.ts # Built-in + user-defined project templates
 │   │   ├── paths.ts       # Path constants
 │   │   ├── errors.ts      # Error utilities
 │   │   ├── shell.ts       # Shell escaping utilities
 │   │   ├── ui.ts          # Terminal UI helpers
+│   │   ├── encryption.ts  # AES-256-GCM encryption for secrets
+│   │   ├── validation.ts  # Input validation and path safety
+│   │   ├── migration.ts   # Config format migration
+│   │   ├── startup.ts     # Dependency checks at launch
 │   │   └── __tests__/     # Library tests
 │   └── types/
 │       └── index.ts       # All TypeScript interfaces

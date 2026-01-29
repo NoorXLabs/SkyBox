@@ -12,6 +12,147 @@ devbox doctor
 
 This checks Docker, Mutagen, SSH connectivity, and configuration in one command. It will identify most common problems and suggest fixes.
 
+## Encryption Issues
+
+### Forgotten Passphrase
+
+**Symptoms:**
+- Cannot decrypt project configuration
+- `devbox` prompts for passphrase and rejects all attempts
+
+**Solutions:**
+
+::: danger Data Loss Warning
+Encrypted data **cannot be recovered** without the passphrase. There is no reset or recovery mechanism. If you have lost your passphrase, the encrypted configuration is permanently inaccessible.
+:::
+
+1. **Re-initialize the project** from an unencrypted backup or by re-creating the configuration from scratch.
+
+### Decryption Errors
+
+**Symptoms:**
+- `Error: Decryption failed` when running commands
+- Garbled output from config operations
+
+**Solutions:**
+
+1. **Verify the correct passphrase** - ensure no extra whitespace or encoding issues.
+2. **Check config file integrity:**
+   ```bash
+   devbox config --validate
+   ```
+3. **Re-encrypt from a clean state** if the encrypted file was corrupted (e.g., partial write during crash).
+
+## Selective Sync Issues
+
+### Sync Path Not Syncing
+
+**Symptoms:**
+- Specified paths are not being synchronized
+- No errors shown but files are missing on remote
+
+**Solutions:**
+
+1. **Check path format** - selective sync paths must be:
+   - **Relative** to the project root (no leading `/`)
+   - No `..` parent traversal
+   - Example: `src/components` (correct), `/src/components` (incorrect), `../other` (incorrect)
+
+2. **Verify configuration:**
+   ```bash
+   devbox config show myproject
+   ```
+   Confirm the `sync_paths` entries use the correct relative format.
+
+3. **Restart sync** after changing selective sync settings:
+   ```bash
+   devbox down myproject
+   devbox up myproject
+   ```
+
+## Update Issues
+
+### Mutagen Download Failures
+
+**Symptoms:**
+- `devbox update` fails during Mutagen binary download
+- Network timeout or checksum mismatch errors
+
+**Solutions:**
+
+1. **Check network connectivity:**
+   ```bash
+   curl -I https://github.com/mutagen-io/mutagen/releases
+   ```
+
+2. **Retry the update:**
+   ```bash
+   devbox update
+   ```
+
+3. **Manual download** - if automated download keeps failing, manually download the Mutagen binary and place it at `~/.devbox/bin/mutagen`.
+
+### Version Mismatches
+
+**Symptoms:**
+- Sync errors after updating
+- `devbox doctor` reports Mutagen version issues
+
+**Solutions:**
+
+1. **Run the update command** to get the latest compatible version:
+   ```bash
+   devbox update
+   ```
+
+2. **Force re-download:**
+   ```bash
+   devbox update --force
+   ```
+
+## Batch Operation Issues
+
+### Partial Failures in `--all` Mode
+
+**Symptoms:**
+- Some projects succeed while others fail during batch operations (e.g., `devbox down --all`)
+- Mixed success/error output
+
+**Solutions:**
+
+1. **Check per-project errors** - the output lists which projects failed and why. Address each failure individually.
+
+2. **Re-run for failed projects only:**
+   ```bash
+   devbox up failed-project
+   ```
+
+3. **Run diagnostics on failing projects:**
+   ```bash
+   devbox doctor
+   devbox status failed-project
+   ```
+
+## Devcontainer Issues
+
+### Container Won't Start After Config Changes
+
+**Symptoms:**
+- Container fails to start after editing `devcontainer.json`
+- Build errors or invalid configuration
+
+**Solutions:**
+
+1. **Reset devcontainer configuration** to regenerate from template:
+   ```bash
+   devbox config devcontainer reset <project>
+   ```
+
+2. **Rebuild the container:**
+   ```bash
+   devbox up <project> --rebuild
+   ```
+
 ## Connection Issues
 
 ### SSH Connection Failed
@@ -161,17 +302,41 @@ This checks Docker, Mutagen, SSH connectivity, and configuration in one command.
    devbox up myproject --force
    ```
 
+### Lock Takeover Failed
+
+**Symptoms:**
+- `devbox up --force` fails to take over an existing lock
+- Permission denied on lock file
+
+**Solutions:**
+
+1. **Check SSH permissions** to the remote lock directory:
+   ```bash
+   ssh your-host ls -la ~/.devbox-locks/
+   ```
+
+2. **Manually remove the lock file:**
+   ```bash
+   ssh your-host rm ~/.devbox-locks/myproject.lock
+   ```
+
 ### Stale Lock
 
 **Symptoms:**
 - Lock from crashed session
 - Machine listed no longer exists
+- Remote server was restarted while a project was locked
 
 **Solutions:**
 
 1. **Force acquire lock:**
    ```bash
    devbox up myproject --force
+   ```
+
+2. **Bypass lock for shell access** (read-only, does not acquire lock):
+   ```bash
+   devbox shell myproject --force
    ```
 
 ## Configuration Issues

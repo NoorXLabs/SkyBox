@@ -22,13 +22,14 @@ This command has no additional options.
 
 The `clone` command downloads a project from your configured remote server to your local machine. It performs the following steps:
 
-1. **Remote Check** - Verifies the project exists on the remote server
-2. **Local Check** - Checks if project already exists locally (prompts to overwrite)
-3. **Directory Creation** - Creates the local project directory
-4. **Sync Setup** - Creates a Mutagen sync session for bidirectional file synchronization
-5. **Initial Sync** - Downloads all files from remote to local
-6. **Registration** - Registers the project in DevBox configuration
-7. **Container Prompt** - Offers to start the development container
+1. **Remote Selection** - If multiple remotes are configured, prompts you to select which remote to clone from
+2. **Remote Check** - Verifies the project exists on the remote server
+3. **Local Check** - Checks if project already exists locally (prompts to overwrite)
+4. **Directory Creation** - Creates the local project directory
+5. **Sync Setup** - Creates a Mutagen sync session for bidirectional file synchronization (uses selective sync if project has `sync_paths` configured)
+6. **Initial Sync** - Downloads all files from remote to local
+7. **Registration** - Registers the project in DevBox configuration
+8. **Container Prompt** - Offers to start the development container
 
 ### Local Storage
 

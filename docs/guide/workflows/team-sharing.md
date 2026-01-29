@@ -353,6 +353,49 @@ ssh team-server
 chmod -R g+w ~/code
 ```
 
+## Multi-Remote Support
+
+DevBox supports multiple remote servers. This is useful for teams that split infrastructure by domain or environment:
+
+```bash
+# Add multiple remotes
+devbox remote add backend-server deploy@backend.company.com --path ~/code
+devbox remote add frontend-server deploy@frontend.company.com --path ~/code
+```
+
+Each project is associated with a specific remote:
+
+```bash
+devbox push ./backend-api --remote backend-server
+devbox push ./frontend-app --remote frontend-server
+```
+
+Team members configure the same set of remotes to access all shared projects.
+
+## Selective Sync for Large Repos
+
+For large repositories, selective sync avoids downloading unnecessary files:
+
+```bash
+devbox config set myproject sync_paths "src,tests,package.json"
+```
+
+Only the specified paths are synchronized. This is especially useful for monorepos where each developer works on a subset of the codebase. Paths must be relative to the project root.
+
+## Encrypting Sensitive Configuration
+
+For projects with sensitive configuration (API keys, credentials in devcontainer settings), use encryption:
+
+```bash
+devbox config encrypt myproject
+```
+
+This encrypts the project's configuration with a passphrase. Team members need the shared passphrase to decrypt and work with the project configuration.
+
+::: warning
+The passphrase cannot be recovered if lost. Share it securely with team members (e.g., via a password manager).
+:::
+
 ## Scaling to Larger Teams
 
 For larger teams, consider:
@@ -372,11 +415,11 @@ Cons: Need to manually share via git
 
 ### Multiple Shared Servers
 
-Split projects across servers:
+Split projects across servers using multi-remote support:
 
-```
-api-server:~/code/       # Backend team
-frontend-server:~/code/  # Frontend team
+```bash
+devbox remote add api-server deploy@api.company.com --path ~/code
+devbox remote add frontend-server deploy@fe.company.com --path ~/code
 ```
 
 ### Branch-Based Workflow

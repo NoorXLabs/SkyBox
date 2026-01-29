@@ -24,14 +24,15 @@ This command has no additional options.
 The `push` command uploads a local project to your configured remote server and sets up bidirectional sync. It performs the following steps:
 
 1. **Path Resolution** - Resolves the provided path to an absolute path
-2. **Git Check** - Verifies project is a git repository (offers to initialize if not)
-3. **Remote Check** - Checks if project already exists on remote (prompts to overwrite)
-4. **Remote Setup** - Creates the project directory on the remote server
-5. **Local Copy** - Copies project to DevBox projects directory
-6. **Sync Setup** - Creates a Mutagen sync session for bidirectional synchronization
-7. **Initial Sync** - Uploads all files to the remote
-8. **Registration** - Registers the project in DevBox configuration
-9. **Container Prompt** - Offers to start the development container immediately
+2. **Remote Selection** - If multiple remotes are configured, prompts you to select which remote to push to
+3. **Git Check** - Verifies project is a git repository (offers to initialize if not)
+4. **Remote Check** - Checks if project already exists on remote (prompts to overwrite)
+5. **Remote Setup** - Creates the project directory on the remote server
+6. **Local Copy** - Copies project to DevBox projects directory
+7. **Sync Setup** - Creates a Mutagen sync session for bidirectional synchronization (uses selective sync if project has `sync_paths` configured)
+8. **Initial Sync** - Uploads all files to the remote
+9. **Registration** - Registers the project in DevBox configuration
+10. **Container Prompt** - Offers to start the development container immediately
 
 ### Git Repository
 

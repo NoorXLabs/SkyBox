@@ -69,6 +69,21 @@ describe("paths", () => {
 		expect(getLogsDir()).toBe("/test/home/logs");
 	});
 
+	test("getDevboxHome returns non-empty string when env unset", () => {
+		delete process.env.DEVBOX_HOME;
+		const result = getDevboxHome();
+		expect(result).toBeTruthy();
+		expect(result.length).toBeGreaterThan(0);
+		expect(result).toContain(".devbox");
+	});
+
+	test("getConfigPath uses fallback when DEVBOX_HOME unset", () => {
+		delete process.env.DEVBOX_HOME;
+		const result = getConfigPath();
+		expect(result).toContain(".devbox");
+		expect(result).toEndWith("config.yaml");
+	});
+
 	test("all paths update when DEVBOX_HOME changes", () => {
 		process.env.DEVBOX_HOME = "/path/a";
 		expect(getDevboxHome()).toBe("/path/a");

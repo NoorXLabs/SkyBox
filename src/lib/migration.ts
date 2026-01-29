@@ -1,4 +1,4 @@
-// src/lib/migration.ts
+/** Config format migration from V1 (single remote) to V2 (multi-remote). */
 import type {
 	DevboxConfig,
 	DevboxConfigV2,

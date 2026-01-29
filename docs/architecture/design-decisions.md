@@ -340,3 +340,76 @@ devbox up myproject --no-prompt --editor
 # Fails clearly if no default editor
 # Error: No default editor configured. Use 'devbox editor' to set one.
 ```
+
+## Why AES-256-GCM for Encryption?
+
+**Decision:** Use AES-256-GCM with PBKDF2 key derivation for encrypting secrets stored in config.
+
+**Rationale:**
+
+1. **Industry standard** - AES-256-GCM is widely recommended for symmetric encryption.
+
+2. **Authenticated encryption** - GCM mode provides both confidentiality and integrity verification, detecting tampering.
+
+3. **Node.js native** - Uses `node:crypto` built-ins, no external dependencies needed.
+
+4. **PBKDF2 key derivation** - Stretches user-provided passwords with 100,000 iterations, resisting brute-force attacks.
+
+**Alternatives Considered:**
+
+| Approach | Why Not |
+|----------|---------|
+| AES-CBC | No built-in authentication, vulnerable to padding oracle attacks |
+| ChaCha20-Poly1305 | Less widely supported in tooling |
+| External encryption tool (age, gpg) | Extra dependency, harder to integrate |
+| No encryption (plaintext secrets) | Unacceptable security posture |
+
+## Why Per-Path Sessions for Selective Sync?
+
+**Decision:** Create one Mutagen sync session per path when using selective sync, rather than a single session with filters.
+
+**Rationale:**
+
+1. **Mutagen limitation** - Mutagen does not support syncing arbitrary subsets of paths within a single session. Each session maps one local path to one remote path.
+
+2. **Independent lifecycle** - Each path can be paused, resumed, or removed independently.
+
+3. **Clear status** - Per-session status makes it obvious which paths are synced and which have issues.
+
+4. **Predictable naming** - Session names follow a convention (`<project>--<subpath>`) making them easy to manage programmatically.
+
+**Trade-offs:**
+
+- More sessions to manage (mitigated by CLI automation)
+- Slightly higher resource usage with many sessions
+
+**Alternatives Considered:**
+
+| Approach | Why Not |
+|----------|---------|
+| Single session with include filters | Mutagen does not support this granularity |
+| Multiple full-project sessions | Wasteful, duplicates data |
+| Rsync for selective paths | One-way only, no continuous sync |
+
+## Why Built-in Templates + Custom Git URL Support?
+
+**Decision:** Ship a set of built-in project templates while also allowing users to define custom templates via git URLs in config.
+
+**Rationale:**
+
+1. **Quick start** - Built-in templates (Node.js, Python, Go, etc.) let users create projects immediately without setup.
+
+2. **Extensibility** - Teams can maintain their own template repos and register them via `devbox config templates.<name> <url>`.
+
+3. **No lock-in** - Templates are just git repos with a `.devcontainer/` directory. Nothing proprietary.
+
+4. **Composable** - Users can fork a built-in template, customize it, and register the fork as a custom template.
+
+**Alternatives Considered:**
+
+| Approach | Why Not |
+|----------|---------|
+| Built-in only | Too rigid for teams with specific needs |
+| Custom only | Poor onboarding experience for new users |
+| Template registry/marketplace | Overengineered for current scale |
+| Cookiecutter/Yeoman integration | Extra dependency, different mental model |

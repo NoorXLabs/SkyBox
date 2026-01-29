@@ -1,4 +1,5 @@
-// src/lib/mutagen.ts
+/** Mutagen sync session management: create, pause, resume, terminate. */
+import { join } from "node:path";
 import { execa } from "execa";
 import type { SyncStatus, SyncStatusValue } from "../types/index.ts";
 import { getExecaErrorMessage } from "./errors.ts";
@@ -118,4 +119,69 @@ export async function terminateSession(
 ): Promise<MutagenResult> {
 	const name = sessionName(project);
 	return executeMutagenCommand(["sync", "terminate", name]);
+}
+
+/**
+ * Generate a sanitized Mutagen session name for a selective sync subpath.
+ */
+export function selectiveSessionName(project: string, subpath: string): string {
+	const sanitizedProject = project
+		.toLowerCase()
+		.replace(/[^a-z0-9_-]/g, "-")
+		.replace(/-+/g, "-")
+		.replace(/^-|-$/g, "");
+	const sanitizedPath = subpath
+		.toLowerCase()
+		.replace(/[^a-z0-9_-]/g, "-")
+		.replace(/-+/g, "-")
+		.replace(/^-|-$/g, "");
+	return `devbox-${sanitizedProject || "project"}-${sanitizedPath || "path"}`;
+}
+
+/**
+ * Terminate selective sync sessions for specific subpaths.
+ */
+export async function terminateSelectiveSyncSessions(
+	project: string,
+	syncPaths: string[],
+): Promise<void> {
+	for (const subpath of syncPaths) {
+		const name = selectiveSessionName(project, subpath);
+		await executeMutagenCommand(["sync", "terminate", name]);
+	}
+}
+
+/**
+ * Create multiple Mutagen sync sessions for selective subdirectory sync.
+ */
+export async function createSelectiveSyncSessions(
+	project: string,
+	localPath: string,
+	remoteHost: string,
+	remotePath: string,
+	syncPaths: string[],
+	ignores: string[],
+): Promise<MutagenResult> {
+	for (const subpath of syncPaths) {
+		const name = selectiveSessionName(project, subpath);
+		const localSubpath = join(localPath, subpath);
+		const remoteSubpath = `${remotePath}/${subpath}`;
+
+		const result = await executeMutagenCommand([
+			"sync",
+			"create",
+			localSubpath,
+			`${remoteHost}:${remoteSubpath}`,
+			"--name",
+			name,
+			"--sync-mode",
+			"two-way-resolved",
+			...ignores.flatMap((i) => ["--ignore", i]),
+		]);
+
+		if (!result.success) {
+			return result;
+		}
+	}
+	return { success: true };
 }

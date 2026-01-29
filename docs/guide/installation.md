@@ -45,14 +45,21 @@ curl -fsSL https://bun.sh/install | bash
 
 ## Install DevBox
 
-Install DevBox from source:
+::: code-group
 
-```bash
+```bash [Homebrew (macOS)]
+brew tap NoorXLabs/homebrew-tap
+brew install devbox
+```
+
+```bash [From Source (macOS/Linux)]
 git clone https://github.com/NoorXLabs/DevBox.git
 cd DevBox
 bun install
 bun link
 ```
+
+:::
 
 ## Verify Installation
 
@@ -62,11 +69,7 @@ Check that DevBox is installed correctly:
 devbox --version
 ```
 
-You should see output like:
-
-```
-0.1.0
-```
+You should see the current version number.
 
 Also verify the dependencies are available:
 

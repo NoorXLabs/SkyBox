@@ -1,4 +1,4 @@
-// src/lib/ui.ts
+/** Terminal UI helpers: colored output, spinners, headers. */
 import chalk from "chalk";
 import inquirer from "inquirer";
 import ora, { type Ora } from "ora";

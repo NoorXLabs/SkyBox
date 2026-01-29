@@ -160,7 +160,7 @@ async function createFromTemplate(
 	}
 
 	// Git URL option
-	choices.push(new Separator("────────────────"));
+	choices.push(new Separator("──── Other ────"));
 	choices.push({ name: "Enter git URL...", value: "custom" });
 
 	const templateChoice = await select({

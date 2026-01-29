@@ -1,4 +1,4 @@
-// src/lib/lock.ts
+/** Multi-machine lock system using atomic remote file operations. */
 
 import { hostname, userInfo } from "node:os";
 import type { LockInfo, LockStatus, RemoteEntry } from "../types/index.ts";

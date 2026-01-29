@@ -131,6 +131,7 @@ A map of project names to project-specific configurations. Each project referenc
 | `remote` | `string` | Yes | Name of the remote this project belongs to |
 | `ignore` | `string[]` | No | Additional ignore patterns for this project |
 | `editor` | `string` | No | Override editor for this project |
+| `sync_paths` | `string[]` | No | Selective sync: only sync these subdirectories instead of the entire project |
 
 Example:
 
@@ -152,6 +153,29 @@ projects:
   side-project:
     remote: personal
     editor: nvim
+
+  large-monorepo:
+    remote: production
+    sync_paths:
+      - src
+      - build
+```
+
+### `encryption` (Optional)
+
+Configuration for AES-256-GCM encryption of sensitive data.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `enabled` | `boolean` | `false` | Toggle encryption on or off |
+| `salt` | `string` | - | Auto-generated hex-encoded salt used for key derivation. Do not edit manually. |
+
+Example:
+
+```yaml
+encryption:
+  enabled: true
+  salt: "a1b2c3d4e5f6..."
 ```
 
 ### `templates` (Optional)
@@ -247,6 +271,17 @@ projects:
   side-project:
     remote: personal
 
+  large-monorepo:
+    remote: production
+    sync_paths:
+      - src
+      - build
+
+# Encryption settings (optional)
+encryption:
+  enabled: true
+  salt: "a1b2c3d4e5f67890"
+
 # Custom project templates
 templates:
   company-starter: https://github.com/myorg/starter.git
@@ -258,6 +293,8 @@ templates:
 | Variable | Description |
 |----------|-------------|
 | `DEVBOX_HOME` | Override the default DevBox home directory (`~/.devbox`) |
+| `HOME` | Used for `~` expansion in paths (e.g., remote `path` and `key` fields) |
+| `EDITOR` | Fallback editor command if not configured in DevBox config |
 
 ## Creating Configuration
 
@@ -326,6 +363,11 @@ projects:
     ignore:
       - "local-only/"
       - "*.local"
+
+    # Selective sync: only sync specific subdirectories
+    sync_paths:
+      - src
+      - config
 ```
 
 ## Validation
