@@ -1,4 +1,10 @@
 // src/lib/__tests__/lock.test.ts
+//
+// Tests for lock module with isolated execa and ssh mocking.
+//
+// ISOLATION REQUIRED: Bun's mock.module() is permanent per process and cannot
+// be reset in afterEach. This file must run in its own test process. When run
+// alongside other test files, mock pollution may cause other tests to skip.
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import { hostname, userInfo } from "node:os";
 import type { LockInfo } from "../../types/index.ts";
@@ -46,7 +52,8 @@ describe("lock", () => {
 	});
 
 	afterEach(() => {
-		mockRunRemoteCommand.mockReset();
+		mockExeca.mockClear();
+		mockRunRemoteCommand.mockClear();
 	});
 
 	describe("getMachineName", () => {

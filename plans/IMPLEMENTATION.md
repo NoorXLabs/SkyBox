@@ -4,7 +4,7 @@
 >
 > **Started:** 2025 (CLI Development)
 >
-> **Progress:** 15/15 commands complete | 29/55 code quality tasks complete
+> **Progress:** 15/15 commands complete | 36/55 code quality tasks complete
 
 ---
 
@@ -303,45 +303,44 @@
   - Fix: Create `createTestContext()` helper
   - Commit: `0af385f`
 
-- [ ] **Task 35:** Unify mock detection logic
+- [x] **Task 35:** Unify mock detection logic
   - Locations: `container.test.ts`, `container-id-isolated.test.ts`, `status.test.ts`
   - Three different implementations
-  - Fix: Create `isExecaMocked()` in test-utils.ts
+  - Fix: Migrated to shared `isExecaMocked()` from test-utils.ts
 
-- [ ] **Task 36:** Extract common config factory
-  - Problem: Similar config objects in 10+ test files
-  - Fix: Create `createTestConfig()` and `createTestRemote()` helpers
+- [x] **Task 36:** Extract common config factory & migrate test files
+  - Problem: Similar config objects and boilerplate in 15+ test files
+  - Fix: Migrated all test files to `createTestContext()`, `createTestConfig()`, `createTestRemote()` helpers
 
-- [ ] **Task 37:** Extract git repository setup
+- [x] **Task 37:** Extract git repository setup
   - Problem: Identical git init pattern in multiple files
-  - Fix: Create `createTestGitRepo()` helper
+  - Fix: Created `createTestGitRepo()` helper, migrated status.test.ts and list.test.ts
 
 ### Test Coverage
 
-- [ ] **Task 38:** Strengthen weak assertions
-  - Location: `src/commands/__tests__/clone.test.ts:29-33`
-  - Trivial assertion `expect(projectName).toBeFalsy()`
-  - Fix: Actually test command behavior with mocked console
+- [x] **Task 38:** Strengthen weak assertions
+  - Location: `src/commands/__tests__/clone.test.ts`
+  - Trivial assertions replaced with real validation logic tests
+  - Fix: Tests now exercise `validateProjectName()` and `getProjectPath()`
 
 - [ ] **Task 39:** Add error path tests
   - Problem: Many happy paths tested, few error paths
   - Fix: Add tests for malformed YAML, missing fields, etc.
 
-- [ ] **Task 40:** Add tests for projectTemplates.ts
+- [x] **Task 40:** Add tests for projectTemplates.ts
   - Location: `src/lib/__tests__/projectTemplates.test.ts`
-  - Only `validateProjectName` tested
-  - Fix: Add tests for `getBuiltInTemplates()`, `getUserTemplates()`, `getAllTemplates()`
+  - Status: Already complete — coverage for all exported functions already exists
 
-- [ ] **Task 41:** Add test for invalid YAML config loading
+- [x] **Task 41:** Add test for invalid YAML config loading
   - Location: `src/lib/__tests__/config.test.ts`
-  - Missing test for invalid YAML syntax handling
+  - Fix: Added test verifying `loadConfig()` throws on malformed YAML
 
 ### Test Isolation
 
-- [ ] **Task 42:** Fix module-level mock pollution
-  - Locations: `shell-docker-isolated.test.ts:12`, `lock.test.ts:7-10`
-  - Global mocks affect subsequent tests
-  - Fix: Reset mocks in afterEach or use dependency injection
+- [x] **Task 42:** Document and mitigate module-level mock pollution
+  - Locations: `shell-docker-isolated.test.ts`, `lock.test.ts`, `container-id-isolated.test.ts`
+  - Added `mockClear()` in `afterEach` to reset call counts between tests
+  - Added header comments documenting Bun's `mock.module()` limitation (permanent per process)
 
 ---
 

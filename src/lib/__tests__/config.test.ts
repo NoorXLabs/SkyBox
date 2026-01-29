@@ -192,4 +192,12 @@ projects:
 		saveConfig(config);
 		expect(listRemotes()).toEqual([]);
 	});
+
+	test("throws on invalid YAML", () => {
+		writeFileSync(
+			join(ctx.testDir, "config.yaml"),
+			"invalid: yaml: [broken: {nope",
+		);
+		expect(() => loadConfig()).toThrow();
+	});
 });

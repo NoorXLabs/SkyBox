@@ -80,6 +80,19 @@ export function writeTestConfig(testDir: string, config: DevboxConfigV2): void {
 }
 
 /**
+ * Creates an initialized git repository in the given directory.
+ * Includes an initial commit so branches are established.
+ */
+export async function createTestGitRepo(dir: string): Promise<void> {
+	await execa("git", ["init"], { cwd: dir });
+	await execa("git", ["config", "user.email", "test@test.com"], { cwd: dir });
+	await execa("git", ["config", "user.name", "Test"], { cwd: dir });
+	writeFileSync(join(dir, "README.md"), "# Test");
+	await execa("git", ["add", "."], { cwd: dir });
+	await execa("git", ["commit", "-m", "init"], { cwd: dir });
+}
+
+/**
  * Check if execa module is mocked by another test file.
  * When mocked, execa won't execute real commands properly.
  */

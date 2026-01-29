@@ -3,11 +3,12 @@
 // Tests for list command. Some tests require real git commands.
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { execa } from "execa";
 import {
 	createTestContext,
+	createTestGitRepo,
 	isExecaMocked,
 	type TestContext,
 } from "../../lib/__tests__/test-utils.ts";
@@ -49,18 +50,7 @@ describe("list command", () => {
 		// Create a fake project with git
 		const projectPath = join(projectsDir, "myapp");
 		mkdirSync(projectPath);
-
-		// Initialize git repo
-		await execa("git", ["init"], { cwd: projectPath });
-		await execa("git", ["config", "user.email", "test@test.com"], {
-			cwd: projectPath,
-		});
-		await execa("git", ["config", "user.name", "Test"], { cwd: projectPath });
-
-		// Create initial commit to establish branch
-		writeFileSync(join(projectPath, "README.md"), "# Test");
-		await execa("git", ["add", "."], { cwd: projectPath });
-		await execa("git", ["commit", "-m", "init"], { cwd: projectPath });
+		await createTestGitRepo(projectPath);
 
 		// Get branch
 		const result = await execa("git", [
