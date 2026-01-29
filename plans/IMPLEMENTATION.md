@@ -428,6 +428,9 @@
 - [ ] **Status Dashboard (TUI):** Full-screen terminal UI with real-time sync status, container resources, one-key actions
 - [ ] **Selective Sync:** Sync specific subdirectories for large monorepos
 - [ ] **Hooks System:** Pre/post sync and container start hooks for custom workflows
+- [ ] **Interactive Remove (`devbox rm`):** When called with no arguments, list local projects with multi-select so the user can choose one or more to remove. Existing behavior with a named argument stays unchanged.
+- [ ] **Remote Project Delete (`devbox rm --remote`):** Delete a project directory from the remote server. Safety checks: must be project owner (matches current user/machine), double confirmation prompt, `--force` flag to skip prompts for scripting. Only deletes the project folder at the configured remote path.
+- [ ] **Devcontainer Repair:** Two sub-features: (1) Edit local devcontainer.json and push corrected version to remote (`devbox config devcontainer edit [project]`). (2) Reset from built-in template and push to remote (`devbox config devcontainer reset [project]`).
 - [x] **Health Check Command:** `devbox doctor` to diagnose common issues
   - Checks: Docker, Mutagen, Devcontainer CLI, Config, SSH connectivity
   - Commits: `0a1a775`, `9ed4095`, `6116e95`, `8c6a18a`, `3510e97`, `779368b`, `fa27fb3`, `2530888`
@@ -443,6 +446,7 @@
 - [ ] **Batch Operations:** `devbox up --all` to start multiple projects
 - [ ] **Update Command:** `devbox update` for Mutagen binary and CLI updates
 - [ ] **Export/Import Config:** Share config between machines easily
+- [ ] **Encryption (Optional, Per-Layer):** Configurable encryption for synced files and/or local config/credentials. Users can independently enable encryption for each layer (synced project files on remote, local config). Uses a user-provided key. Toggleable on/off per project or globally.
 
 ### Lower Priority
 
@@ -459,7 +463,7 @@
 
 - [ ] Custom Sync Engine (replace Mutagen)
 - [ ] Cloud Storage Backend (S3/GCS/B2)
-- [ ] End-to-end Encryption
+- [x] End-to-end Encryption (promoted to Medium Priority as "Encryption (Optional, Per-Layer)")
 - [ ] Metrics/Analytics (local-only)
 
 ---
