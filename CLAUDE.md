@@ -336,8 +336,11 @@ Uses Docker with devcontainer spec:
 - **Architecture:** `docs/architecture/`
 - **Command reference:** `docs/reference/`
 - **Implementation plans:** `plans/` - all implementation plans go here, NOT in docs/
-- **Implementation tracker:** `plans/IMPLEMENTATION.md` - consolidated task tracker with all tasks, code review items, and future features
+- **Implementation tracker:** `plans/IMPLEMENTATION.md` - future features, pre-production checklist, and release tasks
+- **Archived implementation:** `plans/archive/ARCHIVED-IMPLEMENTATION.md` - all completed phases, tasks, and commits log
 - **Changelog:** `CHANGELOG.md`
+
+**Important:** When implementing or planning new features, always identify which docs pages in `docs/` need to be created or updated. For design docs in `plans/`, include a "Documentation Updates Required" section listing affected docs. When implementing, update the relevant docs before considering the feature complete.
 
 ## Known Gotchas
 

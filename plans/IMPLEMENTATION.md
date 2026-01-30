@@ -231,4 +231,21 @@ bash/zsh/fish completion scripts for all commands and options.
 
 ---
 
+## Feature Entry Template
+
+Copy-paste this when adding a new future feature:
+
+```markdown
+- [ ] ### Feature Name
+
+One-line description of what this feature does and why.
+
+- **Files:** List of new/modified files
+- **Config:** Config changes needed (if any)
+- **Dependencies:** External packages needed (if any)
+- **Notes:** Implementation considerations, trade-offs, or prerequisites
+```
+
+---
+
 *Last updated: 2026-01-30*

@@ -180,4 +180,19 @@ Currently lets users pick a built-in template. Now uses `selectTemplate()` for t
 
 ---
 
+## Documentation Updates Required
+
+When this feature is implemented, the following docs need to be created or updated:
+
+| Doc | Action |
+|-----|--------|
+| `docs/reference/custom-templates.md` | **Create** — template storage, validation rules, scaffold fields, and examples |
+| `docs/reference/new.md` | **Update** — document built-in and user template options (currently only covers git URLs) |
+| `docs/reference/up.md` | **Update** — mention user templates in the "no devcontainer found" flow |
+| `docs/reference/clone.md` | **Update** — mention user templates in the "no devcontainer found" flow |
+| `docs/reference/config.md` | **Update** — document `config-devcontainer` now uses unified template selector |
+| `docs/guide/concepts.md` | **Update** — add templates as a concept (storage location, relationship to devcontainers) |
+
+---
+
 *Last updated: 2026-01-30*
