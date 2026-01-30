@@ -24,16 +24,82 @@ Every custom template must contain these fields:
 
 | Field | Description |
 |-------|-------------|
-| `workspaceFolder` | Container path where the project is mounted |
+| `workspaceFolder` | Container path where the project is mounted (must use `/workspaces/` prefix) |
 | `workspaceMount` | Docker mount specification for the project |
 
+The `/workspaces/` prefix is required by the devcontainer spec — it's the standard location where projects are mounted inside the container.
+
 ::: warning
-When a template is applied to a project, DevBox overrides `workspaceFolder` and `workspaceMount` with project-specific values. These fields are required for validation but their values in the template file are not used directly.
+When a template is applied to a project, DevBox overrides `workspaceFolder` and `workspaceMount` with project-specific values (e.g., `/workspaces/my-app`). These fields are required for validation but their exact values in the template file are not used directly.
 :::
 
-## Template Format
+## Starter Templates
 
-A complete template file:
+### Minimal Template
+
+The bare minimum to get a working container. Copy this and customize it:
+
+```json
+{
+  "name": "my-template",
+  "image": "mcr.microsoft.com/devcontainers/base:debian",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename},type=bind,consistency=cached"
+}
+```
+
+This gives you a Debian container with basic dev tools. No SSH passthrough, no Docker access, no shell customization.
+
+### Recommended Template
+
+This template includes the features that DevBox's built-in templates use. These are recommended for a smooth development experience:
+
+```json
+{
+  "name": "my-template",
+  "image": "mcr.microsoft.com/devcontainers/base:debian",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename},type=bind,consistency=cached",
+  "postCreateCommand": "",
+  "postStartCommand": "[ ! -L $HOME/.ssh ] && rm -rf $HOME/.ssh && ln -s /var/ssh-config $HOME/.ssh || true",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "configureZshAsDefaultShell": true
+    },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "moby": false
+    },
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "mounts": [
+    "source=${localEnv:HOME}/.ssh,target=/var/ssh-config,type=bind,readonly"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      }
+    }
+  }
+}
+```
+
+### Why These Features Are Recommended
+
+| Feature | What it does | Why you want it |
+|---------|-------------|-----------------|
+| **common-utils** (zsh) | Installs zsh and sets it as the default shell | Better shell experience with auto-completion and history |
+| **docker-outside-of-docker** | Exposes the host Docker daemon inside the container | Run `docker` commands from your dev container without nested Docker |
+| **git** | Ensures git is installed and configured | Required for version control inside the container |
+| **SSH passthrough** (mount + postStartCommand) | Bind-mounts your host `~/.ssh` directory read-only and symlinks it inside the container | Git operations over SSH (push, pull, clone) work using your existing keys — no need to copy keys into the container |
+| **zsh as default terminal** (VS Code setting) | Sets the integrated terminal to use zsh | Matches the shell configured by common-utils |
+
+The `postStartCommand` creates a symlink from `$HOME/.ssh` to the bind-mounted `/var/ssh-config` directory. This runs each time the container starts, ensuring SSH keys are always available.
+
+### Language-Specific Example
+
+A complete template for a Bun/TypeScript project with all recommended features:
 
 ```json
 {
@@ -41,17 +107,26 @@ A complete template file:
   "image": "mcr.microsoft.com/devcontainers/base:debian",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename},type=bind,consistency=cached",
-  "postCreateCommand": "curl -fsSL https://bun.sh/install | bash",
-  "postStartCommand": "",
+  "postCreateCommand": "curl -fsSL https://bun.sh/install | bash && export BUN_INSTALL=\"$HOME/.bun\" && export PATH=\"$BUN_INSTALL/bin:$PATH\" && [ -f package.json ] && bun install || true",
+  "postStartCommand": "[ ! -L $HOME/.ssh ] && rm -rf $HOME/.ssh && ln -s /var/ssh-config $HOME/.ssh || true",
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
       "configureZshAsDefaultShell": true
-    }
+    },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "moby": false
+    },
+    "ghcr.io/devcontainers/features/git:1": {}
   },
+  "mounts": [
+    "source=${localEnv:HOME}/.ssh,target=/var/ssh-config,type=bind,readonly"
+  ],
   "customizations": {
     "vscode": {
       "extensions": ["oven.bun-vscode"],
-      "settings": {}
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      }
     }
   }
 }
@@ -117,31 +192,16 @@ After creating and optionally editing, you return to the template selector where
 
 ### Manually
 
-Create a `.json` file in `~/.devbox/templates/`:
+Create a `.json` file in `~/.devbox/templates/`. Copy one of the starter templates above and save it:
 
 ```bash
 mkdir -p ~/.devbox/templates
-cat > ~/.devbox/templates/rust.json << 'EOF'
-{
-  "name": "rust",
-  "image": "mcr.microsoft.com/devcontainers/rust:1",
-  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename},type=bind,consistency=cached",
-  "postCreateCommand": "rustup update",
-  "features": {
-    "ghcr.io/devcontainers/features/common-utils:2": {
-      "configureZshAsDefaultShell": true
-    }
-  },
-  "customizations": {
-    "vscode": {
-      "extensions": ["rust-lang.rust-analyzer"],
-      "settings": {}
-    }
-  }
-}
-EOF
+# Then create your template file, e.g.:
+# ~/.devbox/templates/rust.json
+# ~/.devbox/templates/bun.json
 ```
+
+The template will appear in the selector the next time any command needs a devcontainer configuration.
 
 ## Commands That Use Templates
 
@@ -150,6 +210,25 @@ EOF
 | `devbox up` | When a project has no `devcontainer.json` |
 | `devbox new` | When creating a new project (built-in/user templates create an empty project with the selected config; git URLs clone the repo) |
 | `devbox config devcontainer reset` | When resetting a project's devcontainer config |
+
+## Field Reference
+
+All fields supported in a custom template:
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | No | Display name for the container |
+| `image` | No | Docker image to use (e.g., `mcr.microsoft.com/devcontainers/base:debian`) |
+| `workspaceFolder` | **Yes** | Container path for the project (must start with `/workspaces/`) |
+| `workspaceMount` | **Yes** | Docker bind mount spec for the project directory |
+| `postCreateCommand` | No | Shell command to run after the container is first created (e.g., `npm install`) |
+| `postStartCommand` | No | Shell command to run each time the container starts (e.g., SSH symlink setup) |
+| `features` | No | Devcontainer features to install (e.g., git, Docker-outside-of-Docker, common-utils) |
+| `mounts` | No | Additional Docker bind mounts (e.g., SSH key passthrough) |
+| `customizations.vscode.extensions` | No | VS Code extensions to install in the container |
+| `customizations.vscode.settings` | No | VS Code settings to apply in the container |
+
+For the full devcontainer.json specification, see the [devcontainers spec](https://containers.dev/implementors/json_reference/).
 
 ## Edge Cases
 
