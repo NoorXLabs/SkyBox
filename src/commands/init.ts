@@ -444,6 +444,13 @@ export async function initCommand(): Promise<void> {
 	// Configure editor
 	const editor = await configureEditor();
 
+	// Ask about default encryption
+	const { confirm: confirmPrompt } = await import("@inquirer/prompts");
+	const enableDefaultEncryption = await confirmPrompt({
+		message: "Enable encryption for new projects by default?",
+		default: false,
+	});
+
 	// Create directories
 	header("Setting up devbox...");
 	try {
@@ -461,6 +468,7 @@ export async function initCommand(): Promise<void> {
 		defaults: {
 			sync_mode: "two-way-resolved",
 			ignore: DEFAULT_IGNORE,
+			...(enableDefaultEncryption && { encryption: true }),
 		},
 		remotes: {
 			[remote.name]: {

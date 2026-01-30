@@ -1,7 +1,5 @@
 // src/commands/config.ts
 
-import { randomBytes } from "node:crypto";
-import { password } from "@inquirer/prompts";
 import chalk from "chalk";
 import { loadConfig, saveConfig } from "../lib/config.ts";
 import { testConnection } from "../lib/ssh.ts";
@@ -148,8 +146,7 @@ function showHelp(): void {
 	console.log(
 		"  devcontainer reset <project> Reset devcontainer.json from template",
 	);
-	console.log("  encryption enable            Enable config encryption");
-	console.log("  encryption disable           Disable config encryption");
+	console.log("  → For encryption, use: devbox encrypt enable/disable");
 	console.log();
 	console.log(chalk.bold("Options:"));
 	console.log(
@@ -209,42 +206,6 @@ export async function configCommand(
 		}
 		error(`Unknown devcontainer action: ${arg1 || "(none)"}`);
 		info("Available actions: edit, reset");
-		return;
-	}
-
-	if (subcommand === "encryption") {
-		const config = loadConfig();
-		if (!config) {
-			error("devbox not configured. Run 'devbox init' first.");
-			process.exit(1);
-		}
-
-		if (arg1 === "enable") {
-			const passphrase = await password({
-				message: "Enter encryption passphrase:",
-			});
-			if (!passphrase) {
-				error("Passphrase is required.");
-				return;
-			}
-			const salt = randomBytes(16).toString("hex");
-			config.encryption = { enabled: true, salt };
-			saveConfig(config);
-			success(
-				"Encryption enabled. Keep your passphrase safe — it cannot be recovered.",
-			);
-			return;
-		}
-
-		if (arg1 === "disable") {
-			config.encryption = { enabled: false };
-			saveConfig(config);
-			success("Encryption disabled.");
-			return;
-		}
-
-		error(`Unknown encryption action: ${arg1 || "(none)"}`);
-		info("Available actions: enable, disable");
 		return;
 	}
 

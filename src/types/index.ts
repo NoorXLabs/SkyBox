@@ -30,6 +30,7 @@ export interface RemoteConfig {
 export interface SyncDefaults {
 	sync_mode: string;
 	ignore: string[];
+	encryption?: boolean;
 }
 
 /** V1 per-project configuration with optional overrides */
@@ -58,7 +59,8 @@ export interface RemoteEntry {
 	key?: string; // Path to SSH private key (undefined = use SSH config default)
 }
 
-export interface EncryptionConfig {
+/** Per-project encryption configuration */
+export interface ProjectEncryption {
 	enabled: boolean;
 	salt?: string;
 }
@@ -70,7 +72,7 @@ export interface DevboxConfigV2 {
 	remotes: Record<string, RemoteEntry>; // name -> remote
 	projects: Record<string, ProjectConfigV2>;
 	templates?: Record<string, string>;
-	encryption?: EncryptionConfig;
+	encryption?: ProjectEncryption;
 }
 
 /** V2 per-project configuration referencing a named remote */
@@ -79,6 +81,7 @@ export interface ProjectConfigV2 {
 	ignore?: string[];
 	editor?: string;
 	sync_paths?: string[]; // Selective sync: only sync these subdirectories
+	encryption?: ProjectEncryption;
 }
 
 export enum ContainerStatus {

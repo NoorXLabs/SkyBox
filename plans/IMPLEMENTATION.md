@@ -4,7 +4,7 @@
 >
 > **Started:** 2025 (CLI Development)
 >
-> **Progress:** 18/18 commands complete | 49/55 code quality tasks complete
+> **Progress:** 19/19 commands complete | 49/55 code quality tasks complete
 
 ---
 
@@ -24,7 +24,7 @@
 
 ## Completed Work
 
-### Commands (18/18 Complete)
+### Commands (19/19 Complete)
 
 - [x] `devbox init` - Interactive setup wizard
 - [x] `devbox browse` - List projects on remote server
@@ -43,6 +43,7 @@
 - [x] `devbox remote` - Manage multiple remote servers
 - [x] `devbox logs` - Show container or sync logs
 - [x] `devbox update` - Update Mutagen binary
+- [x] `devbox encrypt` - Enable/disable project encryption
 
 ### Core Features
 
@@ -463,6 +464,7 @@
 - [x] **Update Command:** `devbox update` for Mutagen binary
 - [ ] **Export/Import Config:** Share config between machines easily
 - [x] **Encryption (Optional, Per-Layer):** Foundation: AES-256-GCM library + config toggle (sync encryption deferred)
+- [x] **Project Encryption at Rest:** Full archive encryption (Argon2id KDF, AES-256-GCM), `devbox encrypt enable/disable`, integrated into up/down/clone/new/init flows
 
 ### Lower Priority
 
@@ -479,7 +481,7 @@
 
 - [ ] Custom Sync Engine (replace Mutagen)
 - [ ] Cloud Storage Backend (S3/GCS/B2)
-- [x] End-to-end Encryption (promoted to Medium Priority as "Encryption (Optional, Per-Layer)")
+- [x] End-to-end Encryption (promoted to Medium Priority; implemented as "Project Encryption at Rest")
 - [ ] Metrics/Analytics (local-only)
 
 ---
@@ -579,7 +581,7 @@
 
 ## Notes
 
-- **Test coverage:** 37 test files with 230 tests
+- **Test coverage:** 38 test files with 239+ tests
 - **Environment variables:** `DEVBOX_HOME`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`
 - **Template repos:** Placeholder URLs in `src/lib/projectTemplates.ts` need real repos or removal (tracked in Future Features > High Priority)
 
@@ -605,7 +607,8 @@
 - `src/lib/shell.ts` - Shell escaping utilities (created)
 - `src/lib/constants.ts` - Shared constants (created)
 - `src/lib/encryption.ts` - AES-256-GCM encryption (created)
+- `src/commands/encrypt.ts` - Encrypt enable/disable command (created)
 
 ---
 
-*Last updated: 2026-01-28*
+*Last updated: 2026-01-29*

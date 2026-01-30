@@ -14,6 +14,8 @@ import {
 import { getProjectsDir } from "../lib/paths.ts";
 import { validateProjectName } from "../lib/projectTemplates.ts";
 import { checkRemoteProjectExists } from "../lib/remote.ts";
+import { escapeShellArg } from "../lib/shell.ts";
+import { runRemoteCommand } from "../lib/ssh.ts";
 import {
 	confirmDestructiveAction,
 	error,
@@ -144,6 +146,18 @@ export async function cloneCommand(project: string): Promise<void> {
 	// Register in config with remote reference
 	config.projects[project] = { remote: remoteName };
 	saveConfig(config);
+
+	// Check if project is encrypted on remote
+	const encArchivePath = `${remotePath}/${project}.tar.enc`;
+	const encCheck = await runRemoteCommand(
+		host,
+		`test -f ${escapeShellArg(encArchivePath)} && echo "ENCRYPTED" || echo "PLAIN"`,
+	);
+
+	if (encCheck.stdout?.includes("ENCRYPTED")) {
+		info("This project is encrypted on the remote.");
+		info("You'll need the passphrase when running 'devbox up' to decrypt it.");
+	}
 
 	// Offer to start container
 	console.log();

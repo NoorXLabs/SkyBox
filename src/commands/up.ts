@@ -1,4 +1,5 @@
 // src/commands/up.ts
+import { password } from "@inquirer/prompts";
 import inquirer from "inquirer";
 import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
 import {
@@ -10,6 +11,7 @@ import {
 	startContainer,
 	stopContainer,
 } from "../lib/container.ts";
+import { deriveKey } from "../lib/encryption.ts";
 import { getErrorMessage } from "../lib/errors.ts";
 import {
 	acquireLock,
@@ -24,6 +26,8 @@ import {
 	projectExists,
 	resolveProjectFromCwd,
 } from "../lib/project.ts";
+import { escapeShellArg } from "../lib/shell.ts";
+import { runRemoteCommand } from "../lib/ssh.ts";
 import { createDevcontainerConfig, TEMPLATES } from "../lib/templates.ts";
 import { error, header, info, spinner, success, warn } from "../lib/ui.ts";
 import {
@@ -31,7 +35,7 @@ import {
 	type DevboxConfigV2,
 	type UpOptions,
 } from "../types/index.ts";
-import { getProjectRemote } from "./remote.ts";
+import { getProjectRemote, getRemoteHost, getRemotePath } from "./remote.ts";
 
 /** Result of project resolution phase */
 interface ResolvedProject {
@@ -299,6 +303,127 @@ async function ensureDevcontainerConfig(
 	return true;
 }
 
+const MAX_PASSPHRASE_ATTEMPTS = 3;
+
+/**
+ * Decrypt project archive on remote if encryption is enabled and archive exists.
+ * Downloads archive, decrypts locally, uploads tar, extracts on remote.
+ */
+async function handleDecryption(
+	project: string,
+	config: DevboxConfigV2,
+): Promise<boolean> {
+	const projectConfig = config.projects[project];
+	if (!projectConfig?.encryption?.enabled) {
+		return true;
+	}
+
+	const projectRemote = getProjectRemote(project, config);
+	if (!projectRemote) {
+		return true;
+	}
+
+	const host = getRemoteHost(projectRemote.remote);
+	const remotePath = getRemotePath(projectRemote.remote, project);
+	const archiveName = `${project}.tar.enc`;
+	const remoteArchivePath = `${remotePath}/${archiveName}`;
+
+	// Check if encrypted archive exists on remote
+	const checkResult = await runRemoteCommand(
+		host,
+		`test -f ${escapeShellArg(remoteArchivePath)} && echo "EXISTS" || echo "NOT_FOUND"`,
+	);
+
+	if (!checkResult.success || checkResult.stdout?.includes("NOT_FOUND")) {
+		return true; // No archive, continue normally
+	}
+
+	info("Encrypted archive found on remote. Decryption required.");
+
+	const salt = projectConfig.encryption.salt;
+	if (!salt) {
+		error(
+			"Encryption enabled but no salt in config. Run 'devbox encrypt disable' then re-enable.",
+		);
+		return false;
+	}
+
+	const { tmpdir } = await import("node:os");
+	const { join } = await import("node:path");
+	const { unlinkSync } = await import("node:fs");
+	const { execa } = await import("execa");
+	const { decryptFile } = await import("../lib/encryption.ts");
+
+	const timestamp = Date.now();
+	const localEncPath = join(tmpdir(), `devbox-${project}-${timestamp}.tar.enc`);
+	const localTarPath = join(tmpdir(), `devbox-${project}-${timestamp}.tar`);
+
+	for (let attempt = 1; attempt <= MAX_PASSPHRASE_ATTEMPTS; attempt++) {
+		const passphrase = await password({
+			message: `Enter passphrase (attempt ${attempt}/${MAX_PASSPHRASE_ATTEMPTS}):`,
+		});
+
+		if (!passphrase) {
+			error("Passphrase is required.");
+			continue;
+		}
+
+		const decryptSpin = spinner("Decrypting project archive...");
+
+		try {
+			const key = await deriveKey(passphrase, salt);
+
+			// Download encrypted archive from remote
+			decryptSpin.text = "Downloading encrypted archive...";
+			await execa("scp", [`${host}:${remoteArchivePath}`, localEncPath]);
+
+			// Decrypt locally
+			decryptSpin.text = "Decrypting...";
+			decryptFile(localEncPath, localTarPath, key);
+
+			// Upload decrypted tar to remote
+			decryptSpin.text = "Uploading decrypted files...";
+			const remoteTarPath = `${remotePath}/${project}.tar`;
+			await execa("scp", [localTarPath, `${host}:${remoteTarPath}`]);
+
+			// Extract on remote and clean up
+			decryptSpin.text = "Extracting...";
+			const extractResult = await runRemoteCommand(
+				host,
+				`cd ${escapeShellArg(remotePath)} && tar xf ${escapeShellArg(`${project}.tar`)} && rm -f ${escapeShellArg(`${project}.tar`)} ${escapeShellArg(archiveName)}`,
+			);
+
+			if (!extractResult.success) {
+				decryptSpin.fail("Failed to extract archive on remote");
+				error(extractResult.error || "Unknown error");
+				return false;
+			}
+
+			decryptSpin.succeed("Project decrypted and extracted");
+			return true;
+		} catch {
+			decryptSpin.fail(
+				"Decryption failed — incorrect passphrase or corrupted archive",
+			);
+			if (attempt === MAX_PASSPHRASE_ATTEMPTS) {
+				error(
+					`Failed to decrypt after ${MAX_PASSPHRASE_ATTEMPTS} attempts. Run 'devbox up' to try again.`,
+				);
+				return false;
+			}
+		} finally {
+			try {
+				unlinkSync(localEncPath);
+			} catch {}
+			try {
+				unlinkSync(localTarPath);
+			} catch {}
+		}
+	}
+
+	return false;
+}
+
 export async function upCommand(
 	projectArg: string | undefined,
 	options: UpOptions,
@@ -355,6 +480,12 @@ export async function upCommand(
 			process.exit(1);
 		}
 		return;
+	}
+
+	// Step 2.6: Decrypt remote archive if encryption enabled
+	const decryptOk = await handleDecryption(project, config);
+	if (!decryptOk) {
+		process.exit(1);
 	}
 
 	// Step 3: Ensure sync is running (background sync to remote)

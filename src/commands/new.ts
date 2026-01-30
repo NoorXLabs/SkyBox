@@ -1,13 +1,13 @@
 // src/commands/new.ts
 import { Separator, select } from "@inquirer/prompts";
 import inquirer from "inquirer";
-import { configExists, loadConfig } from "../lib/config.ts";
+import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
 import {
 	getAllTemplates,
 	validateProjectName,
 } from "../lib/projectTemplates.ts";
 import { runRemoteCommand } from "../lib/ssh.ts";
-import { error, header, info, spinner, success } from "../lib/ui.ts";
+import { error, header, info, spinner, success, warn } from "../lib/ui.ts";
 import type { RemoteEntry } from "../types/index.ts";
 import { getRemoteHost, selectRemote } from "./remote.ts";
 
@@ -91,6 +91,54 @@ export async function newCommand(): Promise<void> {
 	} else {
 		await createFromTemplate(remote, projectName);
 	}
+
+	// Prompt for encryption if default is enabled
+	if (config.defaults.encryption) {
+		const { confirm: confirmPrompt, password: passwordPrompt } = await import(
+			"@inquirer/prompts"
+		);
+		const { randomBytes } = await import("node:crypto");
+
+		const enableEnc = await confirmPrompt({
+			message: "Enable encryption for this project?",
+			default: true,
+		});
+
+		if (enableEnc) {
+			warn(
+				"Your passphrase is NEVER stored. If you forget it, your encrypted data CANNOT be recovered.",
+			);
+
+			const understood = await confirmPrompt({
+				message: "I understand the risks",
+				default: false,
+			});
+
+			if (understood) {
+				const passphrase = await passwordPrompt({
+					message: "Enter encryption passphrase:",
+				});
+
+				if (passphrase) {
+					const salt = randomBytes(16).toString("hex");
+					const currentConfig = loadConfig();
+					if (currentConfig) {
+						if (!currentConfig.projects[projectName]) {
+							currentConfig.projects[projectName] = { remote: remoteName };
+						}
+						currentConfig.projects[projectName].encryption = {
+							enabled: true,
+							salt,
+						};
+						saveConfig(currentConfig);
+						success("Encryption enabled for this project.");
+					}
+				}
+			}
+		}
+	}
+
+	await offerClone(projectName);
 }
 
 async function createEmptyProject(
@@ -126,9 +174,6 @@ async function createEmptyProject(
 	}
 
 	createSpin.succeed("Project created on remote");
-
-	// Offer to clone locally
-	await offerClone(projectName);
 }
 
 async function createFromTemplate(
@@ -299,9 +344,6 @@ async function cloneTemplateToRemote(
 
 		addSpin.succeed("Added devcontainer.json");
 	}
-
-	// Offer to clone locally
-	await offerClone(projectName);
 }
 
 async function offerClone(projectName: string): Promise<void> {

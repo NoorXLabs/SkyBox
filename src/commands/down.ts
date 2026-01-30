@@ -1,6 +1,7 @@
 // src/commands/down.ts
 
 import { existsSync, rmSync } from "node:fs";
+import { password } from "@inquirer/prompts";
 import inquirer from "inquirer";
 import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
 import {
@@ -9,6 +10,7 @@ import {
 	removeContainer,
 	stopContainer,
 } from "../lib/container.ts";
+import { deriveKey, encryptFile } from "../lib/encryption.ts";
 import { getErrorMessage } from "../lib/errors.ts";
 import { createLockRemoteInfo, releaseLock } from "../lib/lock.ts";
 import { pauseSync, waitForSync } from "../lib/mutagen.ts";
@@ -18,9 +20,134 @@ import {
 	projectExists,
 	resolveProjectFromCwd,
 } from "../lib/project.ts";
+import { escapeShellArg } from "../lib/shell.ts";
+import { runRemoteCommand } from "../lib/ssh.ts";
 import { error, header, info, spinner, success, warn } from "../lib/ui.ts";
-import { ContainerStatus, type DownOptions } from "../types/index.ts";
+import {
+	ContainerStatus,
+	type DevboxConfigV2,
+	type DownOptions,
+} from "../types/index.ts";
 import { getProjectRemote, getRemoteHost, getRemotePath } from "./remote.ts";
+
+const MAX_PASSPHRASE_ATTEMPTS = 3;
+
+/**
+ * Encrypt project directory on remote after sync flush.
+ * Tars project, downloads tar, encrypts locally, uploads encrypted archive, deletes plaintext on remote.
+ */
+async function handleEncryption(
+	project: string,
+	config: DevboxConfigV2,
+): Promise<boolean> {
+	const projectConfig = config.projects[project];
+	if (!projectConfig?.encryption?.enabled) {
+		return true;
+	}
+
+	const projectRemote = getProjectRemote(project ?? "", config);
+	if (!projectRemote) {
+		return true;
+	}
+
+	const host = getRemoteHost(projectRemote.remote);
+	const remotePath = getRemotePath(projectRemote.remote, project);
+	const archiveName = `${project}.tar.enc`;
+	const remoteArchivePath = `${remotePath}/${archiveName}`;
+
+	const salt = projectConfig.encryption.salt;
+	if (!salt) {
+		error(
+			"Encryption enabled but no salt in config. Run 'devbox encrypt disable' then re-enable.",
+		);
+		return false;
+	}
+
+	for (let attempt = 1; attempt <= MAX_PASSPHRASE_ATTEMPTS; attempt++) {
+		const passphrase = await password({
+			message: `Enter passphrase to encrypt (attempt ${attempt}/${MAX_PASSPHRASE_ATTEMPTS}):`,
+		});
+
+		if (!passphrase) {
+			error("Passphrase is required.");
+			continue;
+		}
+
+		const encryptSpin = spinner("Encrypting project archive...");
+
+		try {
+			const { tmpdir } = await import("node:os");
+			const { join } = await import("node:path");
+			const { unlinkSync } = await import("node:fs");
+			const { execa } = await import("execa");
+
+			const key = await deriveKey(passphrase, salt);
+			const timestamp = Date.now();
+			const localTarPath = join(tmpdir(), `devbox-${project}-${timestamp}.tar`);
+			const localEncPath = join(
+				tmpdir(),
+				`devbox-${project}-${timestamp}.tar.enc`,
+			);
+
+			try {
+				// Tar project directory on remote (exclude the archive itself)
+				encryptSpin.text = "Creating archive on remote...";
+				const remoteTarPath = `${remotePath}/${project}.tar`;
+				const tarResult = await runRemoteCommand(
+					host,
+					`cd ${escapeShellArg(remotePath)} && tar cf ${escapeShellArg(`${project}.tar`)} --exclude=${escapeShellArg(archiveName)} --exclude=${escapeShellArg(`${project}.tar`)} -C ${escapeShellArg(remotePath)} .`,
+				);
+
+				if (!tarResult.success) {
+					encryptSpin.fail("Failed to create archive on remote");
+					error(tarResult.error || "Unknown error");
+					return false;
+				}
+
+				// Download tar from remote
+				encryptSpin.text = "Downloading archive...";
+				await execa("scp", [`${host}:${remoteTarPath}`, localTarPath]);
+
+				// Encrypt locally
+				encryptSpin.text = "Encrypting...";
+				encryptFile(localTarPath, localEncPath, key);
+
+				// Upload encrypted archive to remote
+				encryptSpin.text = "Uploading encrypted archive...";
+				await execa("scp", [localEncPath, `${host}:${remoteArchivePath}`]);
+
+				// Delete plaintext on remote (tar and project files, keep encrypted archive)
+				encryptSpin.text = "Cleaning up remote...";
+				const cleanResult = await runRemoteCommand(
+					host,
+					`rm -f ${escapeShellArg(remoteTarPath)} && find ${escapeShellArg(remotePath)} -mindepth 1 -not -name ${escapeShellArg(archiveName)} -depth -delete 2>/dev/null; true`,
+				);
+
+				if (!cleanResult.success) {
+					warn("Could not fully clean up plaintext on remote");
+				}
+
+				encryptSpin.succeed("Project encrypted and plaintext removed");
+				return true;
+			} finally {
+				try {
+					unlinkSync(localTarPath);
+				} catch {}
+				try {
+					unlinkSync(localEncPath);
+				} catch {}
+			}
+		} catch {
+			encryptSpin.fail("Encryption failed");
+			if (attempt === MAX_PASSPHRASE_ATTEMPTS) {
+				error(`Failed to encrypt after ${MAX_PASSPHRASE_ATTEMPTS} attempts.`);
+				return false;
+			}
+		}
+	}
+
+	return false;
+}
 
 export async function downCommand(
 	projectArg: string | undefined,
@@ -136,6 +263,12 @@ export async function downCommand(
 			}
 		} else {
 			stopSpin.succeed("Container already stopped");
+		}
+
+		// Encrypt project on remote if encryption is enabled
+		const encryptOk = await handleEncryption(project ?? "", config);
+		if (!encryptOk) {
+			warn("Encryption failed — project files remain unencrypted on remote");
 		}
 
 		// Release lock after container stopped (if project has a remote)

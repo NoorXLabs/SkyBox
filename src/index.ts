@@ -7,6 +7,7 @@ import { configCommand } from "./commands/config.ts";
 import { doctorCommand } from "./commands/doctor.ts";
 import { downCommand } from "./commands/down.ts";
 import { editorCommand } from "./commands/editor.ts";
+import { encryptCommand } from "./commands/encrypt.ts";
 import { initCommand } from "./commands/init.ts";
 import { listCommand } from "./commands/list.ts";
 import { logsCommand } from "./commands/logs.ts";
@@ -149,5 +150,10 @@ program
 	.command("update")
 	.description("Update Mutagen binary to latest bundled version")
 	.action(updateCommand);
+
+program
+	.command("encrypt [subcommand] [project]")
+	.description("Manage project encryption")
+	.action(encryptCommand);
 
 program.parse();
