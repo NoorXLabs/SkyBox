@@ -27,6 +27,7 @@ The command walks you through:
 3. **Project Type** - Choose between empty project or template
 4. **Template Selection** - If using a template, choose from built-in or custom
 5. **Clone Option** - Optionally clone the new project locally
+6. **Encryption** - If default encryption is enabled, optionally enable encryption for the new project
 
 ### Project Naming Rules
 

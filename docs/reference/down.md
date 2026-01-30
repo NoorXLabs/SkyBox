@@ -30,14 +30,27 @@ The `down` command stops a running development container. It performs the follow
 1. **Project Resolution** - Determines which project to stop (from argument, current directory, or interactive selection)
 2. **Sync Flush** - Waits for pending file changes to sync to remote
 3. **Container Stop** - Stops the running container
-4. **Lock Release** - Releases the lock so other machines can work on the project
-5. **Optional Cleanup** - Removes container and volumes if requested
-6. **Optional Local File Removal** - With cleanup, offers to delete local project files (double confirmation required)
-7. **Sync Pause** - If not cleaning up, offers to pause background sync to save resources
+4. **Archive Encryption** - If encryption is enabled, encrypts the project on the remote
+5. **Lock Release** - Releases the lock so other machines can work on the project
+6. **Optional Cleanup** - Removes container and volumes if requested
+7. **Optional Local File Removal** - With cleanup, offers to delete local project files (double confirmation required)
+8. **Sync Pause** - If not cleaning up, offers to pause background sync to save resources
 
 ### Sync Safety
 
 Before stopping the container, DevBox waits for all pending file changes to sync to the remote server. This prevents data loss when switching between machines. If the sync flush fails, you are warned but the stop continues.
+
+### Archive Encryption
+
+If the project has encryption enabled, after the sync is flushed and the container is stopped, DevBox will:
+
+1. Prompt for your passphrase
+2. Create a tar archive of the project on the remote
+3. Download the archive, encrypt it locally
+4. Upload the encrypted archive back to the remote
+5. Delete plaintext files from the remote
+
+If encryption fails, a warning is shown but the shutdown continues. Project files remain unencrypted on the remote in this case. See [`devbox encrypt`](/reference/encryption) for more details.
 
 ### Cleanup Options
 

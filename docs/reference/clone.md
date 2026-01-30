@@ -43,6 +43,10 @@ The sync session uses "two-way-resolved" mode, meaning:
 - Conflicts are automatically resolved (favoring the most recent change)
 - Default ignore patterns exclude node_modules, .git, build artifacts, etc.
 
+### Encrypted Projects
+
+If the project is encrypted on the remote (has a `.tar.enc` archive), DevBox will notify you after cloning. You'll need to provide the passphrase when running `devbox up` to decrypt the project before working on it.
+
 ### Overwrite Behavior
 
 If a project already exists locally, you'll be prompted twice:

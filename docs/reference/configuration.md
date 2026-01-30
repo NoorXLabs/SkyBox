@@ -88,6 +88,7 @@ Default settings for file synchronization.
 |--------|------|---------|-------------|
 | `sync_mode` | `string` | `"two-way-resolved"` | Mutagen sync mode for file synchronization |
 | `ignore` | `string[]` | See below | Default patterns to ignore during sync |
+| `encryption` | `boolean` | `false` | Enable encryption by default for new projects |
 
 #### Default Ignore Patterns
 
@@ -132,6 +133,7 @@ A map of project names to project-specific configurations. Each project referenc
 | `ignore` | `string[]` | No | Additional ignore patterns for this project |
 | `editor` | `string` | No | Override editor for this project |
 | `sync_paths` | `string[]` | No | Selective sync: only sync these subdirectories instead of the entire project |
+| `encryption` | `object` | No | Per-project encryption config (see below) |
 
 Example:
 
@@ -161,9 +163,29 @@ projects:
       - build
 ```
 
+#### Per-Project Encryption
+
+Projects can have encryption at rest enabled. When enabled, project files are encrypted on the remote when not in active use.
+
+```yaml
+projects:
+  my-app:
+    remote: production
+    encryption:
+      enabled: true
+      salt: "a1b2c3d4e5f6..."
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `enabled` | `boolean` | Whether encryption at rest is active |
+| `salt` | `string` | Auto-generated hex salt for key derivation. Do not edit. |
+
+Use `devbox encrypt enable/disable` to manage these settings. See [`devbox encrypt`](/reference/encryption).
+
 ### `encryption` (Optional)
 
-Configuration for AES-256-GCM encryption of sensitive data.
+Global configuration encryption settings. For per-project encryption at rest, see the `encryption` field under each project's configuration.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|

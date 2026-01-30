@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Remote Delete**: `rm --remote` flag with double confirmation to delete project from remote server
 - **Selective Sync**: `config sync-paths` for per-project directory-level sync control
 - **Encryption**: `config encryption enable/disable` for AES-256-GCM config file encryption
+- **Project Encryption at Rest**: `devbox encrypt enable/disable` for per-project archive encryption using Argon2id + AES-256-GCM, integrated into `up`/`down`/`clone`/`new`/`init` flows
 - **Devcontainer Repair**: `config devcontainer edit/reset` for editing or regenerating devcontainer.json
 - **Non-interactive Mode**: `--no-prompt` flag on `up`, `down`, and `open` commands
 - **Verbose Mode**: `up --verbose` for detailed error output during container startup

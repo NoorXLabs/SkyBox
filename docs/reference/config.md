@@ -15,8 +15,6 @@ devbox config [subcommand] [options]
 | (none) | Display current configuration |
 | `set <key> <value>` | Set a configuration value |
 | `sync-paths <project> [paths]` | View or set selective sync paths |
-| `encryption enable` | Enable AES-256-GCM config encryption |
-| `encryption disable` | Disable config encryption |
 | `devcontainer edit <project>` | Open devcontainer.json in editor |
 | `devcontainer reset <project>` | Reset devcontainer.json from template |
 
@@ -28,7 +26,7 @@ devbox config [subcommand] [options]
 
 ## Description
 
-The `config` command provides ways to view and modify your DevBox configuration. It shows your configured remotes and global settings, manages selective sync paths, handles config encryption, and provides devcontainer configuration management.
+The `config` command provides ways to view and modify your DevBox configuration. It shows your configured remotes and global settings, manages selective sync paths and provides devcontainer configuration management.
 
 ### Display Configuration
 
@@ -100,20 +98,6 @@ devbox config sync-paths my-project ""
 
 Paths are validated before saving. When no sync paths are configured, the entire project is synced.
 
-### Encryption
-
-Enable or disable AES-256-GCM encryption for your DevBox configuration file.
-
-```bash
-# Enable encryption (prompts for passphrase)
-devbox config encryption enable
-
-# Disable encryption
-devbox config encryption disable
-```
-
-When enabling encryption, you will be prompted for a passphrase. Keep this passphrase safe -- it cannot be recovered.
-
 ### Devcontainer Edit
 
 Open the project's `devcontainer.json` in your configured editor. After saving and closing the editor, the updated file is automatically pushed to the remote server.
@@ -152,12 +136,6 @@ devbox config sync-paths my-app
 
 # Set selective sync paths
 devbox config sync-paths my-app src,tests,package.json
-
-# Enable config encryption
-devbox config encryption enable
-
-# Disable config encryption
-devbox config encryption disable
 
 # Edit devcontainer.json for a project
 devbox config devcontainer edit my-app

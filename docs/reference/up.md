@@ -31,10 +31,11 @@ The `up` command starts a development container for the specified project. It pe
 
 1. **Project Resolution** - Determines which project to start (from argument, current directory, or interactive selection)
 2. **Lock Acquisition** - Acquires a lock to prevent conflicts with other machines
-3. **Sync Check** - Ensures the Mutagen sync session is active, resuming it if paused
-4. **Container Management** - Starts the container (or handles existing running containers)
-5. **Devcontainer Setup** - Creates devcontainer.json from templates if needed
-6. **Post-Start Actions** - Optionally opens editor or attaches to shell
+3. **Archive Decryption** - If encryption is enabled, decrypts the project archive on the remote
+4. **Sync Check** - Ensures the Mutagen sync session is active, resuming it if paused
+5. **Container Management** - Starts the container (or handles existing running containers)
+6. **Devcontainer Setup** - Creates devcontainer.json from templates if needed
+7. **Post-Start Actions** - Optionally opens editor or attaches to shell
 
 ### Project Auto-Detection
 
@@ -51,6 +52,18 @@ DevBox uses a lock system to prevent simultaneous editing from multiple machines
 - If another machine holds the lock, you are prompted to take it over
 - With `--no-prompt`, a lock conflict causes an error instead of a takeover prompt
 - If the project has no configured remote, the lock step is skipped
+
+### Archive Decryption
+
+If the project has encryption enabled and an encrypted archive exists on the remote server, DevBox will:
+
+1. Prompt for your passphrase (up to 3 attempts)
+2. Download the encrypted archive from the remote
+3. Decrypt it locally using AES-256-GCM
+4. Upload the decrypted files back to the remote
+5. Extract and clean up
+
+If decryption fails after 3 attempts, `devbox up` exits without starting the container. See [`devbox encrypt`](/reference/encryption) for more details.
 
 ### Sync Resume
 

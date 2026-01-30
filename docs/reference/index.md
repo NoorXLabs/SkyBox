@@ -19,6 +19,7 @@ DevBox provides a set of commands for managing your local-first development envi
 | [`devbox status`](/reference/status) | Show project status |
 | [`devbox remote`](/reference/remote) | Manage remote servers |
 | [`devbox config`](/reference/config) | View/modify configuration |
+| [`devbox encrypt`](/reference/encryption) | Manage project encryption |
 | [`devbox editor`](/reference/editor) | Change default editor |
 | [`devbox rm`](/reference/rm) | Remove project locally (keeps remote) |
 | [`devbox doctor`](/reference/doctor) | Diagnose common issues |
@@ -56,6 +57,12 @@ devbox editor
 
 # Or via config
 devbox config set editor vim
+
+# Enable project encryption
+devbox encrypt enable my-app
+
+# Disable project encryption
+devbox encrypt disable my-app
 ```
 
 ### Managing Remote Servers

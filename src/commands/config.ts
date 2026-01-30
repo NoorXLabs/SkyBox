@@ -146,7 +146,6 @@ function showHelp(): void {
 	console.log(
 		"  devcontainer reset <project> Reset devcontainer.json from template",
 	);
-	console.log("  → For encryption, use: devbox encrypt enable/disable");
 	console.log();
 	console.log(chalk.bold("Options:"));
 	console.log(

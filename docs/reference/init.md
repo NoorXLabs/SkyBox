@@ -24,6 +24,7 @@ The `init` command walks you through the initial DevBox configuration:
 2. **Mutagen Installation** - Downloads and installs Mutagen for file synchronization (if not already installed)
 3. **Remote Server Configuration** - Sets up SSH connection to your remote server
 4. **Editor Selection** - Configures your preferred code editor
+5. **Encryption Default** - Optionally enable encryption for new projects by default
 
 If DevBox is already configured, you'll be asked whether to reconfigure.
 
