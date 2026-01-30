@@ -217,33 +217,29 @@ For full details on creating, validating, and managing custom templates, see [Cu
 
 ## Encryption
 
-DevBox can encrypt sensitive values in your `config.yaml` using **AES-256-GCM** authenticated encryption with **PBKDF2** key derivation (100,000 iterations, SHA-512).
+DevBox supports **per-project encryption at rest** using **AES-256-GCM** authenticated encryption with **Argon2id** key derivation (64 MiB memory, 2 passes).
 
 ### How It Works
 
-When encryption is enabled, sensitive configuration values (such as remote host details) are stored in an encrypted format:
+When encryption is enabled for a project, its files are stored as an encrypted `.tar.enc` archive on the remote server when not in use. This protects your code at rest on the remote.
 
-```
-ENC[base64-encoded-payload]
-```
-
-The payload contains the initialization vector (16 bytes), authentication tag (16 bytes), and the encrypted data, all concatenated and base64-encoded.
+The encrypted payload uses an initialization vector (16 bytes), authentication tag (16 bytes), and the encrypted data, all concatenated and base64-encoded.
 
 ### Enabling Encryption
 
 ```bash
-devbox config encryption enable
+devbox encrypt enable <project>
 ```
 
-You will be prompted to set a passphrase. This passphrase is used to derive the encryption key.
+You will be prompted to set a passphrase. This passphrase is used to derive the encryption key via Argon2id.
 
 ::: warning
-**Your passphrase cannot be recovered if forgotten.** There is no reset mechanism. If you lose your passphrase, you will need to reconfigure DevBox from scratch.
+**Your passphrase cannot be recovered if forgotten.** There is no reset mechanism. If you lose your passphrase, your encrypted project data CANNOT be recovered.
 :::
 
 ### What Is Protected
 
-Encryption protects the contents of your `config.yaml` file, which may contain remote server hostnames, usernames, paths, and SSH key paths. It does not encrypt your project files or sync traffic (sync traffic is protected by SSH).
+Encryption protects your project files at rest on the remote server. It does not encrypt sync traffic (sync traffic is protected by SSH) or your local `config.yaml`.
 
 ## Remote Server
 

@@ -343,7 +343,7 @@ devbox up myproject --no-prompt --editor
 
 ## Why AES-256-GCM for Encryption?
 
-**Decision:** Use AES-256-GCM with PBKDF2 key derivation for encrypting secrets stored in config.
+**Decision:** Use AES-256-GCM with Argon2id key derivation for encrypting project data at rest on the remote.
 
 **Rationale:**
 
@@ -351,9 +351,9 @@ devbox up myproject --no-prompt --editor
 
 2. **Authenticated encryption** - GCM mode provides both confidentiality and integrity verification, detecting tampering.
 
-3. **Node.js native** - Uses `node:crypto` built-ins, no external dependencies needed.
+3. **Node.js native** - Uses `node:crypto` built-ins for AES-256-GCM, with the `argon2` package for key derivation.
 
-4. **PBKDF2 key derivation** - Stretches user-provided passwords with 100,000 iterations, resisting brute-force attacks.
+4. **Argon2id key derivation** - Memory-hard KDF (64 MiB memory, 2 passes) resists both brute-force and GPU-based attacks, superior to PBKDF2.
 
 **Alternatives Considered:**
 
@@ -391,19 +391,19 @@ devbox up myproject --no-prompt --editor
 | Multiple full-project sessions | Wasteful, duplicates data |
 | Rsync for selective paths | One-way only, no continuous sync |
 
-## Why Built-in Templates + Custom Git URL Support?
+## Why Built-in Templates + Custom Local Templates?
 
-**Decision:** Ship a set of built-in project templates while also allowing users to define custom templates via git URLs in config.
+**Decision:** Ship a set of built-in project templates while also allowing users to create custom local templates stored in `~/.devbox/templates/`.
 
 **Rationale:**
 
 1. **Quick start** - Built-in templates (Node.js, Python, Go, etc.) let users create projects immediately without setup.
 
-2. **Extensibility** - Teams can maintain their own template repos and register them via `devbox config templates.<name> <url>`.
+2. **Extensibility** - Users can create custom `devcontainer.json` templates stored as local files in `~/.devbox/templates/`, or provide a git URL during project creation.
 
-3. **No lock-in** - Templates are just git repos with a `.devcontainer/` directory. Nothing proprietary.
+3. **No lock-in** - Templates are standard `devcontainer.json` files. Nothing proprietary.
 
-4. **Composable** - Users can fork a built-in template, customize it, and register the fork as a custom template.
+4. **Composable** - Users can create templates through the CLI selector ("Create new template") or by manually placing JSON files in the templates directory.
 
 **Alternatives Considered:**
 

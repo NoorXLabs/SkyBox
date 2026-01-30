@@ -183,26 +183,9 @@ projects:
 
 Use `devbox encrypt enable/disable` to manage these settings. See [`devbox encrypt`](/reference/encryption).
 
-### `encryption` (Optional)
-
-Global configuration encryption settings. For per-project encryption at rest, see the `encryption` field under each project's configuration.
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `enabled` | `boolean` | `false` | Toggle encryption on or off |
-| `salt` | `string` | - | Auto-generated hex-encoded salt used for key derivation. Do not edit manually. |
-
-Example:
-
-```yaml
-encryption:
-  enabled: true
-  salt: "a1b2c3d4e5f6..."
-```
-
 ### `templates` (Optional)
 
-Custom project templates as git repository URLs.
+Custom project templates as git repository URLs. These templates appear in `devbox new` when selecting "From a template".
 
 ```yaml
 templates:
@@ -210,7 +193,9 @@ templates:
   react-app: https://github.com/myorg/react-template.git
 ```
 
-These templates appear in `devbox new` when selecting "From a template".
+::: tip
+You can also create local templates stored as `.json` files in `~/.devbox/templates/`. See [Custom Templates](/reference/custom-templates) for details.
+:::
 
 ## Complete Example
 
@@ -298,11 +283,6 @@ projects:
     sync_paths:
       - src
       - build
-
-# Encryption settings (optional)
-encryption:
-  enabled: true
-  salt: "a1b2c3d4e5f67890"
 
 # Custom project templates
 templates:
