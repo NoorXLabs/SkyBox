@@ -2,7 +2,7 @@
 
 > **Version:** 0.6.0-beta
 >
-> **Progress:** 19/19 commands complete | All code quality phases complete
+> **Progress:** 0/20 future features | 0/18 checklist items | 0/2 release tasks
 >
 > **Completed work archived:** [`plans/archive/ARCHIVED-IMPLEMENTATION.md`](archive/ARCHIVED-IMPLEMENTATION.md)
 
