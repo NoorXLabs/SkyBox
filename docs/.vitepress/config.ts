@@ -79,6 +79,7 @@ export default defineConfig({
             { text: 'devbox doctor', link: '/reference/doctor' },
             { text: 'devbox open', link: '/reference/open' },
             { text: 'devbox logs', link: '/reference/logs' },
+            { text: 'devbox encrypt', link: '/reference/encryption' },
             { text: 'devbox update', link: '/reference/update' },
             { text: 'Configuration', link: '/reference/configuration' },
           ],
