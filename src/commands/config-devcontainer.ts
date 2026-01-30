@@ -2,14 +2,13 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { select } from "@inquirer/prompts";
 import { execa } from "execa";
 import { loadConfig } from "../lib/config.ts";
 import { getErrorMessage } from "../lib/errors.ts";
 import { getProjectPath, projectExists } from "../lib/project.ts";
 import { escapeShellArg } from "../lib/shell.ts";
 import { runRemoteCommand } from "../lib/ssh.ts";
-import { createDevcontainerConfig, TEMPLATES } from "../lib/templates.ts";
+import { selectTemplate, writeDevcontainerConfig } from "../lib/templates.ts";
 import { error, info, spinner, success } from "../lib/ui.ts";
 import type { DevboxConfigV2 } from "../types/index.ts";
 
@@ -62,20 +61,29 @@ export async function devcontainerResetCommand(project: string): Promise<void> {
 
 	const projectPath = getProjectPath(project);
 
-	const templateId = await select({
-		message: "Select a devcontainer template:",
-		choices: TEMPLATES.map((t) => ({
-			name: `${t.name} - ${t.description}`,
-			value: t.id,
-		})),
-	});
+	const selection = await selectTemplate();
+	if (!selection) {
+		return;
+	}
 
-	createDevcontainerConfig(projectPath, templateId, project);
-	success(`Reset devcontainer.json to "${templateId}" template.`);
+	if (selection.source === "git") {
+		error("Git URL templates are not supported for devcontainer reset.");
+		info("Use 'devbox new' to create a project from a git template.");
+		return;
+	}
+
+	const devcontainerConfig = {
+		...selection.config,
+		workspaceFolder: `/workspaces/${project}`,
+		workspaceMount: `source=\${localWorkspaceFolder},target=/workspaces/${project},type=bind,consistency=cached`,
+	};
+
+	writeDevcontainerConfig(projectPath, devcontainerConfig);
+	success("Reset devcontainer.json from template.");
 
 	// Push to remote
-	const config = loadConfig();
-	await pushDevcontainerToRemote(project, projectPath, config);
+	const appConfig = loadConfig();
+	await pushDevcontainerToRemote(project, projectPath, appConfig);
 }
 
 async function pushDevcontainerToRemote(

@@ -1,14 +1,13 @@
 // src/commands/new.ts
-import { Separator, select } from "@inquirer/prompts";
+import { select } from "@inquirer/prompts";
 import inquirer from "inquirer";
 import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
-import {
-	getAllTemplates,
-	validateProjectName,
-} from "../lib/projectTemplates.ts";
+import { validateProjectName } from "../lib/projectTemplates.ts";
+import { escapeShellArg } from "../lib/shell.ts";
 import { runRemoteCommand } from "../lib/ssh.ts";
+import { selectTemplate } from "../lib/templates.ts";
 import { error, header, info, spinner, success, warn } from "../lib/ui.ts";
-import type { RemoteEntry } from "../types/index.ts";
+import type { DevcontainerConfig, RemoteEntry } from "../types/index.ts";
 import { getRemoteHost, selectRemote } from "./remote.ts";
 
 const MAX_NAME_ATTEMPTS = 5;
@@ -55,7 +54,7 @@ export async function newCommand(): Promise<void> {
 		const checkSpin = spinner("Checking remote...");
 		const checkResult = await runRemoteCommand(
 			host,
-			`test -d "${remote.path}/${projectName}" && echo "EXISTS" || echo "NOT_FOUND"`,
+			`test -d ${escapeShellArg(`${remote.path}/${projectName}`)} && echo "EXISTS" || echo "NOT_FOUND"`,
 		);
 
 		if (checkResult.stdout?.includes("EXISTS")) {
@@ -77,19 +76,18 @@ export async function newCommand(): Promise<void> {
 		break;
 	}
 
-	// Step 3: Choose project type
-	const projectType = await select({
-		message: "How would you like to create this project?",
-		choices: [
-			{ name: "Empty project (with devcontainer.json)", value: "empty" },
-			{ name: "From a template", value: "template" },
-		],
-	});
+	// Step 3: Select template using unified selector
+	const selection = await selectTemplate();
+	if (!selection) {
+		return;
+	}
 
-	if (projectType === "empty") {
-		await createEmptyProject(remote, projectName);
+	if (selection.source === "git") {
+		// Git URL: clone the repo to remote
+		await cloneGitToRemote(remote, projectName, selection.url);
 	} else {
-		await createFromTemplate(remote, projectName);
+		// Built-in or user template: create empty project with devcontainer config
+		await createProjectWithConfig(remote, projectName, selection.config);
 	}
 
 	// Prompt for encryption if default is enabled
@@ -141,29 +139,27 @@ export async function newCommand(): Promise<void> {
 	await offerClone(projectName);
 }
 
-async function createEmptyProject(
+async function createProjectWithConfig(
 	remote: RemoteEntry,
 	projectName: string,
+	devcontainerConfig: DevcontainerConfig,
 ): Promise<void> {
 	const host = getRemoteHost(remote);
 	const remotePath = `${remote.path}/${projectName}`;
 
-	// Create project directory with devcontainer
 	const createSpin = spinner("Creating project on remote...");
 
-	const devcontainerJson = JSON.stringify(
-		{
-			name: projectName,
-			image: "mcr.microsoft.com/devcontainers/base:ubuntu",
-		},
-		null,
-		2,
-	);
+	// Add workspace settings to the config
+	const config = {
+		...devcontainerConfig,
+		workspaceFolder: `/workspaces/${projectName}`,
+		workspaceMount: `source=\${localWorkspaceFolder},target=/workspaces/${projectName},type=bind,consistency=cached`,
+	};
 
-	// Escape the JSON for shell
-	const escapedJson = devcontainerJson.replace(/'/g, "'\\''");
+	const devcontainerJson = JSON.stringify(config, null, 2);
+	const encoded = Buffer.from(devcontainerJson).toString("base64");
 
-	const createCmd = `mkdir -p "${remotePath}/.devcontainer" && echo '${escapedJson}' > "${remotePath}/.devcontainer/devcontainer.json"`;
+	const createCmd = `mkdir -p ${escapeShellArg(`${remotePath}/.devcontainer`)} && echo ${escapeShellArg(encoded)} | base64 -d > ${escapeShellArg(`${remotePath}/.devcontainer/devcontainer.json`)}`;
 
 	const createResult = await runRemoteCommand(host, createCmd);
 
@@ -173,117 +169,46 @@ async function createEmptyProject(
 		process.exit(1);
 	}
 
-	createSpin.succeed("Project created on remote");
-}
+	// Initialize git repo
+	const gitResult = await runRemoteCommand(
+		host,
+		`cd ${escapeShellArg(remotePath)} && git init`,
+	);
 
-async function createFromTemplate(
-	remote: RemoteEntry,
-	projectName: string,
-): Promise<void> {
-	const { builtIn, user } = getAllTemplates();
-
-	// Build choices with separators using @inquirer/prompts format
-	type ChoiceItem =
-		| { name: string; value: string }
-		| InstanceType<typeof Separator>;
-	const choices: ChoiceItem[] = [];
-
-	// Built-in templates
-	if (builtIn.length > 0) {
-		choices.push(new Separator("──── Built-in ────"));
-		for (const t of builtIn) {
-			choices.push({ name: t.name, value: `builtin:${t.id}` });
-		}
-	}
-
-	// User templates
-	if (user.length > 0) {
-		choices.push(new Separator("──── Custom ────"));
-		for (const t of user) {
-			choices.push({ name: t.name, value: `user:${t.name}` });
-		}
-	}
-
-	// Git URL option
-	choices.push(new Separator("──── Other ────"));
-	choices.push({ name: "Enter git URL...", value: "custom" });
-
-	const templateChoice = await select({
-		message: "Select a template:",
-		choices,
-	});
-
-	let templateUrl: string;
-
-	if (templateChoice === "custom") {
-		const { gitUrl } = await inquirer.prompt([
-			{
-				type: "input",
-				name: "gitUrl",
-				message: "Git repository URL:",
-				validate: (input: string) => {
-					if (!input.trim()) return "URL cannot be empty";
-					if (!input.startsWith("https://") && !input.startsWith("git@")) {
-						return "URL must start with https:// or git@";
-					}
-					return true;
-				},
-			},
-		]);
-		templateUrl = gitUrl;
-	} else if (templateChoice.startsWith("builtin:")) {
-		const id = templateChoice.replace("builtin:", "");
-		const template = builtIn.find((t) => t.id === id);
-		if (!template) {
-			error("Template not found");
-			process.exit(1);
-		}
-		templateUrl = template.url;
+	if (!gitResult.success) {
+		createSpin.warn("Project created but git init failed");
 	} else {
-		const name = templateChoice.replace("user:", "");
-		const template = user.find((t) => t.name === name);
-		if (!template) {
-			error("Template not found");
-			process.exit(1);
-		}
-		templateUrl = template.url;
+		createSpin.succeed("Project created on remote");
 	}
-
-	// Ask about git history for custom URLs
-	let keepHistory = false;
-	if (templateChoice === "custom") {
-		const historyChoice = await select({
-			message: "Git history:",
-			choices: [
-				{ name: "Start fresh (recommended)", value: "fresh" },
-				{ name: "Keep original history", value: "keep" },
-			],
-		});
-		keepHistory = historyChoice === "keep";
-	}
-
-	await cloneTemplateToRemote(remote, projectName, templateUrl, keepHistory);
 }
 
-async function cloneTemplateToRemote(
+async function cloneGitToRemote(
 	remote: RemoteEntry,
 	projectName: string,
 	templateUrl: string,
-	keepHistory: boolean,
 ): Promise<void> {
 	const host = getRemoteHost(remote);
 	const remotePath = `${remote.path}/${projectName}`;
 
+	// Ask about git history
+	const historyChoice = await select({
+		message: "Git history:",
+		choices: [
+			{ name: "Start fresh (recommended)", value: "fresh" },
+			{ name: "Keep original history", value: "keep" },
+		],
+	});
+	const keepHistory = historyChoice === "keep";
+
 	const cloneSpin = spinner("Cloning template to remote...");
 
-	// Clone to temp, then move to final location
 	const tempPath = `/tmp/devbox-template-${Date.now()}`;
 
 	let cloneCmd: string;
 	if (keepHistory) {
-		cloneCmd = `git clone "${templateUrl}" "${tempPath}" && mv "${tempPath}" "${remotePath}"`;
+		cloneCmd = `git clone ${escapeShellArg(templateUrl)} ${escapeShellArg(tempPath)} && mv ${escapeShellArg(tempPath)} ${escapeShellArg(remotePath)}`;
 	} else {
-		cloneCmd = `git clone "${templateUrl}" "${tempPath}" && rm -rf "${tempPath}/.git" && git -C "${tempPath}" init && mv "${tempPath}" "${remotePath}"`;
+		cloneCmd = `git clone ${escapeShellArg(templateUrl)} ${escapeShellArg(tempPath)} && rm -rf ${escapeShellArg(`${tempPath}/.git`)} && git -C ${escapeShellArg(tempPath)} init && mv ${escapeShellArg(tempPath)} ${escapeShellArg(remotePath)}`;
 	}
 
 	const cloneResult = await runRemoteCommand(host, cloneCmd);
@@ -292,28 +217,18 @@ async function cloneTemplateToRemote(
 		cloneSpin.fail("Failed to clone template");
 		error(cloneResult.error || "Unknown error");
 
-		// Offer to retry or go back
 		const retryChoice = await select({
 			message: "What would you like to do?",
 			choices: [
 				{ name: "Try again", value: "retry" },
-				{ name: "Go back to template selection", value: "back" },
 				{ name: "Cancel", value: "cancel" },
 			],
 		});
 
 		if (retryChoice === "retry") {
-			return cloneTemplateToRemote(
-				remote,
-				projectName,
-				templateUrl,
-				keepHistory,
-			);
-		} else if (retryChoice === "back") {
-			return createFromTemplate(remote, projectName);
-		} else {
-			process.exit(1);
+			return cloneGitToRemote(remote, projectName, templateUrl);
 		}
+		process.exit(1);
 	}
 
 	cloneSpin.succeed("Template cloned to remote");
@@ -321,7 +236,7 @@ async function cloneTemplateToRemote(
 	// Check if devcontainer.json exists, add if not
 	const checkDevcontainer = await runRemoteCommand(
 		host,
-		`test -f "${remotePath}/.devcontainer/devcontainer.json" && echo "EXISTS" || echo "NOT_FOUND"`,
+		`test -f ${escapeShellArg(`${remotePath}/.devcontainer/devcontainer.json`)} && echo "EXISTS" || echo "NOT_FOUND"`,
 	);
 
 	if (checkDevcontainer.stdout?.includes("NOT_FOUND")) {
@@ -335,11 +250,11 @@ async function cloneTemplateToRemote(
 			null,
 			2,
 		);
-		const escapedJson = devcontainerJson.replace(/'/g, "'\\''");
+		const encoded = Buffer.from(devcontainerJson).toString("base64");
 
 		await runRemoteCommand(
 			host,
-			`mkdir -p "${remotePath}/.devcontainer" && echo '${escapedJson}' > "${remotePath}/.devcontainer/devcontainer.json"`,
+			`mkdir -p ${escapeShellArg(`${remotePath}/.devcontainer`)} && echo ${escapeShellArg(encoded)} | base64 -d > ${escapeShellArg(`${remotePath}/.devcontainer/devcontainer.json`)}`,
 		);
 
 		addSpin.succeed("Added devcontainer.json");

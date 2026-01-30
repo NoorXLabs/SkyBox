@@ -44,3 +44,10 @@ export function getMutagenPath(): string {
 export function getLogsDir(): string {
 	return join(getDevboxHome(), "logs");
 }
+
+/**
+ * Get the path to the user templates directory.
+ */
+export function getUserTemplatesDir(): string {
+	return join(getDevboxHome(), "templates");
+}

@@ -179,7 +179,11 @@ Each listed path gets its own independent Mutagen session (e.g., `devbox-my-app-
 
 ## Templates
 
-When a project lacks a `.devcontainer/devcontainer.json`, DevBox offers **built-in templates** during `devbox up`. You can also specify a template when creating a project with `devbox new`.
+DevBox uses a **unified template selector** whenever a devcontainer configuration is needed — during `devbox up`, `devbox new`, or `devbox config devcontainer reset`. The selector shows three categories:
+
+- **Built-in templates** — pre-configured environments for common languages
+- **Your custom templates** — local devcontainer.json files you create and manage
+- **Git URLs** — clone a repository as a project template
 
 ### Built-in Templates
 
@@ -196,9 +200,20 @@ All templates include these common features:
 - **SSH passthrough** -- your host `~/.ssh` directory is bind-mounted read-only, so container Git operations use your existing SSH keys
 - **Zsh** -- configured as the default shell
 
-### Custom Templates
+### Custom Local Templates
 
-You can also use a custom devcontainer configuration from a git repository by providing a template URL when running `devbox new`.
+You can store reusable devcontainer configurations as `.json` files in `~/.devbox/templates/`. The filename (minus `.json`) becomes the display name in the template selector.
+
+```
+~/.devbox/templates/
+├── bun.json          # Appears as "bun"
+├── rust.json         # Appears as "rust"
+└── company-stack.json # Appears as "company-stack"
+```
+
+Each file is a complete `devcontainer.json`. You can create templates through the CLI (select "Create new template" in the selector) or by manually placing files in the directory.
+
+For full details on creating, validating, and managing custom templates, see [Custom Templates Reference](/reference/custom-templates).
 
 ## Encryption
 

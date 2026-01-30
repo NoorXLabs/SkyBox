@@ -24,10 +24,9 @@ The command walks you through:
 
 1. **Remote Selection** - Choose which remote server to create the project on
 2. **Project Name** - Enter a valid project name
-3. **Project Type** - Choose between empty project or template
-4. **Template Selection** - If using a template, choose from built-in or custom
-5. **Clone Option** - Optionally clone the new project locally
-6. **Encryption** - If default encryption is enabled, optionally enable encryption for the new project
+3. **Template Selection** - Choose a devcontainer template from the unified selector (built-in, git URL, or your custom templates)
+4. **Clone Option** - Optionally clone the new project locally
+5. **Encryption** - If default encryption is enabled, optionally enable encryption for the new project
 
 ### Project Naming Rules
 
@@ -36,22 +35,15 @@ Project names must:
 - Not start with a hyphen or underscore
 - Not already exist on the selected remote
 
-### Project Types
+### Template Selection
 
-**Empty Project:**
-Creates a minimal project directory with just a `devcontainer.json`:
+The unified template selector offers three types of templates:
 
-```
-my-project/
-└── .devcontainer/
-    └── devcontainer.json
-```
+- **Built-in templates** (Node.js, Python, Go, Generic) — creates an empty project with a devcontainer.json using that template's configuration
+- **Your custom templates** — local devcontainer.json files stored in `~/.devbox/templates/`. See [Custom Templates](/reference/custom-templates) for details
+- **Git URL** — clones a git repository to the remote as the project
 
-**From Template:**
-Clones a git repository to create the project. You can:
-- Use built-in starter templates (Node.js, Bun, Python, Go)
-- Use custom templates from your config
-- Enter any git URL
+When selecting a built-in or custom template, DevBox creates the project directory on the remote, writes the devcontainer.json, and initializes a git repo. When using a git URL, DevBox clones the repo instead.
 
 ## Examples
 
@@ -68,34 +60,21 @@ devbox new
 ? Select remote: production
 ? Project name: my-new-api
   Checking remote... Name available
-? How would you like to create this project?
-  > Empty project (with devcontainer.json)
-    From a template
+? Select a template:
+── Built-in ──
+  Node.js — Node.js 20 with npm/yarn + Docker support
+  Python — Python 3.12 with pip/venv + Docker support
+  Go — Go 1.22 + Docker support
+  Generic — Debian with basic dev tools + Docker support
+── Other ──
+  Enter git URL
+── Your Templates ──
+  bun
+  Create new template
 
 Creating project on remote... done
 
 ? Clone this project locally now? (Y/n)
-```
-
-### Creating from Template
-
-```
-? How would you like to create this project?
-    Empty project (with devcontainer.json)
-  > From a template
-
-? Select a template:
-  ──── Built-in ────
-    Node.js Starter
-    Bun Starter
-    Python Starter
-    Go Starter
-  ──── Custom ────
-    my-company-template
-  ────────────────
-    Enter git URL...
-
-Cloning template to remote... done
 ```
 
 ### Using Custom Git URL
@@ -110,32 +89,9 @@ Cloning template to remote... done
 Cloning template to remote... done
 ```
 
-## Built-in Templates
+## Templates
 
-| Template | Description |
-|----------|-------------|
-| Node.js Starter | Node.js 20 with npm, ESLint, devcontainer |
-| Bun Starter | Bun runtime with TypeScript |
-| Python Starter | Python 3.12 with pip, venv |
-| Go Starter | Go 1.22 with standard tooling |
-
-All templates include:
-- Proper devcontainer.json configuration
-- Docker-outside-of-Docker support
-- SSH passthrough for git operations
-- Language-specific VS Code extensions
-
-## Custom Templates
-
-You can configure custom templates in `~/.devbox/config.yaml`:
-
-```yaml
-templates:
-  my-company-template: https://github.com/myorg/template.git
-  react-starter: https://github.com/myorg/react-template.git
-```
-
-These appear in the template selection menu under "Custom".
+For details on built-in templates, custom local templates, and the template selector, see [Custom Templates](/reference/custom-templates).
 
 ## Git History Options
 
@@ -174,3 +130,4 @@ After creating a project, you're prompted to clone it locally:
 - [devbox push](/reference/push) - Push existing project to remote
 - [devbox browse](/reference/browse) - List projects on remote
 - [devbox remote](/reference/remote) - Manage remote servers
+- [Custom Templates](/reference/custom-templates) - Create and manage reusable templates

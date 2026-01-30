@@ -75,7 +75,7 @@ If the container fails to start on the first attempt, DevBox automatically retri
 
 ### Devcontainer Templates
 
-If no `.devcontainer/devcontainer.json` exists, DevBox offers to create one from built-in templates for common development environments.
+If no `.devcontainer/devcontainer.json` exists, DevBox offers to create one using the unified template selector. You can choose from built-in templates, your custom local templates stored in `~/.devbox/templates/`, or enter a git URL. See [Custom Templates](/reference/custom-templates) for details on creating and managing templates.
 
 ### Container States
 
@@ -158,3 +158,4 @@ devbox clone another-project
 - [devbox status](/reference/status) - Check container status
 - [devbox clone](/reference/clone) - Clone a project from remote
 - [devbox editor](/reference/editor) - Change default editor
+- [Custom Templates](/reference/custom-templates) - Create and manage reusable templates

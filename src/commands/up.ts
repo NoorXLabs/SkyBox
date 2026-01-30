@@ -28,7 +28,7 @@ import {
 } from "../lib/project.ts";
 import { escapeShellArg } from "../lib/shell.ts";
 import { runRemoteCommand } from "../lib/ssh.ts";
-import { createDevcontainerConfig, TEMPLATES } from "../lib/templates.ts";
+import { selectTemplate, writeDevcontainerConfig } from "../lib/templates.ts";
 import { error, header, info, spinner, success, warn } from "../lib/ui.ts";
 import {
 	ContainerStatus,
@@ -284,19 +284,24 @@ async function ensureDevcontainerConfig(
 		return false;
 	}
 
-	const { templateId } = await inquirer.prompt([
-		{
-			type: "rawlist",
-			name: "templateId",
-			message: "Select a template:",
-			choices: TEMPLATES.map((t) => ({
-				name: `${t.name} - ${t.description}`,
-				value: t.id,
-			})),
-		},
-	]);
+	const selection = await selectTemplate();
+	if (!selection) {
+		return false;
+	}
 
-	createDevcontainerConfig(projectPath, templateId, project);
+	if (selection.source === "git") {
+		info(`Git URL templates are not supported for devcontainer setup.`);
+		info("Use 'devbox new' to create a project from a git template.");
+		return false;
+	}
+
+	const config = {
+		...selection.config,
+		workspaceFolder: `/workspaces/${project}`,
+		workspaceMount: `source=\${localWorkspaceFolder},target=/workspaces/${project},type=bind,consistency=cached`,
+	};
+
+	writeDevcontainerConfig(projectPath, config);
 	success("Created .devcontainer/devcontainer.json");
 
 	await commitDevcontainerConfig(projectPath);

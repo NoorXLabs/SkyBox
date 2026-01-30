@@ -249,6 +249,20 @@ export interface UserTemplate {
 	url: string;
 }
 
+// User local devcontainer template (stored in ~/.devbox/templates/)
+export interface UserLocalTemplate {
+	name: string;
+	config: DevcontainerConfig;
+	valid: boolean;
+	error?: string;
+}
+
+// Result of the unified template selector
+export type TemplateSelection =
+	| { source: "builtin"; config: DevcontainerConfig }
+	| { source: "user"; config: DevcontainerConfig }
+	| { source: "git"; url: string };
+
 // Built-in template definition
 export interface BuiltInTemplate {
 	id: string;
