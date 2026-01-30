@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress'
+import { commands } from './commands'
 
 export default defineConfig({
   title: 'DevBox',
@@ -62,25 +63,7 @@ export default defineConfig({
           text: 'Commands',
           items: [
             { text: 'Overview', link: '/reference/' },
-            { text: 'devbox init', link: '/reference/init' },
-            { text: 'devbox new', link: '/reference/new' },
-            { text: 'devbox clone', link: '/reference/clone' },
-            { text: 'devbox push', link: '/reference/push' },
-            { text: 'devbox up', link: '/reference/up' },
-            { text: 'devbox down', link: '/reference/down' },
-            { text: 'devbox shell', link: '/reference/shell' },
-            { text: 'devbox status', link: '/reference/status' },
-            { text: 'devbox browse', link: '/reference/browse' },
-            { text: 'devbox list', link: '/reference/list' },
-            { text: 'devbox rm', link: '/reference/rm' },
-            { text: 'devbox editor', link: '/reference/editor' },
-            { text: 'devbox config', link: '/reference/config' },
-            { text: 'devbox remote', link: '/reference/remote' },
-            { text: 'devbox doctor', link: '/reference/doctor' },
-            { text: 'devbox open', link: '/reference/open' },
-            { text: 'devbox logs', link: '/reference/logs' },
-            { text: 'devbox encrypt', link: '/reference/encryption' },
-            { text: 'devbox update', link: '/reference/update' },
+            ...commands.map(({ text, link }) => ({ text, link })),
             { text: 'Configuration', link: '/reference/configuration' },
           ],
         },

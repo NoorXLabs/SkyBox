@@ -4,27 +4,19 @@ DevBox provides a set of commands for managing your local-first development envi
 
 ## Commands Overview
 
-| Command | Description |
-|---------|-------------|
-| [`devbox init`](/reference/init) | Interactive setup wizard |
-| [`devbox up`](/reference/up) | Start a development container |
-| [`devbox down`](/reference/down) | Stop a development container |
-| [`devbox open`](/reference/open) | Open editor/shell for running container |
-| [`devbox shell`](/reference/shell) | Access shell inside container |
-| [`devbox clone`](/reference/clone) | Clone remote project locally |
-| [`devbox push`](/reference/push) | Push local project to remote |
-| [`devbox new`](/reference/new) | Create new project on remote |
-| [`devbox browse`](/reference/browse) | List projects on remote server |
-| [`devbox list`](/reference/list) | List local projects |
-| [`devbox status`](/reference/status) | Show project status |
-| [`devbox remote`](/reference/remote) | Manage remote servers |
-| [`devbox config`](/reference/config) | View/modify configuration |
-| [`devbox encrypt`](/reference/encryption) | Manage project encryption |
-| [`devbox editor`](/reference/editor) | Change default editor |
-| [`devbox rm`](/reference/rm) | Remove project locally (keeps remote) |
-| [`devbox doctor`](/reference/doctor) | Diagnose common issues |
-| [`devbox logs`](/reference/logs) | Show container or sync logs |
-| [`devbox update`](/reference/update) | Update Mutagen binary |
+<script setup>
+import { data } from './index.data'
+</script>
+
+<table>
+<thead><tr><th>Command</th><th>Description</th></tr></thead>
+<tbody>
+<tr v-for="cmd in data.commands" :key="cmd.link">
+  <td><a :href="cmd.link"><code>{{ cmd.text }}</code></a></td>
+  <td>{{ cmd.description }}</td>
+</tr>
+</tbody>
+</table>
 
 ## Global Options
 
