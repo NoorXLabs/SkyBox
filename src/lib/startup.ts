@@ -1,6 +1,7 @@
 /** Dependency checks run at CLI startup. */
 import { execSync } from "node:child_process";
 import chalk from "chalk";
+import { needsMutagenExtraction } from "./mutagen-extract.ts";
 
 interface DockerStatus {
 	installed: boolean;
@@ -99,14 +100,21 @@ function printDockerBanner(status: DockerStatus): void {
 
 /**
  * Run startup checks and show banner if Docker is unavailable.
- * Returns true if Docker is ready, false otherwise.
+ * Also checks if bundled Mutagen needs extraction.
+ * Returns true if all dependencies ready, false otherwise.
  */
 export function runStartupChecks(): boolean {
-	const status = checkDocker();
+	const dockerStatus = checkDocker();
 
-	if (!status.installed || !status.running) {
-		printDockerBanner(status);
+	if (!dockerStatus.installed || !dockerStatus.running) {
+		printDockerBanner(dockerStatus);
 		return false;
+	}
+
+	// Mutagen extraction is async but startup is sync.
+	// We only check here; actual extraction happens in commands that need it.
+	if (needsMutagenExtraction()) {
+		console.log(chalk.dim("  Mutagen will be extracted on first use."));
 	}
 
 	return true;
