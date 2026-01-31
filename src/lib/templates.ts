@@ -233,8 +233,10 @@ export function scaffoldTemplate(name: string): string {
 	const config = {
 		name,
 		image: "mcr.microsoft.com/devcontainers/base:debian",
+		// biome-ignore lint/suspicious/noTemplateCurlyInString: devcontainer variable placeholders
 		workspaceFolder: "/workspaces/${localWorkspaceFolderBasename}",
 		workspaceMount:
+			// biome-ignore lint/suspicious/noTemplateCurlyInString: devcontainer variable placeholders
 			"source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename},type=bind,consistency=cached",
 		postCreateCommand: "",
 		postStartCommand: "",
