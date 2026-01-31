@@ -5,6 +5,14 @@ All notable changes to DevBox will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.2] - 2026-01-30
+
+### Fixed
+
+- Fix release workflow: add `setup-node` for `argon2` native addon postinstall scripts
+- Upgrade GitHub Actions (`checkout`, `setup-node`) to v6
+- Use Node 25 in CI and release workflows
+
 ## [0.7.1] - 2026-01-30
 
 ### Fixed
@@ -195,6 +203,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Design documents for commands
   - Implementation plans
 
+[0.7.2]: https://github.com/NoorXLabs/DevBox/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/NoorXLabs/DevBox/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/NoorXLabs/DevBox/compare/v0.6.0-beta...v0.7.0
 [0.6.0-beta]: https://github.com/NoorXLabs/DevBox/compare/v0.5.1-beta...v0.6.0-beta
