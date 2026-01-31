@@ -18,6 +18,11 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+      - name: Install modern C++ compiler
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq g++-10
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 100
       - run: bun install
       - name: Lint
         run: biome check ./src
