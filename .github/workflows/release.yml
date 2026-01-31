@@ -26,12 +26,10 @@ jobs:
         run: bash scripts/download-mutagen.sh
 
       - name: Build all platforms
-        env:
-          DEVBOX_INSTALL_METHOD: github-release
         run: |
-          bun build ./src/index.ts --compile --target=bun-darwin-arm64 --outfile=devbox-darwin-arm64
-          bun build ./src/index.ts --compile --target=bun-darwin-x64 --outfile=devbox-darwin-x64
-          bun build ./src/index.ts --compile --target=bun-linux-x64 --outfile=devbox-linux-x64
+          bun build ./src/index.ts --compile --define "process.env.DEVBOX_INSTALL_METHOD='github-release'" --target=bun-darwin-arm64 --outfile=devbox-darwin-arm64
+          bun build ./src/index.ts --compile --define "process.env.DEVBOX_INSTALL_METHOD='github-release'" --target=bun-darwin-x64 --outfile=devbox-darwin-x64
+          bun build ./src/index.ts --compile --define "process.env.DEVBOX_INSTALL_METHOD='github-release'" --target=bun-linux-x64 --outfile=devbox-linux-x64
 
       - name: Create tarballs
         run: |
