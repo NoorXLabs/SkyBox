@@ -5,7 +5,9 @@
 
 set -euo pipefail
 
-VERSION="${1:-0.17.5}"
+# Read default version from the single source of truth in constants.ts
+DEFAULT_VERSION=$(grep 'MUTAGEN_VERSION' src/lib/constants.ts | head -1 | sed 's/.*"\(.*\)".*/\1/')
+VERSION="${1:-$DEFAULT_VERSION}"
 VENDOR_DIR="vendor/mutagen"
 REPO="mutagen-io/mutagen"
 BASE_URL="https://github.com/${REPO}/releases/download/v${VERSION}"

@@ -72,8 +72,14 @@ export async function extractBundledMutagen(
 
 		onProgress?.("Extracting bundled Mutagen...");
 
-		const execDir = join(import.meta.dir, "..", "..", "vendor", "mutagen");
-		const assetPath = join(execDir, assetName);
+		// In a Bun-compiled binary, import.meta.dir resolves to the executable's directory.
+		// In dev mode, it resolves to the source file's directory.
+		// We check both the compiled location (next to executable) and the dev location.
+		const compiledDir = join(import.meta.dir, "vendor", "mutagen");
+		const devDir = join(import.meta.dir, "..", "..", "vendor", "mutagen");
+		const compiledPath = join(compiledDir, assetName);
+		const devPath = join(devDir, assetName);
+		const assetPath = existsSync(compiledPath) ? compiledPath : devPath;
 
 		if (!existsSync(assetPath)) {
 			return {

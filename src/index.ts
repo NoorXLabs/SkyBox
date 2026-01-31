@@ -159,10 +159,10 @@ program
 	.description("Manage project encryption")
 	.action(encryptCommand);
 
-program.parse();
-
-// Non-blocking update check after command completes
+// Parse and run the command, then check for updates
 (async () => {
+	await program.parseAsync();
+
 	try {
 		const currentVersion: string = pkg.version;
 		const isBeta = currentVersion.includes("-");
