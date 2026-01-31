@@ -58,3 +58,11 @@ export function getUserTemplatesDir(): string {
 export function getUpdateCheckPath(): string {
 	return join(getDevboxHome(), ".update-check.json");
 }
+
+/**
+ * Get the path to the file that records the extracted Mutagen version.
+ * Used to detect when DevBox is updated and Mutagen needs re-extraction.
+ */
+export function getMutagenVersionPath(): string {
+	return join(getBinDir(), ".mutagen-version");
+}
