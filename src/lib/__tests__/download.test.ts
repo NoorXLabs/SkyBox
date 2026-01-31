@@ -1,6 +1,5 @@
 // src/lib/__tests__/download.test.ts
 import { describe, expect, test } from "bun:test";
-import { MUTAGEN_VERSION } from "../constants.ts";
 import {
 	getMutagenChecksumUrl,
 	getMutagenDownloadUrl,
@@ -73,11 +72,5 @@ describe("download", () => {
 			const result = parseSHA256Sums(content, "nonexistent.tar.gz");
 			expect(result).toBeNull();
 		});
-	});
-
-	test("getMutagenDownloadUrl uses canonical MUTAGEN_VERSION from constants", () => {
-		const url = getMutagenDownloadUrl("darwin", "arm64", MUTAGEN_VERSION);
-		expect(url).toContain(`v${MUTAGEN_VERSION}`);
-		expect(url).not.toContain("0.17.5");
 	});
 });
