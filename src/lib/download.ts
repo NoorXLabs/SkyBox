@@ -1,4 +1,8 @@
 /** Mutagen binary download and installation. */
+import { MUTAGEN_VERSION } from "./constants.ts";
+
+export { MUTAGEN_VERSION } from "./constants.ts";
+
 import {
 	chmodSync,
 	createWriteStream,
@@ -11,8 +15,6 @@ import { extract } from "tar";
 import { getErrorMessage } from "./errors.ts";
 import { getBinDir, getMutagenPath } from "./paths.ts";
 
-/** Pinned Mutagen version for binary downloads. */
-export const MUTAGEN_VERSION = "0.17.5";
 /** GitHub repository path for Mutagen releases. */
 const MUTAGEN_REPO = "mutagen-io/mutagen";
 

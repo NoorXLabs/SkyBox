@@ -74,3 +74,11 @@ describe("download", () => {
 		});
 	});
 });
+
+import { MUTAGEN_VERSION } from "../../lib/constants.ts";
+
+test("getMutagenDownloadUrl uses canonical MUTAGEN_VERSION from constants", () => {
+	const url = getMutagenDownloadUrl("darwin", "arm64", MUTAGEN_VERSION);
+	expect(url).toContain(`v${MUTAGEN_VERSION}`);
+	expect(url).not.toContain("0.17.5");
+});
