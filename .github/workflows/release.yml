@@ -22,7 +22,12 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Download Mutagen binaries for bundling
+        run: bash scripts/download-mutagen.sh
+
       - name: Build all platforms
+        env:
+          DEVBOX_INSTALL_METHOD: github-release
         run: |
           bun build ./src/index.ts --compile --target=bun-darwin-arm64 --outfile=devbox-darwin-arm64
           bun build ./src/index.ts --compile --target=bun-darwin-x64 --outfile=devbox-darwin-x64
