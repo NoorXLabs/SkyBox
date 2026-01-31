@@ -1,7 +1,4 @@
 /** Mutagen binary download and installation. */
-import { MUTAGEN_VERSION } from "./constants.ts";
-
-export { MUTAGEN_VERSION } from "./constants.ts";
 
 import {
 	chmodSync,
@@ -12,6 +9,7 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 import { extract } from "tar";
+import { MUTAGEN_VERSION } from "./constants.ts";
 import { getErrorMessage } from "./errors.ts";
 import { getBinDir, getMutagenPath } from "./paths.ts";
 

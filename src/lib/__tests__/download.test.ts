@@ -1,5 +1,6 @@
 // src/lib/__tests__/download.test.ts
 import { describe, expect, test } from "bun:test";
+import { MUTAGEN_VERSION } from "../constants.ts";
 import {
 	getMutagenChecksumUrl,
 	getMutagenDownloadUrl,
@@ -73,12 +74,10 @@ describe("download", () => {
 			expect(result).toBeNull();
 		});
 	});
-});
 
-import { MUTAGEN_VERSION } from "../../lib/constants.ts";
-
-test("getMutagenDownloadUrl uses canonical MUTAGEN_VERSION from constants", () => {
-	const url = getMutagenDownloadUrl("darwin", "arm64", MUTAGEN_VERSION);
-	expect(url).toContain(`v${MUTAGEN_VERSION}`);
-	expect(url).not.toContain("0.17.5");
+	test("getMutagenDownloadUrl uses canonical MUTAGEN_VERSION from constants", () => {
+		const url = getMutagenDownloadUrl("darwin", "arm64", MUTAGEN_VERSION);
+		expect(url).toContain(`v${MUTAGEN_VERSION}`);
+		expect(url).not.toContain("0.17.5");
+	});
 });
