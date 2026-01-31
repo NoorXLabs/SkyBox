@@ -326,6 +326,7 @@ Uses Docker with devcontainer spec:
 | `src/lib/encryption.ts` | AES-256-GCM encrypt/decrypt for config values |
 | `src/lib/validation.ts` | Path traversal prevention, input validation |
 | `src/lib/shell.ts` | Shell escaping: `escapeShellArg()`, `buildShellCommand()` |
+| `.github/workflows/release.yml` | Release workflow: builds 4 platform binaries (darwin-arm64, darwin-x64, linux-x64, linux-arm64) |
 | `biome.json` | Linting/formatting config |
 | `lefthook.yml` | Git hooks config |
 | `tsconfig.json` | TypeScript config |
@@ -340,9 +341,15 @@ Uses Docker with devcontainer spec:
 - **Archived implementation:** `plans/archive/ARCHIVED-IMPLEMENTATION.md` - all completed phases, tasks, and commits log
 - **Changelog:** `CHANGELOG.md`
 
+**Post-implementation checklist:**
+- Move completed plan from `plans/` to `plans/archive/` after merge
+- Update `plans/IMPLEMENTATION.md` to check off completed tasks and log commit hashes in `plans/archive/ARCHIVED-IMPLEMENTATION.md`
+
 **Important:** When implementing or planning new features, always identify which docs pages in `docs/` need to be created or updated. For design docs in `plans/`, include a "Documentation Updates Required" section listing affected docs. When implementing, update the relevant docs before considering the feature complete.
 
 ## Known Gotchas
+
+- **Single source of truth for constants**: Never re-define or re-export constants from secondary modules. Import directly from the canonical source (`src/lib/constants.ts`). Duplicates drift and cause subtle bugs.
 
 - **macOS path normalization**: Always normalize paths with `realpathSync()` BEFORE passing to `devcontainer` CLI or Docker queries. macOS symlinks (e.g., `/var` → `/private/var`) cause label mismatches between container creation and lookup.
 
