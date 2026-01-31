@@ -3,6 +3,8 @@
  * @description Shared constants used across the codebase.
  */
 
+import type { InstallMethod } from "../types/index.ts";
+
 /**
  * Docker label key used to identify devcontainers.
  * This label is set automatically by devcontainer-cli when starting a container.
@@ -30,6 +32,13 @@ export const DEFAULT_EDITOR = "cursor";
  * @see https://github.com/mutagen-io/mutagen/releases
  */
 export const MUTAGEN_VERSION = "0.17.5";
+
+/**
+ * How DevBox was installed. Set at build time via DEVBOX_INSTALL_METHOD env var.
+ * Falls back to "source" for local development.
+ */
+export const INSTALL_METHOD: InstallMethod =
+	(process.env.DEVBOX_INSTALL_METHOD as InstallMethod) || "source";
 
 /**
  * Exit code when user presses Ctrl+C.

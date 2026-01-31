@@ -320,3 +320,6 @@ export interface DoctorReport {
 	warned: number;
 	failed: number;
 }
+
+// Install method types
+export type InstallMethod = "homebrew" | "github-release" | "npm" | "source";
