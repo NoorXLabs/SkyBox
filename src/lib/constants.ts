@@ -41,6 +41,12 @@ export const INSTALL_METHOD: InstallMethod =
 	(process.env.DEVBOX_INSTALL_METHOD as InstallMethod) || "source";
 
 /**
+ * GitHub repo coordinates for update checks.
+ */
+export const GITHUB_OWNER = "NoorChasib";
+export const GITHUB_REPO = "DevBox";
+
+/**
  * Exit code when user presses Ctrl+C.
  */
 export const CTRL_C_EXIT_CODE = 130;

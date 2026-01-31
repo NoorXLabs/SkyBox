@@ -1,4 +1,5 @@
 // src/index.ts
+import chalk from "chalk";
 import { program } from "commander";
 import pkg from "../package.json";
 import { browseCommand } from "./commands/browse.ts";
@@ -20,7 +21,9 @@ import { shellCommand } from "./commands/shell.ts";
 import { statusCommand } from "./commands/status.ts";
 import { upCommand } from "./commands/up.ts";
 import { updateCommand } from "./commands/update.ts";
+import { INSTALL_METHOD } from "./lib/constants.ts";
 import { runStartupChecks } from "./lib/startup.ts";
+import { checkForUpdate, getUpgradeCommand } from "./lib/update-check.ts";
 
 // Run Docker check on bare `devbox` (no args) or `devbox init`
 const args = process.argv.slice(2);
@@ -157,3 +160,22 @@ program
 	.action(encryptCommand);
 
 program.parse();
+
+// Non-blocking update check after command completes
+(async () => {
+	try {
+		const currentVersion: string = pkg.version;
+		const isBeta = currentVersion.includes("-");
+		const newerVersion = await checkForUpdate(currentVersion, isBeta);
+		if (newerVersion) {
+			const cmd = getUpgradeCommand(INSTALL_METHOD);
+			console.log();
+			console.log(
+				chalk.yellow(`Update available: ${currentVersion} → ${newerVersion}.`),
+			);
+			console.log(chalk.dim(`Run: ${cmd}`));
+		}
+	} catch {
+		// Update check is non-critical — never crash the CLI
+	}
+})();
