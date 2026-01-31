@@ -25,13 +25,13 @@ export const CONFIG_FILENAME = "config.yaml";
 /**
  * Default editor preference.
  */
-export const DEFAULT_EDITOR = "cursor";
+export const DEFAULT_EDITOR = "vscode";
 
 /**
  * Pinned Mutagen version for binary downloads.
  * @see https://github.com/mutagen-io/mutagen/releases
  */
-export const MUTAGEN_VERSION = "0.17.5";
+export const MUTAGEN_VERSION = "0.18.1";
 
 /**
  * How DevBox was installed. Set at build time via DEVBOX_INSTALL_METHOD env var.
