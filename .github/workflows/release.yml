@@ -31,15 +31,17 @@ jobs:
 
       - name: Build all platforms
         run: |
-          bun build ./src/index.ts --compile --define "process.env.DEVBOX_INSTALL_METHOD='github-release'" --target=bun-darwin-arm64 --outfile=devbox-darwin-arm64
-          bun build ./src/index.ts --compile --define "process.env.DEVBOX_INSTALL_METHOD='github-release'" --target=bun-darwin-x64 --outfile=devbox-darwin-x64
-          bun build ./src/index.ts --compile --define "process.env.DEVBOX_INSTALL_METHOD='github-release'" --target=bun-linux-x64 --outfile=devbox-linux-x64
+          bun build ./src/index.ts --compile --minify --sourcemap --bytecode --define "process.env.DEVBOX_INSTALL_METHOD='github-release'" --target=bun-darwin-arm64 --outfile=devbox-darwin-arm64
+          bun build ./src/index.ts --compile --minify --sourcemap --bytecode --define "process.env.DEVBOX_INSTALL_METHOD='github-release'" --target=bun-darwin-x64 --outfile=devbox-darwin-x64
+          bun build ./src/index.ts --compile --minify --sourcemap --bytecode --define "process.env.DEVBOX_INSTALL_METHOD='github-release'" --target=bun-linux-x64 --outfile=devbox-linux-x64
+          bun build ./src/index.ts --compile --minify --sourcemap --bytecode --define "process.env.DEVBOX_INSTALL_METHOD='github-release'" --target=bun-linux-arm64 --outfile=devbox-linux-arm64
 
       - name: Create tarballs
         run: |
           tar -czvf devbox-darwin-arm64.tar.gz devbox-darwin-arm64
           tar -czvf devbox-darwin-x64.tar.gz devbox-darwin-x64
           tar -czvf devbox-linux-x64.tar.gz devbox-linux-x64
+          tar -czvf devbox-linux-arm64.tar.gz devbox-linux-arm64
 
       - name: Get version
         id: version
@@ -52,6 +54,7 @@ jobs:
             devbox-darwin-arm64.tar.gz
             devbox-darwin-x64.tar.gz
             devbox-linux-x64.tar.gz
+            devbox-linux-arm64.tar.gz
           generate_release_notes: true
 
       - name: Compute SHA256 hashes
@@ -60,6 +63,7 @@ jobs:
           echo "darwin_arm64=$(shasum -a 256 devbox-darwin-arm64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
           echo "darwin_x64=$(shasum -a 256 devbox-darwin-x64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
           echo "linux_x64=$(shasum -a 256 devbox-linux-x64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "linux_arm64=$(shasum -a 256 devbox-linux-arm64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
 
       - name: Update Homebrew formula
         if: ${{ !contains(github.ref, '-') }}
@@ -69,6 +73,7 @@ jobs:
           SHA_DARWIN_ARM64: ${{ steps.sha.outputs.darwin_arm64 }}
           SHA_DARWIN_X64: ${{ steps.sha.outputs.darwin_x64 }}
           SHA_LINUX_X64: ${{ steps.sha.outputs.linux_x64 }}
+          SHA_LINUX_ARM64: ${{ steps.sha.outputs.linux_arm64 }}
         run: |
           git clone https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/NoorXLabs/homebrew-tap.git
           cd homebrew-tap
@@ -97,6 +102,11 @@ jobs:
                 url "https://github.com/NoorXLabs/DevBox/releases/download/vVERSION_PLACEHOLDER/devbox-linux-x64.tar.gz"
                 sha256 "SHA_LINUX_X64_PLACEHOLDER"
               end
+
+              on_arm do
+                url "https://github.com/NoorXLabs/DevBox/releases/download/vVERSION_PLACEHOLDER/devbox-linux-arm64.tar.gz"
+                sha256 "SHA_LINUX_ARM64_PLACEHOLDER"
+              end
             end
 
             def install
@@ -106,6 +116,8 @@ jobs:
                 bin.install "devbox-darwin-x64" => "devbox"
               elsif OS.linux? && Hardware::CPU.intel?
                 bin.install "devbox-linux-x64" => "devbox"
+              elsif OS.linux? && Hardware::CPU.arm?
+                bin.install "devbox-linux-arm64" => "devbox"
               end
             end
 
@@ -129,6 +141,7 @@ jobs:
           sed -i'' -e "s/SHA_DARWIN_ARM64_PLACEHOLDER/${SHA_DARWIN_ARM64}/g" Formula/devbox.rb
           sed -i'' -e "s/SHA_DARWIN_X64_PLACEHOLDER/${SHA_DARWIN_X64}/g" Formula/devbox.rb
           sed -i'' -e "s/SHA_LINUX_X64_PLACEHOLDER/${SHA_LINUX_X64}/g" Formula/devbox.rb
+          sed -i'' -e "s/SHA_LINUX_ARM64_PLACEHOLDER/${SHA_LINUX_ARM64}/g" Formula/devbox.rb
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
