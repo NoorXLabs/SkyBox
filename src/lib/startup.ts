@@ -102,10 +102,10 @@ function printDockerBanner(status: DockerStatus): void {
  * Returns true if Docker is ready, false otherwise.
  */
 export function runStartupChecks(): boolean {
-	const status = checkDocker();
+	const dockerStatus = checkDocker();
 
-	if (!status.installed || !status.running) {
-		printDockerBanner(status);
+	if (!dockerStatus.installed || !dockerStatus.running) {
+		printDockerBanner(dockerStatus);
 		return false;
 	}
 

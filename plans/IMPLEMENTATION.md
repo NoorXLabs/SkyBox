@@ -2,7 +2,7 @@
 
 > **Version:** 0.6.0-beta
 >
-> **Progress:** 0/21 future features | 0/18 checklist items | 0/2 release tasks
+> **Progress:** 3/21 future features | 0/18 checklist items | 0/2 release tasks
 >
 > **Completed work archived:** [`plans/archive/ARCHIVED-IMPLEMENTATION.md`](archive/ARCHIVED-IMPLEMENTATION.md)
 
@@ -44,7 +44,7 @@ Pre/post sync and container start hooks for custom workflows (e.g., run migratio
 - **Config:** Add `hooks` section to project config in `src/types/index.ts`
 - **Notes:** Support shell commands and script paths; run in container or host context
 
-- [ ] ### Version Update Notification
+- [x] ### Version Update Notification
 
 After any command completes, show a one-line footer if a newer DevBox version is available. Checks GitHub Releases API once per day (cached to `~/.devbox/.update-check.json`). Channel-aware: stable users see stable releases only; beta users see all releases.
 
@@ -53,7 +53,7 @@ After any command completes, show a one-line footer if a newer DevBox version is
 - **Display:** `Update available: 0.6.0-beta → 0.7.0. Run <install-specific-command> to update.`
 - **Notes:** Depends on Install Method Detection for correct upgrade command
 
-- [ ] ### Install Method Detection
+- [x] ### Install Method Detection
 
 Embed `INSTALL_METHOD` constant at build time (`homebrew`, `github-release`, `npm`, `source`). CI sets `DEVBOX_INSTALL_METHOD` env var per distribution channel. Used by update notification to show the correct upgrade command.
 
@@ -69,7 +69,7 @@ Local devcontainer.json files stored in `~/.devbox/templates/` as reusable templ
 - **Files:** `src/lib/templates.ts`, `src/types/index.ts`, `src/commands/new.ts`, `src/commands/up.ts`, `src/commands/clone.ts`, `src/commands/config-devcontainer.ts`
 - **Notes:** Also unifies built-in templates into `devbox new` which currently only supports git URLs
 
-- [ ] ### Bundle Mutagen with DevBox
+- [x] ### Bundle Mutagen with DevBox
 
 Embed platform-specific Mutagen binary inside the compiled DevBox binary. On first run (or after DevBox update), extract to `~/.devbox/bin/mutagen` if missing or version mismatch. Pinned version in `MUTAGEN_VERSION` constant ensures all users run the exact tested version.
 

@@ -7,6 +7,9 @@ bun.lock
 docs/.vitepress/cache/
 docs/.vitepress/dist/
 
+# Vendored binaries
+vendor/
+
 # Bun build artifacts
 devbox-bin
 *.bun-build
