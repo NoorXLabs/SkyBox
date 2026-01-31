@@ -16,7 +16,8 @@ The command performs the following steps:
 
 1. **Version Check** - Reads the currently installed Mutagen version
 2. **Comparison** - Compares it against the target version bundled with DevBox
-3. **Download** - If versions differ (or Mutagen is not installed), downloads and installs the correct version with a progress indicator
+3. **Extraction** - If a bundled Mutagen asset is available (compiled builds), extracts it directly
+4. **Download Fallback** - If no bundled asset is found (dev mode), downloads from GitHub with a progress indicator
 
 If Mutagen is already up to date, the command reports success and exits without downloading.
 
