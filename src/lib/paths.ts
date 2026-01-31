@@ -51,3 +51,10 @@ export function getLogsDir(): string {
 export function getUserTemplatesDir(): string {
 	return join(getDevboxHome(), "templates");
 }
+
+/**
+ * Get the path to the update check metadata file.
+ */
+export function getUpdateCheckPath(): string {
+	return join(getDevboxHome(), ".update-check.json");
+}

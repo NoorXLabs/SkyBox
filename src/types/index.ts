@@ -323,3 +323,10 @@ export interface DoctorReport {
 
 // Install method types
 export type InstallMethod = "homebrew" | "github-release" | "npm" | "source";
+
+// Version update check types
+export interface UpdateCheckMetadata {
+	lastCheck: string; // ISO 8601 datetime of last check
+	latestVersion: string | null; // Latest version found, or null if check failed
+	latestStableVersion: string | null; // Latest non-prerelease version
+}
