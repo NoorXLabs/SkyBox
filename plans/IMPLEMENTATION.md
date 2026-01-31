@@ -2,7 +2,7 @@
 
 > **Version:** 0.6.0-beta
 >
-> **Progress:** 3/21 future features | 0/18 checklist items | 0/2 release tasks
+> **Progress:** 4/21 future features | 0/18 checklist items | 0/2 release tasks
 >
 > **Completed work archived:** [`plans/archive/ARCHIVED-IMPLEMENTATION.md`](archive/ARCHIVED-IMPLEMENTATION.md)
 
@@ -61,7 +61,7 @@ Embed `INSTALL_METHOD` constant at build time (`homebrew`, `github-release`, `np
 - **CI:** `.github/workflows/release.yml` sets env var per build target
 - **Notes:** Prerequisite for Version Update Notification
 
-- [ ] ### Custom Local Templates
+- [x] ### Custom Local Templates
 
 Local devcontainer.json files stored in `~/.devbox/templates/` as reusable templates. Filename becomes display name (e.g., `bun.json` → "bun"). Unified shared `selectTemplate()` component replaces fragmented template logic across commands. Includes CLI flow to scaffold new templates with required fields, edit options (editor/terminal/skip), and validation (must have `workspaceFolder`/`workspaceMount`).
 
