@@ -5,6 +5,29 @@ All notable changes to DevBox will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.1] - 2026-01-30
+
+### Fixed
+
+- Suppress Biome warnings for devcontainer variable placeholders (e.g., `${localWorkspaceFolder}`)
+
+## [0.7.0] - 2026-01-30
+
+### Added
+
+- **Version Update Notification**: One-line footer after commands when a newer DevBox version is available on GitHub Releases. Checks once per day (cached to `~/.devbox/.update-check.json`). Channel-aware: stable users see stable releases only, beta users see all releases.
+- **Install Method Detection**: `INSTALL_METHOD` constant embedded at build time (`homebrew`, `github-release`, `npm`, `source`). Used by update notification to show the correct upgrade command.
+- **Bundled Mutagen**: Platform-specific Mutagen binary is now embedded inside the compiled DevBox binary. Extracted to `~/.devbox/bin/mutagen` on first run or after version mismatch. Removes the need for `devbox update` end-user flow.
+- **Custom Local Templates**: Store reusable `devcontainer.json` files in `~/.devbox/templates/`. Filename becomes display name (e.g., `bun.json` → "bun"). Unified `selectTemplate()` component replaces fragmented template logic. CLI flow to scaffold new templates with required fields, editor options, and validation.
+
+### Changed
+
+- Bumped Commander.js to 14.0.3
+- Updated `GITHUB_OWNER` constant for new org
+- Unified VitePress sidebar and command overview from a single source
+- Reorganized implementation docs: split into active tracker (`plans/IMPLEMENTATION.md`) and archive (`plans/archive/ARCHIVED-IMPLEMENTATION.md`)
+- Archived completed design and plan documents
+
 ## [0.6.0-beta] - 2026-01-28
 
 ### Added
@@ -172,10 +195,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Design documents for commands
   - Implementation plans
 
-[0.6.0-beta]: https://github.com/NoorChasib/DevBox/compare/v0.5.1-beta...v0.6.0-beta
-[0.5.1-beta]: https://github.com/NoorChasib/DevBox/compare/v0.5.0...v0.5.1-beta
-[0.5.0]: https://github.com/NoorChasib/DevBox/compare/v0.4.0...v0.5.0
-[0.4.0]: https://github.com/NoorChasib/DevBox/compare/v0.3.0...v0.4.0
-[0.3.0]: https://github.com/NoorChasib/DevBox/compare/v0.2.0...v0.3.0
-[0.2.0]: https://github.com/NoorChasib/DevBox/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/NoorChasib/DevBox/releases/tag/v0.1.0
+[0.7.1]: https://github.com/NoorXLabs/DevBox/compare/v0.7.0...v0.7.1
+[0.7.0]: https://github.com/NoorXLabs/DevBox/compare/v0.6.0-beta...v0.7.0
+[0.6.0-beta]: https://github.com/NoorXLabs/DevBox/compare/v0.5.1-beta...v0.6.0-beta
+[0.5.1-beta]: https://github.com/NoorXLabs/DevBox/compare/v0.5.0...v0.5.1-beta
+[0.5.0]: https://github.com/NoorXLabs/DevBox/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/NoorXLabs/DevBox/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/NoorXLabs/DevBox/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/NoorXLabs/DevBox/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/NoorXLabs/DevBox/releases/tag/v0.1.0
