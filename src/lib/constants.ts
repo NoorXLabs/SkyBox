@@ -43,7 +43,7 @@ export const INSTALL_METHOD: InstallMethod =
 /**
  * GitHub repo coordinates for update checks.
  */
-export const GITHUB_OWNER = "NoorChasib";
+export const GITHUB_OWNER = "NoorXLabs";
 export const GITHUB_REPO = "DevBox";
 
 /**
