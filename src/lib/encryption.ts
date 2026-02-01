@@ -18,12 +18,6 @@ import {
 	ENCRYPTION_TAG_LENGTH,
 } from "./constants.ts";
 
-// Re-export these constants for backward compatibility
-export {
-	ENCRYPTION_CHECK_CONTENT,
-	ENCRYPTION_CHECK_FILENAME,
-} from "./constants.ts";
-
 /**
  * Derive a 256-bit key from a passphrase using Argon2id.
  * Memory-hard KDF for resistance to brute-force attacks.

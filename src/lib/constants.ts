@@ -167,8 +167,7 @@ export const SSH_KEYWORDS = {
 export const SSH_CONFIG_MOUNT_PATH = "/var/ssh-config";
 
 /** SSH symlink setup command (runs after container starts). */
-export const SSH_SYMLINK_COMMAND =
-	"[ ! -L $HOME/.ssh ] && rm -rf $HOME/.ssh && ln -s /var/ssh-config $HOME/.ssh || true";
+export const SSH_SYMLINK_COMMAND = `[ ! -L $HOME/.ssh ] && rm -rf $HOME/.ssh && ln -s ${SSH_CONFIG_MOUNT_PATH} $HOME/.ssh || true`;
 
 // ── Update Check ──
 
