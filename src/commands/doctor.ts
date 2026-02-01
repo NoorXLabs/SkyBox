@@ -2,16 +2,16 @@
 
 import { execSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import chalk from "chalk";
-import { configExists, loadConfig } from "../lib/config.ts";
-import { getMutagenPath } from "../lib/paths.ts";
-import { testConnection } from "../lib/ssh.ts";
+import { getRemoteHost } from "@commands/remote.ts";
+import { configExists, loadConfig } from "@lib/config.ts";
+import { getMutagenPath } from "@lib/paths.ts";
+import { testConnection } from "@lib/ssh.ts";
 import type {
 	DoctorCheckResult,
 	DoctorCheckStatus,
 	DoctorReport,
-} from "../types/index.ts";
-import { getRemoteHost } from "./remote.ts";
+} from "@typedefs/index.ts";
+import chalk from "chalk";
 
 // Check icons
 const icons: Record<DoctorCheckStatus, string> = {

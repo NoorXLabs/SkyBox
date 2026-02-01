@@ -3,13 +3,16 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
+	createTestContext,
+	type TestContext,
+} from "@lib/__tests__/test-utils.ts";
+import {
 	configExists,
 	getRemote,
 	listRemotes,
 	loadConfig,
 	saveConfig,
-} from "../config.ts";
-import { createTestContext, type TestContext } from "./test-utils.ts";
+} from "@lib/config.ts";
 
 describe("config", () => {
 	let ctx: TestContext;

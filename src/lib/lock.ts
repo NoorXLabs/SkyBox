@@ -1,10 +1,10 @@
 /** Multi-machine lock system using atomic remote file operations. */
 
 import { hostname, userInfo } from "node:os";
-import type { LockInfo, LockStatus, RemoteEntry } from "../types/index.ts";
-import { LOCKS_DIR_NAME } from "./constants.ts";
-import { escapeShellArg } from "./shell.ts";
-import { runRemoteCommand } from "./ssh.ts";
+import { LOCKS_DIR_NAME } from "@lib/constants.ts";
+import { escapeShellArg } from "@lib/shell.ts";
+import { runRemoteCommand } from "@lib/ssh.ts";
+import type { LockInfo, LockStatus, RemoteEntry } from "@typedefs/index.ts";
 
 /**
  * Remote connection info needed for lock operations.

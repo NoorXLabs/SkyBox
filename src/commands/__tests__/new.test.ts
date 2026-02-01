@@ -2,11 +2,11 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { stringify } from "yaml";
 import {
 	createTestContext,
 	type TestContext,
-} from "../../lib/__tests__/test-utils.ts";
+} from "@lib/__tests__/test-utils.ts";
+import { stringify } from "yaml";
 
 describe("new command", () => {
 	let ctx: TestContext;

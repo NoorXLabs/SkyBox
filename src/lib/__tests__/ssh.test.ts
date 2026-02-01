@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { findSSHKeys, parseSSHConfig } from "../ssh.ts";
+import { findSSHKeys, parseSSHConfig } from "@lib/ssh.ts";
 
 describe("ssh", () => {
 	describe("parseSSHConfig", () => {

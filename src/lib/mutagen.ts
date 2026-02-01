@@ -1,9 +1,9 @@
 /** Mutagen sync session management: create, pause, resume, terminate. */
 import { join } from "node:path";
+import { getExecaErrorMessage } from "@lib/errors.ts";
+import { getMutagenPath } from "@lib/paths.ts";
+import type { SyncStatus, SyncStatusValue } from "@typedefs/index.ts";
 import { execa } from "execa";
-import type { SyncStatus, SyncStatusValue } from "../types/index.ts";
-import { getExecaErrorMessage } from "./errors.ts";
-import { getMutagenPath } from "./paths.ts";
 
 /**
  * Generate a sanitized Mutagen session name from a project name.

@@ -7,11 +7,12 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { isExecaMocked } from "@lib/__tests__/test-utils.ts";
 import {
 	DEVCONTAINER_CONFIG_NAME,
 	DEVCONTAINER_DIR_NAME,
 	SUPPORTED_EDITORS,
-} from "../constants.ts";
+} from "@lib/constants.ts";
 import {
 	attachToShell,
 	getDevcontainerConfig,
@@ -20,8 +21,7 @@ import {
 	removeContainer,
 	startContainer,
 	stopContainer,
-} from "../container.ts";
-import { isExecaMocked } from "./test-utils.ts";
+} from "@lib/container.ts";
 
 const execaMocked = await isExecaMocked();
 

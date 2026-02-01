@@ -1,8 +1,8 @@
 /** Version update check: GitHub Releases API with 24h cache. */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import type { InstallMethod, UpdateCheckMetadata } from "../types/index.ts";
-import { CHECK_INTERVAL_MS, GITHUB_API_URL } from "./constants.ts";
-import { getUpdateCheckPath } from "./paths.ts";
+import { CHECK_INTERVAL_MS, GITHUB_API_URL } from "@lib/constants.ts";
+import { getUpdateCheckPath } from "@lib/paths.ts";
+import type { InstallMethod, UpdateCheckMetadata } from "@typedefs/index.ts";
 
 /**
  * Check if we should query GitHub for updates (24h cooldown).

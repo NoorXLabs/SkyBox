@@ -1,6 +1,6 @@
 // src/lib/__tests__/shell.test.ts
 import { describe, expect, test } from "bun:test";
-import { buildShellCommand, escapeShellArg } from "../shell.ts";
+import { buildShellCommand, escapeShellArg } from "@lib/shell.ts";
 
 describe("shell", () => {
 	describe("escapeShellArg", () => {

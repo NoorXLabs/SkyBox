@@ -1,7 +1,7 @@
 // src/lib/__tests__/migration.test.ts
 import { describe, expect, test } from "bun:test";
-import type { DevboxConfig } from "../../types/index.ts";
-import { migrateConfig, needsMigration } from "../migration.ts";
+import { migrateConfig, needsMigration } from "@lib/migration.ts";
+import type { DevboxConfig } from "@typedefs/index.ts";
 
 describe("config migration", () => {
 	describe("needsMigration", () => {

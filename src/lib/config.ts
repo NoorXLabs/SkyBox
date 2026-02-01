@@ -1,14 +1,14 @@
 /** YAML config file operations: load, save, query remotes and projects. */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
-import { parse, stringify } from "yaml";
+import { migrateConfig, needsMigration } from "@lib/migration.ts";
+import { getConfigPath } from "@lib/paths.ts";
 import type {
 	DevboxConfig,
 	DevboxConfigV2,
 	RemoteEntry,
-} from "../types/index.ts";
-import { migrateConfig, needsMigration } from "./migration.ts";
-import { getConfigPath } from "./paths.ts";
+} from "@typedefs/index.ts";
+import { parse, stringify } from "yaml";
 
 export function configExists(): boolean {
 	return existsSync(getConfigPath());

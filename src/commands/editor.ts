@@ -1,8 +1,9 @@
 // src/commands/editor.ts
+
+import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
+import { SUPPORTED_EDITORS } from "@lib/constants.ts";
+import { error, header, info, success } from "@lib/ui.ts";
 import inquirer from "inquirer";
-import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
-import { SUPPORTED_EDITORS } from "../lib/constants.ts";
-import { error, header, info, success } from "../lib/ui.ts";
 
 export async function editorCommand(): Promise<void> {
 	if (!configExists()) {

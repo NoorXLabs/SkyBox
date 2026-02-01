@@ -3,7 +3,7 @@
  * @description Operations for interacting with remote servers.
  */
 
-import { runRemoteCommand } from "./ssh.ts";
+import { runRemoteCommand } from "@lib/ssh.ts";
 
 /**
  * Check if a project directory exists on the remote server.

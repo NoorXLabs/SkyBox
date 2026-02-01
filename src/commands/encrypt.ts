@@ -1,14 +1,18 @@
 // src/commands/encrypt.ts
 
 import { randomBytes } from "node:crypto";
+import {
+	getProjectRemote,
+	getRemoteHost,
+	getRemotePath,
+} from "@commands/remote.ts";
 import { confirm, password, select } from "@inquirer/prompts";
+import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
+import { decryptFile, deriveKey } from "@lib/encryption.ts";
+import { escapeShellArg } from "@lib/shell.ts";
+import { runRemoteCommand } from "@lib/ssh.ts";
+import { error, info, spinner, success, warn } from "@lib/ui.ts";
 import chalk from "chalk";
-import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
-import { decryptFile, deriveKey } from "../lib/encryption.ts";
-import { escapeShellArg } from "../lib/shell.ts";
-import { runRemoteCommand } from "../lib/ssh.ts";
-import { error, info, spinner, success, warn } from "../lib/ui.ts";
-import { getProjectRemote, getRemoteHost, getRemotePath } from "./remote.ts";
 
 /**
  * Enable encryption for a project

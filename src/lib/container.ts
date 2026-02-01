@@ -2,7 +2,6 @@
 
 import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { join } from "node:path";
-import { execa } from "execa";
 import {
 	DEVCONTAINER_ALT_CONFIG_NAME,
 	DEVCONTAINER_CONFIG_NAME,
@@ -11,7 +10,8 @@ import {
 	type SUPPORTED_EDITORS,
 	VSCODE_REMOTE_URI_PREFIX,
 	WORKSPACE_PATH_PREFIX,
-} from "./constants.ts";
+} from "@lib/constants.ts";
+import { execa } from "execa";
 
 // Normalize path to real case (important for macOS case-insensitive filesystem)
 // Docker labels use exact string match, so paths must match exactly
@@ -23,12 +23,12 @@ function normalizePath(path: string): string {
 	}
 }
 
+import { getExecaErrorMessage, hasExitCode } from "@lib/errors.ts";
 import {
 	type ContainerInfo,
 	type ContainerResult,
 	ContainerStatus,
-} from "../types/index.ts";
-import { getExecaErrorMessage, hasExitCode } from "./errors.ts";
+} from "@typedefs/index.ts";
 
 export type EditorId = (typeof SUPPORTED_EDITORS)[number]["id"] | string;
 

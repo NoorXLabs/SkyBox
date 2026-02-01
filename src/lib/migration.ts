@@ -3,7 +3,7 @@ import type {
 	DevboxConfig,
 	DevboxConfigV2,
 	RemoteEntry,
-} from "../types/index.ts";
+} from "@typedefs/index.ts";
 
 /**
  * Check if config needs migration from old single-remote format

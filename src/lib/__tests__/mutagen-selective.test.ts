@@ -3,7 +3,7 @@ import {
 	createSelectiveSyncSessions,
 	selectiveSessionName,
 	sessionName,
-} from "../mutagen.ts";
+} from "@lib/mutagen.ts";
 
 describe("selective sync session naming", () => {
 	test("sessionName produces valid name for project", () => {

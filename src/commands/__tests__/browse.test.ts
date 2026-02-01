@@ -3,8 +3,8 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
 	createTestContext,
 	type TestContext,
-} from "../../lib/__tests__/test-utils.ts";
-import { configExists } from "../../lib/config.ts";
+} from "@lib/__tests__/test-utils.ts";
+import { configExists } from "@lib/config.ts";
 
 describe("browse command", () => {
 	let ctx: TestContext;

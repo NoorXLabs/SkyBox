@@ -2,13 +2,11 @@
 
 import { mkdirSync } from "node:fs";
 import { homedir } from "node:os";
-import { execa } from "execa";
-import inquirer from "inquirer";
-import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
-import { DEFAULT_IGNORE } from "../lib/constants.ts";
-import { downloadMutagen, isMutagenInstalled } from "../lib/download.ts";
-import { getErrorMessage } from "../lib/errors.ts";
-import { getBinDir, getDevboxHome, getProjectsDir } from "../lib/paths.ts";
+import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
+import { DEFAULT_IGNORE } from "@lib/constants.ts";
+import { downloadMutagen, isMutagenInstalled } from "@lib/download.ts";
+import { getErrorMessage } from "@lib/errors.ts";
+import { getBinDir, getDevboxHome, getProjectsDir } from "@lib/paths.ts";
 import {
 	copyKey,
 	findSSHKeys,
@@ -16,7 +14,7 @@ import {
 	runRemoteCommand,
 	testConnection,
 	writeSSHConfigEntry,
-} from "../lib/ssh.ts";
+} from "@lib/ssh.ts";
 import {
 	error,
 	header,
@@ -25,8 +23,10 @@ import {
 	spinner,
 	success,
 	warn,
-} from "../lib/ui.ts";
-import type { DevboxConfigV2 } from "../types/index.ts";
+} from "@lib/ui.ts";
+import type { DevboxConfigV2 } from "@typedefs/index.ts";
+import { execa } from "execa";
+import inquirer from "inquirer";
 
 async function checkDependencies(): Promise<boolean> {
 	header("Checking dependencies...");

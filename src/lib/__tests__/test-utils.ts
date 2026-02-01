@@ -7,9 +7,9 @@
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { DevboxConfigV2, RemoteEntry } from "@typedefs/index.ts";
 import { execa } from "execa";
 import { stringify } from "yaml";
-import type { DevboxConfigV2, RemoteEntry } from "../../types/index.ts";
 
 export interface TestContext {
 	testDir: string;

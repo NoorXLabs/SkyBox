@@ -3,10 +3,10 @@
 import { appendFileSync, existsSync, readdirSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { SSH_KEYWORDS, SSH_TIMEOUT_MS } from "@lib/constants.ts";
+import { getErrorMessage, getExecaErrorMessage } from "@lib/errors.ts";
+import type { SSHConfigEntry, SSHHost } from "@typedefs/index.ts";
 import { execa } from "execa";
-import type { SSHConfigEntry, SSHHost } from "../types/index.ts";
-import { SSH_KEYWORDS, SSH_TIMEOUT_MS } from "./constants.ts";
-import { getErrorMessage, getExecaErrorMessage } from "./errors.ts";
 
 function getSSHDir(): string {
 	const home = process.env.HOME || homedir();

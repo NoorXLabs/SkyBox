@@ -98,7 +98,12 @@ bun run src/index.ts <command>
 
 - **Indentation:** Tabs (not spaces)
 - **Quotes:** Double quotes for strings
-- **Imports:** Must include `.ts` extension (e.g., `import { foo } from "./bar.ts"`)
+- **Imports:** Use path aliases with `.ts` extension — never relative paths:
+  - `@commands/*` → `src/commands/*` (e.g., `import { upCommand } from "@commands/up.ts"`)
+  - `@lib/*` → `src/lib/*` (e.g., `import { loadConfig } from "@lib/config.ts"`)
+  - `@typedefs/*` → `src/types/*` (e.g., `import type { DevboxConfigV2 } from "@typedefs/index.ts"`)
+  - Exception: `../package.json` in `src/index.ts` (outside `src/`, no alias)
+  - Note: `@typedefs` is used instead of `@types` to avoid TypeScript TS6137 conflict
 - **Unused imports:** Error (auto-removed)
 - **Import organization:** Auto-sorted alphabetically
 

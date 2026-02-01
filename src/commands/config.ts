@@ -1,14 +1,14 @@
 // src/commands/config.ts
 
-import chalk from "chalk";
-import { loadConfig, saveConfig } from "../lib/config.ts";
-import { testConnection } from "../lib/ssh.ts";
-import { error, header, info, spinner, success } from "../lib/ui.ts";
-import { validatePath } from "../lib/validation.ts";
 import {
 	devcontainerEditCommand,
 	devcontainerResetCommand,
-} from "./config-devcontainer.ts";
+} from "@commands/config-devcontainer.ts";
+import { loadConfig, saveConfig } from "@lib/config.ts";
+import { testConnection } from "@lib/ssh.ts";
+import { error, header, info, spinner, success } from "@lib/ui.ts";
+import { validatePath } from "@lib/validation.ts";
+import chalk from "chalk";
 
 /**
  * Display all configuration settings including remotes

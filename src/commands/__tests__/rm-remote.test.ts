@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
-import { createTestContext } from "../../lib/__tests__/test-utils.ts";
+import { createTestContext } from "@lib/__tests__/test-utils.ts";
 
 mock.module("execa", () => ({
 	execa: mock(() => Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })),

@@ -1,11 +1,11 @@
 // src/commands/__tests__/config-cmd.test.ts
 import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
+import { configCommand, setConfigValue, showConfig } from "@commands/config.ts";
 import {
 	createTestContext,
 	type TestContext,
-} from "../../lib/__tests__/test-utils.ts";
-import { loadConfig, saveConfig } from "../../lib/config.ts";
-import { configCommand, setConfigValue, showConfig } from "../config.ts";
+} from "@lib/__tests__/test-utils.ts";
+import { loadConfig, saveConfig } from "@lib/config.ts";
 
 describe("config command", () => {
 	let ctx: TestContext;

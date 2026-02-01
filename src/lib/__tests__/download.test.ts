@@ -4,7 +4,7 @@ import {
 	getMutagenChecksumUrl,
 	getMutagenDownloadUrl,
 	parseSHA256Sums,
-} from "../download.ts";
+} from "@lib/download.ts";
 
 describe("download", () => {
 	test("getMutagenDownloadUrl returns correct URL for darwin-arm64", () => {

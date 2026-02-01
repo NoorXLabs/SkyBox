@@ -1,17 +1,20 @@
 // src/commands/open.ts
 
-import inquirer from "inquirer";
-import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
-import { getContainerStatus } from "../lib/container.ts";
+import {
+	determinePostStartAction,
+	executePostStartAction,
+} from "@commands/up.ts";
+import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
+import { getContainerStatus } from "@lib/container.ts";
 import {
 	getLocalProjects,
 	getProjectPath,
 	projectExists,
 	resolveProjectFromCwd,
-} from "../lib/project.ts";
-import { error, header, info, success } from "../lib/ui.ts";
-import { ContainerStatus, type OpenOptions } from "../types/index.ts";
-import { determinePostStartAction, executePostStartAction } from "./up.ts";
+} from "@lib/project.ts";
+import { error, header, info, success } from "@lib/ui.ts";
+import { ContainerStatus, type OpenOptions } from "@typedefs/index.ts";
+import inquirer from "inquirer";
 
 export async function openCommand(
 	projectArg: string | undefined,

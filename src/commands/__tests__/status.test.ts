@@ -13,15 +13,14 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
+// Import only the helper functions that don't depend on PROJECTS_DIR
+import { getDiskUsage, getGitInfo, getLastActive } from "@commands/status.ts";
 import {
 	createTestContext,
 	createTestGitRepo,
 	isExecaMocked,
 	type TestContext,
-} from "../../lib/__tests__/test-utils.ts";
-
-// Import only the helper functions that don't depend on PROJECTS_DIR
-import { getDiskUsage, getGitInfo, getLastActive } from "../status.ts";
+} from "@lib/__tests__/test-utils.ts";
 
 // These tests require real execa but when run in full suite, execa may be mocked
 // by other test files (shell-docker-isolated.test.ts).

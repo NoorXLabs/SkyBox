@@ -1,28 +1,24 @@
 // src/commands/rm.ts
 
 import { existsSync, rmSync } from "node:fs";
+import { getProjectRemote, getRemoteHost } from "@commands/remote.ts";
 import { checkbox } from "@inquirer/prompts";
-import inquirer from "inquirer";
-import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
+import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
 import {
 	getContainerStatus,
 	removeContainer,
 	stopContainer,
-} from "../lib/container.ts";
-import { getErrorMessage } from "../lib/errors.ts";
-import {
-	createLockRemoteInfo,
-	getLockStatus,
-	releaseLock,
-} from "../lib/lock.ts";
-import { terminateSession } from "../lib/mutagen.ts";
+} from "@lib/container.ts";
+import { getErrorMessage } from "@lib/errors.ts";
+import { createLockRemoteInfo, getLockStatus, releaseLock } from "@lib/lock.ts";
+import { terminateSession } from "@lib/mutagen.ts";
 import {
 	getLocalProjects,
 	getProjectPath,
 	projectExists,
-} from "../lib/project.ts";
-import { escapeShellArg } from "../lib/shell.ts";
-import { runRemoteCommand } from "../lib/ssh.ts";
+} from "@lib/project.ts";
+import { escapeShellArg } from "@lib/shell.ts";
+import { runRemoteCommand } from "@lib/ssh.ts";
 import {
 	confirmDestructiveAction,
 	error,
@@ -30,14 +26,14 @@ import {
 	info,
 	spinner,
 	success,
-} from "../lib/ui.ts";
-import { validatePath } from "../lib/validation.ts";
+} from "@lib/ui.ts";
+import { validatePath } from "@lib/validation.ts";
 import {
 	ContainerStatus,
 	type DevboxConfigV2,
 	type RmOptions,
-} from "../types/index.ts";
-import { getProjectRemote, getRemoteHost } from "./remote.ts";
+} from "@typedefs/index.ts";
+import inquirer from "inquirer";
 
 export async function rmCommand(
 	project: string | undefined,

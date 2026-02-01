@@ -7,7 +7,7 @@
 // alongside other test files, mock pollution may cause other tests to skip.
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import { hostname, userInfo } from "node:os";
-import type { LockInfo } from "../../types/index.ts";
+import type { LockInfo } from "@typedefs/index.ts";
 
 // Mock execa BEFORE importing any modules that use it
 const mockExeca = mock(() =>
@@ -25,7 +25,7 @@ const mockRunRemoteCommand = mock(
 );
 
 // Import original ssh module to spread its exports
-import * as originalSsh from "../ssh.ts";
+import * as originalSsh from "@lib/ssh.ts";
 
 mock.module("../ssh.ts", () => ({
 	...originalSsh,
@@ -39,7 +39,7 @@ import {
 	getMachineName,
 	type LockRemoteInfo,
 	releaseLock,
-} from "../lock.ts";
+} from "@lib/lock.ts";
 
 describe("lock", () => {
 	const testRemoteInfo: LockRemoteInfo = {

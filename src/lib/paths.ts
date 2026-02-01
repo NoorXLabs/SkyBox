@@ -11,7 +11,7 @@ import {
 	PROJECTS_DIR_NAME,
 	TEMPLATES_DIR_NAME,
 	UPDATE_CHECK_FILE,
-} from "./constants.ts";
+} from "@lib/constants.ts";
 
 /**
  * Get the DevBox home directory.

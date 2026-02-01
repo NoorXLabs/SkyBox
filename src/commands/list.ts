@@ -2,11 +2,11 @@
 
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { configExists } from "@lib/config.ts";
+import { getProjectsDir } from "@lib/paths.ts";
+import { error, header, info } from "@lib/ui.ts";
+import type { LocalProject } from "@typedefs/index.ts";
 import { execa } from "execa";
-import { configExists } from "../lib/config.ts";
-import { getProjectsDir } from "../lib/paths.ts";
-import { error, header, info } from "../lib/ui.ts";
-import type { LocalProject } from "../types/index.ts";
 
 async function getGitBranch(projectPath: string): Promise<string> {
 	try {
