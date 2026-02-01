@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.4] - 2026-02-01
+
+### Fixed
+
+- Mutagen download script matched `MUTAGEN_VERSION_FILE` instead of `MUTAGEN_VERSION`, causing 404 errors in CI release builds
+
 ## [0.7.3] - 2026-02-01
 
 ### Added
@@ -223,6 +229,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Design documents for commands
   - Implementation plans
 
+[0.7.4]: https://github.com/NoorXLabs/DevBox/compare/v0.7.3...v0.7.4
 [0.7.3]: https://github.com/NoorXLabs/DevBox/compare/v0.7.2...v0.7.3
 [0.7.2]: https://github.com/NoorXLabs/DevBox/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/NoorXLabs/DevBox/compare/v0.7.0...v0.7.1
