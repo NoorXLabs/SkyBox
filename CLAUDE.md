@@ -352,6 +352,15 @@ Uses Docker with devcontainer spec:
 
 **Important:** When implementing or planning new features, always identify which docs pages in `docs/` need to be created or updated. For design docs in `plans/`, include a "Documentation Updates Required" section listing affected docs. When implementing, update the relevant docs before considering the feature complete.
 
+## Session End Checklist
+
+Before ending a session where code was written or modified:
+
+1. **Update CLAUDE.md** — If you learned something useful (new gotchas, conventions, commands, architectural decisions), run `/claude-md-management:revise-claude-md`. Skip if the session was simple Q&A or trivial changes.
+2. **Update task tracker** — If you completed tasks from a plan, mark them done with `TaskUpdate` and update `plans/IMPLEMENTATION.md` with `[x]` and commit hashes in `plans/archive/ARCHIVED-IMPLEMENTATION.md`.
+
+Note: `bun run check` is enforced automatically by a native Stop hook — no manual step needed.
+
 ## Known Gotchas
 
 - **Single source of truth for constants**: ALL constants — including single-use, private, and structured data — must be defined in `src/lib/constants.ts`. Never define constants in other files. Import from `constants.ts` always. Enums stay in `src/types/index.ts` (they are type definitions). Duplicates drift and cause subtle bugs.
