@@ -45,7 +45,7 @@ Gather all information into a single report before changing anything.
 
 ### 1. CHANGELOG Audit
 
-- Find the latest git tag: `git describe --tags --abbrev=0`
+- Find the latest git tag: `git describe --tags --abbrev=0`. If no tags exist, use the root commit (`git rev-list --max-parents=0 HEAD`) as the base.
 - Compare `git log <last-tag>..HEAD --oneline` against `CHANGELOG.md [Unreleased]` section
 - Flag commits that have no corresponding CHANGELOG entry
 - Flag CHANGELOG entries that don't match any commit
