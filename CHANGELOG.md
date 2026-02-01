@@ -7,14 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.3] - 2026-02-01
+
 ### Added
 
 - Linux ARM64 (`devbox-linux-arm64`) release binary for AWS Graviton, Raspberry Pi, and other ARM servers
 - Build optimizations: `--minify`, `--sourcemap`, and `--bytecode` flags for smaller, faster binaries
 
+### Changed
+
+- Migrated all imports to TypeScript path aliases (`@commands/*`, `@lib/*`, `@typedefs/*`)
+- Consolidated all constants to single source of truth in `src/lib/constants.ts`
+- Migrated hookify to native stop hook and added release skills
+
 ### Fixed
 
 - Mutagen download used stale pinned version (0.17.5) instead of canonical version from constants (0.18.1)
+- Circular scrolling disabled in template picker for better UX
 
 ## [0.7.2] - 2026-01-30
 
@@ -214,6 +223,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Design documents for commands
   - Implementation plans
 
+[0.7.3]: https://github.com/NoorXLabs/DevBox/compare/v0.7.2...v0.7.3
 [0.7.2]: https://github.com/NoorXLabs/DevBox/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/NoorXLabs/DevBox/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/NoorXLabs/DevBox/compare/v0.6.0-beta...v0.7.0

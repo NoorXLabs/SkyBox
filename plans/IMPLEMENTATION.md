@@ -1,6 +1,6 @@
 # DevBox - Implementation Tracker
 
-> **Version:** 0.6.0-beta
+> **Version:** 0.7.3
 >
 > **Progress:** 4/21 future features | 0/18 checklist items | 0/2 release tasks
 >
@@ -248,4 +248,4 @@ One-line description of what this feature does and why.
 
 ---
 
-*Last updated: 2026-01-30*
+*Last updated: 2026-02-01*
