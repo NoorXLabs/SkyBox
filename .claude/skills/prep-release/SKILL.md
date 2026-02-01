@@ -129,3 +129,4 @@ After user approves the report, execute each step with a checkpoint:
 - **Version number comes from the user** — never guess the next version. Ask.
 - **CHANGELOG format** — follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) with categories: Added, Changed, Fixed, Removed.
 - **Don't create the git tag** — that's handled by the existing release script. This skill prepares the content only.
+- **Don't modify package.json** — the release script (`scripts/release.sh`) handles the version bump in package.json. Changing it here causes the release script to fail with "nothing to commit".
