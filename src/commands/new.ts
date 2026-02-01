@@ -2,6 +2,11 @@
 import { select } from "@inquirer/prompts";
 import inquirer from "inquirer";
 import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
+import {
+	DEVCONTAINER_CONFIG_NAME,
+	DEVCONTAINER_DIR_NAME,
+	WORKSPACE_PATH_PREFIX,
+} from "../lib/constants.ts";
 import { validateProjectName } from "../lib/projectTemplates.ts";
 import { escapeShellArg } from "../lib/shell.ts";
 import { runRemoteCommand } from "../lib/ssh.ts";
@@ -152,14 +157,14 @@ async function createProjectWithConfig(
 	// Add workspace settings to the config
 	const config = {
 		...devcontainerConfig,
-		workspaceFolder: `/workspaces/${projectName}`,
-		workspaceMount: `source=\${localWorkspaceFolder},target=/workspaces/${projectName},type=bind,consistency=cached`,
+		workspaceFolder: `${WORKSPACE_PATH_PREFIX}/${projectName}`,
+		workspaceMount: `source=\${localWorkspaceFolder},target=${WORKSPACE_PATH_PREFIX}/${projectName},type=bind,consistency=cached`,
 	};
 
 	const devcontainerJson = JSON.stringify(config, null, 2);
 	const encoded = Buffer.from(devcontainerJson).toString("base64");
 
-	const createCmd = `mkdir -p ${escapeShellArg(`${remotePath}/.devcontainer`)} && echo ${escapeShellArg(encoded)} | base64 -d > ${escapeShellArg(`${remotePath}/.devcontainer/devcontainer.json`)}`;
+	const createCmd = `mkdir -p ${escapeShellArg(`${remotePath}/${DEVCONTAINER_DIR_NAME}`)} && echo ${escapeShellArg(encoded)} | base64 -d > ${escapeShellArg(`${remotePath}/${DEVCONTAINER_DIR_NAME}/${DEVCONTAINER_CONFIG_NAME}`)}`;
 
 	const createResult = await runRemoteCommand(host, createCmd);
 
@@ -236,7 +241,7 @@ async function cloneGitToRemote(
 	// Check if devcontainer.json exists, add if not
 	const checkDevcontainer = await runRemoteCommand(
 		host,
-		`test -f ${escapeShellArg(`${remotePath}/.devcontainer/devcontainer.json`)} && echo "EXISTS" || echo "NOT_FOUND"`,
+		`test -f ${escapeShellArg(`${remotePath}/${DEVCONTAINER_DIR_NAME}/${DEVCONTAINER_CONFIG_NAME}`)} && echo "EXISTS" || echo "NOT_FOUND"`,
 	);
 
 	if (checkDevcontainer.stdout?.includes("NOT_FOUND")) {
@@ -254,7 +259,7 @@ async function cloneGitToRemote(
 
 		await runRemoteCommand(
 			host,
-			`mkdir -p ${escapeShellArg(`${remotePath}/.devcontainer`)} && echo ${escapeShellArg(encoded)} | base64 -d > ${escapeShellArg(`${remotePath}/.devcontainer/devcontainer.json`)}`,
+			`mkdir -p ${escapeShellArg(`${remotePath}/${DEVCONTAINER_DIR_NAME}`)} && echo ${escapeShellArg(encoded)} | base64 -d > ${escapeShellArg(`${remotePath}/${DEVCONTAINER_DIR_NAME}/${DEVCONTAINER_CONFIG_NAME}`)}`,
 		);
 
 		addSpin.succeed("Added devcontainer.json");

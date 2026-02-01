@@ -108,23 +108,6 @@ export interface ContainerInfo {
 	image: string;
 }
 
-export const DEFAULT_IGNORE = [
-	".git/index.lock",
-	".git/*.lock",
-	".git/hooks/*",
-	"node_modules",
-	"venv",
-	".venv",
-	"__pycache__",
-	"*.pyc",
-	".devbox-local",
-	"dist",
-	"build",
-	".next",
-	"target",
-	"vendor",
-];
-
 // Status command types
 
 /** Summary view of a local project for the list command */

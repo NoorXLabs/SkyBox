@@ -3,8 +3,9 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { stringify } from "yaml";
+import type { BuiltInTemplate } from "../../types/index.ts";
+import { BUILT_IN_TEMPLATES } from "../constants.ts";
 import {
-	BUILT_IN_TEMPLATES,
 	getAllTemplates,
 	getBuiltInTemplates,
 	getUserTemplates,
@@ -25,23 +26,29 @@ describe("projectTemplates", () => {
 
 	describe("BUILT_IN_TEMPLATES", () => {
 		test("includes node template", () => {
-			const node = BUILT_IN_TEMPLATES.find((t) => t.id === "node");
+			const node = BUILT_IN_TEMPLATES.find(
+				(t: BuiltInTemplate) => t.id === "node",
+			);
 			expect(node).toBeDefined();
 			expect(node?.url).toContain("github.com");
 		});
 
 		test("includes bun template", () => {
-			const bun = BUILT_IN_TEMPLATES.find((t) => t.id === "bun");
+			const bun = BUILT_IN_TEMPLATES.find(
+				(t: BuiltInTemplate) => t.id === "bun",
+			);
 			expect(bun).toBeDefined();
 		});
 
 		test("includes python template", () => {
-			const python = BUILT_IN_TEMPLATES.find((t) => t.id === "python");
+			const python = BUILT_IN_TEMPLATES.find(
+				(t: BuiltInTemplate) => t.id === "python",
+			);
 			expect(python).toBeDefined();
 		});
 
 		test("includes go template", () => {
-			const go = BUILT_IN_TEMPLATES.find((t) => t.id === "go");
+			const go = BUILT_IN_TEMPLATES.find((t: BuiltInTemplate) => t.id === "go");
 			expect(go).toBeDefined();
 		});
 	});

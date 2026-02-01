@@ -5,6 +5,7 @@ import { homedir } from "node:os";
 import { execa } from "execa";
 import inquirer from "inquirer";
 import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
+import { DEFAULT_IGNORE } from "../lib/constants.ts";
 import { downloadMutagen, isMutagenInstalled } from "../lib/download.ts";
 import { getErrorMessage } from "../lib/errors.ts";
 import { getBinDir, getDevboxHome, getProjectsDir } from "../lib/paths.ts";
@@ -25,7 +26,7 @@ import {
 	success,
 	warn,
 } from "../lib/ui.ts";
-import { DEFAULT_IGNORE, type DevboxConfigV2 } from "../types/index.ts";
+import type { DevboxConfigV2 } from "../types/index.ts";
 
 async function checkDependencies(): Promise<boolean> {
 	header("Checking dependencies...");

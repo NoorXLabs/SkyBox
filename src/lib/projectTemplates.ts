@@ -2,33 +2,7 @@
 
 import type { BuiltInTemplate, UserTemplate } from "../types/index.ts";
 import { loadConfig } from "./config.ts";
-
-// Built-in project templates
-// Note: These templates require creating actual repos at these URLs,
-// or users should define their own templates via config.
-// See: devbox config templates.mytemplate https://github.com/user/template
-export const BUILT_IN_TEMPLATES: BuiltInTemplate[] = [
-	{
-		id: "node",
-		name: "Node.js",
-		url: "https://github.com/devbox-templates/node-starter",
-	},
-	{
-		id: "bun",
-		name: "Bun",
-		url: "https://github.com/devbox-templates/bun-starter",
-	},
-	{
-		id: "python",
-		name: "Python",
-		url: "https://github.com/devbox-templates/python-starter",
-	},
-	{
-		id: "go",
-		name: "Go",
-		url: "https://github.com/devbox-templates/go-starter",
-	},
-];
+import { BUILT_IN_TEMPLATES } from "./constants.ts";
 
 export function getBuiltInTemplates(): BuiltInTemplate[] {
 	return BUILT_IN_TEMPLATES;

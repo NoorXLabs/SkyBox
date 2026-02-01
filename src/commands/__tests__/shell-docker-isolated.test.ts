@@ -13,6 +13,10 @@ import {
 	createTestContext,
 	type TestContext,
 } from "../../lib/__tests__/test-utils.ts";
+import {
+	DEVCONTAINER_CONFIG_NAME,
+	DEVCONTAINER_DIR_NAME,
+} from "../../lib/constants.ts";
 import type { LockInfo, LockStatus } from "../../types/index.ts";
 
 // Mock execa first - this will persist globally for this file
@@ -99,7 +103,7 @@ describe("shell command docker exec", () => {
 	beforeEach(() => {
 		ctx = createTestContext("shell-docker");
 		mkdirSync(join(ctx.testDir, "Projects", "myapp"), { recursive: true });
-		mkdirSync(join(ctx.testDir, "Projects", "myapp", ".devcontainer"), {
+		mkdirSync(join(ctx.testDir, "Projects", "myapp", DEVCONTAINER_DIR_NAME), {
 			recursive: true,
 		});
 
@@ -121,8 +125,8 @@ projects: {}
 				ctx.testDir,
 				"Projects",
 				"myapp",
-				".devcontainer",
-				"devcontainer.json",
+				DEVCONTAINER_DIR_NAME,
+				DEVCONTAINER_CONFIG_NAME,
 			),
 			JSON.stringify({ workspaceFolder: "/workspaces/myapp" }),
 		);
@@ -216,7 +220,7 @@ projects: {}
 	});
 
 	describe("workspace path", () => {
-		test("uses custom workspace path from devcontainer.json", async () => {
+		test("uses custom workspace path from DEVCONTAINER_CONFIG_NAME", async () => {
 			mockGetDevcontainerConfig.mockReturnValueOnce({
 				workspaceFolder: "/custom/path",
 			});

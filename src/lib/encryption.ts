@@ -8,20 +8,21 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import argon2 from "argon2";
+import {
+	ARGON2_MEMORY_COST,
+	ARGON2_PARALLELISM,
+	ARGON2_TIME_COST,
+	ENCRYPTION_ALGORITHM,
+	ENCRYPTION_IV_LENGTH,
+	ENCRYPTION_KEY_LENGTH,
+	ENCRYPTION_TAG_LENGTH,
+} from "./constants.ts";
 
-const ALGORITHM = "aes-256-gcm";
-const KEY_LENGTH = 32;
-const IV_LENGTH = 16;
-const TAG_LENGTH = 16;
-const ARGON2_MEMORY_COST = 65536; // 64 MiB
-const ARGON2_TIME_COST = 2;
-const ARGON2_PARALLELISM = 1;
-
-/** Filename for the encryption verification marker inside archives */
-export const ENCRYPTION_CHECK_FILENAME = ".devbox-enc-check";
-
-/** Known content for passphrase verification */
-export const ENCRYPTION_CHECK_CONTENT = "devbox-encryption-verify";
+// Re-export these constants for backward compatibility
+export {
+	ENCRYPTION_CHECK_CONTENT,
+	ENCRYPTION_CHECK_FILENAME,
+} from "./constants.ts";
 
 /**
  * Derive a 256-bit key from a passphrase using Argon2id.
@@ -37,7 +38,7 @@ export async function deriveKey(
 		memoryCost: ARGON2_MEMORY_COST,
 		timeCost: ARGON2_TIME_COST,
 		parallelism: ARGON2_PARALLELISM,
-		hashLength: KEY_LENGTH,
+		hashLength: ENCRYPTION_KEY_LENGTH,
 		raw: true,
 	});
 }
@@ -47,8 +48,8 @@ export async function deriveKey(
  * Used for encrypting individual config values.
  */
 export function encrypt(plaintext: string, key: Buffer): string {
-	const iv = randomBytes(IV_LENGTH);
-	const cipher = createCipheriv(ALGORITHM, key, iv);
+	const iv = randomBytes(ENCRYPTION_IV_LENGTH);
+	const cipher = createCipheriv(ENCRYPTION_ALGORITHM, key, iv);
 	const encrypted = Buffer.concat([
 		cipher.update(plaintext, "utf-8"),
 		cipher.final(),
@@ -65,10 +66,13 @@ export function encrypt(plaintext: string, key: Buffer): string {
 export function decrypt(ciphertext: string, key: Buffer): string {
 	const payload = ciphertext.slice(4, -1);
 	const data = Buffer.from(payload, "base64");
-	const iv = data.subarray(0, IV_LENGTH);
-	const tag = data.subarray(IV_LENGTH, IV_LENGTH + TAG_LENGTH);
-	const encrypted = data.subarray(IV_LENGTH + TAG_LENGTH);
-	const decipher = createDecipheriv(ALGORITHM, key, iv);
+	const iv = data.subarray(0, ENCRYPTION_IV_LENGTH);
+	const tag = data.subarray(
+		ENCRYPTION_IV_LENGTH,
+		ENCRYPTION_IV_LENGTH + ENCRYPTION_TAG_LENGTH,
+	);
+	const encrypted = data.subarray(ENCRYPTION_IV_LENGTH + ENCRYPTION_TAG_LENGTH);
+	const decipher = createDecipheriv(ENCRYPTION_ALGORITHM, key, iv);
 	decipher.setAuthTag(tag);
 	return decipher.update(encrypted) + decipher.final("utf-8");
 }
@@ -88,8 +92,8 @@ export function encryptFile(
 	outputPath: string,
 	key: Buffer,
 ): void {
-	const iv = randomBytes(IV_LENGTH);
-	const cipher = createCipheriv(ALGORITHM, key, iv);
+	const iv = randomBytes(ENCRYPTION_IV_LENGTH);
+	const cipher = createCipheriv(ENCRYPTION_ALGORITHM, key, iv);
 	const plaintext = readFileSync(inputPath);
 	const encrypted = Buffer.concat([cipher.update(plaintext), cipher.final()]);
 	const tag = cipher.getAuthTag();
@@ -108,15 +112,18 @@ export function decryptFile(
 ): void {
 	const data = readFileSync(inputPath);
 
-	if (data.length < IV_LENGTH + TAG_LENGTH) {
+	if (data.length < ENCRYPTION_IV_LENGTH + ENCRYPTION_TAG_LENGTH) {
 		throw new Error("Encrypted file is too small to be valid");
 	}
 
-	const iv = data.subarray(0, IV_LENGTH);
-	const encrypted = data.subarray(IV_LENGTH, data.length - TAG_LENGTH);
-	const tag = data.subarray(data.length - TAG_LENGTH);
+	const iv = data.subarray(0, ENCRYPTION_IV_LENGTH);
+	const encrypted = data.subarray(
+		ENCRYPTION_IV_LENGTH,
+		data.length - ENCRYPTION_TAG_LENGTH,
+	);
+	const tag = data.subarray(data.length - ENCRYPTION_TAG_LENGTH);
 
-	const decipher = createDecipheriv(ALGORITHM, key, iv);
+	const decipher = createDecipheriv(ENCRYPTION_ALGORITHM, key, iv);
 	decipher.setAuthTag(tag);
 	const decrypted = Buffer.concat([
 		decipher.update(encrypted),

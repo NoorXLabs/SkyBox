@@ -3,6 +3,7 @@
 import { execa } from "execa";
 import inquirer from "inquirer";
 import { configExists, loadConfig } from "../lib/config.ts";
+import { WORKSPACE_PATH_PREFIX } from "../lib/constants.ts";
 import {
 	getContainerId,
 	getContainerStatus,
@@ -96,7 +97,8 @@ export async function shellCommand(
 	// Step 6: Get workspace path from devcontainer.json
 	const devcontainerConfig = getDevcontainerConfig(projectPath);
 	const workspacePath =
-		devcontainerConfig?.workspaceFolder || `/workspaces/${project}`;
+		devcontainerConfig?.workspaceFolder ||
+		`${WORKSPACE_PATH_PREFIX}/${project}`;
 
 	// Step 7: Execute docker exec
 	header(`Entering shell for '${project}'...`);

@@ -6,6 +6,10 @@ import {
 	createTestContext,
 	type TestContext,
 } from "../../lib/__tests__/test-utils.ts";
+import {
+	DEVCONTAINER_CONFIG_NAME,
+	DEVCONTAINER_DIR_NAME,
+} from "../../lib/constants.ts";
 import type { ShellOptions } from "../../types/index.ts";
 
 describe("shell command", () => {
@@ -14,7 +18,7 @@ describe("shell command", () => {
 	beforeEach(() => {
 		ctx = createTestContext("shell");
 		mkdirSync(join(ctx.testDir, "Projects", "myapp"), { recursive: true });
-		mkdirSync(join(ctx.testDir, "Projects", "myapp", ".devcontainer"), {
+		mkdirSync(join(ctx.testDir, "Projects", "myapp", DEVCONTAINER_DIR_NAME), {
 			recursive: true,
 		});
 
@@ -38,8 +42,8 @@ Projects: {}
 				ctx.testDir,
 				"Projects",
 				"myapp",
-				".devcontainer",
-				"devcontainer.json",
+				DEVCONTAINER_DIR_NAME,
+				DEVCONTAINER_CONFIG_NAME,
 			),
 			JSON.stringify({ workspaceFolder: "/workspaces/myapp" }),
 		);
@@ -59,8 +63,8 @@ Projects: {}
 			ctx.testDir,
 			"Projects",
 			"myapp",
-			".devcontainer",
-			"devcontainer.json",
+			DEVCONTAINER_DIR_NAME,
+			DEVCONTAINER_CONFIG_NAME,
 		);
 		expect(existsSync(configPath)).toBe(true);
 	});

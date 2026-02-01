@@ -5,19 +5,8 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { execa } from "execa";
 import type { SSHConfigEntry, SSHHost } from "../types/index.ts";
+import { SSH_KEYWORDS, SSH_TIMEOUT_MS } from "./constants.ts";
 import { getErrorMessage, getExecaErrorMessage } from "./errors.ts";
-
-/** SSH config keyword prefixes with their lengths for parsing */
-const SSH_KEYWORDS = {
-	HOST: { prefix: "host ", length: 5 },
-	HOSTNAME: { prefix: "hostname ", length: 9 },
-	USER: { prefix: "user ", length: 5 },
-	PORT: { prefix: "port ", length: 5 },
-	IDENTITY_FILE: { prefix: "identityfile ", length: 13 },
-} as const;
-
-/** Default timeout for SSH operations in milliseconds */
-const SSH_TIMEOUT_MS = 10_000;
 
 function getSSHDir(): string {
 	const home = process.env.HOME || homedir();

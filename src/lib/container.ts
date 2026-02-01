@@ -3,7 +3,15 @@
 import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { join } from "node:path";
 import { execa } from "execa";
-import { DOCKER_LABEL_KEY } from "./constants.ts";
+import {
+	DEVCONTAINER_ALT_CONFIG_NAME,
+	DEVCONTAINER_CONFIG_NAME,
+	DEVCONTAINER_DIR_NAME,
+	DOCKER_LABEL_KEY,
+	type SUPPORTED_EDITORS,
+	VSCODE_REMOTE_URI_PREFIX,
+	WORKSPACE_PATH_PREFIX,
+} from "./constants.ts";
 
 // Normalize path to real case (important for macOS case-insensitive filesystem)
 // Docker labels use exact string match, so paths must match exactly
@@ -21,6 +29,8 @@ import {
 	ContainerStatus,
 } from "../types/index.ts";
 import { getExecaErrorMessage, hasExitCode } from "./errors.ts";
+
+export type EditorId = (typeof SUPPORTED_EDITORS)[number]["id"] | string;
 
 /**
  * Query Docker for containers matching a label filter.
@@ -61,8 +71,12 @@ export interface DevcontainerConfig {
 export function getDevcontainerConfig(
 	projectPath: string,
 ): DevcontainerConfig | null {
-	const configPath = join(projectPath, ".devcontainer", "devcontainer.json");
-	const altConfigPath = join(projectPath, ".devcontainer.json");
+	const configPath = join(
+		projectPath,
+		DEVCONTAINER_DIR_NAME,
+		DEVCONTAINER_CONFIG_NAME,
+	);
+	const altConfigPath = join(projectPath, DEVCONTAINER_ALT_CONFIG_NAME);
 
 	let content: string;
 	try {
@@ -236,15 +250,6 @@ export async function listDevboxContainers(): Promise<ContainerInfo[]> {
 	}
 }
 
-export const SUPPORTED_EDITORS = [
-	{ id: "cursor", name: "Cursor" },
-	{ id: "code", name: "VS Code" },
-	{ id: "code-insiders", name: "VS Code Insiders" },
-	{ id: "other", name: "Other (specify command)" },
-] as const;
-
-export type EditorId = (typeof SUPPORTED_EDITORS)[number]["id"] | string;
-
 // Open project in editor with devcontainer
 export async function openInEditor(
 	projectPath: string,
@@ -267,11 +272,11 @@ export async function openInEditor(
 
 		// Get the workspace folder from devcontainer.json or use default
 		const projectName = normalizedPath.split("/").pop();
-		const workspaceFolder = `/workspaces/${projectName}`;
+		const workspaceFolder = `${WORKSPACE_PATH_PREFIX}/${projectName}`;
 
 		// Build the devcontainer URI - hex encode the project path
 		const hexPath = Buffer.from(normalizedPath).toString("hex");
-		const devcontainerUri = `vscode-remote://dev-container+${hexPath}${workspaceFolder}`;
+		const devcontainerUri = `${VSCODE_REMOTE_URI_PREFIX}${hexPath}${workspaceFolder}`;
 
 		// Use the editor to open the devcontainer URI
 		if (
@@ -314,7 +319,11 @@ export async function attachToShell(
 
 // Check if devcontainer.json exists locally
 export function hasLocalDevcontainerConfig(projectPath: string): boolean {
-	const configPath = join(projectPath, ".devcontainer", "devcontainer.json");
-	const altConfigPath = join(projectPath, ".devcontainer.json");
+	const configPath = join(
+		projectPath,
+		DEVCONTAINER_DIR_NAME,
+		DEVCONTAINER_CONFIG_NAME,
+	);
+	const altConfigPath = join(projectPath, DEVCONTAINER_ALT_CONFIG_NAME);
 	return existsSync(configPath) || existsSync(altConfigPath);
 }

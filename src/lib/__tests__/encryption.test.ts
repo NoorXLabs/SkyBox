@@ -161,7 +161,7 @@ describe("encryption", () => {
 
 	test("ENCRYPTION_CHECK constants are exported", async () => {
 		const { ENCRYPTION_CHECK_FILENAME, ENCRYPTION_CHECK_CONTENT } =
-			await import("../encryption.ts");
+			await import("../constants.ts");
 		expect(ENCRYPTION_CHECK_FILENAME).toBe(".devbox-enc-check");
 		expect(ENCRYPTION_CHECK_CONTENT).toBe("devbox-encryption-verify");
 	});

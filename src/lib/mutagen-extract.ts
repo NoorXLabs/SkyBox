@@ -12,9 +12,6 @@ import { MUTAGEN_VERSION } from "./constants.ts";
 import { getErrorMessage } from "./errors.ts";
 import { getBinDir, getMutagenPath, getMutagenVersionPath } from "./paths.ts";
 
-/** The version of Mutagen bundled with this DevBox build. */
-export const BUNDLED_MUTAGEN_VERSION = MUTAGEN_VERSION;
-
 /**
  * Check if Mutagen needs to be extracted from the bundle.
  * Returns true if binary is missing or version doesn't match.
@@ -28,7 +25,7 @@ export function needsMutagenExtraction(): boolean {
 
 	try {
 		const recorded = readFileSync(versionPath, "utf-8").trim();
-		return recorded !== BUNDLED_MUTAGEN_VERSION;
+		return recorded !== MUTAGEN_VERSION;
 	} catch {
 		return true;
 	}
@@ -42,7 +39,7 @@ export function recordMutagenVersion(): void {
 	if (!existsSync(binDir)) {
 		mkdirSync(binDir, { recursive: true });
 	}
-	writeFileSync(getMutagenVersionPath(), BUNDLED_MUTAGEN_VERSION);
+	writeFileSync(getMutagenVersionPath(), MUTAGEN_VERSION);
 }
 
 /**
@@ -51,7 +48,7 @@ export function recordMutagenVersion(): void {
 function getBundledAssetName(): string {
 	const os = process.platform === "darwin" ? "darwin" : "linux";
 	const cpu = process.arch === "arm64" ? "arm64" : "amd64";
-	return `mutagen_${os}_${cpu}_v${BUNDLED_MUTAGEN_VERSION}.tar.gz`;
+	return `mutagen_${os}_${cpu}_v${MUTAGEN_VERSION}.tar.gz`;
 }
 
 /**
@@ -97,7 +94,7 @@ export async function extractBundledMutagen(
 		chmodSync(getMutagenPath(), 0o755);
 		recordMutagenVersion();
 
-		onProgress?.(`Extracted Mutagen v${BUNDLED_MUTAGEN_VERSION}`);
+		onProgress?.(`Extracted Mutagen v${MUTAGEN_VERSION}`);
 		return { success: true };
 	} catch (error: unknown) {
 		return { success: false, error: getErrorMessage(error) };

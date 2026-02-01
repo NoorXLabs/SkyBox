@@ -10,10 +10,14 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
+	DEVCONTAINER_CONFIG_NAME,
+	DEVCONTAINER_DIR_NAME,
+	TEMPLATES,
+} from "../constants.ts";
+import {
 	createDevcontainerConfig,
 	loadUserTemplates,
 	scaffoldTemplate,
-	TEMPLATES,
 	validateTemplate,
 	writeDevcontainerConfig,
 } from "../templates.ts";
@@ -49,16 +53,18 @@ describe("templates", () => {
 
 	test("createDevcontainerConfig creates .devcontainer directory", () => {
 		createDevcontainerConfig(testDir, "node");
-		expect(existsSync(join(testDir, ".devcontainer"))).toBe(true);
+		expect(existsSync(join(testDir, DEVCONTAINER_DIR_NAME))).toBe(true);
 		expect(
-			existsSync(join(testDir, ".devcontainer", "devcontainer.json")),
+			existsSync(
+				join(testDir, DEVCONTAINER_DIR_NAME, DEVCONTAINER_CONFIG_NAME),
+			),
 		).toBe(true);
 	});
 
 	test("createDevcontainerConfig writes valid JSON", () => {
 		createDevcontainerConfig(testDir, "node");
 		const content = readFileSync(
-			join(testDir, ".devcontainer", "devcontainer.json"),
+			join(testDir, DEVCONTAINER_DIR_NAME, DEVCONTAINER_CONFIG_NAME),
 			"utf-8",
 		);
 		const parsed = JSON.parse(content);
@@ -197,7 +203,7 @@ describe("templates", () => {
 
 			const content = JSON.parse(
 				readFileSync(
-					join(testDir, ".devcontainer", "devcontainer.json"),
+					join(testDir, DEVCONTAINER_DIR_NAME, DEVCONTAINER_CONFIG_NAME),
 					"utf-8",
 				),
 			);
