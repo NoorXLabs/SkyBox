@@ -350,6 +350,7 @@ export async function selectTemplate(): Promise<TemplateSelection | null> {
 			const choice = await select({
 				message: "Select a template:",
 				choices,
+				loop: false,
 			});
 
 			if (choice === "git-url") {
