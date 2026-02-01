@@ -3,11 +3,16 @@ import { password } from "@inquirer/prompts";
 import inquirer from "inquirer";
 import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
 import {
+	DEVCONTAINER_CONFIG_NAME,
+	DEVCONTAINER_DIR_NAME,
+	SUPPORTED_EDITORS,
+	WORKSPACE_PATH_PREFIX,
+} from "../lib/constants.ts";
+import {
 	attachToShell,
 	getContainerStatus,
 	hasLocalDevcontainerConfig,
 	openInEditor,
-	SUPPORTED_EDITORS,
 	startContainer,
 	stopContainer,
 } from "../lib/container.ts";
@@ -297,8 +302,8 @@ async function ensureDevcontainerConfig(
 
 	const config = {
 		...selection.config,
-		workspaceFolder: `/workspaces/${project}`,
-		workspaceMount: `source=\${localWorkspaceFolder},target=/workspaces/${project},type=bind,consistency=cached`,
+		workspaceFolder: `${WORKSPACE_PATH_PREFIX}/${project}`,
+		workspaceMount: `source=\${localWorkspaceFolder},target=${WORKSPACE_PATH_PREFIX}/${project},type=bind,consistency=cached`,
 	};
 
 	writeDevcontainerConfig(projectPath, config);
@@ -533,7 +538,7 @@ async function commitDevcontainerConfig(projectPath: string): Promise<void> {
 			"-C",
 			projectPath,
 			"add",
-			".devcontainer/devcontainer.json",
+			`${DEVCONTAINER_DIR_NAME}/${DEVCONTAINER_CONFIG_NAME}`,
 		]);
 		await execa("git", [
 			"-C",

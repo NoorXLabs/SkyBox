@@ -4,6 +4,11 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { execa } from "execa";
 import { loadConfig } from "../lib/config.ts";
+import {
+	DEVCONTAINER_CONFIG_NAME,
+	DEVCONTAINER_DIR_NAME,
+	WORKSPACE_PATH_PREFIX,
+} from "../lib/constants.ts";
 import { getErrorMessage } from "../lib/errors.ts";
 import { getProjectPath, projectExists } from "../lib/project.ts";
 import { escapeShellArg } from "../lib/shell.ts";
@@ -13,7 +18,7 @@ import { error, info, spinner, success } from "../lib/ui.ts";
 import type { DevboxConfigV2 } from "../types/index.ts";
 
 function getDevcontainerPath(projectPath: string): string {
-	return join(projectPath, ".devcontainer", "devcontainer.json");
+	return join(projectPath, DEVCONTAINER_DIR_NAME, DEVCONTAINER_CONFIG_NAME);
 }
 
 export async function devcontainerEditCommand(project: string): Promise<void> {
@@ -74,8 +79,8 @@ export async function devcontainerResetCommand(project: string): Promise<void> {
 
 	const devcontainerConfig = {
 		...selection.config,
-		workspaceFolder: `/workspaces/${project}`,
-		workspaceMount: `source=\${localWorkspaceFolder},target=/workspaces/${project},type=bind,consistency=cached`,
+		workspaceFolder: `${WORKSPACE_PATH_PREFIX}/${project}`,
+		workspaceMount: `source=\${localWorkspaceFolder},target=${WORKSPACE_PATH_PREFIX}/${project},type=bind,consistency=cached`,
 	};
 
 	writeDevcontainerConfig(projectPath, devcontainerConfig);
@@ -121,7 +126,7 @@ async function pushDevcontainerToRemote(
 		const encoded = Buffer.from(configContent).toString("base64");
 		const result = await runRemoteCommand(
 			remoteHost,
-			`mkdir -p ${escapeShellArg(`${remotePath}/.devcontainer`)} && echo ${escapeShellArg(encoded)} | base64 -d > ${escapeShellArg(`${remotePath}/.devcontainer/devcontainer.json`)}`,
+			`mkdir -p ${escapeShellArg(`${remotePath}/${DEVCONTAINER_DIR_NAME}`)} && echo ${escapeShellArg(encoded)} | base64 -d > ${escapeShellArg(`${remotePath}/${DEVCONTAINER_DIR_NAME}/${DEVCONTAINER_CONFIG_NAME}`)}`,
 			remote.key ?? undefined,
 		);
 		if (result.success) {

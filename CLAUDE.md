@@ -302,7 +302,7 @@ Multi-machine lock prevents conflicts when same project is opened on multiple ma
 Bidirectional file sync via Mutagen:
 - Mutagen binary auto-downloaded during `devbox init`
 - Sessions managed in `src/lib/mutagen.ts`
-- Default ignore patterns in `src/types/index.ts` as `DEFAULT_IGNORE`
+- Default ignore patterns in `src/lib/constants.ts` as `DEFAULT_IGNORE`
 
 ### Container Management
 
@@ -349,7 +349,7 @@ Uses Docker with devcontainer spec:
 
 ## Known Gotchas
 
-- **Single source of truth for constants**: Never re-define or re-export constants from secondary modules. Import directly from the canonical source (`src/lib/constants.ts`). Duplicates drift and cause subtle bugs.
+- **Single source of truth for constants**: ALL constants — including single-use, private, and structured data — must be defined in `src/lib/constants.ts`. Never define constants in other files. Import from `constants.ts` always. Enums stay in `src/types/index.ts` (they are type definitions). Duplicates drift and cause subtle bugs.
 
 - **macOS path normalization**: Always normalize paths with `realpathSync()` BEFORE passing to `devcontainer` CLI or Docker queries. macOS symlinks (e.g., `/var` → `/private/var`) cause label mismatches between container creation and lookup.
 

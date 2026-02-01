@@ -2,6 +2,7 @@
 
 import { hostname, userInfo } from "node:os";
 import type { LockInfo, LockStatus, RemoteEntry } from "../types/index.ts";
+import { LOCKS_DIR_NAME } from "./constants.ts";
 import { escapeShellArg } from "./shell.ts";
 import { runRemoteCommand } from "./ssh.ts";
 
@@ -24,14 +25,14 @@ export function getMachineName(): string {
  * Get the lock file path on the remote machine.
  */
 function getLockPath(project: string, basePath: string): string {
-	return `${basePath}/.devbox-locks/${project}.lock`;
+	return `${basePath}/${LOCKS_DIR_NAME}/${project}.lock`;
 }
 
 /**
  * Get the locks directory path on the remote machine.
  */
 function getLocksDir(basePath: string): string {
-	return `${basePath}/.devbox-locks`;
+	return `${basePath}/${LOCKS_DIR_NAME}`;
 }
 
 /**

@@ -8,6 +8,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { MUTAGEN_VERSION } from "../constants.ts";
 
 describe("mutagen-extract", () => {
 	let testDir: string;
@@ -44,25 +45,21 @@ describe("mutagen-extract", () => {
 	});
 
 	test("needsMutagenExtraction returns false when version matches", async () => {
-		const { needsMutagenExtraction, BUNDLED_MUTAGEN_VERSION } = await import(
-			"../mutagen-extract.ts"
-		);
+		const { needsMutagenExtraction } = await import("../mutagen-extract.ts");
 		const binDir = join(testDir, "bin");
 		mkdirSync(binDir, { recursive: true });
 		writeFileSync(join(binDir, "mutagen"), "fake-binary");
-		writeFileSync(join(binDir, ".mutagen-version"), BUNDLED_MUTAGEN_VERSION);
+		writeFileSync(join(binDir, ".mutagen-version"), MUTAGEN_VERSION);
 		expect(needsMutagenExtraction()).toBe(false);
 	});
 
 	test("recordMutagenVersion writes version file", async () => {
-		const { recordMutagenVersion, BUNDLED_MUTAGEN_VERSION } = await import(
-			"../mutagen-extract.ts"
-		);
+		const { recordMutagenVersion } = await import("../mutagen-extract.ts");
 		const binDir = join(testDir, "bin");
 		mkdirSync(binDir, { recursive: true });
 		recordMutagenVersion();
 		const versionPath = join(binDir, ".mutagen-version");
 		expect(existsSync(versionPath)).toBe(true);
-		expect(readFileSync(versionPath, "utf-8")).toBe(BUNDLED_MUTAGEN_VERSION);
+		expect(readFileSync(versionPath, "utf-8")).toBe(MUTAGEN_VERSION);
 	});
 });

@@ -8,12 +8,16 @@ import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
+	DEVCONTAINER_CONFIG_NAME,
+	DEVCONTAINER_DIR_NAME,
+	SUPPORTED_EDITORS,
+} from "../constants.ts";
+import {
 	attachToShell,
 	getDevcontainerConfig,
 	hasLocalDevcontainerConfig,
 	openInEditor,
 	removeContainer,
-	SUPPORTED_EDITORS,
 	startContainer,
 	stopContainer,
 } from "../container.ts";
@@ -70,8 +74,11 @@ describe("hasLocalDevcontainerConfig", () => {
 	);
 
 	test.skipIf(execaMocked)("returns true when devcontainer.json exists", () => {
-		mkdirSync(join(testDir, ".devcontainer"), { recursive: true });
-		writeFileSync(join(testDir, ".devcontainer", "devcontainer.json"), "{}");
+		mkdirSync(join(testDir, DEVCONTAINER_DIR_NAME), { recursive: true });
+		writeFileSync(
+			join(testDir, DEVCONTAINER_DIR_NAME, DEVCONTAINER_CONFIG_NAME),
+			"{}",
+		);
 		expect(hasLocalDevcontainerConfig(testDir)).toBe(true);
 	});
 });
@@ -93,9 +100,9 @@ describe("getDevcontainerConfig", () => {
 	test.skipIf(execaMocked)(
 		"reads workspaceFolder from devcontainer.json",
 		() => {
-			mkdirSync(join(testDir, ".devcontainer"));
+			mkdirSync(join(testDir, DEVCONTAINER_DIR_NAME));
 			writeFileSync(
-				join(testDir, ".devcontainer", "devcontainer.json"),
+				join(testDir, DEVCONTAINER_DIR_NAME, DEVCONTAINER_CONFIG_NAME),
 				JSON.stringify({ workspaceFolder: "/custom/workspace" }),
 			);
 			const config = getDevcontainerConfig(testDir);

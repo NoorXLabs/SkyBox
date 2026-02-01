@@ -9,12 +9,9 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 import { extract } from "tar";
-import { MUTAGEN_VERSION } from "./constants.ts";
+import { MUTAGEN_REPO, MUTAGEN_VERSION } from "./constants.ts";
 import { getErrorMessage } from "./errors.ts";
 import { getBinDir, getMutagenPath } from "./paths.ts";
-
-/** GitHub repository path for Mutagen releases. */
-const MUTAGEN_REPO = "mutagen-io/mutagen";
 
 export function getMutagenDownloadUrl(
 	platform: string,
