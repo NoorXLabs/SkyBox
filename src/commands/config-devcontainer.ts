@@ -2,20 +2,20 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { execa } from "execa";
-import { loadConfig } from "../lib/config.ts";
+import { loadConfig } from "@lib/config.ts";
 import {
 	DEVCONTAINER_CONFIG_NAME,
 	DEVCONTAINER_DIR_NAME,
 	WORKSPACE_PATH_PREFIX,
-} from "../lib/constants.ts";
-import { getErrorMessage } from "../lib/errors.ts";
-import { getProjectPath, projectExists } from "../lib/project.ts";
-import { escapeShellArg } from "../lib/shell.ts";
-import { runRemoteCommand } from "../lib/ssh.ts";
-import { selectTemplate, writeDevcontainerConfig } from "../lib/templates.ts";
-import { error, info, spinner, success } from "../lib/ui.ts";
-import type { DevboxConfigV2 } from "../types/index.ts";
+} from "@lib/constants.ts";
+import { getErrorMessage } from "@lib/errors.ts";
+import { getProjectPath, projectExists } from "@lib/project.ts";
+import { escapeShellArg } from "@lib/shell.ts";
+import { runRemoteCommand } from "@lib/ssh.ts";
+import { selectTemplate, writeDevcontainerConfig } from "@lib/templates.ts";
+import { error, info, spinner, success } from "@lib/ui.ts";
+import type { DevboxConfigV2 } from "@typedefs/index.ts";
+import { execa } from "execa";
 
 function getDevcontainerPath(projectPath: string): string {
 	return join(projectPath, DEVCONTAINER_DIR_NAME, DEVCONTAINER_CONFIG_NAME);

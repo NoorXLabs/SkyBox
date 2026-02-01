@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { createTestContext } from "../../lib/__tests__/test-utils.ts";
+import { createTestContext } from "@lib/__tests__/test-utils.ts";
 import {
 	DEVCONTAINER_CONFIG_NAME,
 	DEVCONTAINER_DIR_NAME,
-} from "../../lib/constants.ts";
-import { getProjectsDir } from "../../lib/paths.ts";
+} from "@lib/constants.ts";
+import { getProjectsDir } from "@lib/paths.ts";
 
 describe("devcontainer repair", () => {
 	let ctx: ReturnType<typeof createTestContext>;

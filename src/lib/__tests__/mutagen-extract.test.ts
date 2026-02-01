@@ -8,7 +8,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { MUTAGEN_VERSION } from "../constants.ts";
+import { MUTAGEN_VERSION } from "@lib/constants.ts";
 
 describe("mutagen-extract", () => {
 	let testDir: string;

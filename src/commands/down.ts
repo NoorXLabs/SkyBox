@@ -1,34 +1,38 @@
 // src/commands/down.ts
 
 import { existsSync, rmSync } from "node:fs";
+import {
+	getProjectRemote,
+	getRemoteHost,
+	getRemotePath,
+} from "@commands/remote.ts";
 import { password } from "@inquirer/prompts";
-import inquirer from "inquirer";
-import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
+import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
 import {
 	getContainerInfo,
 	getContainerStatus,
 	removeContainer,
 	stopContainer,
-} from "../lib/container.ts";
-import { deriveKey, encryptFile } from "../lib/encryption.ts";
-import { getErrorMessage } from "../lib/errors.ts";
-import { createLockRemoteInfo, releaseLock } from "../lib/lock.ts";
-import { pauseSync, waitForSync } from "../lib/mutagen.ts";
+} from "@lib/container.ts";
+import { deriveKey, encryptFile } from "@lib/encryption.ts";
+import { getErrorMessage } from "@lib/errors.ts";
+import { createLockRemoteInfo, releaseLock } from "@lib/lock.ts";
+import { pauseSync, waitForSync } from "@lib/mutagen.ts";
 import {
 	getLocalProjects,
 	getProjectPath,
 	projectExists,
 	resolveProjectFromCwd,
-} from "../lib/project.ts";
-import { escapeShellArg } from "../lib/shell.ts";
-import { runRemoteCommand } from "../lib/ssh.ts";
-import { error, header, info, spinner, success, warn } from "../lib/ui.ts";
+} from "@lib/project.ts";
+import { escapeShellArg } from "@lib/shell.ts";
+import { runRemoteCommand } from "@lib/ssh.ts";
+import { error, header, info, spinner, success, warn } from "@lib/ui.ts";
 import {
 	ContainerStatus,
 	type DevboxConfigV2,
 	type DownOptions,
-} from "../types/index.ts";
-import { getProjectRemote, getRemoteHost, getRemotePath } from "./remote.ts";
+} from "@typedefs/index.ts";
+import inquirer from "inquirer";
 
 const MAX_PASSPHRASE_ATTEMPTS = 3;
 

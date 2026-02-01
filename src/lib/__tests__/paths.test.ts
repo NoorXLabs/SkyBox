@@ -9,7 +9,7 @@ import {
 	getLogsDir,
 	getMutagenPath,
 	getProjectsDir,
-} from "../paths.ts";
+} from "@lib/paths.ts";
 
 describe("paths", () => {
 	let originalEnv: string | undefined;

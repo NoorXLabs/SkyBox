@@ -5,9 +5,9 @@ import { join } from "node:path";
 import {
 	createTestContext,
 	type TestContext,
-} from "../../lib/__tests__/test-utils.ts";
-import { getProjectPath } from "../../lib/project.ts";
-import { validateProjectName } from "../../lib/projectTemplates.ts";
+} from "@lib/__tests__/test-utils.ts";
+import { getProjectPath } from "@lib/project.ts";
+import { validateProjectName } from "@lib/projectTemplates.ts";
 
 describe("clone command", () => {
 	let ctx: TestContext;

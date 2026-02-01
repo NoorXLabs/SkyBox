@@ -2,14 +2,13 @@
 
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import chalk from "chalk";
-import { execa } from "execa";
-import { configExists, loadConfig } from "../lib/config.ts";
-import { getContainerInfo, getContainerStatus } from "../lib/container.ts";
-import { createLockRemoteInfo, getLockStatus } from "../lib/lock.ts";
-import { getSyncStatus, sessionName } from "../lib/mutagen.ts";
-import { getProjectsDir } from "../lib/paths.ts";
-import { error, header } from "../lib/ui.ts";
+import { getProjectRemote, getRemoteHost } from "@commands/remote.ts";
+import { configExists, loadConfig } from "@lib/config.ts";
+import { getContainerInfo, getContainerStatus } from "@lib/container.ts";
+import { createLockRemoteInfo, getLockStatus } from "@lib/lock.ts";
+import { getSyncStatus, sessionName } from "@lib/mutagen.ts";
+import { getProjectsDir } from "@lib/paths.ts";
+import { error, header } from "@lib/ui.ts";
 import {
 	type ContainerDetails,
 	ContainerStatus,
@@ -18,8 +17,9 @@ import {
 	type LockStatus,
 	type ProjectSummary,
 	type SyncDetails,
-} from "../types/index.ts";
-import { getProjectRemote, getRemoteHost } from "./remote.ts";
+} from "@typedefs/index.ts";
+import chalk from "chalk";
+import { execa } from "execa";
 
 export async function getDiskUsage(path: string): Promise<string> {
 	try {

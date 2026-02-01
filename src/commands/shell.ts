@@ -1,20 +1,20 @@
 // src/commands/shell.ts
 
-import { execa } from "execa";
-import inquirer from "inquirer";
-import { configExists, loadConfig } from "../lib/config.ts";
-import { WORKSPACE_PATH_PREFIX } from "../lib/constants.ts";
+import { getProjectRemote } from "@commands/remote.ts";
+import { upCommand } from "@commands/up.ts";
+import { configExists, loadConfig } from "@lib/config.ts";
+import { WORKSPACE_PATH_PREFIX } from "@lib/constants.ts";
 import {
 	getContainerId,
 	getContainerStatus,
 	getDevcontainerConfig,
-} from "../lib/container.ts";
-import { createLockRemoteInfo, getLockStatus } from "../lib/lock.ts";
-import { getProjectPath, projectExists } from "../lib/project.ts";
-import { error, header, info, warn } from "../lib/ui.ts";
-import { ContainerStatus, type ShellOptions } from "../types/index.ts";
-import { getProjectRemote } from "./remote.ts";
-import { upCommand } from "./up.ts";
+} from "@lib/container.ts";
+import { createLockRemoteInfo, getLockStatus } from "@lib/lock.ts";
+import { getProjectPath, projectExists } from "@lib/project.ts";
+import { error, header, info, warn } from "@lib/ui.ts";
+import { ContainerStatus, type ShellOptions } from "@typedefs/index.ts";
+import { execa } from "execa";
+import inquirer from "inquirer";
 
 export async function shellCommand(
 	project: string,

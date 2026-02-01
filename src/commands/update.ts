@@ -1,14 +1,11 @@
-import { MUTAGEN_VERSION } from "../lib/constants.ts";
-import {
-	downloadMutagen,
-	getInstalledMutagenVersion,
-} from "../lib/download.ts";
-import { getErrorMessage } from "../lib/errors.ts";
+import { MUTAGEN_VERSION } from "@lib/constants.ts";
+import { downloadMutagen, getInstalledMutagenVersion } from "@lib/download.ts";
+import { getErrorMessage } from "@lib/errors.ts";
 import {
 	ensureMutagenExtracted,
 	needsMutagenExtraction,
-} from "../lib/mutagen-extract.ts";
-import { info, spinner, success } from "../lib/ui.ts";
+} from "@lib/mutagen-extract.ts";
+import { info, spinner, success } from "@lib/ui.ts";
 
 export async function updateCommand(): Promise<void> {
 	info("Checking for updates...\n");

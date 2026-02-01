@@ -1,13 +1,18 @@
 // src/commands/up.ts
+
+import {
+	getProjectRemote,
+	getRemoteHost,
+	getRemotePath,
+} from "@commands/remote.ts";
 import { password } from "@inquirer/prompts";
-import inquirer from "inquirer";
-import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
+import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
 import {
 	DEVCONTAINER_CONFIG_NAME,
 	DEVCONTAINER_DIR_NAME,
 	SUPPORTED_EDITORS,
 	WORKSPACE_PATH_PREFIX,
-} from "../lib/constants.ts";
+} from "@lib/constants.ts";
 import {
 	attachToShell,
 	getContainerStatus,
@@ -15,32 +20,32 @@ import {
 	openInEditor,
 	startContainer,
 	stopContainer,
-} from "../lib/container.ts";
-import { deriveKey } from "../lib/encryption.ts";
-import { getErrorMessage } from "../lib/errors.ts";
+} from "@lib/container.ts";
+import { deriveKey } from "@lib/encryption.ts";
+import { getErrorMessage } from "@lib/errors.ts";
 import {
 	acquireLock,
 	createLockRemoteInfo,
 	type LockRemoteInfo,
 	releaseLock,
-} from "../lib/lock.ts";
-import { getSyncStatus, resumeSync } from "../lib/mutagen.ts";
+} from "@lib/lock.ts";
+import { getSyncStatus, resumeSync } from "@lib/mutagen.ts";
 import {
 	getLocalProjects,
 	getProjectPath,
 	projectExists,
 	resolveProjectFromCwd,
-} from "../lib/project.ts";
-import { escapeShellArg } from "../lib/shell.ts";
-import { runRemoteCommand } from "../lib/ssh.ts";
-import { selectTemplate, writeDevcontainerConfig } from "../lib/templates.ts";
-import { error, header, info, spinner, success, warn } from "../lib/ui.ts";
+} from "@lib/project.ts";
+import { escapeShellArg } from "@lib/shell.ts";
+import { runRemoteCommand } from "@lib/ssh.ts";
+import { selectTemplate, writeDevcontainerConfig } from "@lib/templates.ts";
+import { error, header, info, spinner, success, warn } from "@lib/ui.ts";
 import {
 	ContainerStatus,
 	type DevboxConfigV2,
 	type UpOptions,
-} from "../types/index.ts";
-import { getProjectRemote, getRemoteHost, getRemotePath } from "./remote.ts";
+} from "@typedefs/index.ts";
+import inquirer from "inquirer";
 
 /** Result of project resolution phase */
 interface ResolvedProject {

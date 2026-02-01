@@ -2,16 +2,19 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { stringify } from "yaml";
-import type { BuiltInTemplate } from "../../types/index.ts";
-import { BUILT_IN_TEMPLATES } from "../constants.ts";
+import {
+	createTestContext,
+	type TestContext,
+} from "@lib/__tests__/test-utils.ts";
+import { BUILT_IN_TEMPLATES } from "@lib/constants.ts";
 import {
 	getAllTemplates,
 	getBuiltInTemplates,
 	getUserTemplates,
 	validateProjectName,
-} from "../projectTemplates.ts";
-import { createTestContext, type TestContext } from "./test-utils.ts";
+} from "@lib/projectTemplates.ts";
+import type { BuiltInTemplate } from "@typedefs/index.ts";
+import { stringify } from "yaml";
 
 describe("projectTemplates", () => {
 	let ctx: TestContext;

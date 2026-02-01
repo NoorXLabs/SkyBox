@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { isPathTraversal, validatePath } from "../validation.ts";
+import { isPathTraversal, validatePath } from "@lib/validation.ts";
 
 describe("validation", () => {
 	describe("isPathTraversal", () => {

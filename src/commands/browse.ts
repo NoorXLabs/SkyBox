@@ -1,10 +1,11 @@
 // src/commands/browse.ts
-import { configExists, loadConfig } from "../lib/config.ts";
-import { getErrorMessage } from "../lib/errors.ts";
-import { runRemoteCommand } from "../lib/ssh.ts";
-import { error, header, info, spinner } from "../lib/ui.ts";
-import type { RemoteProject } from "../types/index.ts";
-import { getRemoteHost, selectRemote } from "./remote.ts";
+
+import { getRemoteHost, selectRemote } from "@commands/remote.ts";
+import { configExists, loadConfig } from "@lib/config.ts";
+import { getErrorMessage } from "@lib/errors.ts";
+import { runRemoteCommand } from "@lib/ssh.ts";
+import { error, header, info, spinner } from "@lib/ui.ts";
+import type { RemoteProject } from "@typedefs/index.ts";
 
 async function getRemoteProjects(
 	host: string,

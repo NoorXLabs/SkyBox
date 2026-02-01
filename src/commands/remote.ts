@@ -1,16 +1,16 @@
 // src/commands/remote.ts
 
-import chalk from "chalk";
-import inquirer from "inquirer";
-import { loadConfig, saveConfig } from "../lib/config.ts";
+import { loadConfig, saveConfig } from "@lib/config.ts";
 import {
 	copyKey,
 	findSSHKeys,
 	runRemoteCommand,
 	testConnection,
-} from "../lib/ssh.ts";
-import { error, header, info, spinner, success, warn } from "../lib/ui.ts";
-import type { DevboxConfigV2, RemoteEntry } from "../types/index.ts";
+} from "@lib/ssh.ts";
+import { error, header, info, spinner, success, warn } from "@lib/ui.ts";
+import type { DevboxConfigV2, RemoteEntry } from "@typedefs/index.ts";
+import chalk from "chalk";
+import inquirer from "inquirer";
 
 /**
  * Prompt user to select a remote from configured remotes.

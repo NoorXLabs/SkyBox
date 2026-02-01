@@ -1,16 +1,16 @@
 // src/commands/__tests__/remote.test.ts
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
-	createTestContext,
-	type TestContext,
-} from "../../lib/__tests__/test-utils.ts";
-import { loadConfig, saveConfig } from "../../lib/config.ts";
-import {
 	addRemoteDirect,
 	parseRemoteString,
 	removeRemote,
 	renameRemote,
-} from "../remote.ts";
+} from "@commands/remote.ts";
+import {
+	createTestContext,
+	type TestContext,
+} from "@lib/__tests__/test-utils.ts";
+import { loadConfig, saveConfig } from "@lib/config.ts";
 
 describe("remote command", () => {
 	let ctx: TestContext;

@@ -1,29 +1,30 @@
 // src/index.ts
+
+import { browseCommand } from "@commands/browse.ts";
+import { cloneCommand } from "@commands/clone.ts";
+import { configCommand } from "@commands/config.ts";
+import { doctorCommand } from "@commands/doctor.ts";
+import { downCommand } from "@commands/down.ts";
+import { editorCommand } from "@commands/editor.ts";
+import { encryptCommand } from "@commands/encrypt.ts";
+import { initCommand } from "@commands/init.ts";
+import { listCommand } from "@commands/list.ts";
+import { logsCommand } from "@commands/logs.ts";
+import { newCommand } from "@commands/new.ts";
+import { openCommand } from "@commands/open.ts";
+import { pushCommand } from "@commands/push.ts";
+import { remoteCommand } from "@commands/remote.ts";
+import { rmCommand } from "@commands/rm.ts";
+import { shellCommand } from "@commands/shell.ts";
+import { statusCommand } from "@commands/status.ts";
+import { upCommand } from "@commands/up.ts";
+import { updateCommand } from "@commands/update.ts";
+import { INSTALL_METHOD } from "@lib/constants.ts";
+import { runStartupChecks } from "@lib/startup.ts";
+import { checkForUpdate, getUpgradeCommand } from "@lib/update-check.ts";
 import chalk from "chalk";
 import { program } from "commander";
 import pkg from "../package.json";
-import { browseCommand } from "./commands/browse.ts";
-import { cloneCommand } from "./commands/clone.ts";
-import { configCommand } from "./commands/config.ts";
-import { doctorCommand } from "./commands/doctor.ts";
-import { downCommand } from "./commands/down.ts";
-import { editorCommand } from "./commands/editor.ts";
-import { encryptCommand } from "./commands/encrypt.ts";
-import { initCommand } from "./commands/init.ts";
-import { listCommand } from "./commands/list.ts";
-import { logsCommand } from "./commands/logs.ts";
-import { newCommand } from "./commands/new.ts";
-import { openCommand } from "./commands/open.ts";
-import { pushCommand } from "./commands/push.ts";
-import { remoteCommand } from "./commands/remote.ts";
-import { rmCommand } from "./commands/rm.ts";
-import { shellCommand } from "./commands/shell.ts";
-import { statusCommand } from "./commands/status.ts";
-import { upCommand } from "./commands/up.ts";
-import { updateCommand } from "./commands/update.ts";
-import { INSTALL_METHOD } from "./lib/constants.ts";
-import { runStartupChecks } from "./lib/startup.ts";
-import { checkForUpdate, getUpgradeCommand } from "./lib/update-check.ts";
 
 // Run Docker check on bare `devbox` (no args) or `devbox init`
 const args = process.argv.slice(2);

@@ -7,7 +7,6 @@
 
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
-import argon2 from "argon2";
 import {
 	ARGON2_MEMORY_COST,
 	ARGON2_PARALLELISM,
@@ -16,7 +15,8 @@ import {
 	ENCRYPTION_IV_LENGTH,
 	ENCRYPTION_KEY_LENGTH,
 	ENCRYPTION_TAG_LENGTH,
-} from "./constants.ts";
+} from "@lib/constants.ts";
+import argon2 from "argon2";
 
 /**
  * Derive a 256-bit key from a passphrase using Argon2id.

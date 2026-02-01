@@ -16,7 +16,7 @@ const mockExeca = mock(() =>
 mock.module("execa", () => ({ execa: mockExeca }));
 
 // Now import the module under test
-import { getContainerId } from "../container.ts";
+import { getContainerId } from "@lib/container.ts";
 
 // Detect if container module was already mocked by another test file
 // shell-docker-isolated.test.ts mocks getContainerId to always return "container-abc123"

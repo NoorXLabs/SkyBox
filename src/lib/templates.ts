@@ -8,21 +8,21 @@ import {
 } from "node:fs";
 import { basename, join } from "node:path";
 import { input, Separator, select } from "@inquirer/prompts";
-import { execa } from "execa";
-import type {
-	DevcontainerConfig,
-	TemplateSelection,
-	UserLocalTemplate,
-} from "../types/index.ts";
-import { loadConfig } from "./config.ts";
+import { loadConfig } from "@lib/config.ts";
 import {
 	DEVCONTAINER_CONFIG_NAME,
 	DEVCONTAINER_DIR_NAME,
 	TEMPLATES,
 	WORKSPACE_PATH_PREFIX,
-} from "./constants.ts";
-import { getUserTemplatesDir } from "./paths.ts";
-import { error, info, success, warn } from "./ui.ts";
+} from "@lib/constants.ts";
+import { getUserTemplatesDir } from "@lib/paths.ts";
+import { error, info, success, warn } from "@lib/ui.ts";
+import type {
+	DevcontainerConfig,
+	TemplateSelection,
+	UserLocalTemplate,
+} from "@typedefs/index.ts";
+import { execa } from "execa";
 
 export function createDevcontainerConfig(
 	projectPath: string,

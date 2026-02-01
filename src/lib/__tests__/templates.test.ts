@@ -13,14 +13,14 @@ import {
 	DEVCONTAINER_CONFIG_NAME,
 	DEVCONTAINER_DIR_NAME,
 	TEMPLATES,
-} from "../constants.ts";
+} from "@lib/constants.ts";
 import {
 	createDevcontainerConfig,
 	loadUserTemplates,
 	scaffoldTemplate,
 	validateTemplate,
 	writeDevcontainerConfig,
-} from "../templates.ts";
+} from "@lib/templates.ts";
 
 describe("templates", () => {
 	let testDir: string;

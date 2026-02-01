@@ -1,11 +1,11 @@
 import { realpathSync } from "node:fs";
+import { getContainerId } from "@lib/container.ts";
+import { getErrorMessage } from "@lib/errors.ts";
+import { sessionName } from "@lib/mutagen.ts";
+import { getMutagenPath } from "@lib/paths.ts";
+import { getProjectPath, projectExists } from "@lib/project.ts";
+import { error, info } from "@lib/ui.ts";
 import { execa } from "execa";
-import { getContainerId } from "../lib/container.ts";
-import { getErrorMessage } from "../lib/errors.ts";
-import { sessionName } from "../lib/mutagen.ts";
-import { getMutagenPath } from "../lib/paths.ts";
-import { getProjectPath, projectExists } from "../lib/project.ts";
-import { error, info } from "../lib/ui.ts";
 
 interface LogsOptions {
 	follow?: boolean;

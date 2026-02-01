@@ -8,10 +8,10 @@ import {
 	unlinkSync,
 } from "node:fs";
 import { join } from "node:path";
+import { MUTAGEN_REPO, MUTAGEN_VERSION } from "@lib/constants.ts";
+import { getErrorMessage } from "@lib/errors.ts";
+import { getBinDir, getMutagenPath } from "@lib/paths.ts";
 import { extract } from "tar";
-import { MUTAGEN_REPO, MUTAGEN_VERSION } from "./constants.ts";
-import { getErrorMessage } from "./errors.ts";
-import { getBinDir, getMutagenPath } from "./paths.ts";
 
 export function getMutagenDownloadUrl(
 	platform: string,

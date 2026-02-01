@@ -9,7 +9,7 @@ import type {
 	BuiltInTemplate,
 	InstallMethod,
 	Template,
-} from "../types/index.ts";
+} from "@typedefs/index.ts";
 
 // ── App & GitHub ──
 

@@ -2,8 +2,11 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { getLocalProjects, resolveProjectFromCwd } from "../project.ts";
-import { createTestContext, type TestContext } from "./test-utils.ts";
+import {
+	createTestContext,
+	type TestContext,
+} from "@lib/__tests__/test-utils.ts";
+import { getLocalProjects, resolveProjectFromCwd } from "@lib/project.ts";
 
 describe("project resolution", () => {
 	let ctx: TestContext;

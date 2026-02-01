@@ -7,7 +7,7 @@
     "paths": {
       "@commands/*": ["src/commands/*"],
       "@lib/*": ["src/lib/*"],
-      "@types/*": ["src/types/*"]
+      "@typedefs/*": ["src/types/*"]
     },
     "strict": true,
     "esModuleInterop": true,

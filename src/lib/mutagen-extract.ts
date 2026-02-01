@@ -7,10 +7,14 @@ import {
 	writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
+import { MUTAGEN_VERSION } from "@lib/constants.ts";
+import { getErrorMessage } from "@lib/errors.ts";
+import {
+	getBinDir,
+	getMutagenPath,
+	getMutagenVersionPath,
+} from "@lib/paths.ts";
 import { extract } from "tar";
-import { MUTAGEN_VERSION } from "./constants.ts";
-import { getErrorMessage } from "./errors.ts";
-import { getBinDir, getMutagenPath, getMutagenVersionPath } from "./paths.ts";
 
 /**
  * Check if Mutagen needs to be extracted from the bundle.

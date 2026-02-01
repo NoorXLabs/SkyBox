@@ -1,7 +1,7 @@
 /** Local project path resolution and validation. */
 import { existsSync, readdirSync, realpathSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
-import { getProjectsDir } from "./paths.ts";
+import { getProjectsDir } from "@lib/paths.ts";
 
 export function resolveProjectFromCwd(): string | null {
 	const cwd = process.cwd();

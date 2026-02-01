@@ -2,20 +2,24 @@
 
 import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
-import inquirer from "inquirer";
-import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
+import {
+	getRemoteHost,
+	getRemotePath,
+	selectRemote,
+} from "@commands/remote.ts";
+import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
 import {
 	createSelectiveSyncSessions,
 	createSyncSession,
 	getSyncStatus,
 	terminateSession,
 	waitForSync,
-} from "../lib/mutagen.ts";
-import { getProjectsDir } from "../lib/paths.ts";
-import { validateProjectName } from "../lib/projectTemplates.ts";
-import { checkRemoteProjectExists } from "../lib/remote.ts";
-import { escapeShellArg } from "../lib/shell.ts";
-import { runRemoteCommand } from "../lib/ssh.ts";
+} from "@lib/mutagen.ts";
+import { getProjectsDir } from "@lib/paths.ts";
+import { validateProjectName } from "@lib/projectTemplates.ts";
+import { checkRemoteProjectExists } from "@lib/remote.ts";
+import { escapeShellArg } from "@lib/shell.ts";
+import { runRemoteCommand } from "@lib/ssh.ts";
 import {
 	confirmDestructiveAction,
 	error,
@@ -23,8 +27,8 @@ import {
 	info,
 	spinner,
 	success,
-} from "../lib/ui.ts";
-import { getRemoteHost, getRemotePath, selectRemote } from "./remote.ts";
+} from "@lib/ui.ts";
+import inquirer from "inquirer";
 
 export async function cloneCommand(project: string): Promise<void> {
 	if (!project) {

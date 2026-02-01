@@ -5,8 +5,8 @@ import { join } from "node:path";
 import {
 	createTestContext,
 	type TestContext,
-} from "../../lib/__tests__/test-utils.ts";
-import { saveConfig } from "../../lib/config.ts";
+} from "@lib/__tests__/test-utils.ts";
+import { saveConfig } from "@lib/config.ts";
 
 // This tests the individual pieces that init uses
 describe("init command integration", () => {

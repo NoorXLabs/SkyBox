@@ -5,7 +5,7 @@ import { basename, join, resolve } from "node:path";
 import {
 	createTestContext,
 	type TestContext,
-} from "../../lib/__tests__/test-utils.ts";
+} from "@lib/__tests__/test-utils.ts";
 
 describe("push command", () => {
 	let ctx: TestContext;

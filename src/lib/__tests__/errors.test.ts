@@ -5,7 +5,7 @@ import {
 	getExecaErrorMessage,
 	hasExitCode,
 	isExecaError,
-} from "../errors.ts";
+} from "@lib/errors.ts";
 
 describe("getErrorMessage", () => {
 	test("extracts message from Error instance", () => {

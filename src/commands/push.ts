@@ -2,19 +2,23 @@
 
 import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
-import { execa } from "execa";
-import inquirer from "inquirer";
-import { configExists, loadConfig, saveConfig } from "../lib/config.ts";
-import { getErrorMessage } from "../lib/errors.ts";
+import {
+	getRemoteHost,
+	getRemotePath,
+	selectRemote,
+} from "@commands/remote.ts";
+import { upCommand } from "@commands/up.ts";
+import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
+import { getErrorMessage } from "@lib/errors.ts";
 import {
 	createSelectiveSyncSessions,
 	createSyncSession,
 	waitForSync,
-} from "../lib/mutagen.ts";
-import { getProjectsDir } from "../lib/paths.ts";
-import { validateProjectName } from "../lib/projectTemplates.ts";
-import { checkRemoteProjectExists } from "../lib/remote.ts";
-import { runRemoteCommand } from "../lib/ssh.ts";
+} from "@lib/mutagen.ts";
+import { getProjectsDir } from "@lib/paths.ts";
+import { validateProjectName } from "@lib/projectTemplates.ts";
+import { checkRemoteProjectExists } from "@lib/remote.ts";
+import { runRemoteCommand } from "@lib/ssh.ts";
 import {
 	confirmDestructiveAction,
 	error,
@@ -22,9 +26,9 @@ import {
 	info,
 	spinner,
 	success,
-} from "../lib/ui.ts";
-import { getRemoteHost, getRemotePath, selectRemote } from "./remote.ts";
-import { upCommand } from "./up.ts";
+} from "@lib/ui.ts";
+import { execa } from "execa";
+import inquirer from "inquirer";
 
 async function isGitRepo(path: string): Promise<boolean> {
 	return existsSync(join(path, ".git"));

@@ -5,12 +5,12 @@ import { join } from "node:path";
 import {
 	createTestContext,
 	type TestContext,
-} from "../../lib/__tests__/test-utils.ts";
+} from "@lib/__tests__/test-utils.ts";
 import {
 	DEVCONTAINER_CONFIG_NAME,
 	DEVCONTAINER_DIR_NAME,
-} from "../../lib/constants.ts";
-import type { ShellOptions } from "../../types/index.ts";
+} from "@lib/constants.ts";
+import type { ShellOptions } from "@typedefs/index.ts";
 
 describe("shell command", () => {
 	let ctx: TestContext;

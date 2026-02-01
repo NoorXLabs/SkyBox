@@ -12,19 +12,19 @@ import { join } from "node:path";
 import {
 	createTestContext,
 	type TestContext,
-} from "../../lib/__tests__/test-utils.ts";
+} from "@lib/__tests__/test-utils.ts";
 import {
 	DEVCONTAINER_CONFIG_NAME,
 	DEVCONTAINER_DIR_NAME,
-} from "../../lib/constants.ts";
-import type { LockInfo, LockStatus } from "../../types/index.ts";
+} from "@lib/constants.ts";
+import type { LockInfo, LockStatus } from "@typedefs/index.ts";
 
 // Mock execa first - this will persist globally for this file
 const mockExeca = mock(() => Promise.resolve({ exitCode: 0 }));
 mock.module("execa", () => ({ execa: mockExeca }));
 
 // Import original lock module BEFORE mocking to preserve real implementations
-import * as originalLock from "../../lib/lock.ts";
+import * as originalLock from "@lib/lock.ts";
 
 // Mock the lock module - spread original exports, only override getLockStatus
 const mockGetLockStatus = mock(
