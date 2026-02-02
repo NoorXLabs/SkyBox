@@ -7,7 +7,7 @@ import { runRemoteCommand } from "@lib/ssh.ts";
 import { error, header, info, spinner } from "@lib/ui.ts";
 import type { RemoteProject } from "@typedefs/index.ts";
 
-async function getRemoteProjects(
+export async function getRemoteProjects(
 	host: string,
 	basePath: string,
 ): Promise<RemoteProject[]> {
