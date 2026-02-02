@@ -36,12 +36,13 @@ Press `d` to toggle detailed view, which adds:
 
 | Field | Description |
 |-------|-------------|
-| Git Status | Clean or dirty working tree |
-| Ahead/Behind | Commits ahead/behind upstream |
+| Git Status | Clean or dirty working tree, with ahead/behind counts |
 | Disk Usage | Local disk space used |
 | Last Active | Time since last activity |
-| Image | Container image name |
 | Remote | Configured remote name |
+| Container Name | Docker container name |
+| Uptime | Container uptime or exit status |
+| Encrypted | Whether project encryption is enabled |
 
 ### Keyboard Navigation
 
