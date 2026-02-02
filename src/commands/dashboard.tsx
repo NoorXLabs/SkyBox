@@ -109,7 +109,11 @@ interface CardField {
 
 function getSimpleFields(p: DashboardProject): CardField[] {
 	return [
-		{ label: "Container", value: p.container, color: containerColor(p.container) },
+		{
+			label: "Container",
+			value: p.container,
+			color: containerColor(p.container),
+		},
 		{ label: "Sync", value: p.sync, color: syncColor(p.sync) },
 		{ label: "Branch", value: p.branch },
 	];
@@ -121,10 +125,18 @@ function getDetailedFields(p: DashboardProject): CardField[] {
 		p.ahead > 0 || p.behind > 0 ? ` ↑${p.ahead} ↓${p.behind}` : "";
 
 	return [
-		{ label: "Container", value: p.container, color: containerColor(p.container) },
+		{
+			label: "Container",
+			value: p.container,
+			color: containerColor(p.container),
+		},
 		{ label: "Sync", value: p.sync, color: syncColor(p.sync) },
 		{ label: "Branch", value: p.branch },
-		{ label: "Git", value: gitLabel + gitExtra, color: p.gitStatus === "dirty" ? "yellow" : "green" },
+		{
+			label: "Git",
+			value: gitLabel + gitExtra,
+			color: p.gitStatus === "dirty" ? "yellow" : "green",
+		},
 		{ label: "Disk", value: p.diskUsage },
 		{ label: "Active", value: p.lastActive },
 		{ label: "Remote", value: p.remote },
@@ -161,7 +173,7 @@ function ProjectCard({
 				</Text>
 			</Box>
 			{fields.map((field) => (
-				<Box key={field.label} width={innerWidth} overflowX="hidden">
+				<Box key={field.label} overflowX="hidden" width={innerWidth}>
 					<Text dimColor>{field.label}: </Text>
 					<Text color={field.color} wrap="truncate">
 						{field.value}
@@ -272,7 +284,7 @@ function Dashboard({
 				</Box>
 			) : (
 				rows.map((row, rowIdx) => (
-					<Box key={rowIdx} gap={CARD_GAP} paddingX={2}>
+					<Box gap={CARD_GAP} key={row[0]?.name ?? rowIdx} paddingX={2}>
 						{row.map((p, colIdx) => {
 							const globalIdx = rowIdx * cardsPerRow + colIdx;
 							const fields = detailed
@@ -280,8 +292,8 @@ function Dashboard({
 								: getSimpleFields(p);
 							return (
 								<ProjectCard
-									key={p.name}
 									fields={fields}
+									key={p.name}
 									project={p}
 									selected={globalIdx === selectedIndex}
 									width={CARD_WIDTH}

@@ -42,7 +42,7 @@ The `up` command starts a development container for the specified project. It pe
 When no project argument is given, DevBox resolves the project in this order:
 
 1. Checks if the current working directory is inside a known project
-2. Prompts for selection from all local projects (unless `--no-prompt` is set)
+2. Prompts with a multi-select checkbox to start one or more projects at once (unless `--no-prompt` is set)
 
 ### Lock System
 
@@ -95,6 +95,10 @@ After the container starts, DevBox determines what to do next:
 - If `--no-prompt` is passed: exits without further action
 - Otherwise: prompts you to choose from editor, shell, both, or exit
 
+### Multi-Project Start
+
+When no project argument is given and multiple local projects exist, DevBox shows a checkbox to select one or more projects. Selected projects are started sequentially. After all projects start, you can choose to open all, choose specific ones, or skip.
+
 ### Batch Mode
 
 With `-A, --all`, DevBox starts every local project sequentially and reports a summary of how many succeeded and how many failed.
@@ -125,6 +129,10 @@ devbox up my-project --verbose
 
 # Start all local projects
 devbox up --all
+
+# Multi-select start (no argument)
+devbox up
+# Shows checkbox to pick which projects to start
 
 # Start from within project directory
 cd ~/.devbox/Projects/my-project

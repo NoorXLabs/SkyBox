@@ -160,6 +160,7 @@ All commands that need a devcontainer configuration use the same unified selecto
 ? Select a template:
 ── Built-in ──
   Node.js — Node.js 20 with npm/yarn + Docker support
+  Bun — Bun runtime with TypeScript + Docker support
   Python — Python 3.12 with pip/venv + Docker support
   Go — Go 1.22 + Docker support
   Generic — Debian with basic dev tools + Docker support

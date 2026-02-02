@@ -21,6 +21,7 @@ export const commands: CommandEntry[] = [
   { text: "devbox shell", link: "/reference/shell", description: "Access shell inside container" },
   { text: "devbox open", link: "/reference/open", description: "Open editor/shell for running container" },
   { text: "devbox status", link: "/reference/status", description: "Show project status" },
+  { text: "devbox dashboard", link: "/reference/dashboard", description: "Full-screen status dashboard" },
   { text: "devbox browse", link: "/reference/browse", description: "List projects on remote server" },
   { text: "devbox list", link: "/reference/list", description: "List local projects" },
   { text: "devbox rm", link: "/reference/rm", description: "Remove project locally (keeps remote)" },
