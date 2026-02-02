@@ -31,9 +31,9 @@ jobs:
 
       - name: Build all platforms
         run: |
-          bun build ./src/index.ts --compile --minify --sourcemap --bytecode --define "process.env.DEVBOX_INSTALL_METHOD='github-release'" --target=bun-darwin-arm64 --outfile=devbox-darwin-arm64
-          bun build ./src/index.ts --compile --minify --sourcemap --bytecode --define "process.env.DEVBOX_INSTALL_METHOD='github-release'" --target=bun-darwin-x64 --outfile=devbox-darwin-x64
-          bun build ./src/index.ts --compile --minify --sourcemap --bytecode --define "process.env.DEVBOX_INSTALL_METHOD='github-release'" --target=bun-linux-x64 --outfile=devbox-linux-x64
+          bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.DEVBOX_INSTALL_METHOD='github-release'" --target=bun-darwin-arm64 --outfile=devbox-darwin-arm64
+          bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.DEVBOX_INSTALL_METHOD='github-release'" --target=bun-darwin-x64 --outfile=devbox-darwin-x64
+          bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.DEVBOX_INSTALL_METHOD='github-release'" --target=bun-linux-x64 --outfile=devbox-linux-x64
           bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.DEVBOX_INSTALL_METHOD='github-release'" --target=bun-linux-arm64 --outfile=devbox-linux-arm64
 
       - name: Create tarballs
