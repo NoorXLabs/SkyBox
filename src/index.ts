@@ -3,6 +3,7 @@
 import { browseCommand } from "@commands/browse.ts";
 import { cloneCommand } from "@commands/clone.ts";
 import { configCommand } from "@commands/config.ts";
+import { dashboardCommand } from "@commands/dashboard.tsx";
 import { doctorCommand } from "@commands/doctor.ts";
 import { downCommand } from "@commands/down.ts";
 import { editorCommand } from "@commands/editor.ts";
@@ -93,6 +94,12 @@ program
 	.command("status [project]")
 	.description("Show project status")
 	.action(statusCommand);
+
+program
+	.command("dashboard")
+	.alias("dash")
+	.description("Full-screen status dashboard")
+	.action(dashboardCommand);
 
 program
 	.command("open [project]")
