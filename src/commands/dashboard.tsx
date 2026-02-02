@@ -43,15 +43,21 @@ async function gatherProjectData(): Promise<DashboardProject[]> {
 
 	for (const name of entries) {
 		const projectPath = join(projectsDir, name);
-		const [containerStatus, containerInfo, syncStatus, gitInfo, diskUsage, lastActive] =
-			await Promise.all([
-				getContainerStatus(projectPath),
-				getContainerInfo(projectPath),
-				getSyncStatus(name),
-				getGitInfo(projectPath),
-				getDiskUsage(projectPath),
-				getLastActive(projectPath),
-			]);
+		const [
+			containerStatus,
+			containerInfo,
+			syncStatus,
+			gitInfo,
+			diskUsage,
+			lastActive,
+		] = await Promise.all([
+			getContainerStatus(projectPath),
+			getContainerInfo(projectPath),
+			getSyncStatus(name),
+			getGitInfo(projectPath),
+			getDiskUsage(projectPath),
+			getLastActive(projectPath),
+		]);
 
 		let container = "stopped";
 		if (containerStatus === ContainerStatus.Running) container = "running";
@@ -93,7 +99,9 @@ function formatRelativeTime(date: Date): string {
 
 function Dashboard({
 	initialDetailed,
-}: { initialDetailed: boolean }): React.ReactElement {
+}: {
+	initialDetailed: boolean;
+}): React.ReactElement {
 	const { exit } = useApp();
 	const [projects, setProjects] = useState<DashboardProject[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -137,16 +145,10 @@ function Dashboard({
 				<Text bold color="blue">
 					DevBox Dashboard
 				</Text>
-				{detailed && (
-					<Text dimColor> (detailed)</Text>
-				)}
+				{detailed && <Text dimColor> (detailed)</Text>}
 			</Box>
 
-			{detailed ? (
-				<DetailedHeader />
-			) : (
-				<SimpleHeader />
-			)}
+			{detailed ? <DetailedHeader /> : <SimpleHeader />}
 
 			{loading && projects.length === 0 ? (
 				<Box paddingX={2}>
@@ -178,8 +180,7 @@ function Dashboard({
 
 			<Box marginTop={1} paddingX={2}>
 				<Text dimColor>
-					q: quit r: refresh d: {detailed ? "simple" : "detailed"} ↑↓:
-					navigate
+					q: quit r: refresh d: {detailed ? "simple" : "detailed"} ↑↓: navigate
 					{loading ? " (refreshing...)" : ""}
 				</Text>
 			</Box>
@@ -213,7 +214,10 @@ function SimpleHeader(): React.ReactElement {
 function SimpleRow({
 	project: p,
 	selected,
-}: { project: DashboardProject; selected: boolean }): React.ReactElement {
+}: {
+	project: DashboardProject;
+	selected: boolean;
+}): React.ReactElement {
 	return (
 		<Box paddingX={2}>
 			<Text color={containerColor(p.container)} inverse={selected}>
@@ -227,15 +231,15 @@ function SimpleRow({
 }
 
 // Detailed view columns
-const D_NAME = 18;
-const D_CONTAINER = 10;
-const D_SYNC = 9;
-const D_BRANCH = 14;
-const D_GIT = 7;
-const D_DISK = 8;
-const D_ACTIVE = 10;
-const D_REMOTE = 10;
-const D_IMAGE = 20;
+const D_NAME = 20;
+const D_CONTAINER = 12;
+const D_SYNC = 10;
+const D_BRANCH = 16;
+const D_GIT = 16;
+const D_DISK = 10;
+const D_ACTIVE = 12;
+const D_REMOTE = 14;
+const D_IMAGE = 28;
 
 function DetailedHeader(): React.ReactElement {
 	return (
@@ -255,7 +259,7 @@ function DetailedHeader(): React.ReactElement {
 				</Text>
 			</Box>
 			<Box paddingX={2}>
-				<Text dimColor>{"─".repeat(110)}</Text>
+				<Text dimColor>{"─".repeat(140)}</Text>
 			</Box>
 		</>
 	);
@@ -264,10 +268,13 @@ function DetailedHeader(): React.ReactElement {
 function DetailedRow({
 	project: p,
 	selected,
-}: { project: DashboardProject; selected: boolean }): React.ReactElement {
+}: {
+	project: DashboardProject;
+	selected: boolean;
+}): React.ReactElement {
 	const gitLabel = p.gitStatus === "dirty" ? "dirty" : "clean";
 	const gitExtra =
-		p.ahead > 0 || p.behind > 0 ? ` +${p.ahead}/-${p.behind}` : "";
+		p.ahead > 0 || p.behind > 0 ? ` ↑${p.ahead} ↓${p.behind}` : "";
 
 	return (
 		<Box paddingX={2}>
