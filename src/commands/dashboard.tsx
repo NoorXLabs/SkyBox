@@ -10,7 +10,7 @@ import { getProjectsDir } from "@lib/paths.ts";
 import { ContainerStatus } from "@typedefs/index.ts";
 import { Box, render, Text, useApp, useInput, useStdout } from "ink";
 import type React from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface DashboardProject {
 	name: string;
@@ -96,89 +96,75 @@ function formatRelativeTime(date: Date): string {
 	return `${diffDays}d ago`;
 }
 
-/** Column definition for the table */
-interface Column {
+/** Width of a single card including border chars and padding */
+const CARD_WIDTH = 38;
+/** Gap between cards */
+const CARD_GAP = 2;
+
+interface CardField {
 	label: string;
-	key: string;
-	width: number;
-	/** Minimum terminal width required to show this column */
-	minWidth?: number;
+	value: string;
+	color?: string;
 }
 
-const SIMPLE_COLUMNS: Column[] = [
-	{ label: "NAME", key: "name", width: 24 },
-	{ label: "CONTAINER", key: "container", width: 12 },
-	{ label: "SYNC", key: "sync", width: 11 },
-	{ label: "BRANCH", key: "branch", width: 20 },
-];
-
-const DETAILED_COLUMNS: Column[] = [
-	{ label: "NAME", key: "name", width: 20 },
-	{ label: "CONTAINER", key: "container", width: 12 },
-	{ label: "SYNC", key: "sync", width: 10 },
-	{ label: "BRANCH", key: "branch", width: 14 },
-	{ label: "GIT", key: "git", width: 16, minWidth: 100 },
-	{ label: "DISK", key: "diskUsage", width: 10, minWidth: 110 },
-	{ label: "ACTIVE", key: "lastActive", width: 12, minWidth: 120 },
-	{ label: "REMOTE", key: "remote", width: 14, minWidth: 135 },
-	{ label: "IMAGE", key: "image", width: 28, minWidth: 160 },
-	{ label: "ENC", key: "enc", width: 5, minWidth: 165 },
-];
-
-function getVisibleColumns(columns: Column[], termWidth: number): Column[] {
-	return columns.filter((col) => !col.minWidth || termWidth >= col.minWidth);
+function getSimpleFields(p: DashboardProject): CardField[] {
+	return [
+		{ label: "Container", value: p.container, color: containerColor(p.container) },
+		{ label: "Sync", value: p.sync, color: syncColor(p.sync) },
+		{ label: "Branch", value: p.branch },
+	];
 }
 
-function getCellValue(p: DashboardProject, key: string): string {
-	switch (key) {
-		case "git": {
-			const label = p.gitStatus === "dirty" ? "dirty" : "clean";
-			const extra =
-				p.ahead > 0 || p.behind > 0 ? ` ↑${p.ahead} ↓${p.behind}` : "";
-			return label + extra;
-		}
-		case "enc":
-			return p.encrypted ? "yes" : "no";
-		default:
-			return String(p[key as keyof DashboardProject] ?? "-");
-	}
+function getDetailedFields(p: DashboardProject): CardField[] {
+	const gitLabel = p.gitStatus === "dirty" ? "dirty" : "clean";
+	const gitExtra =
+		p.ahead > 0 || p.behind > 0 ? ` ↑${p.ahead} ↓${p.behind}` : "";
+
+	return [
+		{ label: "Container", value: p.container, color: containerColor(p.container) },
+		{ label: "Sync", value: p.sync, color: syncColor(p.sync) },
+		{ label: "Branch", value: p.branch },
+		{ label: "Git", value: gitLabel + gitExtra, color: p.gitStatus === "dirty" ? "yellow" : "green" },
+		{ label: "Disk", value: p.diskUsage },
+		{ label: "Active", value: p.lastActive },
+		{ label: "Remote", value: p.remote },
+		{ label: "Image", value: p.image },
+		{ label: "Encrypted", value: p.encrypted ? "yes" : "no" },
+	];
 }
 
-function TableHeader({
-	columns,
-}: { columns: Column[] }): React.ReactElement {
-	return (
-		<Box paddingX={2}>
-			{columns.map((col) => (
-				<Box key={col.key} width={col.width} overflowX="hidden">
-					<Text dimColor wrap="truncate">
-						{col.label}
-					</Text>
-				</Box>
-			))}
-		</Box>
-	);
-}
-
-function TableRow({
+function ProjectCard({
 	project,
-	columns,
+	fields,
 	selected,
+	width,
 }: {
 	project: DashboardProject;
-	columns: Column[];
+	fields: CardField[];
 	selected: boolean;
+	width: number;
 }): React.ReactElement {
+	const borderColor = selected ? "blue" : "gray";
+	const innerWidth = width - 4; // account for border + padding
+
 	return (
-		<Box paddingX={2}>
-			{columns.map((col) => (
-				<Box key={col.key} width={col.width} overflowX="hidden">
-					<Text
-						color={containerColor(project.container)}
-						inverse={selected}
-						wrap="truncate"
-					>
-						{getCellValue(project, col.key)}
+		<Box
+			borderColor={borderColor}
+			borderStyle="round"
+			flexDirection="column"
+			paddingX={1}
+			width={width}
+		>
+			<Box>
+				<Text bold color={containerColor(project.container)}>
+					{project.name}
+				</Text>
+			</Box>
+			{fields.map((field) => (
+				<Box key={field.label} width={innerWidth} overflowX="hidden">
+					<Text dimColor>{field.label}: </Text>
+					<Text color={field.color} wrap="truncate">
+						{field.value}
 					</Text>
 				</Box>
 			))}
@@ -186,15 +172,13 @@ function TableRow({
 	);
 }
 
-function Separator({
-	columns,
-}: { columns: Column[] }): React.ReactElement {
-	const totalWidth = columns.reduce((sum, col) => sum + col.width, 0);
-	return (
-		<Box paddingX={2}>
-			<Text dimColor>{"─".repeat(totalWidth)}</Text>
-		</Box>
-	);
+/** Split an array into chunks of size n */
+function chunk<T>(arr: T[], n: number): T[][] {
+	const result: T[][] = [];
+	for (let i = 0; i < arr.length; i += n) {
+		result.push(arr.slice(i, i + n));
+	}
+	return result;
 }
 
 function Dashboard({
@@ -233,6 +217,14 @@ function Dashboard({
 		return () => clearInterval(interval);
 	}, [refresh]);
 
+	// Calculate how many cards fit per row
+	const cardsPerRow = useMemo(() => {
+		// Available width minus outer padding (paddingX={2} = 4 chars)
+		const available = termWidth - 4;
+		const cols = Math.floor((available + CARD_GAP) / (CARD_WIDTH + CARD_GAP));
+		return Math.max(1, cols);
+	}, [termWidth]);
+
 	useInput((input, key) => {
 		if (input === "q" || key.escape) {
 			exit();
@@ -244,17 +236,20 @@ function Dashboard({
 			setDetailed((d) => !d);
 		}
 		if (key.upArrow) {
-			setSelectedIndex((i) => Math.max(0, i - 1));
+			setSelectedIndex((i) => Math.max(0, i - cardsPerRow));
 		}
 		if (key.downArrow) {
+			setSelectedIndex((i) => Math.min(projects.length - 1, i + cardsPerRow));
+		}
+		if (key.leftArrow) {
+			setSelectedIndex((i) => Math.max(0, i - 1));
+		}
+		if (key.rightArrow) {
 			setSelectedIndex((i) => Math.min(projects.length - 1, i + 1));
 		}
 	});
 
-	const columns = getVisibleColumns(
-		detailed ? DETAILED_COLUMNS : SIMPLE_COLUMNS,
-		termWidth,
-	);
+	const rows = chunk(projects, cardsPerRow);
 
 	return (
 		<Box flexDirection="column">
@@ -264,9 +259,6 @@ function Dashboard({
 				</Text>
 				{detailed && <Text dimColor> (detailed)</Text>}
 			</Box>
-
-			<TableHeader columns={columns} />
-			<Separator columns={columns} />
 
 			{loading && projects.length === 0 ? (
 				<Box paddingX={2}>
@@ -279,19 +271,31 @@ function Dashboard({
 					</Text>
 				</Box>
 			) : (
-				projects.map((p, i) => (
-					<TableRow
-						key={p.name}
-						project={p}
-						columns={columns}
-						selected={i === selectedIndex}
-					/>
+				rows.map((row, rowIdx) => (
+					<Box key={rowIdx} gap={CARD_GAP} paddingX={2}>
+						{row.map((p, colIdx) => {
+							const globalIdx = rowIdx * cardsPerRow + colIdx;
+							const fields = detailed
+								? getDetailedFields(p)
+								: getSimpleFields(p);
+							return (
+								<ProjectCard
+									key={p.name}
+									fields={fields}
+									project={p}
+									selected={globalIdx === selectedIndex}
+									width={CARD_WIDTH}
+								/>
+							);
+						})}
+					</Box>
 				))
 			)}
 
 			<Box marginTop={1} paddingX={2}>
 				<Text dimColor>
-					q: quit r: refresh d: {detailed ? "simple" : "detailed"} ↑↓: navigate
+					q: quit r: refresh d: {detailed ? "simple" : "detailed"}{" "}
+					{cardsPerRow > 1 ? "←→↑↓" : "↑↓"}: navigate
 					{loading ? " (refreshing...)" : ""}
 				</Text>
 			</Box>
@@ -302,6 +306,13 @@ function Dashboard({
 function containerColor(status: string): string | undefined {
 	if (status === "running") return "green";
 	if (status === "stopped") return "red";
+	return undefined;
+}
+
+function syncColor(status: string): string | undefined {
+	if (status === "syncing") return "green";
+	if (status === "paused") return "yellow";
+	if (status === "error") return "red";
 	return undefined;
 }
 
