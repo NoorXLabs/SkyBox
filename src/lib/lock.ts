@@ -4,7 +4,12 @@ import { hostname, userInfo } from "node:os";
 import { LOCKS_DIR_NAME } from "@lib/constants.ts";
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
-import type { LockInfo, LockStatus, RemoteEntry } from "@typedefs/index.ts";
+import type {
+	LockInfo,
+	LockReleaseResult,
+	LockStatus,
+	RemoteEntry,
+} from "@typedefs/index.ts";
 
 /**
  * Remote connection info needed for lock operations.
@@ -104,7 +109,7 @@ export async function acquireLock(
 
 	// Attempt atomic lock creation using noclobber mode (set -C)
 	// This fails if the file already exists, preventing TOCTOU races
-	const atomicCreateCommand = `mkdir -p ${escapeShellArg(locksDir)} && (set -C; echo '${jsonBase64}' | base64 -d > ${escapeShellArg(lockPath)}) 2>/dev/null`;
+	const atomicCreateCommand = `mkdir -p ${escapeShellArg(locksDir)} && (set -C; echo ${escapeShellArg(jsonBase64)} | base64 -d > ${escapeShellArg(lockPath)}) 2>/dev/null`;
 	const createResult = await runRemoteCommand(
 		remoteInfo.host,
 		atomicCreateCommand,
@@ -137,7 +142,7 @@ export async function acquireLock(
 
 	if (status.ownedByMe) {
 		// We own the lock - update timestamp (non-atomic is fine here)
-		const updateCommand = `echo '${jsonBase64}' | base64 -d > ${escapeShellArg(lockPath)}`;
+		const updateCommand = `echo ${escapeShellArg(jsonBase64)} | base64 -d > ${escapeShellArg(lockPath)}`;
 		const updateResult = await runRemoteCommand(remoteInfo.host, updateCommand);
 
 		if (!updateResult.success) {
@@ -173,7 +178,7 @@ export async function forceLock(
 	const jsonBase64 = Buffer.from(json).toString("base64");
 
 	// Direct overwrite — no noclobber, no ownership check
-	const command = `mkdir -p ${escapeShellArg(locksDir)} && echo '${jsonBase64}' | base64 -d > ${escapeShellArg(lockPath)}`;
+	const command = `mkdir -p ${escapeShellArg(locksDir)} && echo ${escapeShellArg(jsonBase64)} | base64 -d > ${escapeShellArg(lockPath)}`;
 	const result = await runRemoteCommand(remoteInfo.host, command);
 
 	if (!result.success) {
@@ -191,7 +196,7 @@ export async function forceLock(
 export async function releaseLock(
 	project: string,
 	remoteInfo: LockRemoteInfo,
-): Promise<{ success: boolean; skipped?: boolean; error?: string }> {
+): Promise<LockReleaseResult> {
 	// Check ownership before releasing
 	const status = await getLockStatus(project, remoteInfo);
 

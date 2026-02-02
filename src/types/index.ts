@@ -286,6 +286,13 @@ export type LockStatus =
 	| { locked: false }
 	| { locked: true; ownedByMe: boolean; info: LockInfo };
 
+/** Result of releasing a lock */
+export interface LockReleaseResult {
+	success: boolean;
+	skipped?: boolean;
+	error?: string;
+}
+
 // Doctor command types
 export type DoctorCheckStatus = "pass" | "warn" | "fail";
 
