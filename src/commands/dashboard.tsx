@@ -8,7 +8,7 @@ import { getContainerInfo, getContainerStatus } from "@lib/container.ts";
 import { getSyncStatus } from "@lib/mutagen.ts";
 import { getProjectsDir } from "@lib/paths.ts";
 import { ContainerStatus } from "@typedefs/index.ts";
-import { Box, render, Text, useApp, useInput } from "ink";
+import { Box, render, Text, useApp, useInput, useStdout } from "ink";
 import type React from "react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -17,7 +17,6 @@ interface DashboardProject {
 	container: string;
 	sync: string;
 	branch: string;
-	// Detailed fields
 	gitStatus: string;
 	ahead: number;
 	behind: number;
@@ -97,16 +96,129 @@ function formatRelativeTime(date: Date): string {
 	return `${diffDays}d ago`;
 }
 
+/** Column definition for the table */
+interface Column {
+	label: string;
+	key: string;
+	width: number;
+	/** Minimum terminal width required to show this column */
+	minWidth?: number;
+}
+
+const SIMPLE_COLUMNS: Column[] = [
+	{ label: "NAME", key: "name", width: 24 },
+	{ label: "CONTAINER", key: "container", width: 12 },
+	{ label: "SYNC", key: "sync", width: 11 },
+	{ label: "BRANCH", key: "branch", width: 20 },
+];
+
+const DETAILED_COLUMNS: Column[] = [
+	{ label: "NAME", key: "name", width: 20 },
+	{ label: "CONTAINER", key: "container", width: 12 },
+	{ label: "SYNC", key: "sync", width: 10 },
+	{ label: "BRANCH", key: "branch", width: 14 },
+	{ label: "GIT", key: "git", width: 16, minWidth: 100 },
+	{ label: "DISK", key: "diskUsage", width: 10, minWidth: 110 },
+	{ label: "ACTIVE", key: "lastActive", width: 12, minWidth: 120 },
+	{ label: "REMOTE", key: "remote", width: 14, minWidth: 135 },
+	{ label: "IMAGE", key: "image", width: 28, minWidth: 160 },
+	{ label: "ENC", key: "enc", width: 5, minWidth: 165 },
+];
+
+function getVisibleColumns(columns: Column[], termWidth: number): Column[] {
+	return columns.filter((col) => !col.minWidth || termWidth >= col.minWidth);
+}
+
+function getCellValue(p: DashboardProject, key: string): string {
+	switch (key) {
+		case "git": {
+			const label = p.gitStatus === "dirty" ? "dirty" : "clean";
+			const extra =
+				p.ahead > 0 || p.behind > 0 ? ` ↑${p.ahead} ↓${p.behind}` : "";
+			return label + extra;
+		}
+		case "enc":
+			return p.encrypted ? "yes" : "no";
+		default:
+			return String(p[key as keyof DashboardProject] ?? "-");
+	}
+}
+
+function TableHeader({
+	columns,
+}: { columns: Column[] }): React.ReactElement {
+	return (
+		<Box paddingX={2}>
+			{columns.map((col) => (
+				<Box key={col.key} width={col.width} overflowX="hidden">
+					<Text dimColor wrap="truncate">
+						{col.label}
+					</Text>
+				</Box>
+			))}
+		</Box>
+	);
+}
+
+function TableRow({
+	project,
+	columns,
+	selected,
+}: {
+	project: DashboardProject;
+	columns: Column[];
+	selected: boolean;
+}): React.ReactElement {
+	return (
+		<Box paddingX={2}>
+			{columns.map((col) => (
+				<Box key={col.key} width={col.width} overflowX="hidden">
+					<Text
+						color={containerColor(project.container)}
+						inverse={selected}
+						wrap="truncate"
+					>
+						{getCellValue(project, col.key)}
+					</Text>
+				</Box>
+			))}
+		</Box>
+	);
+}
+
+function Separator({
+	columns,
+}: { columns: Column[] }): React.ReactElement {
+	const totalWidth = columns.reduce((sum, col) => sum + col.width, 0);
+	return (
+		<Box paddingX={2}>
+			<Text dimColor>{"─".repeat(totalWidth)}</Text>
+		</Box>
+	);
+}
+
 function Dashboard({
 	initialDetailed,
 }: {
 	initialDetailed: boolean;
 }): React.ReactElement {
 	const { exit } = useApp();
+	const { stdout } = useStdout();
 	const [projects, setProjects] = useState<DashboardProject[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [selectedIndex, setSelectedIndex] = useState(0);
 	const [detailed, setDetailed] = useState(initialDetailed);
+	const [termWidth, setTermWidth] = useState(stdout?.columns ?? 80);
+
+	useEffect(() => {
+		const onResize = () => {
+			if (stdout) setTermWidth(stdout.columns);
+		};
+		stdout?.on("resize", onResize);
+		return () => {
+			stdout?.off("resize", onResize);
+		};
+	}, [stdout]);
 
 	const refresh = useCallback(async () => {
 		setLoading(true);
@@ -139,6 +251,11 @@ function Dashboard({
 		}
 	});
 
+	const columns = getVisibleColumns(
+		detailed ? DETAILED_COLUMNS : SIMPLE_COLUMNS,
+		termWidth,
+	);
+
 	return (
 		<Box flexDirection="column">
 			<Box justifyContent="center" paddingY={1}>
@@ -148,7 +265,8 @@ function Dashboard({
 				{detailed && <Text dimColor> (detailed)</Text>}
 			</Box>
 
-			{detailed ? <DetailedHeader /> : <SimpleHeader />}
+			<TableHeader columns={columns} />
+			<Separator columns={columns} />
 
 			{loading && projects.length === 0 ? (
 				<Box paddingX={2}>
@@ -161,21 +279,14 @@ function Dashboard({
 					</Text>
 				</Box>
 			) : (
-				projects.map((p, i) =>
-					detailed ? (
-						<DetailedRow
-							key={p.name}
-							project={p}
-							selected={i === selectedIndex}
-						/>
-					) : (
-						<SimpleRow
-							key={p.name}
-							project={p}
-							selected={i === selectedIndex}
-						/>
-					),
-				)
+				projects.map((p, i) => (
+					<TableRow
+						key={p.name}
+						project={p}
+						columns={columns}
+						selected={i === selectedIndex}
+					/>
+				))
 			)}
 
 			<Box marginTop={1} paddingX={2}>
@@ -186,116 +297,6 @@ function Dashboard({
 			</Box>
 		</Box>
 	);
-}
-
-// Simple view columns
-const S_NAME = 24;
-const S_CONTAINER = 12;
-const S_SYNC = 11;
-
-function SimpleHeader(): React.ReactElement {
-	return (
-		<>
-			<Box paddingX={2}>
-				<Text dimColor>
-					{pad("NAME", S_NAME)}
-					{pad("CONTAINER", S_CONTAINER)}
-					{pad("SYNC", S_SYNC)}
-					BRANCH
-				</Text>
-			</Box>
-			<Box paddingX={2}>
-				<Text dimColor>{"─".repeat(60)}</Text>
-			</Box>
-		</>
-	);
-}
-
-function SimpleRow({
-	project: p,
-	selected,
-}: {
-	project: DashboardProject;
-	selected: boolean;
-}): React.ReactElement {
-	return (
-		<Box paddingX={2}>
-			<Text color={containerColor(p.container)} inverse={selected}>
-				{pad(p.name, S_NAME)}
-				{pad(p.container, S_CONTAINER)}
-				{pad(p.sync, S_SYNC)}
-				{p.branch}
-			</Text>
-		</Box>
-	);
-}
-
-// Detailed view columns
-const D_NAME = 20;
-const D_CONTAINER = 12;
-const D_SYNC = 10;
-const D_BRANCH = 16;
-const D_GIT = 16;
-const D_DISK = 10;
-const D_ACTIVE = 12;
-const D_REMOTE = 14;
-const D_IMAGE = 28;
-
-function DetailedHeader(): React.ReactElement {
-	return (
-		<>
-			<Box paddingX={2}>
-				<Text dimColor>
-					{pad("NAME", D_NAME)}
-					{pad("CONTAINER", D_CONTAINER)}
-					{pad("SYNC", D_SYNC)}
-					{pad("BRANCH", D_BRANCH)}
-					{pad("GIT", D_GIT)}
-					{pad("DISK", D_DISK)}
-					{pad("ACTIVE", D_ACTIVE)}
-					{pad("REMOTE", D_REMOTE)}
-					{pad("IMAGE", D_IMAGE)}
-					ENC
-				</Text>
-			</Box>
-			<Box paddingX={2}>
-				<Text dimColor>{"─".repeat(140)}</Text>
-			</Box>
-		</>
-	);
-}
-
-function DetailedRow({
-	project: p,
-	selected,
-}: {
-	project: DashboardProject;
-	selected: boolean;
-}): React.ReactElement {
-	const gitLabel = p.gitStatus === "dirty" ? "dirty" : "clean";
-	const gitExtra =
-		p.ahead > 0 || p.behind > 0 ? ` ↑${p.ahead} ↓${p.behind}` : "";
-
-	return (
-		<Box paddingX={2}>
-			<Text color={containerColor(p.container)} inverse={selected}>
-				{pad(p.name, D_NAME)}
-				{pad(p.container, D_CONTAINER)}
-				{pad(p.sync, D_SYNC)}
-				{pad(p.branch, D_BRANCH)}
-				{pad(gitLabel + gitExtra, D_GIT)}
-				{pad(p.diskUsage, D_DISK)}
-				{pad(p.lastActive, D_ACTIVE)}
-				{pad(p.remote, D_REMOTE)}
-				{pad(p.image, D_IMAGE)}
-				{p.encrypted ? "yes" : "no"}
-			</Text>
-		</Box>
-	);
-}
-
-function pad(str: string, width: number): string {
-	return str.length >= width ? str.slice(0, width) : str.padEnd(width);
 }
 
 function containerColor(status: string): string | undefined {
