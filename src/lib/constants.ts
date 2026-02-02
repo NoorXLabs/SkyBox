@@ -5,11 +5,7 @@
  * Organized by domain. Large structured data at the bottom.
  */
 
-import type {
-	BuiltInTemplate,
-	InstallMethod,
-	Template,
-} from "@typedefs/index.ts";
+import type { InstallMethod, Template } from "@typedefs/index.ts";
 
 // ── App & GitHub ──
 
@@ -26,6 +22,26 @@ export const GITHUB_API_URL = `https://api.github.com/repos/${GITHUB_OWNER}/${GI
 
 /** Exit code when user presses Ctrl+C. */
 export const CTRL_C_EXIT_CODE = 130;
+
+/** Valid lifecycle hook event names. */
+export const HOOK_EVENTS = [
+	"pre-up",
+	"post-up",
+	"pre-down",
+	"post-down",
+] as const;
+
+/** Maximum passphrase entry attempts for encryption/decryption. */
+export const MAX_PASSPHRASE_ATTEMPTS = 3;
+
+/** Width of a single dashboard card including border chars and padding. */
+export const CARD_WIDTH = 38;
+
+/** Gap between dashboard cards. */
+export const CARD_GAP = 2;
+
+/** Maximum project name entry attempts for `devbox new`. */
+export const MAX_NAME_ATTEMPTS = 5;
 
 // ── Paths & Directories ──
 
@@ -227,6 +243,26 @@ export const TEMPLATES: Template[] = [
 		},
 	},
 	{
+		id: "bun",
+		name: "Bun",
+		description: "Bun runtime with TypeScript + Docker support",
+		config: {
+			name: "Bun",
+			image: "mcr.microsoft.com/devcontainers/javascript-node:20",
+			postCreateCommand:
+				"curl -fsSL https://bun.sh/install | bash && [ -f package.json ] && bun install || true",
+			postStartCommand: SSH_SYMLINK_COMMAND,
+			features: COMMON_FEATURES,
+			mounts: COMMON_MOUNTS,
+			customizations: {
+				vscode: {
+					extensions: ["oven.bun-vscode"],
+					settings: COMMON_VSCODE_SETTINGS,
+				},
+			},
+		},
+	},
+	{
 		id: "python",
 		name: "Python",
 		description: "Python 3.12 with pip/venv + Docker support",
@@ -282,29 +318,5 @@ export const TEMPLATES: Template[] = [
 				},
 			},
 		},
-	},
-];
-
-/** Built-in project templates (git repos). */
-export const BUILT_IN_TEMPLATES: BuiltInTemplate[] = [
-	{
-		id: "node",
-		name: "Node.js",
-		url: "https://github.com/devbox-templates/node-starter",
-	},
-	{
-		id: "bun",
-		name: "Bun",
-		url: "https://github.com/devbox-templates/bun-starter",
-	},
-	{
-		id: "python",
-		name: "Python",
-		url: "https://github.com/devbox-templates/python-starter",
-	},
-	{
-		id: "go",
-		name: "Go",
-		url: "https://github.com/devbox-templates/go-starter",
 	},
 ];

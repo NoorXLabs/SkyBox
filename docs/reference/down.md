@@ -28,13 +28,15 @@ devbox down [project] [options]
 The `down` command stops a running development container. It performs the following steps:
 
 1. **Project Resolution** - Determines which project to stop (from argument, current directory, or interactive selection)
-2. **Sync Flush** - Waits for pending file changes to sync to remote
-3. **Container Stop** - Stops the running container
-4. **Archive Encryption** - If encryption is enabled, encrypts the project on the remote
-5. **Lock Release** - Releases the lock so other machines can work on the project
-6. **Optional Cleanup** - Removes container and volumes if requested
-7. **Optional Local File Removal** - With cleanup, offers to delete local project files (double confirmation required)
-8. **Sync Pause** - If not cleaning up, offers to pause background sync to save resources
+2. **Pre-Down Hooks** - Runs any configured `pre-down` hooks (see [Hooks](/reference/hooks))
+3. **Sync Flush** - Waits for pending file changes to sync to remote
+4. **Container Stop** - Stops the running container
+5. **Archive Encryption** - If encryption is enabled, encrypts the project on the remote
+6. **Lock Release** - Releases the lock so other machines can work on the project
+7. **Post-Down Hooks** - Runs any configured `post-down` hooks (see [Hooks](/reference/hooks))
+8. **Optional Cleanup** - Removes container and volumes if requested
+9. **Optional Local File Removal** - With cleanup, offers to delete local project files (double confirmation required)
+10. **Sync Pause** - If not cleaning up, offers to pause background sync to save resources
 
 ### Sync Safety
 

@@ -30,19 +30,21 @@ devbox up [project] [options]
 The `up` command starts a development container for the specified project. It performs the following steps:
 
 1. **Project Resolution** - Determines which project to start (from argument, current directory, or interactive selection)
-2. **Lock Acquisition** - Acquires a lock to prevent conflicts with other machines
-3. **Archive Decryption** - If encryption is enabled, decrypts the project archive on the remote
-4. **Sync Check** - Ensures the Mutagen sync session is active, resuming it if paused
-5. **Container Management** - Starts the container (or handles existing running containers)
-6. **Devcontainer Setup** - Creates devcontainer.json from templates if needed
-7. **Post-Start Actions** - Optionally opens editor or attaches to shell
+2. **Pre-Up Hooks** - Runs any configured `pre-up` hooks (see [Hooks](/reference/hooks))
+3. **Lock Acquisition** - Acquires a lock to prevent conflicts with other machines
+4. **Archive Decryption** - If encryption is enabled, decrypts the project archive on the remote
+5. **Sync Check** - Ensures the Mutagen sync session is active, resuming it if paused
+6. **Container Management** - Starts the container (or handles existing running containers)
+7. **Devcontainer Setup** - Creates devcontainer.json from templates if needed
+8. **Post-Up Hooks** - Runs any configured `post-up` hooks (see [Hooks](/reference/hooks))
+9. **Post-Start Actions** - Optionally opens editor or attaches to shell
 
 ### Project Auto-Detection
 
 When no project argument is given, DevBox resolves the project in this order:
 
 1. Checks if the current working directory is inside a known project
-2. Prompts for selection from all local projects (unless `--no-prompt` is set)
+2. Prompts with a multi-select checkbox to start one or more projects at once (unless `--no-prompt` is set)
 
 ### Lock System
 
@@ -95,6 +97,10 @@ After the container starts, DevBox determines what to do next:
 - If `--no-prompt` is passed: exits without further action
 - Otherwise: prompts you to choose from editor, shell, both, or exit
 
+### Multi-Project Start
+
+When no project argument is given and multiple local projects exist, DevBox shows a checkbox to select one or more projects. Selected projects are started sequentially. After all projects start, you can choose to open all, choose specific ones, or skip.
+
 ### Batch Mode
 
 With `-A, --all`, DevBox starts every local project sequentially and reports a summary of how many succeeded and how many failed.
@@ -125,6 +131,10 @@ devbox up my-project --verbose
 
 # Start all local projects
 devbox up --all
+
+# Multi-select start (no argument)
+devbox up
+# Shows checkbox to pick which projects to start
 
 # Start from within project directory
 cd ~/.devbox/Projects/my-project
@@ -159,3 +169,4 @@ devbox clone another-project
 - [devbox clone](/reference/clone) - Clone a project from remote
 - [devbox editor](/reference/editor) - Change default editor
 - [Custom Templates](/reference/custom-templates) - Create and manage reusable templates
+- [Hooks](/reference/hooks) - Run commands before/after lifecycle events

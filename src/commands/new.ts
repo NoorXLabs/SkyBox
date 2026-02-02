@@ -6,6 +6,7 @@ import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
 import {
 	DEVCONTAINER_CONFIG_NAME,
 	DEVCONTAINER_DIR_NAME,
+	MAX_NAME_ATTEMPTS,
 	WORKSPACE_PATH_PREFIX,
 } from "@lib/constants.ts";
 import { validateProjectName } from "@lib/projectTemplates.ts";
@@ -15,8 +16,6 @@ import { selectTemplate } from "@lib/templates.ts";
 import { error, header, info, spinner, success, warn } from "@lib/ui.ts";
 import type { DevcontainerConfig, RemoteEntry } from "@typedefs/index.ts";
 import inquirer from "inquirer";
-
-const MAX_NAME_ATTEMPTS = 5;
 
 export async function newCommand(): Promise<void> {
 	// Check config exists

@@ -67,6 +67,13 @@ export default defineConfig({
             { text: 'Configuration', link: '/reference/configuration' },
           ],
         },
+        {
+          text: 'Features',
+          items: [
+            { text: 'Custom Templates', link: '/reference/custom-templates' },
+            { text: 'Hooks', link: '/reference/hooks' },
+          ],
+        },
       ],
 
       '/architecture/': [

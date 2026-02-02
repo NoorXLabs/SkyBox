@@ -6,14 +6,13 @@ import {
 	createTestContext,
 	type TestContext,
 } from "@lib/__tests__/test-utils.ts";
-import { BUILT_IN_TEMPLATES } from "@lib/constants.ts";
+import { TEMPLATES } from "@lib/constants.ts";
 import {
 	getAllTemplates,
 	getBuiltInTemplates,
 	getUserTemplates,
 	validateProjectName,
 } from "@lib/projectTemplates.ts";
-import type { BuiltInTemplate } from "@typedefs/index.ts";
 import { stringify } from "yaml";
 
 describe("projectTemplates", () => {
@@ -27,39 +26,28 @@ describe("projectTemplates", () => {
 		ctx.cleanup();
 	});
 
-	describe("BUILT_IN_TEMPLATES", () => {
-		test("includes node template", () => {
-			const node = BUILT_IN_TEMPLATES.find(
-				(t: BuiltInTemplate) => t.id === "node",
-			);
-			expect(node).toBeDefined();
-			expect(node?.url).toContain("github.com");
+	describe("TEMPLATES", () => {
+		test("all templates should have inline devcontainer configs", () => {
+			for (const template of TEMPLATES) {
+				expect(template.config).toBeDefined();
+				expect(template.config.name).toBeTruthy();
+				expect(template.config.image).toMatch(/mcr\.microsoft\.com/);
+			}
 		});
 
-		test("includes bun template", () => {
-			const bun = BUILT_IN_TEMPLATES.find(
-				(t: BuiltInTemplate) => t.id === "bun",
-			);
-			expect(bun).toBeDefined();
-		});
-
-		test("includes python template", () => {
-			const python = BUILT_IN_TEMPLATES.find(
-				(t: BuiltInTemplate) => t.id === "python",
-			);
-			expect(python).toBeDefined();
-		});
-
-		test("includes go template", () => {
-			const go = BUILT_IN_TEMPLATES.find((t: BuiltInTemplate) => t.id === "go");
-			expect(go).toBeDefined();
+		test("should have templates for node, bun, python, and go", () => {
+			const ids = TEMPLATES.map((t) => t.id);
+			expect(ids).toContain("node");
+			expect(ids).toContain("bun");
+			expect(ids).toContain("python");
+			expect(ids).toContain("go");
 		});
 	});
 
 	describe("getBuiltInTemplates", () => {
 		test("returns all built-in templates", () => {
 			const templates = getBuiltInTemplates();
-			expect(templates.length).toBeGreaterThanOrEqual(4);
+			expect(templates.length).toBeGreaterThanOrEqual(5);
 		});
 	});
 

@@ -5,14 +5,14 @@ Clone a remote project to your local machine.
 ## Usage
 
 ```bash
-devbox clone <project>
+devbox clone [project]
 ```
 
 ## Arguments
 
 | Argument | Description |
 |----------|-------------|
-| `<project>` | Name of the project to clone from the remote server (required) |
+| `[project]` | Name of the project to clone from the remote server. If omitted, shows an interactive multi-select of remote projects. |
 
 ## Options
 
@@ -30,6 +30,18 @@ The `clone` command downloads a project from your configured remote server to yo
 6. **Initial Sync** - Downloads all files from remote to local
 7. **Registration** - Registers the project in DevBox configuration
 8. **Container Prompt** - Offers to start the development container
+
+### Interactive Multi-Clone
+
+When run without a project argument, `devbox clone` enters an interactive flow:
+
+1. **Remote Selection** - Select which remote to clone from
+2. **Project List** - Fetches all projects from the remote
+3. **Multi-Select** - Shows a checkbox list of available projects (already-local projects are filtered out)
+4. **Batch Clone** - Clones each selected project sequentially
+5. **Summary** - Reports how many projects were cloned (e.g., "Cloned 3 projects: foo, bar, baz")
+6. **Start Working** - If one project was cloned, offers to start its container. If multiple were cloned, prompts you to choose which project to start working on (or "None" to skip). The selected project goes through the full `devbox up` flow (lock, container, editor/shell).
+7. **Reminder** - After starting a project, prints a reminder with the remaining cloned projects you can start later with `devbox up`
 
 ### Local Storage
 
@@ -61,6 +73,10 @@ This prevents accidental data loss.
 ```bash
 # Clone a project from remote
 devbox clone my-api
+
+# Interactive multi-clone
+devbox clone
+# Shows checkbox list of remote projects to select
 
 # After cloning, start working
 devbox up my-api --editor

@@ -82,6 +82,7 @@ export interface ProjectConfigV2 {
 	editor?: string;
 	sync_paths?: string[]; // Selective sync: only sync these subdirectories
 	encryption?: ProjectEncryption;
+	hooks?: HooksConfig;
 }
 
 export enum ContainerStatus {
@@ -246,13 +247,6 @@ export type TemplateSelection =
 	| { source: "user"; config: DevcontainerConfig }
 	| { source: "git"; url: string };
 
-// Built-in template definition
-export interface BuiltInTemplate {
-	id: string;
-	name: string;
-	url: string;
-}
-
 // Sync types
 export interface SyncStatus {
 	exists: boolean;
@@ -310,6 +304,20 @@ export interface DoctorReport {
 	warned: number;
 	failed: number;
 }
+
+// Hook types
+
+/** Valid lifecycle hook event names */
+export type HookEvent = "pre-up" | "post-up" | "pre-down" | "post-down";
+
+/** Single hook definition: a shell command with optional context */
+export interface HookEntry {
+	command: string;
+	context?: "host" | "container"; // default: "host"
+}
+
+/** Per-project hooks configuration */
+export type HooksConfig = Partial<Record<HookEvent, string | HookEntry[]>>;
 
 // Install method types
 export type InstallMethod = "homebrew" | "github-release" | "npm" | "source";

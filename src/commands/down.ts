@@ -8,6 +8,7 @@ import {
 } from "@commands/remote.ts";
 import { password } from "@inquirer/prompts";
 import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
+import { MAX_PASSPHRASE_ATTEMPTS } from "@lib/constants.ts";
 import {
 	getContainerInfo,
 	getContainerStatus,
@@ -16,6 +17,7 @@ import {
 } from "@lib/container.ts";
 import { deriveKey, encryptFile } from "@lib/encryption.ts";
 import { getErrorMessage } from "@lib/errors.ts";
+import { runHooks } from "@lib/hooks.ts";
 import { createLockRemoteInfo, releaseLock } from "@lib/lock.ts";
 import { pauseSync, waitForSync } from "@lib/mutagen.ts";
 import {
@@ -33,8 +35,6 @@ import {
 	type DownOptions,
 } from "@typedefs/index.ts";
 import inquirer from "inquirer";
-
-const MAX_PASSPHRASE_ATTEMPTS = 3;
 
 /**
  * Encrypt project directory on remote after sync flush.
@@ -235,6 +235,12 @@ export async function downCommand(
 	const projectPath = getProjectPath(project ?? "");
 	header(`Stopping '${project}'...`);
 
+	// Run pre-down hooks
+	const projectConfig = config.projects[project ?? ""];
+	if (projectConfig?.hooks) {
+		await runHooks("pre-down", projectConfig.hooks, projectPath);
+	}
+
 	// Check container status
 	const containerStatus = await getContainerStatus(projectPath);
 	const containerInfo = await getContainerInfo(projectPath);
@@ -344,6 +350,11 @@ export async function downCommand(
 			]);
 			shouldRemoveLocal = confirmRemove;
 		}
+	}
+
+	// Run post-down hooks before potential directory deletion
+	if (projectConfig?.hooks) {
+		await runHooks("post-down", projectConfig.hooks, projectPath);
 	}
 
 	if (shouldRemoveLocal) {

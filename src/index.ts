@@ -3,6 +3,7 @@
 import { browseCommand } from "@commands/browse.ts";
 import { cloneCommand } from "@commands/clone.ts";
 import { configCommand } from "@commands/config.ts";
+import { dashboardCommand } from "@commands/dashboard.tsx";
 import { doctorCommand } from "@commands/doctor.ts";
 import { downCommand } from "@commands/down.ts";
 import { editorCommand } from "@commands/editor.ts";
@@ -55,7 +56,7 @@ program
 program.command("list").description("List local projects").action(listCommand);
 
 program
-	.command("clone <project>")
+	.command("clone [project]")
 	.description("Clone remote project locally")
 	.action(cloneCommand);
 
@@ -93,6 +94,13 @@ program
 	.command("status [project]")
 	.description("Show project status")
 	.action(statusCommand);
+
+program
+	.command("dashboard")
+	.alias("dash")
+	.description("Full-screen status dashboard")
+	.option("-d, --detailed", "Show detailed view with extra info")
+	.action(dashboardCommand);
 
 program
 	.command("open [project]")

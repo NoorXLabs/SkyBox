@@ -5,11 +5,12 @@ import {
 	getRemoteHost,
 	getRemotePath,
 } from "@commands/remote.ts";
-import { password } from "@inquirer/prompts";
+import { checkbox, password, select } from "@inquirer/prompts";
 import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
 import {
 	DEVCONTAINER_CONFIG_NAME,
 	DEVCONTAINER_DIR_NAME,
+	MAX_PASSPHRASE_ATTEMPTS,
 	SUPPORTED_EDITORS,
 	WORKSPACE_PATH_PREFIX,
 } from "@lib/constants.ts";
@@ -23,11 +24,13 @@ import {
 } from "@lib/container.ts";
 import { deriveKey } from "@lib/encryption.ts";
 import { getErrorMessage } from "@lib/errors.ts";
+import { runHooks } from "@lib/hooks.ts";
 import {
 	acquireLock,
 	createLockRemoteInfo,
 	forceLock,
 	type LockRemoteInfo,
+	releaseLock,
 } from "@lib/lock.ts";
 import { getSyncStatus, resumeSync } from "@lib/mutagen.ts";
 import {
@@ -54,53 +57,20 @@ interface ResolvedProject {
 }
 
 /**
- * Resolve which project to operate on from argument, cwd, or prompt.
- * Returns null if no project could be resolved.
+ * Normalize a project name to a ResolvedProject with realpath-resolved path.
+ * Returns null if the project doesn't exist locally.
  */
-async function resolveProject(
-	projectArg: string | undefined,
-	options: UpOptions,
+async function normalizeProject(
+	project: string,
 ): Promise<ResolvedProject | null> {
-	let project = projectArg;
-
-	if (!project) {
-		project = resolveProjectFromCwd() ?? undefined;
-	}
-
-	if (!project) {
-		const projects = getLocalProjects();
-
-		if (projects.length === 0) {
-			error(
-				"No local projects found. Run 'devbox clone' or 'devbox push' first.",
-			);
-			return null;
-		}
-
-		if (options.noPrompt) {
-			error("No project specified and --no-prompt is set.");
-			return null;
-		}
-
-		const { selectedProject } = await inquirer.prompt([
-			{
-				type: "rawlist",
-				name: "selectedProject",
-				message: "Select a project:",
-				choices: projects,
-			},
-		]);
-		project = selectedProject;
-	}
-
-	if (!projectExists(project ?? "")) {
+	if (!projectExists(project)) {
 		error(
 			`Project '${project}' not found locally. Run 'devbox clone ${project}' first.`,
 		);
 		return null;
 	}
 
-	const rawPath = getProjectPath(project ?? "");
+	const rawPath = getProjectPath(project);
 	const { realpathSync } = await import("node:fs");
 	let normalizedPath: string;
 	try {
@@ -109,7 +79,64 @@ async function resolveProject(
 		normalizedPath = rawPath;
 	}
 
-	return { project: project ?? "", projectPath: normalizedPath };
+	return { project, projectPath: normalizedPath };
+}
+
+/**
+ * Resolve which project(s) to operate on from argument, cwd, or prompt.
+ * Returns an array of resolved projects, or null if resolution failed.
+ * When no argument is given, shows a checkbox for multi-select.
+ */
+async function resolveProjects(
+	projectArg: string | undefined,
+	options: UpOptions,
+): Promise<ResolvedProject[] | null> {
+	// If explicit argument, return single project
+	if (projectArg) {
+		const resolved = await normalizeProject(projectArg);
+		return resolved ? [resolved] : null;
+	}
+
+	// Try to resolve from cwd
+	const cwdProject = resolveProjectFromCwd() ?? undefined;
+	if (cwdProject) {
+		const resolved = await normalizeProject(cwdProject);
+		return resolved ? [resolved] : null;
+	}
+
+	// No argument and not in a project dir — prompt with checkbox
+	const projects = getLocalProjects();
+
+	if (projects.length === 0) {
+		error(
+			"No local projects found. Run 'devbox clone' or 'devbox push' first.",
+		);
+		return null;
+	}
+
+	if (options.noPrompt) {
+		error("No project specified and --no-prompt is set.");
+		return null;
+	}
+
+	const selected = await checkbox({
+		message: "Select project(s) to start:",
+		choices: projects.map((p) => ({ name: p, value: p })),
+	});
+
+	if (selected.length === 0) {
+		error("No projects selected.");
+		return null;
+	}
+
+	const resolved: ResolvedProject[] = [];
+	for (const name of selected) {
+		const r = await normalizeProject(name);
+		if (!r) return null;
+		resolved.push(r);
+	}
+
+	return resolved;
 }
 
 /**
@@ -312,8 +339,6 @@ async function ensureDevcontainerConfig(
 	return true;
 }
 
-const MAX_PASSPHRASE_ATTEMPTS = 3;
-
 /**
  * Decrypt project archive on remote if encryption is enabled and archive exists.
  * Downloads archive, decrypts locally, uploads tar, extracts on remote.
@@ -473,61 +498,227 @@ export async function upCommand(
 		process.exit(1);
 	}
 
-	// Step 2: Resolve project
-	const resolved = await resolveProject(projectArg, options);
-	if (!resolved) {
+	// Step 2: Resolve project(s)
+	const resolvedProjects = await resolveProjects(projectArg, options);
+	if (!resolvedProjects) {
 		process.exit(1);
 	}
-	const { project, projectPath } = resolved;
 
+	// Single project: use existing flow with handlePostStart
+	if (resolvedProjects.length === 1) {
+		const { project, projectPath } = resolvedProjects[0];
+		try {
+			await startSingleProject(project, projectPath, config, options);
+		} catch (err) {
+			error(getErrorMessage(err));
+			process.exit(1);
+		}
+		await handlePostStart(projectPath, config, options);
+		return;
+	}
+
+	// Multi-project: start each sequentially, then multi-post-start
+	const succeeded: ResolvedProject[] = [];
+	for (const resolved of resolvedProjects) {
+		try {
+			header(`\n${resolved.project}`);
+			await startSingleProject(
+				resolved.project,
+				resolved.projectPath,
+				config,
+				options,
+			);
+			succeeded.push(resolved);
+		} catch (err) {
+			error(`Failed to start '${resolved.project}': ${getErrorMessage(err)}`);
+		}
+	}
+
+	info(
+		`\nDone: ${succeeded.length} started, ${resolvedProjects.length - succeeded.length} failed.`,
+	);
+
+	if (succeeded.length > 0) {
+		await handleMultiPostStart(succeeded, config, options);
+	}
+}
+
+/**
+ * Start a single project (lock, decrypt, sync, container).
+ * Extracted from upCommand so it can be called in a loop.
+ */
+async function startSingleProject(
+	project: string,
+	projectPath: string,
+	config: DevboxConfigV2,
+	options: UpOptions,
+): Promise<void> {
 	header(`Starting '${project}'...`);
 
-	// Step 2.5: Acquire lock before any container/sync operations
+	// Run pre-up hooks
+	const projectConfig = config.projects[project];
+	if (projectConfig?.hooks) {
+		await runHooks("pre-up", projectConfig.hooks, projectPath);
+	}
+
 	const lockResult = await handleLockAcquisition(project, config, options);
 	if (!lockResult.success) {
+		throw new Error("Failed to acquire lock");
+	}
+
+	try {
+		const decryptOk = await handleDecryption(project, config);
+		if (!decryptOk) {
+			throw new Error("Decryption failed");
+		}
+
+		await checkAndResumeSync(project);
+
+		const statusResult = await handleContainerStatus(projectPath, options);
+		if (statusResult.action === "exit") {
+			throw new Error("Container status check failed");
+		}
+		if (statusResult.action === "skip") {
+			return;
+		}
+		if (statusResult.rebuild) {
+			options.rebuild = true;
+		}
+
+		const hasConfig = await ensureDevcontainerConfig(
+			projectPath,
+			project,
+			options,
+		);
+		if (!hasConfig) {
+			return;
+		}
+
+		await startContainerWithRetry(projectPath, options);
+
+		// Run post-up hooks
+		if (projectConfig?.hooks) {
+			await runHooks("post-up", projectConfig.hooks, projectPath);
+		}
+	} catch (err) {
 		if (lockResult.remoteInfo) {
-			process.exit(1);
+			await releaseLock(project, lockResult.remoteInfo).catch(() => {});
+		}
+		throw err;
+	}
+}
+
+/**
+ * Handle post-start behavior when multiple projects were started.
+ * Offers to open all/some/none in editor.
+ */
+async function handleMultiPostStart(
+	succeeded: ResolvedProject[],
+	config: DevboxConfigV2,
+	options: UpOptions,
+): Promise<void> {
+	if (options.noPrompt) {
+		return;
+	}
+
+	// --editor or --attach flags: open all in editor
+	if (options.editor || options.attach) {
+		const editor = config.editor || "cursor";
+		for (const { projectPath } of succeeded) {
+			const openSpin = spinner(`Opening in ${editor}...`);
+			const openResult = await openInEditor(projectPath, editor);
+			if (openResult.success) {
+				openSpin.succeed(`Opened in ${editor}`);
+			} else {
+				openSpin.fail(`Failed to open in ${editor}`);
+				warn(openResult.error || "Unknown error");
+			}
 		}
 		return;
 	}
 
-	// Step 2.6: Decrypt remote archive if encryption enabled
-	const decryptOk = await handleDecryption(project, config);
-	if (!decryptOk) {
-		process.exit(1);
+	// Resolve editor
+	let editor = config.editor;
+	if (!editor) {
+		const { selectedEditor } = await inquirer.prompt([
+			{
+				type: "rawlist",
+				name: "selectedEditor",
+				message: "Which editor would you like to use?",
+				choices: [
+					...SUPPORTED_EDITORS.map((e) => ({ name: e.name, value: e.id })),
+					{ name: "Other (specify command)", value: "other" },
+				],
+			},
+		]);
+
+		if (selectedEditor === "other") {
+			const { customEditor } = await inquirer.prompt([
+				{
+					type: "input",
+					name: "customEditor",
+					message: "Enter editor command:",
+				},
+			]);
+			editor = customEditor;
+		} else {
+			editor = selectedEditor;
+		}
 	}
 
-	// Step 3: Ensure sync is running (background sync to remote)
-	await checkAndResumeSync(project);
+	const choice = await select({
+		message: "What would you like to do?",
+		choices: [
+			{ name: "Open all in editor", value: "all" as const },
+			{ name: "Choose which to open", value: "choose" as const },
+			{ name: "Skip", value: "skip" as const },
+		],
+	});
 
-	// Step 4: Check container status
-	const statusResult = await handleContainerStatus(projectPath, options);
-	if (statusResult.action === "exit") {
-		process.exit(1);
-	}
-	if (statusResult.action === "skip") {
-		await handlePostStart(projectPath, config, options);
-		return;
-	}
-	if (statusResult.rebuild) {
-		options.rebuild = true;
-	}
+	let projectsToOpen: ResolvedProject[] = [];
 
-	// Step 5: Check for devcontainer.json
-	const hasConfig = await ensureDevcontainerConfig(
-		projectPath,
-		project,
-		options,
-	);
-	if (!hasConfig) {
-		return;
+	if (choice === "all") {
+		projectsToOpen = succeeded;
+	} else if (choice === "choose") {
+		const selected = await checkbox({
+			message: "Select projects to open:",
+			choices: succeeded.map((r) => ({ name: r.project, value: r })),
+		});
+		projectsToOpen = selected;
 	}
 
-	// Step 6: Start container locally with retry
-	await startContainerWithRetry(projectPath, options);
+	for (const { projectPath } of projectsToOpen) {
+		if (!editor) {
+			warn("No editor configured");
+			break;
+		}
+		const openSpin = spinner(`Opening in ${editor}...`);
+		const openResult = await openInEditor(projectPath, editor);
+		if (openResult.success) {
+			openSpin.succeed(`Opened in ${editor}`);
+		} else {
+			openSpin.fail(`Failed to open in ${editor}`);
+			warn(openResult.error || "Unknown error");
+		}
+	}
 
-	// Step 7: Post-start options
-	await handlePostStart(projectPath, config, options);
+	// Save editor preference if newly selected
+	if (!config.editor && editor) {
+		const { makeDefault } = await inquirer.prompt([
+			{
+				type: "confirm",
+				name: "makeDefault",
+				message: `Make ${editor} your default editor for future sessions?`,
+				default: true,
+			},
+		]);
+
+		if (makeDefault) {
+			config.editor = editor;
+			saveConfig(config);
+			success(`Set ${editor} as default editor.`);
+		}
+	}
 }
 
 async function commitDevcontainerConfig(projectPath: string): Promise<void> {
