@@ -246,13 +246,6 @@ export type TemplateSelection =
 	| { source: "user"; config: DevcontainerConfig }
 	| { source: "git"; url: string };
 
-// Built-in template definition
-export interface BuiltInTemplate {
-	id: string;
-	name: string;
-	url: string;
-}
-
 // Sync types
 export interface SyncStatus {
 	exists: boolean;

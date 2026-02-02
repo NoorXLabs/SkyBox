@@ -1,11 +1,11 @@
 // src/lib/projectTemplates.ts
 
 import { loadConfig } from "@lib/config.ts";
-import { BUILT_IN_TEMPLATES } from "@lib/constants.ts";
-import type { BuiltInTemplate, UserTemplate } from "@typedefs/index.ts";
+import { TEMPLATES } from "@lib/constants.ts";
+import type { Template, UserTemplate } from "@typedefs/index.ts";
 
-export function getBuiltInTemplates(): BuiltInTemplate[] {
-	return BUILT_IN_TEMPLATES;
+export function getBuiltInTemplates(): Template[] {
+	return TEMPLATES;
 }
 
 export function getUserTemplates(): UserTemplate[] {
@@ -21,7 +21,7 @@ export function getUserTemplates(): UserTemplate[] {
 }
 
 export function getAllTemplates(): {
-	builtIn: BuiltInTemplate[];
+	builtIn: Template[];
 	user: UserTemplate[];
 } {
 	return {

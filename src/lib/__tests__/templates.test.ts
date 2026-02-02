@@ -46,6 +46,7 @@ describe("templates", () => {
 
 	test("TEMPLATES contains expected templates", () => {
 		expect(TEMPLATES.map((t) => t.id)).toContain("node");
+		expect(TEMPLATES.map((t) => t.id)).toContain("bun");
 		expect(TEMPLATES.map((t) => t.id)).toContain("python");
 		expect(TEMPLATES.map((t) => t.id)).toContain("go");
 		expect(TEMPLATES.map((t) => t.id)).toContain("generic");
