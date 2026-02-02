@@ -506,7 +506,12 @@ export async function upCommand(
 	// Single project: use existing flow with handlePostStart
 	if (resolvedProjects.length === 1) {
 		const { project, projectPath } = resolvedProjects[0];
-		await startSingleProject(project, projectPath, config, options);
+		try {
+			await startSingleProject(project, projectPath, config, options);
+		} catch (err) {
+			error(getErrorMessage(err));
+			process.exit(1);
+		}
 		await handlePostStart(projectPath, config, options);
 		return;
 	}
@@ -551,22 +556,19 @@ async function startSingleProject(
 
 	const lockResult = await handleLockAcquisition(project, config, options);
 	if (!lockResult.success) {
-		if (lockResult.remoteInfo) {
-			process.exit(1);
-		}
-		return;
+		throw new Error("Failed to acquire lock");
 	}
 
 	const decryptOk = await handleDecryption(project, config);
 	if (!decryptOk) {
-		process.exit(1);
+		throw new Error("Decryption failed");
 	}
 
 	await checkAndResumeSync(project);
 
 	const statusResult = await handleContainerStatus(projectPath, options);
 	if (statusResult.action === "exit") {
-		process.exit(1);
+		throw new Error("Container status check failed");
 	}
 	if (statusResult.action === "skip") {
 		return;
