@@ -280,7 +280,9 @@ export async function downCommand(
 		if (projectRemote) {
 			const remoteInfo = createLockRemoteInfo(projectRemote.remote);
 			const lockResult = await releaseLock(project ?? "", remoteInfo);
-			if (lockResult.success) {
+			if (lockResult.success && lockResult.skipped) {
+				warn("Lock owned by another machine — skipping release");
+			} else if (lockResult.success) {
 				success("Lock released");
 			} else {
 				warn(`Could not release lock: ${lockResult.error}`);
