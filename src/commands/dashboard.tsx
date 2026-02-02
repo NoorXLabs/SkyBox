@@ -22,7 +22,7 @@ interface DashboardProject {
 	behind: number;
 	diskUsage: string;
 	lastActive: string;
-	image: string;
+	containerName: string;
 	remote: string;
 	encrypted: boolean;
 }
@@ -76,7 +76,7 @@ async function gatherProjectData(): Promise<DashboardProject[]> {
 			behind: gitInfo?.behind ?? 0,
 			diskUsage,
 			lastActive: lastActive ? formatRelativeTime(lastActive) : "-",
-			image: containerInfo?.image || "-",
+			containerName: containerInfo?.name || "-",
 			remote: projectConfig?.remote || "-",
 			encrypted: !!projectConfig?.encryption,
 		});
@@ -128,7 +128,7 @@ function getDetailedFields(p: DashboardProject): CardField[] {
 		{ label: "Disk", value: p.diskUsage },
 		{ label: "Active", value: p.lastActive },
 		{ label: "Remote", value: p.remote },
-		{ label: "Image", value: p.image },
+		{ label: "Container Name", value: p.containerName },
 		{ label: "Encrypted", value: p.encrypted ? "yes" : "no" },
 	];
 }
