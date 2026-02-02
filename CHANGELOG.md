@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.7] - 2026-02-01
+
+### Fixed
+
+- CI release builds failed due to `--bytecode` flag incompatible with top-level `await` in ink/yoga-layout
+
 ## [0.7.6] - 2026-02-01
 
 ### Added
@@ -256,6 +262,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Design documents for commands
   - Implementation plans
 
+[0.7.7]: https://github.com/NoorXLabs/DevBox/compare/v0.7.6...v0.7.7
 [0.7.6]: https://github.com/NoorXLabs/DevBox/compare/v0.7.5...v0.7.6
 [0.7.5]: https://github.com/NoorXLabs/DevBox/compare/v0.7.4...v0.7.5
 [0.7.4]: https://github.com/NoorXLabs/DevBox/compare/v0.7.3...v0.7.4
