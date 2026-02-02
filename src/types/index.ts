@@ -311,6 +311,20 @@ export interface DoctorReport {
 	failed: number;
 }
 
+// Hook types
+
+/** Valid lifecycle hook event names */
+export type HookEvent = "pre-up" | "post-up" | "pre-down" | "post-down";
+
+/** Single hook definition: a shell command with optional context */
+export interface HookEntry {
+	command: string;
+	context?: "host" | "container"; // default: "host"
+}
+
+/** Per-project hooks configuration */
+export type HooksConfig = Partial<Record<HookEvent, string | HookEntry[]>>;
+
 // Install method types
 export type InstallMethod = "homebrew" | "github-release" | "npm" | "source";
 

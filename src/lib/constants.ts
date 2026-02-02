@@ -27,6 +27,14 @@ export const GITHUB_API_URL = `https://api.github.com/repos/${GITHUB_OWNER}/${GI
 /** Exit code when user presses Ctrl+C. */
 export const CTRL_C_EXIT_CODE = 130;
 
+/** Valid lifecycle hook event names. */
+export const HOOK_EVENTS = [
+	"pre-up",
+	"post-up",
+	"pre-down",
+	"post-down",
+] as const;
+
 // ── Paths & Directories ──
 
 /** Config filename. */
