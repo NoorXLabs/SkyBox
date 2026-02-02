@@ -135,7 +135,7 @@ If Bob takes over:
 Lock acquired (forced takeover)
 ```
 
-Alice's next `devbox up` or `devbox down` will fail gracefully with a notification that her lock was taken.
+Alice's next `devbox down` will skip lock release and warn "Lock owned by another machine — skipping release". Her next `devbox up` will show "Project locked by Bob's machine" and offer a takeover prompt.
 
 ### Releasing Locks
 
@@ -363,11 +363,11 @@ devbox remote add backend-server deploy@backend.company.com --path ~/code
 devbox remote add frontend-server deploy@frontend.company.com --path ~/code
 ```
 
-Each project is associated with a specific remote:
+Each project inherits its remote from your config. Configure the remote first with `devbox remote add`, then push:
 
 ```bash
-devbox push ./backend-api --remote backend-server
-devbox push ./frontend-app --remote frontend-server
+devbox push ./backend-api
+devbox push ./frontend-app
 ```
 
 Team members configure the same set of remotes to access all shared projects.
@@ -387,10 +387,10 @@ Only the specified paths are synchronized. This is especially useful for monorep
 For projects with sensitive configuration (API keys, credentials in devcontainer settings), use encryption:
 
 ```bash
-devbox config encrypt myproject
+devbox encrypt enable myproject
 ```
 
-This encrypts the project's configuration with a passphrase. Team members need the shared passphrase to decrypt and work with the project configuration.
+This encrypts the project's files on the remote with a passphrase. When a team member runs `devbox up`, they'll be prompted for the passphrase to decrypt. When they run `devbox down`, files are re-encrypted on the remote.
 
 ::: warning
 The passphrase cannot be recovered if lost. Share it securely with team members (e.g., via a password manager).

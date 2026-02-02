@@ -159,13 +159,47 @@ export async function acquireLock(
 }
 
 /**
+ * Force-acquire a lock by directly overwriting the lock file.
+ * Used for lock takeover — skips noclobber to atomically replace any existing lock.
+ */
+export async function forceLock(
+	project: string,
+	remoteInfo: LockRemoteInfo,
+): Promise<{ success: boolean; error?: string }> {
+	const lockInfo = createLockInfo();
+	const lockPath = getLockPath(project, remoteInfo.basePath);
+	const locksDir = getLocksDir(remoteInfo.basePath);
+	const json = JSON.stringify(lockInfo);
+	const jsonBase64 = Buffer.from(json).toString("base64");
+
+	// Direct overwrite — no noclobber, no ownership check
+	const command = `mkdir -p ${escapeShellArg(locksDir)} && echo '${jsonBase64}' | base64 -d > ${escapeShellArg(lockPath)}`;
+	const result = await runRemoteCommand(remoteInfo.host, command);
+
+	if (!result.success) {
+		return { success: false, error: result.error || "Failed to force lock" };
+	}
+
+	return { success: true };
+}
+
+/**
  * Release the lock for the specified project.
- * Deletes the lock file on the remote machine.
+ * Only deletes the lock file if the current machine owns it.
+ * If another machine owns the lock (e.g., after a takeover), skips deletion.
  */
 export async function releaseLock(
 	project: string,
 	remoteInfo: LockRemoteInfo,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; skipped?: boolean; error?: string }> {
+	// Check ownership before releasing
+	const status = await getLockStatus(project, remoteInfo);
+
+	if (status.locked && !status.ownedByMe) {
+		// Lock was taken over by another machine — don't delete it
+		return { success: true, skipped: true };
+	}
+
 	const lockPath = getLockPath(project, remoteInfo.basePath);
 	const command = `rm -f ${escapeShellArg(lockPath)}`;
 

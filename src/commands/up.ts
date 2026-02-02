@@ -26,8 +26,8 @@ import { getErrorMessage } from "@lib/errors.ts";
 import {
 	acquireLock,
 	createLockRemoteInfo,
+	forceLock,
 	type LockRemoteInfo,
-	releaseLock,
 } from "@lib/lock.ts";
 import { getSyncStatus, resumeSync } from "@lib/mutagen.ts";
 import {
@@ -160,13 +160,7 @@ async function handleLockAcquisition(
 			return { success: false, remoteInfo };
 		}
 
-		const releaseResult = await releaseLock(project, remoteInfo);
-		if (!releaseResult.success) {
-			error(`Failed to release existing lock: ${releaseResult.error}`);
-			return { success: false, remoteInfo };
-		}
-
-		const forceResult = await acquireLock(project, remoteInfo);
+		const forceResult = await forceLock(project, remoteInfo);
 		if (!forceResult.success) {
 			error(`Failed to acquire lock: ${forceResult.error}`);
 			return { success: false, remoteInfo };

@@ -35,6 +35,7 @@ mock.module("../ssh.ts", () => ({
 // Now import lock module (which uses ssh.ts)
 import {
 	acquireLock,
+	forceLock,
 	getLockStatus,
 	getMachineName,
 	type LockRemoteInfo,
@@ -265,7 +266,20 @@ describe("lock", () => {
 	});
 
 	describe("releaseLock", () => {
-		test("deletes lock file successfully", async () => {
+		test("deletes lock file when owned by current machine", async () => {
+			const lockInfo: LockInfo = {
+				machine: hostname(),
+				user: userInfo().username,
+				timestamp: new Date().toISOString(),
+				pid: 12345,
+			};
+
+			// First call: getLockStatus check (owned by me)
+			mockRunRemoteCommand.mockResolvedValueOnce({
+				success: true,
+				stdout: JSON.stringify(lockInfo),
+			});
+			// Second call: rm -f
 			mockRunRemoteCommand.mockResolvedValueOnce({
 				success: true,
 			});
@@ -273,13 +287,55 @@ describe("lock", () => {
 			const result = await releaseLock("myproject", testRemoteInfo);
 
 			expect(result.success).toBe(true);
-			expect(mockRunRemoteCommand).toHaveBeenCalledWith(
-				"testhost",
-				"rm -f '~/code/.devbox-locks/myproject.lock'",
-			);
+			expect(result.skipped).toBeUndefined();
+			expect(mockRunRemoteCommand).toHaveBeenCalledTimes(2);
+		});
+
+		test("skips deletion when lock is owned by another machine", async () => {
+			const lockInfo: LockInfo = {
+				machine: "other-machine",
+				user: "otheruser",
+				timestamp: new Date().toISOString(),
+				pid: 12345,
+			};
+
+			// getLockStatus returns lock owned by someone else
+			mockRunRemoteCommand.mockResolvedValueOnce({
+				success: true,
+				stdout: JSON.stringify(lockInfo),
+			});
+
+			const result = await releaseLock("myproject", testRemoteInfo);
+
+			expect(result.success).toBe(true);
+			expect(result.skipped).toBe(true);
+			// Should NOT have called rm
+			expect(mockRunRemoteCommand).toHaveBeenCalledTimes(1);
+		});
+
+		test("deletes lock file when no lock exists", async () => {
+			// getLockStatus returns unlocked
+			mockRunRemoteCommand.mockResolvedValueOnce({
+				success: true,
+				stdout: "",
+			});
+			// rm -f succeeds
+			mockRunRemoteCommand.mockResolvedValueOnce({
+				success: true,
+			});
+
+			const result = await releaseLock("myproject", testRemoteInfo);
+
+			expect(result.success).toBe(true);
 		});
 
 		test("returns error when delete fails", async () => {
+			// getLockStatus returns unlocked
+			mockRunRemoteCommand.mockResolvedValueOnce({
+				success: true,
+				stdout: "",
+			});
+			// rm -f fails
 			mockRunRemoteCommand.mockResolvedValueOnce({
 				success: false,
 				error: "Permission denied",
@@ -289,6 +345,36 @@ describe("lock", () => {
 
 			expect(result.success).toBe(false);
 			expect(result.error).toBe("Permission denied");
+		});
+	});
+
+	describe("forceLock", () => {
+		test("overwrites lock file without noclobber", async () => {
+			mockRunRemoteCommand.mockResolvedValueOnce({
+				success: true,
+			});
+
+			const result = await forceLock("myproject", testRemoteInfo);
+
+			expect(result.success).toBe(true);
+			expect(mockRunRemoteCommand).toHaveBeenCalledTimes(1);
+			const calls = mockRunRemoteCommand.mock.calls as [string, string][];
+			expect(calls[0][1]).toContain("mkdir -p '~/code/.devbox-locks'");
+			expect(calls[0][1]).toContain("| base64 -d >");
+			// Should NOT contain set -C (noclobber)
+			expect(calls[0][1]).not.toContain("set -C");
+		});
+
+		test("returns error when overwrite fails", async () => {
+			mockRunRemoteCommand.mockResolvedValueOnce({
+				success: false,
+				error: "Connection failed",
+			});
+
+			const result = await forceLock("myproject", testRemoteInfo);
+
+			expect(result.success).toBe(false);
+			expect(result.error).toBe("Connection failed");
 		});
 	});
 });
