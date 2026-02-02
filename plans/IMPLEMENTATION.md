@@ -1,8 +1,8 @@
 # DevBox - Implementation Tracker
 
-> **Version:** 0.7.3
+> **Version:** 0.7.6
 >
-> **Progress:** 4/21 future features | 0/18 checklist items | 0/2 release tasks
+> **Progress:** 6/21 future features | 0/18 checklist items | 0/2 release tasks
 >
 > **Completed work archived:** [`plans/archive/ARCHIVED-IMPLEMENTATION.md`](archive/ARCHIVED-IMPLEMENTATION.md)
 
@@ -28,21 +28,21 @@ Built-in templates (Node.js, Bun, Python, Go) reference non-existent GitHub repo
 - **Files:** `src/lib/projectTemplates.ts` (placeholder URLs)
 - **Notes:** Could use official `devcontainers/templates` or create minimal starter repos under a DevBox GitHub org
 
-- [ ] ### Status Dashboard (TUI)
+- [x] ### Status Dashboard (TUI)
 
 Full-screen terminal UI with real-time sync status, container resources, and one-key actions.
 
-- **Files:** New `src/commands/dashboard.ts` or extend `src/commands/status.ts`
-- **Dependencies:** TUI library (e.g., `blessed`, `ink`, or `terminal-kit`)
-- **Notes:** Should show all running projects, sync health, container CPU/memory
+- **Files:** `src/commands/dashboard.tsx` (Ink/React)
+- **Dependencies:** `ink`, `react`
+- **Notes:** Implemented with auto-refresh, keyboard navigation, detailed view toggle
 
-- [ ] ### Hooks System
+- [x] ### Hooks System
 
 Pre/post sync and container start hooks for custom workflows (e.g., run migrations after sync, build assets before push).
 
-- **Files:** New `src/lib/hooks.ts`, integration points in `src/commands/up.ts`, `src/commands/down.ts`, `src/lib/mutagen.ts`
-- **Config:** Add `hooks` section to project config in `src/types/index.ts`
-- **Notes:** Support shell commands and script paths; run in container or host context
+- **Files:** `src/lib/hooks.ts`, integrated in `src/commands/up.ts`, `src/commands/down.ts`
+- **Config:** `hooks` section in project config, types in `src/types/index.ts`
+- **Notes:** Shell command execution via `execFile`, non-fatal by design
 
 - [x] ### Version Update Notification
 

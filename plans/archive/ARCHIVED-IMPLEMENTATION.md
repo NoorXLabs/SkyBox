@@ -10,7 +10,7 @@
 
 ## Completed Work
 
-### Commands (19/19 Complete)
+### Commands (20/20 Complete)
 
 - [x] `devbox init` - Interactive setup wizard
 - [x] `devbox browse` - List projects on remote server
@@ -30,6 +30,7 @@
 - [x] `devbox logs` - Show container or sync logs
 - [x] `devbox update` - Update Mutagen binary
 - [x] `devbox encrypt` - Enable/disable project encryption
+- [x] `devbox dashboard` - TUI dashboard with real-time status
 
 ### Core Features
 
@@ -296,4 +297,16 @@
 
 ---
 
-*Archived: 2026-01-30*
+## v0.7.6 Features
+
+- [x] **Status Dashboard (TUI)** — Ink/React dashboard with auto-refresh, keyboard navigation — `15f0705`
+- [x] **Hooks System** — Pre/post lifecycle hooks for up/down commands — `15f0705`
+- [x] **Multi-Select Up** — Checkbox multi-select when `devbox up` run without args — `15f0705`
+- [x] **Interactive Clone** — Checkbox multi-select when `devbox clone` run without args — `15f0705`
+- [x] **Lock Ownership Fix** — Enforce ownership check before lock release — `ced69e4`
+- [x] **Atomic Lock Takeover** — Force flag with atomic test-and-set for team sync — `ced69e4`
+- [x] **CHANGELOG Release Notes** — GitHub releases populated from CHANGELOG.md — `dc1aa77`
+
+---
+
+*Archived: 2026-02-01*
