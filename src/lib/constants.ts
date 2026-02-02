@@ -31,6 +31,18 @@ export const HOOK_EVENTS = [
 	"post-down",
 ] as const;
 
+/** Maximum passphrase entry attempts for encryption/decryption. */
+export const MAX_PASSPHRASE_ATTEMPTS = 3;
+
+/** Width of a single dashboard card including border chars and padding. */
+export const CARD_WIDTH = 38;
+
+/** Gap between dashboard cards. */
+export const CARD_GAP = 2;
+
+/** Maximum project name entry attempts for `devbox new`. */
+export const MAX_NAME_ATTEMPTS = 5;
+
 // ── Paths & Directories ──
 
 /** Config filename. */

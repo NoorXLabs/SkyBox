@@ -10,6 +10,7 @@ import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
 import {
 	DEVCONTAINER_CONFIG_NAME,
 	DEVCONTAINER_DIR_NAME,
+	MAX_PASSPHRASE_ATTEMPTS,
 	SUPPORTED_EDITORS,
 	WORKSPACE_PATH_PREFIX,
 } from "@lib/constants.ts";
@@ -336,8 +337,6 @@ async function ensureDevcontainerConfig(
 	await commitDevcontainerConfig(projectPath);
 	return true;
 }
-
-const MAX_PASSPHRASE_ATTEMPTS = 3;
 
 /**
  * Decrypt project archive on remote if encryption is enabled and archive exists.

@@ -4,6 +4,7 @@ import { existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { getDiskUsage, getGitInfo, getLastActive } from "@commands/status.ts";
 import { loadConfig } from "@lib/config.ts";
+import { CARD_GAP, CARD_WIDTH } from "@lib/constants.ts";
 import { getContainerInfo, getContainerStatus } from "@lib/container.ts";
 import { getSyncStatus } from "@lib/mutagen.ts";
 import { getProjectsDir } from "@lib/paths.ts";
@@ -97,11 +98,6 @@ function formatRelativeTime(date: Date): string {
 	const diffDays = Math.floor(diffHours / 24);
 	return `${diffDays}d ago`;
 }
-
-/** Width of a single card including border chars and padding */
-const CARD_WIDTH = 38;
-/** Gap between cards */
-const CARD_GAP = 2;
 
 interface CardField {
 	label: string;

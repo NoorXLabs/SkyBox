@@ -40,6 +40,8 @@ src/
 │   ├── logs.ts            # Show container/sync logs
 │   ├── update.ts          # Update Mutagen binary
 │   ├── config-devcontainer.ts # Edit/reset devcontainer.json
+│   ├── dashboard.tsx      # TUI dashboard (Ink/React)
+│   ├── remote.ts          # Remote helper (host/path resolution)
 │   └── __tests__/        # Command unit tests
 ├── lib/                  # Shared libraries
 │   ├── config.ts         # YAML config operations
@@ -60,6 +62,7 @@ src/
 │   ├── shell.ts          # Shell escaping utilities
 │   ├── ui.ts             # Terminal UI (colors, spinners)
 │   ├── startup.ts        # Dependency checks
+│   ├── hooks.ts           # Hook runner (pre/post lifecycle events)
 │   └── __tests__/        # Library unit tests
 └── types/
     └── index.ts          # TypeScript interfaces
@@ -331,6 +334,8 @@ Uses Docker with devcontainer spec:
 | `src/lib/encryption.ts` | AES-256-GCM encrypt/decrypt for config values |
 | `src/lib/validation.ts` | Path traversal prevention, input validation |
 | `src/lib/shell.ts` | Shell escaping: `escapeShellArg()`, `buildShellCommand()` |
+| `src/lib/hooks.ts` | Hook runner for pre/post lifecycle events |
+| `src/commands/dashboard.tsx` | Ink/React TUI dashboard |
 | `.github/workflows/release.yml` | Release workflow: builds 4 platform binaries (darwin-arm64, darwin-x64, linux-x64, linux-arm64) |
 | `biome.json` | Linting/formatting config |
 | `lefthook.yml` | Git hooks config |
@@ -384,3 +389,7 @@ Note: `bun run check` is enforced automatically by a native Stop hook — no man
 - **`process.exit()` in commands breaks batch patterns**: Commands call `process.exit(1)` on errors, which kills the entire process. `try/catch` won't catch it. Known limitation for batch iteration (`--all`).
 
 - **Shell injection in remote commands**: Always use `escapeShellArg()` from `src/lib/shell.ts` when interpolating user input into SSH commands via `runRemoteCommand()`.
+
+- **`mock.module("execa")` is global in bun test**: Several test files (`shell-docker-isolated`, `rm-remote`, `lock`, `container-id-isolated`) mock `execa` at module level. This contaminates all test files in the same `bun test` run. New modules that need reliable subprocess execution in tests should use `node:child_process` instead of `execa`.
+
+- **Lefthook `biome check --write` reverts edits on failed commits**: When a pre-commit hook fails after the `check` stage, biome has already rewritten staged files. The working tree ends up with biome's version, not yours. Re-apply edits after any failed commit.

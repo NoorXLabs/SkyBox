@@ -8,6 +8,7 @@ import {
 } from "@commands/remote.ts";
 import { password } from "@inquirer/prompts";
 import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
+import { MAX_PASSPHRASE_ATTEMPTS } from "@lib/constants.ts";
 import {
 	getContainerInfo,
 	getContainerStatus,
@@ -34,8 +35,6 @@ import {
 	type DownOptions,
 } from "@typedefs/index.ts";
 import inquirer from "inquirer";
-
-const MAX_PASSPHRASE_ATTEMPTS = 3;
 
 /**
  * Encrypt project directory on remote after sync flush.
@@ -353,6 +352,11 @@ export async function downCommand(
 		}
 	}
 
+	// Run post-down hooks before potential directory deletion
+	if (projectConfig?.hooks) {
+		await runHooks("post-down", projectConfig.hooks, projectPath);
+	}
+
 	if (shouldRemoveLocal) {
 		// Pause sync first
 		const syncSpin = spinner("Stopping sync...");
@@ -411,11 +415,6 @@ export async function downCommand(
 				}
 			}
 		}
-	}
-
-	// Run post-down hooks
-	if (projectConfig?.hooks) {
-		await runHooks("post-down", projectConfig.hooks, projectPath);
 	}
 
 	success(`'${project}' stopped.`);
