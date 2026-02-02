@@ -16,6 +16,7 @@ import {
 } from "@lib/container.ts";
 import { deriveKey, encryptFile } from "@lib/encryption.ts";
 import { getErrorMessage } from "@lib/errors.ts";
+import { runHooks } from "@lib/hooks.ts";
 import { createLockRemoteInfo, releaseLock } from "@lib/lock.ts";
 import { pauseSync, waitForSync } from "@lib/mutagen.ts";
 import {
@@ -235,6 +236,12 @@ export async function downCommand(
 	const projectPath = getProjectPath(project ?? "");
 	header(`Stopping '${project}'...`);
 
+	// Run pre-down hooks
+	const projectConfig = config.projects[project ?? ""];
+	if (projectConfig?.hooks) {
+		await runHooks("pre-down", projectConfig.hooks, projectPath);
+	}
+
 	// Check container status
 	const containerStatus = await getContainerStatus(projectPath);
 	const containerInfo = await getContainerInfo(projectPath);
@@ -404,6 +411,11 @@ export async function downCommand(
 				}
 			}
 		}
+	}
+
+	// Run post-down hooks
+	if (projectConfig?.hooks) {
+		await runHooks("post-down", projectConfig.hooks, projectPath);
 	}
 
 	success(`'${project}' stopped.`);
