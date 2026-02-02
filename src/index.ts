@@ -99,6 +99,7 @@ program
 	.command("dashboard")
 	.alias("dash")
 	.description("Full-screen status dashboard")
+	.option("-d, --detailed", "Show detailed view with extra info")
 	.action(dashboardCommand);
 
 program
