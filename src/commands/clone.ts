@@ -204,7 +204,7 @@ export async function cloneCommand(project?: string): Promise<void> {
 
 	const fetchSpin = spinner(`Fetching projects from ${remoteName}...`);
 	const remoteProjects = await getRemoteProjects(host, remote.path);
-	fetchSpin.stop();
+	fetchSpin.succeed("Projects fetched");
 
 	if (remoteProjects.length === 0) {
 		info("No projects found on remote.");
