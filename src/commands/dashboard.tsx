@@ -23,6 +23,7 @@ interface DashboardProject {
 	diskUsage: string;
 	lastActive: string;
 	containerName: string;
+	uptime: string;
 	remote: string;
 	encrypted: boolean;
 }
@@ -77,6 +78,7 @@ async function gatherProjectData(): Promise<DashboardProject[]> {
 			diskUsage,
 			lastActive: lastActive ? formatRelativeTime(lastActive) : "-",
 			containerName: containerInfo?.name || "-",
+			uptime: containerInfo?.status || "-",
 			remote: projectConfig?.remote || "-",
 			encrypted: !!projectConfig?.encryption,
 		});
@@ -141,6 +143,7 @@ function getDetailedFields(p: DashboardProject): CardField[] {
 		{ label: "Active", value: p.lastActive },
 		{ label: "Remote", value: p.remote },
 		{ label: "Container Name", value: p.containerName },
+		{ label: "Uptime", value: p.uptime },
 		{ label: "Encrypted", value: p.encrypted ? "yes" : "no" },
 	];
 }
