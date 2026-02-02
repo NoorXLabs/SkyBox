@@ -23,6 +23,7 @@ import {
 } from "@lib/container.ts";
 import { deriveKey } from "@lib/encryption.ts";
 import { getErrorMessage } from "@lib/errors.ts";
+import { runHooks } from "@lib/hooks.ts";
 import {
 	acquireLock,
 	createLockRemoteInfo,
@@ -554,6 +555,12 @@ async function startSingleProject(
 ): Promise<void> {
 	header(`Starting '${project}'...`);
 
+	// Run pre-up hooks
+	const projectConfig = config.projects[project];
+	if (projectConfig?.hooks) {
+		await runHooks("pre-up", projectConfig.hooks, projectPath);
+	}
+
 	const lockResult = await handleLockAcquisition(project, config, options);
 	if (!lockResult.success) {
 		throw new Error("Failed to acquire lock");
@@ -587,6 +594,11 @@ async function startSingleProject(
 	}
 
 	await startContainerWithRetry(projectPath, options);
+
+	// Run post-up hooks
+	if (projectConfig?.hooks) {
+		await runHooks("post-up", projectConfig.hooks, projectPath);
+	}
 }
 
 /**
