@@ -82,6 +82,7 @@ export interface ProjectConfigV2 {
 	editor?: string;
 	sync_paths?: string[]; // Selective sync: only sync these subdirectories
 	encryption?: ProjectEncryption;
+	hooks?: HooksConfig;
 }
 
 export enum ContainerStatus {
