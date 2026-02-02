@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.6] - 2026-02-01
+
+### Added
+
+- **TUI Dashboard** (`devbox dashboard`): Full-screen terminal UI with real-time container/sync status, keyboard navigation, and detailed view toggle (Ink/React)
+- **Hooks System**: Pre/post lifecycle hooks for `up` and `down` commands with shell command execution
+- **Multi-Select Up**: Checkbox multi-select when `devbox up` is run without arguments, with sequential start and post-start editor prompt
+- **Interactive Clone**: Checkbox multi-select when `devbox clone` is run without arguments, filtering already-cloned projects
+- GitHub Release notes now populated from CHANGELOG.md entries
+
+### Fixed
+
+- Lock ownership check enforced before release — prevents releasing another machine's lock
+- Atomic lock takeover with force flag to prevent race conditions in team sync
+
+### Changed
+
+- Renamed internal command files from noor to devbox
+- Renamed SKILL.md files to command files
+- Task display uses numbered tables with free-text selection
+
 ## [0.7.5] - 2026-02-01
 
 ### Fixed
@@ -235,6 +256,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Design documents for commands
   - Implementation plans
 
+[0.7.6]: https://github.com/NoorXLabs/DevBox/compare/v0.7.5...v0.7.6
 [0.7.5]: https://github.com/NoorXLabs/DevBox/compare/v0.7.4...v0.7.5
 [0.7.4]: https://github.com/NoorXLabs/DevBox/compare/v0.7.3...v0.7.4
 [0.7.3]: https://github.com/NoorXLabs/DevBox/compare/v0.7.2...v0.7.3
