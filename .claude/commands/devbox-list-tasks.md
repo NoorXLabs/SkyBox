@@ -13,18 +13,22 @@ Parse `plans/IMPLEMENTATION.md` for all unchecked tasks, present them grouped by
 
 1. **Read** `plans/IMPLEMENTATION.md`
 2. **Parse** all unchecked items (`- [ ]`) grouped by section header
-3. **Present** a numbered summary list grouped by priority:
+3. **Display** tasks as numbered markdown tables, one table per section:
    - Future Features — High Priority
    - Future Features — Medium Priority
    - Future Features — Lower Priority
    - Future Features — Exploratory
    - Pre-Production Checklist
    - Release Preparation
-4. **Ask** the user which tasks to select using `AskUserQuestion` with `multiSelect: true`
-   - Each option is formatted as: `[Section] Task Name`
-   - Present ALL unchecked tasks as options
-5. **Write** the selected tasks to `.context/selected-tasks.md` with full details (description, files, notes, config, dependencies — everything under the task heading in IMPLEMENTATION.md)
-6. **Output** a summary of what was written and where
+
+   Each table has columns: `#`, `Task`, `Summary`. Numbers are sequential across all tables (1, 2, 3... not restarting per section). Summary is a short one-line description.
+
+4. **Ask** the user which tasks to select using `AskUserQuestion` (single question, free-text input)
+   - Prompt: "Enter task numbers to select (e.g. 1, 3, 7-9)"
+   - Provide NO predefined options — let the user type freely
+5. **Parse** the user's response: support comma-separated numbers and ranges (e.g. `1, 3, 7-9`)
+6. **Write** the selected tasks to `.context/selected-tasks.md` with full details (description, files, notes, config, dependencies — everything under the task heading in IMPLEMENTATION.md)
+7. **Output** a summary of what was written and where
 
 ## Parsing Rules
 
