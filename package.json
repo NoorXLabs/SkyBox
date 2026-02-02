@@ -55,6 +55,7 @@
     "@types/react": "19.2.10",
     "@types/tar": "6.1.13",
     "lefthook": "2.0.16",
+    "react-devtools-core": "7.0.1",
     "typescript": "5.9.3"
   }
 }
