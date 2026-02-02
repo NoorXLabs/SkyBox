@@ -373,7 +373,9 @@ Note: `bun run check` is enforced automatically by a native Stop hook — no man
 
 - **`normalizePath` in container.ts is private**: Cannot be imported. Define locally if needed in other modules.
 
-- **`TEMPLATES` export is uppercase**: In `src/lib/templates.ts`, use `TEMPLATES` not `templates`.
+- **`TEMPLATES` is the single built-in template constant**: Defined in `src/lib/constants.ts`, includes all templates (node, bun, python, go, generic) with inline devcontainer configs. There is no separate `BUILT_IN_TEMPLATES` — it was consolidated. `projectTemplates.ts` `getBuiltInTemplates()` returns `TEMPLATES` directly.
+
+- **Dashboard uses Ink (React)**: `src/commands/dashboard.tsx` uses `ink` for TUI rendering, not `blessed`. File must be `.tsx` for JSX support.
 
 - **`@inquirer/prompts` is transitive**: Available via `inquirer` dependency. Exports: `select`, `checkbox`, `password`, `confirm`, `input`.
 
