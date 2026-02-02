@@ -30,6 +30,7 @@ import {
 	createLockRemoteInfo,
 	forceLock,
 	type LockRemoteInfo,
+	releaseLock,
 } from "@lib/lock.ts";
 import { getSyncStatus, resumeSync } from "@lib/mutagen.ts";
 import {
@@ -565,38 +566,45 @@ async function startSingleProject(
 		throw new Error("Failed to acquire lock");
 	}
 
-	const decryptOk = await handleDecryption(project, config);
-	if (!decryptOk) {
-		throw new Error("Decryption failed");
-	}
+	try {
+		const decryptOk = await handleDecryption(project, config);
+		if (!decryptOk) {
+			throw new Error("Decryption failed");
+		}
 
-	await checkAndResumeSync(project);
+		await checkAndResumeSync(project);
 
-	const statusResult = await handleContainerStatus(projectPath, options);
-	if (statusResult.action === "exit") {
-		throw new Error("Container status check failed");
-	}
-	if (statusResult.action === "skip") {
-		return;
-	}
-	if (statusResult.rebuild) {
-		options.rebuild = true;
-	}
+		const statusResult = await handleContainerStatus(projectPath, options);
+		if (statusResult.action === "exit") {
+			throw new Error("Container status check failed");
+		}
+		if (statusResult.action === "skip") {
+			return;
+		}
+		if (statusResult.rebuild) {
+			options.rebuild = true;
+		}
 
-	const hasConfig = await ensureDevcontainerConfig(
-		projectPath,
-		project,
-		options,
-	);
-	if (!hasConfig) {
-		return;
-	}
+		const hasConfig = await ensureDevcontainerConfig(
+			projectPath,
+			project,
+			options,
+		);
+		if (!hasConfig) {
+			return;
+		}
 
-	await startContainerWithRetry(projectPath, options);
+		await startContainerWithRetry(projectPath, options);
 
-	// Run post-up hooks
-	if (projectConfig?.hooks) {
-		await runHooks("post-up", projectConfig.hooks, projectPath);
+		// Run post-up hooks
+		if (projectConfig?.hooks) {
+			await runHooks("post-up", projectConfig.hooks, projectPath);
+		}
+	} catch (err) {
+		if (lockResult.remoteInfo) {
+			await releaseLock(project, lockResult.remoteInfo).catch(() => {});
+		}
+		throw err;
 	}
 }
 
