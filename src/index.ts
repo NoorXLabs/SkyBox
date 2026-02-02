@@ -56,7 +56,7 @@ program
 program.command("list").description("List local projects").action(listCommand);
 
 program
-	.command("clone <project>")
+	.command("clone [project]")
 	.description("Clone remote project locally")
 	.action(cloneCommand);
 
