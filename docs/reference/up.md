@@ -30,12 +30,14 @@ devbox up [project] [options]
 The `up` command starts a development container for the specified project. It performs the following steps:
 
 1. **Project Resolution** - Determines which project to start (from argument, current directory, or interactive selection)
-2. **Lock Acquisition** - Acquires a lock to prevent conflicts with other machines
-3. **Archive Decryption** - If encryption is enabled, decrypts the project archive on the remote
-4. **Sync Check** - Ensures the Mutagen sync session is active, resuming it if paused
-5. **Container Management** - Starts the container (or handles existing running containers)
-6. **Devcontainer Setup** - Creates devcontainer.json from templates if needed
-7. **Post-Start Actions** - Optionally opens editor or attaches to shell
+2. **Pre-Up Hooks** - Runs any configured `pre-up` hooks (see [Hooks](/reference/hooks))
+3. **Lock Acquisition** - Acquires a lock to prevent conflicts with other machines
+4. **Archive Decryption** - If encryption is enabled, decrypts the project archive on the remote
+5. **Sync Check** - Ensures the Mutagen sync session is active, resuming it if paused
+6. **Container Management** - Starts the container (or handles existing running containers)
+7. **Devcontainer Setup** - Creates devcontainer.json from templates if needed
+8. **Post-Up Hooks** - Runs any configured `post-up` hooks (see [Hooks](/reference/hooks))
+9. **Post-Start Actions** - Optionally opens editor or attaches to shell
 
 ### Project Auto-Detection
 
@@ -167,3 +169,4 @@ devbox clone another-project
 - [devbox clone](/reference/clone) - Clone a project from remote
 - [devbox editor](/reference/editor) - Change default editor
 - [Custom Templates](/reference/custom-templates) - Create and manage reusable templates
+- [Hooks](/reference/hooks) - Run commands before/after lifecycle events

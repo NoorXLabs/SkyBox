@@ -64,7 +64,7 @@ Each entry supports:
 - Hooks run on the **host machine** in the project directory
 - Hooks are **non-fatal** — if a hook fails, a warning is shown but the operation continues
 - Multiple hooks for the same event run **sequentially** in order
-- Hook output is shown in the terminal via `stdio: inherit`
+- Hook output is captured and displayed if the hook fails
 
 ## Examples
 

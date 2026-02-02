@@ -134,6 +134,7 @@ A map of project names to project-specific configurations. Each project referenc
 | `editor` | `string` | No | Override editor for this project |
 | `sync_paths` | `string[]` | No | Selective sync: only sync these subdirectories instead of the entire project |
 | `encryption` | `object` | No | Per-project encryption config (see below) |
+| `hooks` | `object` | No | Lifecycle hooks: shell commands to run before/after `up` and `down` (see [Hooks](/reference/hooks)) |
 
 Example:
 
