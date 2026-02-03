@@ -1,8 +1,8 @@
 # DevBox - Implementation Tracker
 
-> **Version:** 0.7.6
+> **Version:** 0.7.7
 >
-> **Progress:** 6/21 future features | 0/18 checklist items | 0/2 release tasks
+> **Progress:** 0/17 future features | 0/18 checklist items | 0/2 release tasks
 >
 > **Completed work archived:** [`plans/archive/ARCHIVED-IMPLEMENTATION.md`](archive/ARCHIVED-IMPLEMENTATION.md)
 
@@ -27,56 +27,6 @@ Built-in templates (Node.js, Bun, Python, Go) reference non-existent GitHub repo
 
 - **Files:** `src/lib/projectTemplates.ts` (placeholder URLs)
 - **Notes:** Could use official `devcontainers/templates` or create minimal starter repos under a DevBox GitHub org
-
-- [x] ### Status Dashboard (TUI)
-
-Full-screen terminal UI with real-time sync status, container resources, and one-key actions.
-
-- **Files:** `src/commands/dashboard.tsx` (Ink/React)
-- **Dependencies:** `ink`, `react`
-- **Notes:** Implemented with auto-refresh, keyboard navigation, detailed view toggle
-
-- [x] ### Hooks System
-
-Pre/post sync and container start hooks for custom workflows (e.g., run migrations after sync, build assets before push).
-
-- **Files:** `src/lib/hooks.ts`, integrated in `src/commands/up.ts`, `src/commands/down.ts`
-- **Config:** `hooks` section in project config, types in `src/types/index.ts`
-- **Notes:** Shell command execution via `execFile`, non-fatal by design
-
-- [x] ### Version Update Notification
-
-After any command completes, show a one-line footer if a newer DevBox version is available. Checks GitHub Releases API once per day (cached to `~/.devbox/.update-check.json`). Channel-aware: stable users see stable releases only; beta users see all releases.
-
-- **Files:** New `src/lib/update-check.ts` (`checkForUpdate()`, `displayUpdateNotice()`)
-- **Integration:** End of main CLI flow in `src/index.ts`
-- **Display:** `Update available: 0.6.0-beta → 0.7.0. Run <install-specific-command> to update.`
-- **Notes:** Depends on Install Method Detection for correct upgrade command
-
-- [x] ### Install Method Detection
-
-Embed `INSTALL_METHOD` constant at build time (`homebrew`, `github-release`, `npm`, `source`). CI sets `DEVBOX_INSTALL_METHOD` env var per distribution channel. Used by update notification to show the correct upgrade command.
-
-- **Files:** `src/lib/constants.ts` (new `INSTALL_METHOD` constant)
-- **CI:** `.github/workflows/release.yml` sets env var per build target
-- **Notes:** Prerequisite for Version Update Notification
-
-- [x] ### Custom Local Templates
-
-Local devcontainer.json files stored in `~/.devbox/templates/` as reusable templates. Filename becomes display name (e.g., `bun.json` → "bun"). Unified shared `selectTemplate()` component replaces fragmented template logic across commands. Includes CLI flow to scaffold new templates with required fields, edit options (editor/terminal/skip), and validation (must have `workspaceFolder`/`workspaceMount`).
-
-- **Design:** [`plans/2026-01-30-custom-local-templates-design.md`](2026-01-30-custom-local-templates-design.md)
-- **Files:** `src/lib/templates.ts`, `src/types/index.ts`, `src/commands/new.ts`, `src/commands/up.ts`, `src/commands/clone.ts`, `src/commands/config-devcontainer.ts`
-- **Notes:** Also unifies built-in templates into `devbox new` which currently only supports git URLs
-
-- [x] ### Bundle Mutagen with DevBox
-
-Embed platform-specific Mutagen binary inside the compiled DevBox binary. On first run (or after DevBox update), extract to `~/.devbox/bin/mutagen` if missing or version mismatch. Pinned version in `MUTAGEN_VERSION` constant ensures all users run the exact tested version.
-
-- **Files:** New `src/lib/mutagen-extract.ts` (`ensureMutagenExtracted()`)
-- **Build:** `vendor/mutagen/` directory or CI download step, Bun `--compile` asset embedding
-- **Removes:** `downloadMutagen()` from end-user flow; `devbox update` repurposed or removed
-- **Notes:** Binary size increases ~15-20MB per platform
 
 ---
 
@@ -248,4 +198,4 @@ One-line description of what this feature does and why.
 
 ---
 
-*Last updated: 2026-02-01*
+*Last updated: 2026-02-02*
