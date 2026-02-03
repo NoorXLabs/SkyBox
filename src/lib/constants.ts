@@ -51,6 +51,9 @@ export const CONFIG_FILENAME = "config.yaml";
 /** Directory name for lock files on remote server. */
 export const LOCKS_DIR_NAME = ".devbox-locks";
 
+/** Default lock TTL in milliseconds (24 hours). */
+export const LOCK_TTL_MS = 24 * 60 * 60 * 1000;
+
 /** Default DevBox home directory name. */
 export const DEVBOX_HOME_DIR = ".devbox";
 
