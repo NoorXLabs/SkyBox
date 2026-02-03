@@ -116,10 +116,15 @@ Run `devbox init` to download Mutagen automatically.
 
 ```
 ! Devcontainer CLI: Devcontainer CLI not found
-    Fix: npm install -g @devcontainers/cli
+    Fix: brew install devcontainer
 ```
 
-Install the devcontainer CLI globally:
+Install the devcontainer CLI. On macOS with Homebrew:
+```bash
+brew install devcontainer
+```
+
+Or via npm (any platform):
 ```bash
 npm install -g @devcontainers/cli
 ```
