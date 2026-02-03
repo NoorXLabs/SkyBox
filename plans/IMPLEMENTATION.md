@@ -2,7 +2,7 @@
 
 > **Version:** 0.7.7
 >
-> **Progress:** 0/16 future features | 0/18 checklist items | 0/2 release tasks
+> **Progress:** 1/17 future features | 0/18 checklist items | 0/2 release tasks
 >
 > **Completed work archived:** [`plans/archive/ARCHIVED-IMPLEMENTATION.md`](archive/ARCHIVED-IMPLEMENTATION.md)
 
@@ -54,6 +54,14 @@ Named sync configurations (minimal, full, custom) for different workflows.
 - **Config:** Add `sync_profiles` to project config
 - **Notes:** Useful for large repos where you only need a subset of files
 
+- [x] ### Auto-Up on Directory Enter ✓ IMPLEMENTED
+
+Shell hook (bash/zsh) to auto-start container when entering a project directory.
+
+- **Files:** `src/commands/hook.ts`, `src/commands/__tests__/hook.test.ts`
+- **Commits:** `afb693b`, `1c66eb0` (PR #31)
+- **Notes:** Implemented via `devbox hook bash` and `devbox hook zsh` commands
+
 - [ ] ### Project Aliases
 
 Short aliases for frequently used projects (e.g., `devbox up web` instead of `devbox up my-company-web-frontend`).
@@ -97,6 +105,13 @@ Global `--verbose` flag for debugging output across all commands.
 
 - **Files:** `src/index.ts` (global option), all command files
 - **Notes:** Use environment variable or global flag; conditionally log debug info
+
+- [ ] ### Dry Run Mode
+
+`--dry-run` flag to preview commands without executing them.
+
+- **Files:** `src/index.ts` (global option), command files
+- **Notes:** Print commands that would be executed; useful for debugging
 
 - [ ] ### JSON Output
 
@@ -143,7 +158,7 @@ bash/zsh/fish completion scripts for all commands and options.
 - [ ] Test with large project (1GB+)
 - [ ] Git operations: commit, branch, checkout
 - [ ] Work offline for 30 min, reconnect
-- [ ] Test session conflict between two computers
+- [ ] Test lock takeover between two computers
 - [ ] Multiple projects running simultaneously
 - [ ] macOS (Intel and ARM)
 - [ ] Linux (Ubuntu, Debian)
@@ -184,4 +199,4 @@ One-line description of what this feature does and why.
 
 ---
 
-*Last updated: 2026-02-04*
+*Last updated: 2026-02-03*
