@@ -190,7 +190,7 @@ Lock acquisition uses shell's noclobber mode (`set -C`) for atomic test-and-set.
 {
   "machine": "macbook-pro",
   "user": "noor",
-  "timestamp": "2024-01-15T10:30:00Z",
+  "timestamp": "2026-02-03T10:30:00Z",
   "pid": 12345
 }
 ```

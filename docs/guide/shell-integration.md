@@ -114,8 +114,8 @@ cat ~/.devbox/logs/auto-up.log
 Example output:
 
 ```
-[2024-01-15T10:30:00.000Z] [my-project] Auto-starting container...
-[2024-01-15T10:30:05.000Z] [my-project] Container started successfully
+[2026-02-03T10:30:00.000Z] [my-project] Auto-starting container...
+[2026-02-03T10:30:05.000Z] [my-project] Container started successfully
 ```
 
 ### Verify the Hook Is Active

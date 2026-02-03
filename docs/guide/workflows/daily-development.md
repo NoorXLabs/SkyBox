@@ -129,7 +129,7 @@ Lock
   Status:     locked (this machine)
   Machine:    macbook-pro
   User:       john
-  Timestamp:  2024-01-15T10:30:00Z
+  Timestamp:  2026-02-03T10:30:00Z
 
 Disk Usage
   Local:      245M
@@ -349,7 +349,7 @@ Locks prevent two machines from editing the same project simultaneously. When yo
 ### Lock Conflict Resolution
 
 ```
-Project locked by 'work-laptop' since 2024-01-15T10:30:00Z
+Project locked by 'work-laptop' since 2026-02-03T10:30:00Z
 ? Take over lock anyway? (y/N)
 ```
 

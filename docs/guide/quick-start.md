@@ -196,7 +196,7 @@ Lock
   Status:     locked (this machine)
   Machine:    my-laptop
   User:       me
-  Timestamp:  2024-01-15T10:30:00Z
+  Timestamp:  2026-02-03T10:30:00Z
   PID:        12345
 
 Disk Usage

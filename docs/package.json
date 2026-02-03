@@ -9,5 +9,8 @@
   },
   "dependencies": {
     "vitepress": "1.6.4"
+  },
+  "devDependencies": {
+    "vitepress-plugin-llms": "1.11.0"
   }
 }

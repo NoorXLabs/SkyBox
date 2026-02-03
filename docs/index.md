@@ -27,3 +27,7 @@ features:
     title: Container-Based
     details: Leverage Docker containers for consistent, isolated, and reproducible environments
 ---
+
+<div style="text-align: center; margin-top: 2rem; padding: 1rem; opacity: 0.7;">
+  <a href="/llms-full.txt" style="color: var(--vp-c-text-2);">LLMs.txt</a>
+</div>

@@ -4,9 +4,4 @@ import './style.css'
 
 export default {
   extends: DefaultTheme,
-  // Add custom components or layout overrides here
-  // enhanceApp({ app, router, siteData }) {
-  //   // Register global components
-  //   // app.component('MyComponent', MyComponent)
-  // },
 } satisfies Theme
