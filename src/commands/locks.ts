@@ -3,19 +3,25 @@
 import { getRemoteHost, selectRemote } from "@commands/remote.ts";
 import { configExists, loadConfig } from "@lib/config.ts";
 import { getErrorMessage } from "@lib/errors.ts";
-import { createLockRemoteInfo, getAllLockStatuses } from "@lib/lock.ts";
+import {
+	createLockRemoteInfo,
+	formatLockStatus,
+	getAllLockStatuses,
+} from "@lib/lock.ts";
 import { error, header, info, spinner } from "@lib/ui.ts";
 import type { LockStatus } from "@typedefs/index.ts";
 import chalk from "chalk";
 
-function formatLockRow(project: string, status: LockStatus): string {
-	if (!status.locked) {
-		return `  ${project.padEnd(30)}  ${chalk.dim("unlocked")}`;
+function formatLockRow(
+	project: string,
+	status: LockStatus,
+	nameWidth: number,
+): string {
+	const lockStatus = formatLockStatus(status);
+	if (status.locked) {
+		return `  ${project.padEnd(nameWidth)}  ${lockStatus.padEnd(25)}  ${chalk.dim(status.info.timestamp)}`;
 	}
-	if (status.ownedByMe) {
-		return `  ${project.padEnd(30)}  ${chalk.yellow("locked (you)")}  ${chalk.dim(status.info.timestamp)}`;
-	}
-	return `  ${project.padEnd(30)}  ${chalk.red(`locked (${status.info.machine})`)}  ${chalk.dim(status.info.timestamp)}`;
+	return `  ${project.padEnd(nameWidth)}  ${lockStatus}`;
 }
 
 export async function locksCommand(): Promise<void> {
@@ -48,10 +54,16 @@ export async function locksCommand(): Promise<void> {
 			return;
 		}
 
+		// Calculate dynamic column width based on project names
+		const projectNames = Array.from(statuses.keys());
+		const nameWidth = Math.max(7, ...projectNames.map((n) => n.length));
+
 		header(`Locks on ${host}:`);
 		console.log();
 		console.log(
-			chalk.dim(`  ${"PROJECT".padEnd(30)}  ${"STATUS".padEnd(25)}  SINCE`),
+			chalk.dim(
+				`  ${"PROJECT".padEnd(nameWidth)}  ${"STATUS".padEnd(25)}  SINCE`,
+			),
 		);
 
 		// Show locked projects first, then unlocked
@@ -66,7 +78,7 @@ export async function locksCommand(): Promise<void> {
 		}
 
 		for (const [project, status] of [...locked, ...unlocked]) {
-			console.log(formatLockRow(project, status));
+			console.log(formatLockRow(project, status, nameWidth));
 		}
 		console.log();
 	} catch (err: unknown) {

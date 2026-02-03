@@ -512,5 +512,44 @@ describe("lock", () => {
 			const status = statuses.get("myproject");
 			expect(status?.locked).toBe(false);
 		});
+
+		test("returns empty map when SSH command fails", async () => {
+			mockRunRemoteCommand.mockResolvedValueOnce({
+				success: false,
+				error: "Connection refused",
+			});
+
+			const statuses = await getAllLockStatuses(testRemoteInfo);
+
+			expect(statuses.size).toBe(0);
+		});
+
+		test("skips lines with invalid JSON", async () => {
+			const validLock: LockInfo = {
+				machine: hostname(),
+				user: userInfo().username,
+				timestamp: new Date().toISOString(),
+				pid: 12345,
+				expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+			};
+
+			// Mix of valid and invalid JSON
+			const output = [
+				`valid-project.lock\t${JSON.stringify(validLock)}`,
+				"invalid-project.lock\t{not valid json}",
+			].join("\n");
+
+			mockRunRemoteCommand.mockResolvedValueOnce({
+				success: true,
+				stdout: output,
+			});
+
+			const statuses = await getAllLockStatuses(testRemoteInfo);
+
+			expect(statuses.size).toBe(2);
+			expect(statuses.get("valid-project")?.locked).toBe(true);
+			// Invalid JSON is treated as unlocked
+			expect(statuses.get("invalid-project")?.locked).toBe(false);
+		});
 	});
 });

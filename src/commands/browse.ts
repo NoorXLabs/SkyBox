@@ -3,7 +3,11 @@
 import { getRemoteHost, selectRemote } from "@commands/remote.ts";
 import { configExists, loadConfig } from "@lib/config.ts";
 import { getErrorMessage } from "@lib/errors.ts";
-import { createLockRemoteInfo, getAllLockStatuses } from "@lib/lock.ts";
+import {
+	createLockRemoteInfo,
+	formatLockStatus,
+	getAllLockStatuses,
+} from "@lib/lock.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import { error, header, info, spinner } from "@lib/ui.ts";
 import type { LockStatus, RemoteProject } from "@typedefs/index.ts";
@@ -36,16 +40,6 @@ export async function getRemoteProjects(
 		});
 }
 
-function formatLockColumn(lockStatus: LockStatus | undefined): string {
-	if (!lockStatus || !lockStatus.locked) {
-		return chalk.dim("unlocked");
-	}
-	if (lockStatus.ownedByMe) {
-		return chalk.yellow("locked (you)");
-	}
-	return chalk.red(`locked (${lockStatus.info.machine})`);
-}
-
 function printProjects(
 	projects: RemoteProject[],
 	lockStatuses: Map<string, LockStatus>,
@@ -65,7 +59,7 @@ function printProjects(
 
 	// Rows
 	for (const project of projects) {
-		const lock = formatLockColumn(lockStatuses.get(project.name));
+		const lock = formatLockStatus(lockStatuses.get(project.name));
 		const row = `  ${project.name.padEnd(nameWidth)}  ${project.branch.padEnd(branchWidth)}  ${lock}`;
 		console.log(row);
 	}
