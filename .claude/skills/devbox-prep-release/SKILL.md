@@ -1,5 +1,5 @@
 ---
-name: noor:prep-release
+name: devbox-prep-release
 description: Use when preparing a new release, before tagging or publishing. Also use when needing to finalize changelog, review code, verify docs, or archive completed plans.
 ---
 

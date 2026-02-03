@@ -1,5 +1,5 @@
 ---
-name: noor:update-docs
+name: devbox-update-docs
 description: Use when finishing work on a feature, bugfix, or refactor and need to check if VitePress user docs need creating or updating. Also use when another skill needs to verify docs are current.
 ---
 
