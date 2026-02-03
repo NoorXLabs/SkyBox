@@ -218,11 +218,20 @@ function checkDevcontainerCLI(): DoctorCheckResult {
 			message: `devcontainer ${version}`,
 		};
 	} catch {
+		// Check if Homebrew is available for a better suggestion
+		let fix = "npm install -g @devcontainers/cli";
+		try {
+			execSync("which brew", { encoding: "utf-8", timeout: 2000 });
+			fix = "brew install devcontainer";
+		} catch {
+			// Homebrew not available, keep npm suggestion
+		}
+
 		return {
 			name,
 			status: "warn",
 			message: "Devcontainer CLI not found",
-			fix: "npm install -g @devcontainers/cli",
+			fix,
 		};
 	}
 }

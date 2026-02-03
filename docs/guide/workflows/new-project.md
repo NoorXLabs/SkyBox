@@ -127,9 +127,9 @@ DevBox detects no `devcontainer.json` and offers templates:
 No devcontainer.json found
 ? Would you like to create a devcontainer.json from a template? (Y/n)
 ? Select a template:
-  1) Node.js - Node.js 20 with npm/yarn + Docker support
-  2) Python - Python 3.12 with pip/venv + Docker support
-  3) Go - Go 1.22 + Docker support
+  1) Node.js - Node.js (latest) with npm/yarn + Docker support
+  2) Python - Python (latest) with pip/venv + Docker support
+  3) Go - Go (latest) + Docker support
   4) Generic - Debian with basic dev tools + Docker support
 ```
 
@@ -137,9 +137,9 @@ No devcontainer.json found
 
 | Template | Base Image | Includes |
 |----------|-----------|----------|
-| **Node.js** | Node 20 | npm, yarn, ESLint extension |
-| **Python** | Python 3.12 | pip, venv, Python extension |
-| **Go** | Go 1.22 | Go tools, Go extension |
+| **Node.js** | Node (latest) | npm, yarn, ESLint extension |
+| **Python** | Python (latest) | pip, venv, Python extension |
+| **Go** | Go (latest) | Go tools, Go extension |
 | **Generic** | Debian | Basic dev tools |
 
 You can also use a **custom template** by providing a git URL:
@@ -172,9 +172,10 @@ DevBox creates `.devcontainer/devcontainer.json`:
 ```json
 {
   "name": "Node.js",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
+  "image": "mcr.microsoft.com/devcontainers/base:debian",
   "workspaceFolder": "/workspaces/new-app",
   "features": {
+    "ghcr.io/devcontainers/features/node:1": {},
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
     "ghcr.io/devcontainers/features/git:1": {}
   },
@@ -288,7 +289,7 @@ Project: my-project
 
 Container
   Status:     running
-  Image:      mcr.microsoft.com/devcontainers/javascript-node:20
+  Image:      mcr.microsoft.com/devcontainers/base:debian
   Uptime:     2 hours
 
 Sync

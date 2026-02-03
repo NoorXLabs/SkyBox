@@ -232,13 +232,18 @@ export const TEMPLATES: Template[] = [
 	{
 		id: "node",
 		name: "Node.js",
-		description: "Node.js 20 with npm/yarn + Docker support",
+		description: "Node (latest) with npm/yarn + Common Utils + Docker",
 		config: {
 			name: "Node.js",
-			image: "mcr.microsoft.com/devcontainers/javascript-node:20",
+			image: "mcr.microsoft.com/devcontainers/base:debian",
 			postCreateCommand: "[ -f package.json ] && npm install || true",
 			postStartCommand: SSH_SYMLINK_COMMAND,
-			features: COMMON_FEATURES,
+			features: {
+				...COMMON_FEATURES,
+				"ghcr.io/devcontainers/features/node:1": {
+					version: "latest",
+				},
+			},
 			mounts: COMMON_MOUNTS,
 			customizations: {
 				vscode: {
@@ -251,14 +256,16 @@ export const TEMPLATES: Template[] = [
 	{
 		id: "bun",
 		name: "Bun",
-		description: "Bun runtime with TypeScript + Docker support",
+		description: "Bun (latest) + Common Utils + Docker",
 		config: {
 			name: "Bun",
-			image: "mcr.microsoft.com/devcontainers/javascript-node:20",
-			postCreateCommand:
-				"curl -fsSL https://bun.sh/install | bash && [ -f package.json ] && bun install || true",
+			image: "mcr.microsoft.com/devcontainers/base:debian",
+			postCreateCommand: "[ -f package.json ] && bun install || true",
 			postStartCommand: SSH_SYMLINK_COMMAND,
-			features: COMMON_FEATURES,
+			features: {
+				...COMMON_FEATURES,
+				"ghcr.io/shyim/devcontainers-features/bun:0": {},
+			},
 			mounts: COMMON_MOUNTS,
 			customizations: {
 				vscode: {
@@ -271,14 +278,19 @@ export const TEMPLATES: Template[] = [
 	{
 		id: "python",
 		name: "Python",
-		description: "Python 3.12 with pip/venv + Docker support",
+		description: "Python (latest) with pip/venv + Common Utils + Docker",
 		config: {
 			name: "Python",
-			image: "mcr.microsoft.com/devcontainers/python:3.12",
+			image: "mcr.microsoft.com/devcontainers/base:debian",
 			postCreateCommand:
 				"[ -f requirements.txt ] && pip install -r requirements.txt || true",
 			postStartCommand: SSH_SYMLINK_COMMAND,
-			features: COMMON_FEATURES,
+			features: {
+				...COMMON_FEATURES,
+				"ghcr.io/devcontainers/features/python:1": {
+					version: "latest",
+				},
+			},
 			mounts: COMMON_MOUNTS,
 			customizations: {
 				vscode: {
@@ -291,13 +303,16 @@ export const TEMPLATES: Template[] = [
 	{
 		id: "go",
 		name: "Go",
-		description: "Go 1.22 + Docker support",
+		description: "Go (latest) + Common Utils + Docker",
 		config: {
 			name: "Go",
-			image: "mcr.microsoft.com/devcontainers/go:1.22",
+			image: "mcr.microsoft.com/devcontainers/base:debian",
 			postCreateCommand: "[ -f go.mod ] && go mod download || true",
 			postStartCommand: SSH_SYMLINK_COMMAND,
-			features: COMMON_FEATURES,
+			features: {
+				...COMMON_FEATURES,
+				"ghcr.io/devcontainers/features/go:1": {},
+			},
 			mounts: COMMON_MOUNTS,
 			customizations: {
 				vscode: {
@@ -310,7 +325,7 @@ export const TEMPLATES: Template[] = [
 	{
 		id: "generic",
 		name: "Generic",
-		description: "Debian with basic dev tools + Docker support",
+		description: "Debian with Common Utils + Docker",
 		config: {
 			name: "Development",
 			image: "mcr.microsoft.com/devcontainers/base:debian",
