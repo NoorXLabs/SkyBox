@@ -3,9 +3,11 @@
 import { getRemoteHost, selectRemote } from "@commands/remote.ts";
 import { configExists, loadConfig } from "@lib/config.ts";
 import { getErrorMessage } from "@lib/errors.ts";
+import { createLockRemoteInfo, getAllLockStatuses } from "@lib/lock.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import { error, header, info, spinner } from "@lib/ui.ts";
-import type { RemoteProject } from "@typedefs/index.ts";
+import type { LockStatus, RemoteProject } from "@typedefs/index.ts";
+import chalk from "chalk";
 
 export async function getRemoteProjects(
 	host: string,
@@ -34,20 +36,41 @@ export async function getRemoteProjects(
 		});
 }
 
+function formatLockColumn(lockStatus: LockStatus | undefined): string {
+	if (!lockStatus || !lockStatus.locked) {
+		return chalk.dim("unlocked");
+	}
+	if (lockStatus.ownedByMe) {
+		return chalk.yellow("locked (you)");
+	}
+	return chalk.red(`locked (${lockStatus.info.machine})`);
+}
+
 function printProjects(
 	projects: RemoteProject[],
+	lockStatuses: Map<string, LockStatus>,
 	host: string,
 	basePath: string,
 ): void {
 	header(`Remote projects (${host}:${basePath}):`);
 	console.log();
 
+	// Calculate column widths
+	const nameWidth = Math.max(4, ...projects.map((p) => p.name.length));
+	const branchWidth = Math.max(6, ...projects.map((p) => p.branch.length));
+
+	// Header
+	const headerRow = `  ${"NAME".padEnd(nameWidth)}  ${"BRANCH".padEnd(branchWidth)}  LOCK`;
+	console.log(chalk.dim(headerRow));
+
+	// Rows
 	for (const project of projects) {
-		console.log(`  ${project.name}`);
-		console.log(`    Branch: ${project.branch}`);
-		console.log();
+		const lock = formatLockColumn(lockStatuses.get(project.name));
+		const row = `  ${project.name.padEnd(nameWidth)}  ${project.branch.padEnd(branchWidth)}  ${lock}`;
+		console.log(row);
 	}
 
+	console.log();
 	info("Run 'devbox clone <project>' to clone a project locally.");
 }
 
@@ -77,13 +100,17 @@ export async function browseCommand(): Promise<void> {
 	const spin = spinner(`Fetching projects from ${remoteName}...`);
 
 	try {
-		const projects = await getRemoteProjects(host, remote.path);
+		const remoteInfo = createLockRemoteInfo(remote);
+		const [projects, lockStatuses] = await Promise.all([
+			getRemoteProjects(host, remote.path),
+			getAllLockStatuses(remoteInfo),
+		]);
 		spin.stop();
 
 		if (projects.length === 0) {
 			printEmpty();
 		} else {
-			printProjects(projects, host, remote.path);
+			printProjects(projects, lockStatuses, host, remote.path);
 		}
 	} catch (err: unknown) {
 		spin.fail("Failed to connect to remote");

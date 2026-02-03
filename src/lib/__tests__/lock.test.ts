@@ -36,6 +36,7 @@ mock.module("../ssh.ts", () => ({
 import {
 	acquireLock,
 	forceLock,
+	getAllLockStatuses,
 	getLockStatus,
 	getMachineName,
 	type LockRemoteInfo,
@@ -435,6 +436,81 @@ describe("lock", () => {
 
 			expect(result.success).toBe(false);
 			expect(result.error).toBe("Connection failed");
+		});
+	});
+
+	describe("getAllLockStatuses", () => {
+		test("parses multiple lock files from single SSH call", async () => {
+			const lockInfo1: LockInfo = {
+				machine: hostname(),
+				user: userInfo().username,
+				timestamp: new Date().toISOString(),
+				pid: 12345,
+				expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+			};
+			const lockInfo2: LockInfo = {
+				machine: "other-machine",
+				user: "otheruser",
+				timestamp: new Date().toISOString(),
+				pid: 99999,
+				expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+			};
+
+			// SSH returns newline-delimited "filename\tJSON" lines
+			const output = [
+				`backend-api.lock\t${JSON.stringify(lockInfo1)}`,
+				`frontend-app.lock\t${JSON.stringify(lockInfo2)}`,
+			].join("\n");
+
+			mockRunRemoteCommand.mockResolvedValueOnce({
+				success: true,
+				stdout: output,
+			});
+
+			const statuses = await getAllLockStatuses(testRemoteInfo);
+
+			expect(statuses.size).toBe(2);
+			const backend = statuses.get("backend-api");
+			expect(backend?.locked).toBe(true);
+			if (backend?.locked) {
+				expect(backend.ownedByMe).toBe(true);
+			}
+			const frontend = statuses.get("frontend-app");
+			expect(frontend?.locked).toBe(true);
+			if (frontend?.locked) {
+				expect(frontend.ownedByMe).toBe(false);
+			}
+		});
+
+		test("returns empty map when no lock files exist", async () => {
+			mockRunRemoteCommand.mockResolvedValueOnce({
+				success: true,
+				stdout: "",
+			});
+
+			const statuses = await getAllLockStatuses(testRemoteInfo);
+
+			expect(statuses.size).toBe(0);
+		});
+
+		test("skips expired locks", async () => {
+			const expiredLock: LockInfo = {
+				machine: "other-machine",
+				user: "otheruser",
+				timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+				pid: 12345,
+				expires: new Date(Date.now() - 1000).toISOString(),
+			};
+
+			mockRunRemoteCommand.mockResolvedValueOnce({
+				success: true,
+				stdout: `myproject.lock\t${JSON.stringify(expiredLock)}`,
+			});
+
+			const statuses = await getAllLockStatuses(testRemoteInfo);
+
+			const status = statuses.get("myproject");
+			expect(status?.locked).toBe(false);
 		});
 	});
 });

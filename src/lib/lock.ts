@@ -223,3 +223,52 @@ export async function releaseLock(
 
 	return { success: true };
 }
+
+/**
+ * Fetch lock statuses for all projects on a remote in a single SSH call.
+ * Returns a Map of project name -> LockStatus.
+ */
+export async function getAllLockStatuses(
+	remoteInfo: LockRemoteInfo,
+): Promise<Map<string, LockStatus>> {
+	const locksDir = getLocksDir(remoteInfo.basePath);
+	// For each .lock file, print "filename\tcontents" on one line
+	const command = `for f in ${escapeShellArg(locksDir)}/*.lock; do [ -f "$f" ] && echo "$(basename "$f")\t$(cat "$f")"; done 2>/dev/null`;
+
+	const result = await runRemoteCommand(remoteInfo.host, command);
+	const statuses = new Map<string, LockStatus>();
+
+	if (!result.success || !result.stdout?.trim()) {
+		return statuses;
+	}
+
+	const currentMachine = getMachineName();
+
+	for (const line of result.stdout.trim().split("\n")) {
+		const tabIndex = line.indexOf("\t");
+		if (tabIndex === -1) continue;
+
+		const filename = line.substring(0, tabIndex);
+		const jsonStr = line.substring(tabIndex + 1);
+
+		// Strip .lock extension to get project name
+		const project = filename.replace(/\.lock$/, "");
+
+		try {
+			const info: LockInfo = JSON.parse(jsonStr);
+
+			// Check expiry
+			if (info.expires && new Date(info.expires).getTime() < Date.now()) {
+				statuses.set(project, { locked: false });
+				continue;
+			}
+
+			const ownedByMe = info.machine === currentMachine;
+			statuses.set(project, { locked: true, ownedByMe, info });
+		} catch {
+			statuses.set(project, { locked: false });
+		}
+	}
+
+	return statuses;
+}
