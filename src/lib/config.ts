@@ -79,3 +79,29 @@ export function listRemotes(): Array<{ name: string } & RemoteEntry> {
 		...remote,
 	}));
 }
+
+/**
+ * Check if auto-up is enabled for a project.
+ * Resolution order:
+ * 1. Per-project auto_up setting (if set)
+ * 2. Global defaults.auto_up setting (if set)
+ * 3. Default: false (opt-in feature)
+ */
+export function isAutoUpEnabled(
+	projectName: string,
+	config: DevboxConfigV2,
+): boolean {
+	// Check per-project setting first
+	const projectConfig = config.projects[projectName];
+	if (projectConfig?.auto_up !== undefined) {
+		return projectConfig.auto_up;
+	}
+
+	// Fall back to global defaults
+	if (config.defaults?.auto_up !== undefined) {
+		return config.defaults.auto_up;
+	}
+
+	// Default to false (opt-in)
+	return false;
+}

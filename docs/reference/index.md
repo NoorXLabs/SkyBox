@@ -55,6 +55,10 @@ devbox encrypt enable my-app
 
 # Disable project encryption
 devbox encrypt disable my-app
+
+# Set up shell integration (auto-start containers on cd)
+eval "$(devbox hook bash)"  # Add to ~/.bashrc
+eval "$(devbox hook zsh)"   # Or add to ~/.zshrc
 ```
 
 ### Managing Remote Servers

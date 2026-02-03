@@ -138,6 +138,7 @@ bash/zsh/fish completion scripts for all commands and options.
 ## Future Features — Exploratory
 
 - [ ] **Custom Sync Engine:** Replace Mutagen with a purpose-built sync solution
+- [ ] **Cloud Storage Backend:** Remote-to-S3 backups via rclone (not real-time sync — Mutagen requires an agent on both sides, which rules out object storage as a sync target)
 - [ ] **Metrics/Analytics:** Local-only usage metrics for debugging and optimization
 
 ---

@@ -63,6 +63,9 @@ export const BIN_DIR_NAME = "bin";
 /** Logs directory name. */
 export const LOGS_DIR_NAME = "logs";
 
+/** Auto-up log filename for shell hook operations. */
+export const AUTO_UP_LOG_FILE = "auto-up.log";
+
 /** User templates directory name. */
 export const TEMPLATES_DIR_NAME = "templates";
 
