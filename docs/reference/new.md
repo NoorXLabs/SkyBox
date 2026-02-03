@@ -62,9 +62,9 @@ devbox new
   Checking remote... Name available
 ? Select a template:
 ── Built-in ──
-  Node.js — Node.js 20 with npm/yarn + Docker support
-  Python — Python 3.12 with pip/venv + Docker support
-  Go — Go 1.22 + Docker support
+  Node.js — Node.js (latest) with npm/yarn + Docker support
+  Python — Python (latest) with pip/venv + Docker support
+  Go — Go (latest) + Docker support
   Generic — Debian with basic dev tools + Docker support
 ── Other ──
   Enter git URL

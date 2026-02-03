@@ -107,7 +107,7 @@ A complete template for a Bun/TypeScript project with all recommended features:
   "image": "mcr.microsoft.com/devcontainers/base:debian",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename},type=bind,consistency=cached",
-  "postCreateCommand": "curl -fsSL https://bun.sh/install | bash && export BUN_INSTALL=\"$HOME/.bun\" && export PATH=\"$BUN_INSTALL/bin:$PATH\" && [ -f package.json ] && bun install || true",
+  "postCreateCommand": "[ -f package.json ] && bun install || true",
   "postStartCommand": "[ ! -L $HOME/.ssh ] && rm -rf $HOME/.ssh && ln -s /var/ssh-config $HOME/.ssh || true",
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
@@ -116,7 +116,8 @@ A complete template for a Bun/TypeScript project with all recommended features:
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
       "moby": false
     },
-    "ghcr.io/devcontainers/features/git:1": {}
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/shyim/devcontainers-features/bun:0": {}
   },
   "mounts": [
     "source=${localEnv:HOME}/.ssh,target=/var/ssh-config,type=bind,readonly"
@@ -131,6 +132,10 @@ A complete template for a Bun/TypeScript project with all recommended features:
   }
 }
 ```
+
+::: tip Devcontainer Features
+Instead of installing tools via `postCreateCommand`, prefer using [devcontainer features](https://containers.dev/features) when available. Features are cached in the image layer and don't re-run on every container start.
+:::
 
 ## Validation
 
@@ -159,10 +164,10 @@ All commands that need a devcontainer configuration use the same unified selecto
 ```
 ? Select a template:
 ── Built-in ──
-  Node.js — Node.js 20 with npm/yarn + Docker support
-  Bun — Bun runtime with TypeScript + Docker support
-  Python — Python 3.12 with pip/venv + Docker support
-  Go — Go 1.22 + Docker support
+  Node.js — Node.js (latest) with npm/yarn + Docker support
+  Bun — Bun (latest) with TypeScript + Docker support
+  Python — Python (latest) with pip/venv + Docker support
+  Go — Go (latest) + Docker support
   Generic — Debian with basic dev tools + Docker support
 ── Other ──
   Enter git URL

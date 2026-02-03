@@ -175,7 +175,7 @@ Project: my-project
 
 Container
   Status:     running
-  Image:      mcr.microsoft.com/devcontainers/javascript-node:18
+  Image:      mcr.microsoft.com/devcontainers/base:debian
   Uptime:     2 hours
   CPU:        0.5%
   Memory:     256M / 4G

@@ -94,7 +94,10 @@ ignore:
 ```json
 {
   "name": "Node.js",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
+  "image": "mcr.microsoft.com/devcontainers/base:debian",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {}
+  },
   "postCreateCommand": "npm install",
   "customizations": {
     "vscode": {

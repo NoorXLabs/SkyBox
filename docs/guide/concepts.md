@@ -54,8 +54,9 @@ Each project can have a `.devcontainer/devcontainer.json` file:
 ```json
 {
   "name": "My App",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:18",
+  "image": "mcr.microsoft.com/devcontainers/base:debian",
   "features": {
+    "ghcr.io/devcontainers/features/node:1": {},
     "ghcr.io/devcontainers/features/git:1": {}
   },
   "customizations": {
@@ -187,18 +188,21 @@ DevBox uses a **unified template selector** whenever a devcontainer configuratio
 
 ### Built-in Templates
 
-| Template | Base Image | Post-Create Command | Editor Extensions |
-|----------|-----------|---------------------|-------------------|
-| **Node.js** | `devcontainers/javascript-node:20` | `npm install` (if `package.json` exists) | ESLint |
-| **Python** | `devcontainers/python:3.12` | `pip install -r requirements.txt` (if exists) | Python |
-| **Go** | `devcontainers/go:1.22` | `go mod download` (if `go.mod` exists) | Go |
-| **Generic** | `devcontainers/base:debian` | None | None |
+| Template | Feature | Version | Post-Create Command |
+|----------|---------|---------|---------------------|
+| **Node.js** | [node](https://github.com/devcontainers/features/tree/main/src/node) | latest | `npm install` (if `package.json` exists) |
+| **Bun** | [bun](https://github.com/shyim/devcontainers-features/tree/main/src/bun) | latest | `bun install` (if `package.json` exists) |
+| **Python** | [python](https://github.com/devcontainers/features/tree/main/src/python) | latest | `pip install -r requirements.txt` (if exists) |
+| **Go** | [go](https://github.com/devcontainers/features/tree/main/src/go) | latest | `go mod download` (if `go.mod` exists) |
+| **Generic** | [common-utils](https://github.com/devcontainers/features/tree/main/src/common-utils) only | — | None |
+
+All templates use `mcr.microsoft.com/devcontainers/base:debian` as the base image with language-specific [devcontainer features](https://containers.dev/features) layered on top. This ensures you always get the latest versions without manual updates.
 
 All templates include these common features:
-- **Docker-outside-of-Docker (DooD)** -- access the host Docker daemon from inside the container
-- **Git** -- pre-installed for version control
+- **[common-utils](https://github.com/devcontainers/features/tree/main/src/common-utils)** -- zsh (default shell), oh-my-zsh, and essential utilities
+- **[docker-outside-of-docker](https://github.com/devcontainers/features/tree/main/src/docker-outside-of-docker)** -- access the host Docker daemon from inside the container
+- **[git](https://github.com/devcontainers/features/tree/main/src/git)** -- pre-installed for version control
 - **SSH passthrough** -- your host `~/.ssh` directory is bind-mounted read-only, so container Git operations use your existing SSH keys
-- **Zsh** -- configured as the default shell
 
 ### Custom Local Templates
 

@@ -4,41 +4,76 @@ This guide covers installing DevBox and its dependencies.
 
 ## Prerequisites
 
-DevBox requires the following software:
+DevBox requires:
 
 | Software | Version | Purpose |
 |----------|---------|---------|
 | Docker | 20.10+ | Running development containers |
-| Node.js | 18+ | Required for devcontainer CLI |
-| Bun | 1.0+ | JavaScript runtime |
+| Devcontainer CLI | 0.50+ | Building and managing dev containers |
 | SSH | - | Remote server connection |
+
+::: tip Note
+The devcontainer CLI requires Node.js, but on macOS with Homebrew this is handled automatically.
+:::
 
 ### Installing Prerequisites
 
 ::: code-group
 
-```bash [macOS]
-# Install Docker
-brew install docker
+```bash [macOS (Homebrew)]
+# Install Docker Desktop
+brew install --cask docker
 
-# Install Node.js
-brew install node
-
-# Install Bun
-brew install oven-sh/bun/bun
+# Install devcontainer CLI (includes Node.js automatically)
+brew install devcontainer
 ```
 
-```bash [Linux]
+```bash [Linux (Ubuntu/Debian)]
 # Install Docker
 curl -fsSL https://get.docker.com | sh
 sudo usermod -aG docker $USER
 
-# Install Node.js (using nvm)
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-nvm install 20
+# Log out and back in for group changes to take effect, then:
 
-# Install Bun
-curl -fsSL https://bun.sh/install | bash
+# Install Node.js (LTS)
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Install devcontainer CLI
+sudo npm install -g @devcontainers/cli
+```
+
+```bash [Linux (Fedora/RHEL)]
+# Install Docker
+sudo dnf -y install dnf-plugins-core
+sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+sudo dnf install -y docker-ce docker-ce-cli containerd.io
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo usermod -aG docker $USER
+
+# Log out and back in for group changes to take effect, then:
+
+# Install Node.js (LTS)
+sudo dnf module install -y nodejs:22
+
+# Install devcontainer CLI
+sudo npm install -g @devcontainers/cli
+```
+
+```bash [Windows (WSL 2)]
+# 1. Install Docker Desktop for Windows with WSL 2 backend
+#    Download from: https://docs.docker.com/desktop/install/windows-install/
+#    Enable "Use WSL 2 based engine" in Docker Desktop settings
+
+# 2. Inside your WSL 2 distribution (Ubuntu recommended):
+
+# Install Node.js (LTS)
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Install devcontainer CLI
+sudo npm install -g @devcontainers/cli
 ```
 
 :::
@@ -47,12 +82,33 @@ curl -fsSL https://bun.sh/install | bash
 
 ::: code-group
 
-```bash [Homebrew (macOS)]
+```bash [macOS (Homebrew)]
 brew tap NoorXLabs/homebrew-tap
 brew install devbox
 ```
 
-```bash [From Source (macOS/Linux)]
+```bash [Linux / WSL]
+# Download the latest release for your platform
+# from https://github.com/NoorXLabs/DevBox/releases
+
+# For x64:
+curl -L -o devbox https://github.com/NoorXLabs/DevBox/releases/latest/download/devbox-linux-x64
+chmod +x devbox
+sudo mv devbox /usr/local/bin/
+
+# For ARM64:
+curl -L -o devbox https://github.com/NoorXLabs/DevBox/releases/latest/download/devbox-linux-arm64
+chmod +x devbox
+sudo mv devbox /usr/local/bin/
+```
+
+```bash [From Source]
+# Building from source requires Bun 1.0+
+
+# Install Bun (if not already installed)
+curl -fsSL https://bun.sh/install | bash
+
+# Clone and build
 git clone https://github.com/NoorXLabs/DevBox.git
 cd DevBox
 bun install
@@ -63,26 +119,21 @@ bun link
 
 ## Verify Installation
 
-Check that DevBox is installed correctly:
+Check that DevBox and its dependencies are installed correctly:
 
 ```bash
+# Check DevBox
 devbox --version
-```
 
-You should see the current version number.
-
-Also verify the dependencies are available:
-
-```bash
-# Check Docker
+# Check Docker is installed and running
 docker --version
-
-# Check Node.js
-node --version
-
-# Check that Docker is running
 docker ps
+
+# Check devcontainer CLI
+devcontainer --version
 ```
+
+You should see version numbers for all three tools. If `docker ps` fails, make sure Docker Desktop is running.
 
 ## Initial Setup
 
@@ -94,7 +145,7 @@ devbox init
 
 The wizard will:
 
-1. **Check dependencies** - Verify Docker and Node.js are installed
+1. **Check dependencies** - Verify Docker and devcontainer CLI are installed
 2. **Install Mutagen** - Download the file sync tool automatically
 3. **Configure remote server** - Set up SSH connection to your backup server
 4. **Choose editor** - Select your preferred code editor
@@ -106,7 +157,7 @@ Welcome to devbox setup!
 
 Checking dependencies...
   Docker installed
-  Node.js available
+  Devcontainer CLI available
 
 Installing mutagen...
   Mutagen installed
@@ -170,7 +221,24 @@ If `devbox init` reports Docker is not found:
 
 1. Ensure Docker is installed: `docker --version`
 2. Check Docker is running: `docker ps`
-3. On Linux, ensure your user is in the docker group: `sudo usermod -aG docker $USER`
+3. On macOS, make sure Docker Desktop is running (check the menu bar icon)
+4. On Linux, ensure your user is in the docker group: `sudo usermod -aG docker $USER` (then log out and back in)
+
+### Devcontainer CLI Not Found
+
+If `devcontainer --version` fails:
+
+**macOS (Homebrew):**
+```bash
+brew install devcontainer
+```
+
+**Linux / WSL:**
+```bash
+sudo npm install -g @devcontainers/cli
+```
+
+If npm is not found, install Node.js first (see [Prerequisites](#installing-prerequisites)).
 
 ### SSH Connection Failed
 
