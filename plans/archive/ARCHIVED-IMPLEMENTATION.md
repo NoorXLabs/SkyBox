@@ -309,4 +309,13 @@
 
 ---
 
-*Archived: 2026-02-01*
+## v0.7.7 Features
+
+- [x] **Version Update Notification** — Daily check for new releases with channel-aware updates — `f934571`
+- [x] **Install Method Detection** — Build-time constant for correct upgrade commands — `f934571`
+- [x] **Custom Local Templates** — User templates in `~/.devbox/templates/` with unified selector — `a2e0cab`
+- [x] **Bundle Mutagen with DevBox** — Embedded platform-specific Mutagen binary — `f934571`
+
+---
+
+*Archived: 2026-02-02*
