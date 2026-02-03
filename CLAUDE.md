@@ -393,3 +393,7 @@ Note: `bun run check` is enforced automatically by a native Stop hook — no man
 - **`mock.module("execa")` is global in bun test**: Several test files (`shell-docker-isolated`, `rm-remote`, `lock`, `container-id-isolated`) mock `execa` at module level. This contaminates all test files in the same `bun test` run. New modules that need reliable subprocess execution in tests should use `node:child_process` instead of `execa`.
 
 - **Lefthook `biome check --write` reverts edits on failed commits**: When a pre-commit hook fails after the `check` stage, biome has already rewritten staged files. The working tree ends up with biome's version, not yours. Re-apply edits after any failed commit.
+
+- **Biome lint for shell variable strings**: When testing shell scripts containing `${VAR}` syntax, biome reports `noTemplateCurlyInString`. Add `// biome-ignore lint/suspicious/noTemplateCurlyInString: <reason>` before the string literal.
+
+- **Background process spawning**: For detached background processes, use `spawn("cmd", args, { detached: true, stdio: [...] })` followed by `child.unref()` to allow parent to exit. See `src/commands/hook.ts` for example.
