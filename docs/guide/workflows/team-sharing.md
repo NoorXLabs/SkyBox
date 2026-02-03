@@ -179,6 +179,24 @@ The LOCK column shows current status:
   frontend-app  stopped    paused    develop  unlocked              3 days ago
 ```
 
+### Cross-Project Lock Overview
+
+See all locks across projects on a remote:
+
+```bash
+devbox locks
+```
+
+```
+Locks on team-server:
+
+  PROJECT                         STATUS                     SINCE
+  backend-api                     locked (alices-macbook)    2024-01-15T09:00:00Z
+  frontend-app                    unlocked
+```
+
+The `devbox browse` command also shows a LOCK column for each remote project.
+
 ## Working on Different Projects
 
 The simplest collaboration pattern: each developer works on different projects.
@@ -330,6 +348,18 @@ Or ask the teammate to:
 ```bash
 devbox down backend-api --force
 ```
+
+### Lock Expiry (TTL)
+
+Locks automatically expire after 24 hours. If a machine crashes without running `devbox down`, the lock becomes stale and other developers can acquire it without a takeover prompt.
+
+To check if a lock is stale, run:
+
+```bash
+devbox status backend-api
+```
+
+Expired locks are treated as unlocked — no manual intervention needed.
 
 ### Out of Sync
 

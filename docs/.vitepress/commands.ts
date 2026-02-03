@@ -23,6 +23,7 @@ export const commands: CommandEntry[] = [
   { text: "devbox status", link: "/reference/status", description: "Show project status" },
   { text: "devbox dashboard", link: "/reference/dashboard", description: "Full-screen status dashboard" },
   { text: "devbox browse", link: "/reference/browse", description: "List projects on remote server" },
+  { text: "devbox locks", link: "/reference/locks", description: "Show lock status for all projects" },
   { text: "devbox list", link: "/reference/list", description: "List local projects" },
   { text: "devbox rm", link: "/reference/rm", description: "Remove project locally (keeps remote)" },
   { text: "devbox editor", link: "/reference/editor", description: "Change default editor" },

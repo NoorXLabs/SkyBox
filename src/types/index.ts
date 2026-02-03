@@ -275,6 +275,7 @@ export interface LockInfo {
 	user: string; // username
 	timestamp: string; // ISO 8601 datetime
 	pid: number; // process ID
+	expires?: string; // ISO 8601 datetime — lock is stale after this time
 }
 
 /** Lock check result: unlocked or locked with ownership info */

@@ -256,6 +256,8 @@ registerNameCommand(program);
 
 3. Add tests in `src/commands/__tests__/name.test.ts`
 
+4. Add to `docs/.vitepress/commands.ts` for sidebar and command overview
+
 ### Adding a New Library Function
 
 1. Add function to appropriate file in `src/lib/`
@@ -300,9 +302,10 @@ Use `src/lib/config.ts` functions:
 
 Multi-machine lock prevents conflicts when same project is opened on multiple machines:
 - Lock file stored on remote: `~/.devbox-locks/<project>.lock`
-- Contains: machine name, user, timestamp, PID
+- Contains: machine name, user, timestamp, PID, expires (24h TTL)
 - Acquired by `devbox up`, released by `devbox down`
 - Uses atomic test-and-set (shell noclobber mode) to prevent race conditions
+- Locks expire after 24 hours (`LOCK_TTL_MS` in constants.ts) — stale locks treated as unlocked
 - See `src/lib/lock.ts` for implementation
 
 ### Sync System

@@ -1,7 +1,7 @@
 /** Multi-machine lock system using atomic remote file operations. */
 
 import { hostname, userInfo } from "node:os";
-import { LOCKS_DIR_NAME } from "@lib/constants.ts";
+import { LOCK_TTL_MS, LOCKS_DIR_NAME } from "@lib/constants.ts";
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import type {
@@ -10,6 +10,7 @@ import type {
 	LockStatus,
 	RemoteEntry,
 } from "@typedefs/index.ts";
+import chalk from "chalk";
 
 /**
  * Remote connection info needed for lock operations.
@@ -66,6 +67,12 @@ export async function getLockStatus(
 
 	try {
 		const info: LockInfo = JSON.parse(result.stdout);
+
+		// Check if lock has expired
+		if (info.expires && new Date(info.expires).getTime() < Date.now()) {
+			return { locked: false };
+		}
+
 		const currentMachine = getMachineName();
 		const ownedByMe = info.machine === currentMachine;
 
@@ -85,6 +92,7 @@ function createLockInfo(): LockInfo {
 		user: userInfo().username,
 		timestamp: new Date().toISOString(),
 		pid: process.pid,
+		expires: new Date(Date.now() + LOCK_TTL_MS).toISOString(),
 	};
 }
 
@@ -215,4 +223,68 @@ export async function releaseLock(
 	}
 
 	return { success: true };
+}
+
+/**
+ * Fetch lock statuses for all projects on a remote in a single SSH call.
+ * Returns a Map of project name -> LockStatus.
+ */
+export async function getAllLockStatuses(
+	remoteInfo: LockRemoteInfo,
+): Promise<Map<string, LockStatus>> {
+	const locksDir = getLocksDir(remoteInfo.basePath);
+	// Check if locks directory exists first, then iterate over .lock files
+	// This handles shells with different glob behavior (nullglob, failglob)
+	const command = `[ -d ${escapeShellArg(locksDir)} ] && for f in ${escapeShellArg(locksDir)}/*.lock; do [ -f "$f" ] && echo "$(basename "$f")\t$(cat "$f")"; done 2>/dev/null`;
+
+	const result = await runRemoteCommand(remoteInfo.host, command);
+	const statuses = new Map<string, LockStatus>();
+
+	if (!result.success || !result.stdout?.trim()) {
+		return statuses;
+	}
+
+	const currentMachine = getMachineName();
+
+	for (const line of result.stdout.trim().split("\n")) {
+		const tabIndex = line.indexOf("\t");
+		if (tabIndex === -1) continue;
+
+		const filename = line.substring(0, tabIndex);
+		const jsonStr = line.substring(tabIndex + 1);
+
+		// Strip .lock extension to get project name
+		const project = filename.replace(/\.lock$/, "");
+
+		try {
+			const info: LockInfo = JSON.parse(jsonStr);
+
+			// Check expiry
+			if (info.expires && new Date(info.expires).getTime() < Date.now()) {
+				statuses.set(project, { locked: false });
+				continue;
+			}
+
+			const ownedByMe = info.machine === currentMachine;
+			statuses.set(project, { locked: true, ownedByMe, info });
+		} catch {
+			statuses.set(project, { locked: false });
+		}
+	}
+
+	return statuses;
+}
+
+/**
+ * Format a lock status for display in terminal output.
+ * Shared by browse and locks commands to ensure consistent formatting.
+ */
+export function formatLockStatus(status: LockStatus | undefined): string {
+	if (!status || !status.locked) {
+		return chalk.dim("unlocked");
+	}
+	if (status.ownedByMe) {
+		return chalk.yellow("locked (you)");
+	}
+	return chalk.red(`locked (${status.info.machine})`);
 }
