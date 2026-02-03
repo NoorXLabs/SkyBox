@@ -2,6 +2,7 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
 import {
+	AUTO_UP_LOG_FILE,
 	BIN_DIR_NAME,
 	CONFIG_FILENAME,
 	DEVBOX_HOME_DIR,
@@ -76,4 +77,12 @@ export function getUpdateCheckPath(): string {
  */
 export function getMutagenVersionPath(): string {
 	return join(getBinDir(), MUTAGEN_VERSION_FILE);
+}
+
+/**
+ * Get the path to the auto-up log file.
+ * Used by shell hooks to log auto-start operations.
+ */
+export function getAutoUpLogPath(): string {
+	return join(getLogsDir(), AUTO_UP_LOG_FILE);
 }

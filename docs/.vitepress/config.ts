@@ -40,6 +40,7 @@ export default defineConfig({
           text: 'Core Concepts',
           items: [
             { text: 'Concepts Overview', link: '/guide/concepts' },
+            { text: 'Shell Integration', link: '/guide/shell-integration' },
           ],
         },
         {

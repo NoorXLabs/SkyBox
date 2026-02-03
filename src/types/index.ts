@@ -31,6 +31,7 @@ export interface SyncDefaults {
 	sync_mode: string;
 	ignore: string[];
 	encryption?: boolean;
+	auto_up?: boolean;
 }
 
 /** V1 per-project configuration with optional overrides */
@@ -83,6 +84,7 @@ export interface ProjectConfigV2 {
 	sync_paths?: string[]; // Selective sync: only sync these subdirectories
 	encryption?: ProjectEncryption;
 	hooks?: HooksConfig;
+	auto_up?: boolean; // Auto-start container when entering project directory
 }
 
 export enum ContainerStatus {

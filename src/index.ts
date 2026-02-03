@@ -8,6 +8,7 @@ import { doctorCommand } from "@commands/doctor.ts";
 import { downCommand } from "@commands/down.ts";
 import { editorCommand } from "@commands/editor.ts";
 import { encryptCommand } from "@commands/encrypt.ts";
+import { hookCheckCommand, hookCommand } from "@commands/hook.ts";
 import { initCommand } from "@commands/init.ts";
 import { listCommand } from "@commands/list.ts";
 import { logsCommand } from "@commands/logs.ts";
@@ -167,6 +168,14 @@ program
 	.command("encrypt [subcommand] [project]")
 	.description("Manage project encryption")
 	.action(encryptCommand);
+
+program
+	.command("hook [shell]")
+	.description("Output shell hook code for auto-up on directory enter")
+	.action(hookCommand);
+
+// Hidden command called by shell hooks
+program.command("hook-check", { hidden: true }).action(hookCheckCommand);
 
 // Parse and run the command, then check for updates
 (async () => {

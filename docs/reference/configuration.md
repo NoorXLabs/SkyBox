@@ -89,6 +89,7 @@ Default settings for file synchronization.
 | `sync_mode` | `string` | `"two-way-resolved"` | Mutagen sync mode for file synchronization |
 | `ignore` | `string[]` | See below | Default patterns to ignore during sync |
 | `encryption` | `boolean` | `false` | Enable encryption by default for new projects |
+| `auto_up` | `boolean` | `false` | Auto-start containers when entering project directories (see [Shell Integration](/guide/shell-integration)) |
 
 #### Default Ignore Patterns
 
@@ -135,6 +136,7 @@ A map of project names to project-specific configurations. Each project referenc
 | `sync_paths` | `string[]` | No | Selective sync: only sync these subdirectories instead of the entire project |
 | `encryption` | `object` | No | Per-project encryption config (see below) |
 | `hooks` | `object` | No | Lifecycle hooks: shell commands to run before/after `up` and `down` (see [Hooks](/reference/hooks)) |
+| `auto_up` | `boolean` | No | Auto-start container when entering this project's directory (see [Shell Integration](/guide/shell-integration)) |
 
 Example:
 

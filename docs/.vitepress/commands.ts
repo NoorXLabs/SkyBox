@@ -32,4 +32,5 @@ export const commands: CommandEntry[] = [
   { text: "devbox logs", link: "/reference/logs", description: "Show container or sync logs" },
   { text: "devbox encrypt", link: "/reference/encryption", description: "Manage project encryption" },
   { text: "devbox update", link: "/reference/update", description: "Update Mutagen binary" },
+  { text: "devbox hook", link: "/reference/hook", description: "Shell integration for auto-starting containers" },
 ];
