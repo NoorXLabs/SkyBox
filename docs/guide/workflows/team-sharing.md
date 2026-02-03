@@ -107,7 +107,7 @@ When Alice runs `devbox up backend-api`:
    {
      "machine": "alices-macbook",
      "user": "alice",
-     "timestamp": "2024-01-15T09:00:00Z",
+     "timestamp": "2026-02-03T09:00:00Z",
      "pid": 12345
    }
    ```
@@ -118,7 +118,7 @@ When Alice runs `devbox up backend-api`:
 If Bob runs `devbox up backend-api` while Alice has the lock:
 
 ```
-Project locked by 'alices-macbook' since 2024-01-15T09:00:00Z
+Project locked by 'alices-macbook' since 2026-02-03T09:00:00Z
 ? Take over lock anyway? (y/N)
 ```
 
@@ -163,7 +163,7 @@ Lock
   Status:     locked (alices-macbook)
   Machine:    alices-macbook
   User:       alice
-  Timestamp:  2024-01-15T09:00:00Z
+  Timestamp:  2026-02-03T09:00:00Z
 ```
 
 ### Quick Status Check
@@ -191,7 +191,7 @@ devbox locks
 Locks on team-server:
 
   PROJECT                         STATUS                     SINCE
-  backend-api                     locked (alices-macbook)    2024-01-15T09:00:00Z
+  backend-api                     locked (alices-macbook)    2026-02-03T09:00:00Z
   frontend-app                    unlocked
 ```
 

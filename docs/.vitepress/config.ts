@@ -1,9 +1,19 @@
 import { defineConfig } from 'vitepress'
+import llmstxt from 'vitepress-plugin-llms'
 import { commands } from './commands'
 
 export default defineConfig({
   title: 'DevBox',
   description: 'Development environment management CLI',
+  srcExclude: ['**/architecture/**'],
+
+  sitemap: {
+    hostname: 'https://devbox.noorxlabs.com'
+  },
+
+  vite: {
+    plugins: [llmstxt()]
+  },
 
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/devbox-logo-grey.svg' }],
@@ -23,7 +33,6 @@ export default defineConfig({
     nav: [
       { text: 'Guide', link: '/guide/', activeMatch: '/guide/' },
       { text: 'Reference', link: '/reference/', activeMatch: '/reference/' },
-      { text: 'Architecture', link: '/architecture/', activeMatch: '/architecture/' },
     ],
 
     sidebar: {
@@ -57,6 +66,12 @@ export default defineConfig({
             { text: 'Troubleshooting', link: '/guide/troubleshooting' },
           ],
         },
+        {
+          text: 'Resources',
+          items: [
+            { text: 'LLMs.txt', link: '/llms-full.txt' },
+          ],
+        },
       ],
 
       '/reference/': [
@@ -75,15 +90,10 @@ export default defineConfig({
             { text: 'Hooks', link: '/reference/hooks' },
           ],
         },
-      ],
-
-      '/architecture/': [
         {
-          text: 'Architecture',
+          text: 'Resources',
           items: [
-            { text: 'Overview', link: '/architecture/' },
-            { text: 'Codebase Guide', link: '/architecture/codebase' },
-            { text: 'Design Decisions', link: '/architecture/design-decisions' },
+            { text: 'LLMs.txt', link: '/llms-full.txt' },
           ],
         },
       ],

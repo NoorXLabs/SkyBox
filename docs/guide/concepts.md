@@ -288,7 +288,7 @@ Lock file format (stored as JSON):
 {
   "machine": "my-laptop",
   "user": "developer",
-  "timestamp": "2024-01-15T10:30:00Z",
+  "timestamp": "2026-02-03T10:30:00Z",
   "pid": 12345
 }
 ```
@@ -314,7 +314,7 @@ If the atomic creation fails (file already exists), DevBox checks ownership:
 If another machine holds the lock:
 
 ```
-Project locked by 'work-laptop' since 2024-01-15T08:00:00Z
+Project locked by 'work-laptop' since 2026-02-03T08:00:00Z
 Take over lock anyway? (y/N)
 ```
 

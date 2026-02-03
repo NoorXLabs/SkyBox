@@ -38,8 +38,8 @@ Projects are displayed in a table sorted with locked projects first:
 Locks on my-server:
 
   PROJECT                         STATUS                     SINCE
-  backend-api                     locked (alices-macbook)    2024-01-15T09:00:00Z
-  frontend-app                    locked (you)               2024-01-15T10:30:00Z
+  backend-api                     locked (alices-macbook)    2026-02-03T09:00:00Z
+  frontend-app                    locked (you)               2026-02-03T10:30:00Z
   data-service                    unlocked
 ```
 
@@ -65,7 +65,7 @@ devbox locks
 # Locks on my-server:
 #
 #   PROJECT                         STATUS                     SINCE
-#   backend-api                     locked (alices-macbook)    2024-01-15T09:00:00Z
+#   backend-api                     locked (alices-macbook)    2026-02-03T09:00:00Z
 #   frontend-app                    unlocked
 ```
 
