@@ -1,7 +1,7 @@
 /** Multi-machine lock system using atomic remote file operations. */
 
 import { hostname, userInfo } from "node:os";
-import { LOCKS_DIR_NAME } from "@lib/constants.ts";
+import { LOCK_TTL_MS, LOCKS_DIR_NAME } from "@lib/constants.ts";
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import type {
@@ -66,6 +66,12 @@ export async function getLockStatus(
 
 	try {
 		const info: LockInfo = JSON.parse(result.stdout);
+
+		// Check if lock has expired
+		if (info.expires && new Date(info.expires).getTime() < Date.now()) {
+			return { locked: false };
+		}
+
 		const currentMachine = getMachineName();
 		const ownedByMe = info.machine === currentMachine;
 
@@ -85,6 +91,7 @@ function createLockInfo(): LockInfo {
 		user: userInfo().username,
 		timestamp: new Date().toISOString(),
 		pid: process.pid,
+		expires: new Date(Date.now() + LOCK_TTL_MS).toISOString(),
 	};
 }
 

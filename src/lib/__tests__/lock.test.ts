@@ -145,6 +145,66 @@ describe("lock", () => {
 
 			expect(status.locked).toBe(false);
 		});
+
+		test("returns locked: false when lock has expired", async () => {
+			const lockInfo: LockInfo = {
+				machine: "other-machine",
+				user: "otheruser",
+				timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+				pid: 12345,
+				expires: new Date(Date.now() - 1000).toISOString(), // expired 1 second ago
+			};
+
+			mockRunRemoteCommand.mockResolvedValueOnce({
+				success: true,
+				stdout: JSON.stringify(lockInfo),
+			});
+
+			const status = await getLockStatus("myproject", testRemoteInfo);
+
+			expect(status.locked).toBe(false);
+		});
+
+		test("returns locked: true when lock has not expired", async () => {
+			const lockInfo: LockInfo = {
+				machine: "other-machine",
+				user: "otheruser",
+				timestamp: new Date().toISOString(),
+				pid: 12345,
+				expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+			};
+
+			mockRunRemoteCommand.mockResolvedValueOnce({
+				success: true,
+				stdout: JSON.stringify(lockInfo),
+			});
+
+			const status = await getLockStatus("myproject", testRemoteInfo);
+
+			expect(status.locked).toBe(true);
+			if (status.locked) {
+				expect(status.ownedByMe).toBe(false);
+			}
+		});
+
+		test("returns locked: true when lock has no expires field (backward compat)", async () => {
+			const lockInfo: LockInfo = {
+				machine: "other-machine",
+				user: "otheruser",
+				timestamp: new Date().toISOString(),
+				pid: 12345,
+				// no expires field
+			};
+
+			mockRunRemoteCommand.mockResolvedValueOnce({
+				success: true,
+				stdout: JSON.stringify(lockInfo),
+			});
+
+			const status = await getLockStatus("myproject", testRemoteInfo);
+
+			expect(status.locked).toBe(true);
+		});
 	});
 
 	describe("acquireLock", () => {
