@@ -1,5 +1,6 @@
 /** Terminal UI helpers: colored output, spinners, headers. */
 import chalk from "chalk";
+import { program } from "commander";
 import inquirer from "inquirer";
 import ora, { type Ora } from "ora";
 
@@ -83,4 +84,8 @@ export async function confirmDestructiveAction(options: {
 	}
 
 	return true;
+}
+
+export function isDryRun(): boolean {
+	return program.opts().dryRun === true;
 }
