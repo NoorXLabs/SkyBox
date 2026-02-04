@@ -3,6 +3,7 @@
  * @description Operations for interacting with remote servers.
  */
 
+import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 
 /**
@@ -13,9 +14,10 @@ export async function checkRemoteProjectExists(
 	basePath: string,
 	project: string,
 ): Promise<boolean> {
+	const fullPath = `${basePath}/${project}`;
 	const result = await runRemoteCommand(
 		host,
-		`test -d "${basePath}/${project}" && echo "EXISTS" || echo "NOT_FOUND"`,
+		`test -d ${escapeShellArg(fullPath)} && echo "EXISTS" || echo "NOT_FOUND"`,
 	);
 	return result.stdout?.includes("EXISTS") ?? false;
 }

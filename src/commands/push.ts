@@ -18,6 +18,7 @@ import {
 import { getProjectsDir } from "@lib/paths.ts";
 import { validateProjectName } from "@lib/projectTemplates.ts";
 import { checkRemoteProjectExists } from "@lib/remote.ts";
+import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import {
 	confirmDestructiveAction,
@@ -148,14 +149,17 @@ export async function pushCommand(
 		}
 
 		// Remove remote directory
-		await runRemoteCommand(host, `rm -rf "${remotePath}"`);
+		await runRemoteCommand(host, `rm -rf ${escapeShellArg(remotePath)}`);
 	} else {
 		checkSpin.succeed("Remote path available");
 	}
 
 	// Create remote directory
 	const mkdirSpin = spinner("Creating remote directory...");
-	const mkdirResult = await runRemoteCommand(host, `mkdir -p "${remotePath}"`);
+	const mkdirResult = await runRemoteCommand(
+		host,
+		`mkdir -p ${escapeShellArg(remotePath)}`,
+	);
 
 	if (!mkdirResult.success) {
 		mkdirSpin.fail("Failed to create remote directory");
