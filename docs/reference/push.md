@@ -80,7 +80,7 @@ After pushing, you'll be prompted to start the development container:
 ```
 
 Choosing **yes** runs the full [`devbox up`](/reference/up) flow:
-- Acquires project lock
+- Creates a session for your machine
 - Prompts for devcontainer template (if none exists)
 - Starts the container
 - Offers to open in your editor or attach to shell
@@ -97,7 +97,7 @@ cd ~/code/my-new-app
 devbox push .
 # ? Start dev container now? Yes
 # ─── Starting 'my-new-app'... ───
-# ℹ Lock acquired
+# ℹ Session started
 # ✔ Sync is active
 # ...
 ```

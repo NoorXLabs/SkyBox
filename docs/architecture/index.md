@@ -10,7 +10,6 @@ DevBox is a local-first development environment tool that syncs code between loc
 flowchart TB
     subgraph Remote["Remote Server (Hetzner/etc)"]
         RemoteCode["~/code/<br/>project-a/<br/>project-b/"]
-        Locks[".devbox-locks/"]
     end
 
     subgraph Local["Local Machine"]
@@ -36,7 +35,7 @@ flowchart TB
     Libs -->|"Docker API"| Container
     LocalProjects <-->|"Mutagen Sync<br/>(bidirectional)"| RemoteCode
     LocalProjects -->|"bind mount"| Workspace
-    Libs -->|"Lock Management"| Locks
+    Libs -->|"Session Management"| LocalProjects
 ```
 
 ## Core Components
@@ -50,8 +49,8 @@ Handles user input and orchestrates operations. Each command is a separate modul
 | `init` | Interactive setup wizard |
 | `clone` | Copy project from remote to local |
 | `push` | Push local project to remote |
-| `up` | Start container, acquire lock |
-| `down` | Stop container, keep lock |
+| `up` | Start container, create session |
+| `down` | Stop container, end session |
 | `status` | Show project status |
 | `browse` | List remote projects |
 | `list` | List local projects |
@@ -77,7 +76,7 @@ Shared functionality used by commands:
 | `container.ts` | Docker/devcontainer operations |
 | `mutagen.ts` | Sync session management |
 | `ssh.ts` | SSH connection testing, key setup |
-| `lock.ts` | Multi-computer lock management |
+| `session.ts` | Multi-computer session management |
 | `project.ts` | Project path resolution |
 | `download.ts` | Mutagen binary download |
 | `templates.ts` | Devcontainer templates |
@@ -99,7 +98,7 @@ Centralized TypeScript interfaces for:
 - Configuration (`DevboxConfig`, `ProjectConfig`)
 - Container status (`ContainerStatus`, `ContainerInfo`)
 - Sync status (`SyncStatus`)
-- Lock management (`LockInfo`, `LockStatus`)
+- Session management (`SessionInfo`, `SessionConflictResult`)
 - Command options (`UpOptions`, `DownOptions`)
 
 ## Data Flow: `devbox up`
@@ -110,7 +109,7 @@ Here is the complete flow when a user runs `devbox up myproject`:
 sequenceDiagram
     participant User
     participant CLI as DevBox CLI
-    participant Lock as Lock System
+    participant Session as Session File
     participant Mutagen as Mutagen Sync
     participant Docker as Docker/Devcontainer
     participant Remote as Remote Server
@@ -123,16 +122,15 @@ sequenceDiagram
     Note over CLI: 2. Resolve project
     CLI->>CLI: Check projectExists()
 
-    Note over CLI: 3. Acquire lock
-    CLI->>Remote: SSH: check lock file
-    Remote-->>CLI: Lock status
-    alt Lock conflict
-        CLI->>User: "Locked by X. Take over?"
+    Note over CLI: 3. Check session
+    CLI->>Session: Read .devbox/session.lock
+    Session-->>CLI: Session status
+    alt Session conflict (different machine)
+        CLI->>User: "Active on X. Continue?"
         User-->>CLI: Confirm
-        CLI->>Remote: SSH: delete old lock
     end
-    CLI->>Remote: SSH: create lock file
-    Remote-->>CLI: Lock acquired
+    CLI->>Session: Write session file
+    Session-->>CLI: Session created
 
     Note over CLI: 4. Check sync status
     CLI->>Mutagen: getSyncStatus()
@@ -188,9 +186,9 @@ sequenceDiagram
 
 ~/code/ (on remote)
 ├── project-a/           # Canonical source
-├── project-b/
-└── .devbox-locks/       # Lock files
-    └── project-a.lock
+│   └── .devbox/
+│       └── session.lock # Session file (synced via Mutagen)
+└── project-b/
 ```
 
 ## External Dependencies

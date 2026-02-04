@@ -25,13 +25,6 @@ import {
 import { deriveKey } from "@lib/encryption.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { runHooks } from "@lib/hooks.ts";
-import {
-	acquireLock,
-	createLockRemoteInfo,
-	forceLock,
-	type LockRemoteInfo,
-	releaseLock,
-} from "@lib/lock.ts";
 import { getSyncStatus, resumeSync } from "@lib/mutagen.ts";
 import {
 	getLocalProjects,
@@ -39,6 +32,12 @@ import {
 	projectExists,
 	resolveProjectFromCwd,
 } from "@lib/project.ts";
+import {
+	deleteSession,
+	getMachineName,
+	readSession,
+	writeSession,
+} from "@lib/session.ts";
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import { selectTemplate, writeDevcontainerConfig } from "@lib/templates.ts";
@@ -140,65 +139,58 @@ async function resolveProjects(
 }
 
 /**
- * Acquire lock for the project on the remote server.
- * Handles lock conflicts with optional takeover prompt.
- * Returns true if lock acquired (or no remote), false if user cancelled.
+ * Check for session conflicts and write session file.
+ * Sessions are local files synced by Mutagen - no SSH involved.
+ * Returns true if session written successfully, false if user cancelled.
  */
-async function handleLockAcquisition(
-	project: string,
-	config: DevboxConfigV2,
+async function handleSessionAcquisition(
+	projectPath: string,
 	options: UpOptions,
-): Promise<{ success: boolean; remoteInfo: LockRemoteInfo | null }> {
-	const projectRemote = getProjectRemote(project, config);
+): Promise<boolean> {
+	const existingSession = readSession(projectPath);
+	const currentMachine = getMachineName();
 
-	if (!projectRemote) {
-		warn("No remote configured for this project - skipping lock");
-		return { success: true, remoteInfo: null };
-	}
-
-	const remoteInfo = createLockRemoteInfo(projectRemote.remote);
-	const lockResult = await acquireLock(project, remoteInfo);
-
-	if (lockResult.success) {
-		info("Lock acquired");
-		return { success: true, remoteInfo };
-	}
-
-	if (lockResult.existingLock) {
-		const { machine, timestamp } = lockResult.existingLock;
-		warn(`Project locked by '${machine}' since ${timestamp}`);
-
-		if (options.noPrompt) {
-			error("Cannot take over lock with --no-prompt. Exiting.");
-			return { success: false, remoteInfo };
+	if (existingSession) {
+		if (existingSession.machine === currentMachine) {
+			// Same machine - update timestamp and continue
+			info(`Resuming session on ${currentMachine}`);
+			writeSession(projectPath);
+			return true;
 		}
 
-		const { takeover } = await inquirer.prompt([
+		// Different machine has an active session
+		const { machine, timestamp } = existingSession;
+		warn(`This project is running on ${machine} (since ${timestamp})`);
+
+		if (options.noPrompt) {
+			error("Cannot continue with --no-prompt. Exiting.");
+			return false;
+		}
+
+		const { continueAnyway } = await inquirer.prompt([
 			{
 				type: "confirm",
-				name: "takeover",
-				message: "Take over lock anyway?",
+				name: "continueAnyway",
+				message: "Continue anyway?",
 				default: false,
 			},
 		]);
 
-		if (!takeover) {
+		if (!continueAnyway) {
 			info("Exiting without starting.");
-			return { success: false, remoteInfo };
+			return false;
 		}
 
-		const forceResult = await forceLock(project, remoteInfo);
-		if (!forceResult.success) {
-			error(`Failed to acquire lock: ${forceResult.error}`);
-			return { success: false, remoteInfo };
-		}
-
-		success("Lock acquired (forced takeover)");
-		return { success: true, remoteInfo };
+		// Override the other machine's session
+		writeSession(projectPath);
+		success(`Session started (took over from ${machine})`);
+		return true;
 	}
 
-	error(`Failed to acquire lock: ${lockResult.error}`);
-	return { success: false, remoteInfo };
+	// No existing session - write fresh
+	writeSession(projectPath);
+	info("Session started");
+	return true;
 }
 
 /**
@@ -544,7 +536,7 @@ export async function upCommand(
 }
 
 /**
- * Start a single project (lock, decrypt, sync, container).
+ * Start a single project (session, decrypt, sync, container).
  * Extracted from upCommand so it can be called in a loop.
  */
 async function startSingleProject(
@@ -561,9 +553,9 @@ async function startSingleProject(
 		await runHooks("pre-up", projectConfig.hooks, projectPath);
 	}
 
-	const lockResult = await handleLockAcquisition(project, config, options);
-	if (!lockResult.success) {
-		throw new Error("Failed to acquire lock");
+	const sessionOk = await handleSessionAcquisition(projectPath, options);
+	if (!sessionOk) {
+		throw new Error("Session conflict - user cancelled");
 	}
 
 	try {
@@ -601,9 +593,8 @@ async function startSingleProject(
 			await runHooks("post-up", projectConfig.hooks, projectPath);
 		}
 	} catch (err) {
-		if (lockResult.remoteInfo) {
-			await releaseLock(project, lockResult.remoteInfo).catch(() => {});
-		}
+		// Clear session on failure so user can retry
+		deleteSession(projectPath);
 		throw err;
 	}
 }

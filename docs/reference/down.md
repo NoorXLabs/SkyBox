@@ -32,7 +32,7 @@ The `down` command stops a running development container. It performs the follow
 3. **Sync Flush** - Waits for pending file changes to sync to remote
 4. **Container Stop** - Stops the running container
 5. **Archive Encryption** - If encryption is enabled, encrypts the project on the remote
-6. **Lock Release** - Releases the lock so other machines can work on the project
+6. **Session End** - Removes the session file so other machines can start without warnings
 7. **Post-Down Hooks** - Runs any configured `post-down` hooks (see [Hooks](/reference/hooks))
 8. **Optional Cleanup** - Removes container and volumes if requested
 9. **Optional Local File Removal** - With cleanup, offers to delete local project files (double confirmation required)

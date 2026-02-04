@@ -11,7 +11,6 @@ import { encryptCommand } from "@commands/encrypt.ts";
 import { hookCheckCommand, hookCommand } from "@commands/hook.ts";
 import { initCommand } from "@commands/init.ts";
 import { listCommand } from "@commands/list.ts";
-import { locksCommand } from "@commands/locks.ts";
 import { logsCommand } from "@commands/logs.ts";
 import { newCommand } from "@commands/new.ts";
 import { openCommand } from "@commands/open.ts";
@@ -54,11 +53,6 @@ program
 	.command("browse")
 	.description("List projects on remote server")
 	.action(browseCommand);
-
-program
-	.command("locks")
-	.description("Show lock status for all remote projects")
-	.action(locksCommand);
 
 program.command("list").description("List local projects").action(listCommand);
 
@@ -133,7 +127,7 @@ program
 	.command("shell <project>")
 	.description("Enter container shell")
 	.option("-c, --command <cmd>", "Run a single command and exit")
-	.option("-f, --force", "Bypass lock check")
+	.option("-f, --force", "Bypass session check")
 	.action(shellCommand);
 
 program

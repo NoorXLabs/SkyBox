@@ -31,7 +31,7 @@ The `up` command starts a development container for the specified project. It pe
 
 1. **Project Resolution** - Determines which project to start (from argument, current directory, or interactive selection)
 2. **Pre-Up Hooks** - Runs any configured `pre-up` hooks (see [Hooks](/reference/hooks))
-3. **Lock Acquisition** - Acquires a lock to prevent conflicts with other machines
+3. **Session Check** - Creates a session for your machine, warning if the project is active elsewhere
 4. **Archive Decryption** - If encryption is enabled, decrypts the project archive on the remote
 5. **Sync Check** - Ensures the Mutagen sync session is active, resuming it if paused
 6. **Container Management** - Starts the container (or handles existing running containers)
@@ -46,14 +46,14 @@ When no project argument is given, DevBox resolves the project in this order:
 1. Checks if the current working directory is inside a known project
 2. Prompts with a multi-select checkbox to start one or more projects at once (unless `--no-prompt` is set)
 
-### Lock System
+### Session System
 
-DevBox uses a lock system to prevent simultaneous editing from multiple machines. When starting a project:
+DevBox uses a session system to detect when a project is active on another machine. When starting a project:
 
-- If the lock is free, it is acquired automatically
-- If another machine holds the lock, you are prompted to take it over
-- With `--no-prompt`, a lock conflict causes an error instead of a takeover prompt
-- If the project has no configured remote, the lock step is skipped
+- If no session exists, one is created automatically for your machine
+- If your machine already has the session, the timestamp is updated
+- If another machine has an active session, you are warned and asked to continue
+- With `--no-prompt`, a session conflict causes an error instead of prompting
 
 ### Archive Decryption
 
@@ -160,7 +160,7 @@ devbox clone another-project
 | Code | Meaning |
 |------|---------|
 | 0 | Success |
-| 1 | Error (project not found, container failed to start, lock conflict in non-interactive mode) |
+| 1 | Error (project not found, container failed to start, session conflict in non-interactive mode) |
 
 ## See Also
 

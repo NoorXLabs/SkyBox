@@ -156,45 +156,48 @@ projects: {}               # Per-project overrides
 | TOML | Less familiar, complex nested structures awkward |
 | JavaScript/TypeScript | Overkill for config, security concerns |
 
-## Why Lock-Based Multi-Computer?
+## Why Session-Based Multi-Computer?
 
-**Decision:** Use lock files on the remote server to coordinate multi-computer access.
+**Decision:** Use local session files (synced by Mutagen) to coordinate multi-computer access.
 
 **Rationale:**
 
-1. **Prevents conflicts** - Only one machine can actively work on a project at a time.
+1. **Prevents conflicts** - Warns when a project is active on another machine.
 
-2. **Clear ownership** - Always know which machine has the project.
+2. **Clear ownership** - Always know which machine has an active session.
 
-3. **Explicit handoff** - `devbox down` with sync ensures clean transfer.
+3. **Explicit handoff** - `devbox down` removes the session and syncs cleanly.
 
-4. **Works offline** - Lock state lives on remote, checked only when going online.
+4. **No SSH round-trip** - Session files live inside the project directory and sync via Mutagen, so checking session status is a local file read.
 
-**Lock Flow:**
+5. **Automatic expiry** - Sessions expire after 24 hours, handling crash scenarios without manual intervention.
+
+**Session Flow:**
 
 ```
 devbox up myproject
-  └─> Atomic lock acquisition (shell noclobber mode)
-      ├─> Success → Lock acquired, proceed
-      ├─> File exists, owned by me → Update timestamp, proceed
-      └─> File exists, owned by other → Prompt for takeover
+  └─> Read session file (.devbox/session.lock)
+      ├─> No file → Write session, proceed
+      ├─> File exists, same machine → Update timestamp, proceed
+      └─> File exists, different machine → Warn, prompt to continue
 
 devbox down myproject
-  └─> Flush sync → Stop container → Release lock
+  └─> Flush sync → Stop container → Delete session file
 ```
 
-**Race Condition Prevention:**
+**Atomic Writes:**
 
-Lock acquisition uses shell's noclobber mode (`set -C`) for atomic test-and-set. This prevents TOCTOU (time-of-check to time-of-use) race conditions where two machines could simultaneously detect "unlocked" and both create locks.
+Session file writes use atomic write-then-rename to prevent corruption if two processes write simultaneously.
 
-**Lock File Format:**
+**Session File Format:**
 
 ```json
 {
   "machine": "macbook-pro",
   "user": "noor",
   "timestamp": "2026-02-03T10:30:00Z",
-  "pid": 12345
+  "pid": 12345,
+  "expires": "2026-02-04T10:30:00Z"
 }
 ```
 
@@ -202,10 +205,10 @@ Lock acquisition uses shell's noclobber mode (`set -C`) for atomic test-and-set.
 
 | Approach | Why Not |
 |----------|---------|
-| No locking | Risk of conflicts, lost work |
+| Remote lock files via SSH | Requires SSH round-trip on every `up`, adds latency |
+| No coordination | Risk of conflicts, lost work |
 | Git-based locking | Adds commits, clutters history |
 | Database/service | Extra infrastructure |
-| Timestamp-based | Race conditions |
 
 ## Why Sync .git Directory?
 

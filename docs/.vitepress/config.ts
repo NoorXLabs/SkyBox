@@ -57,7 +57,7 @@ export default defineConfig({
           items: [
             { text: 'New Project', link: '/guide/workflows/new-project' },
             { text: 'Daily Development', link: '/guide/workflows/daily-development' },
-            { text: 'Team Sharing', link: '/guide/workflows/team-sharing' },
+            { text: 'Multi-Machine', link: '/guide/workflows/multi-machine' },
           ],
         },
         {

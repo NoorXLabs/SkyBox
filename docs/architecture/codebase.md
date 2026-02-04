@@ -17,8 +17,8 @@ devbox/
 │   │   ├── init.ts        # Interactive setup wizard
 │   │   ├── clone.ts       # Clone remote project locally
 │   │   ├── push.ts        # Push local project to remote
-│   │   ├── up.ts          # Start container + acquire lock
-│   │   ├── down.ts        # Stop container + release lock
+│   │   ├── up.ts          # Start container + create session
+│   │   ├── down.ts        # Stop container + end session
 │   │   ├── status.ts      # Show project status
 │   │   ├── browse.ts      # List remote projects
 │   │   ├── list.ts        # List local projects
@@ -40,7 +40,7 @@ devbox/
 │   │   ├── container.ts   # Docker/devcontainer ops
 │   │   ├── mutagen.ts     # Sync management
 │   │   ├── ssh.ts         # SSH operations
-│   │   ├── lock.ts        # Lock file management (atomic)
+│   │   ├── session.ts     # Session file management (atomic)
 │   │   ├── remote.ts      # Remote project operations
 │   │   ├── project.ts     # Project resolution
 │   │   ├── download.ts    # Binary downloads
@@ -129,9 +129,9 @@ interface ContainerInfo { ... }
 interface SyncStatus { exists, paused, status: SyncStatusValue }
 type SyncStatusValue = "syncing" | "paused" | "none" | "error"
 
-// Lock types
-interface LockInfo { machine, user, timestamp, pid }
-type LockStatus = { locked: false } | { locked: true; ownedByMe; info }
+// Session types
+interface SessionInfo { machine, user, timestamp, pid, expires }
+interface SessionConflictResult { hasConflict, existingSession? }
 
 // Template types
 interface DevcontainerConfig { ... }  // devcontainer.json structure

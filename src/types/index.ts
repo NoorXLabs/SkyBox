@@ -119,7 +119,7 @@ export interface ProjectSummary {
 	container: "running" | "stopped" | "unknown";
 	sync: "syncing" | "paused" | "no session" | "error" | "unknown";
 	branch: string;
-	lock: string;
+	session: string;
 	lastActive: Date | null;
 	size: string;
 	path: string;
@@ -161,7 +161,7 @@ export interface DetailedStatus {
 	container: ContainerDetails;
 	sync: SyncDetails;
 	git: GitDetails | null;
-	lock: string;
+	session: string;
 	disk: DiskDetails;
 }
 
@@ -268,28 +268,6 @@ export interface OpenOptions {
 	noPrompt?: boolean;
 }
 
-// Lock types
-/** Information stored in a remote lock file */
-export interface LockInfo {
-	machine: string; // hostname of machine holding lock
-	user: string; // username
-	timestamp: string; // ISO 8601 datetime
-	pid: number; // process ID
-	expires?: string; // ISO 8601 datetime — lock is stale after this time
-}
-
-/** Lock check result: unlocked or locked with ownership info */
-export type LockStatus =
-	| { locked: false }
-	| { locked: true; ownedByMe: boolean; info: LockInfo };
-
-/** Result of releasing a lock */
-export interface LockReleaseResult {
-	success: boolean;
-	skipped?: boolean;
-	error?: string;
-}
-
 // Doctor command types
 export type DoctorCheckStatus = "pass" | "warn" | "fail";
 
@@ -321,6 +299,27 @@ export interface HookEntry {
 
 /** Per-project hooks configuration */
 export type HooksConfig = Partial<Record<HookEvent, string | HookEntry[]>>;
+
+// Session types
+
+/**
+ * Information stored in a local session file.
+ */
+export interface SessionInfo {
+	machine: string; // hostname of machine holding session
+	user: string; // username
+	timestamp: string; // ISO 8601 datetime when session was created
+	pid: number; // process ID
+	expires: string; // ISO 8601 datetime when session expires
+}
+
+/**
+ * Result of checking for session conflicts.
+ */
+export interface SessionConflictResult {
+	hasConflict: boolean;
+	existingSession?: SessionInfo;
+}
 
 // Install method types
 export type InstallMethod = "homebrew" | "github-release" | "npm" | "source";

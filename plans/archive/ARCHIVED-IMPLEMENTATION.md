@@ -318,4 +318,22 @@
 
 ---
 
-*Archived: 2026-02-02*
+## Post-v0.7.7 Features
+
+- [x] **Lock TTL** — Locks auto-expire after 24 hours; stale locks treated as unlocked — `9b51100`
+- [x] **Browse Lock Column** — `devbox browse` shows lock status per project — `9b51100`
+- [x] **Locks Command** — `devbox locks` for cross-project lock overview — `9b51100`
+- [x] **Auto-Up Shell Hooks** — `devbox hook bash/zsh` for auto-starting containers on directory enter — `afb693b`
+- [x] **Devcontainer Template Unification** — Refactored templates to feature-based architecture — `a4e634d`
+- [x] **Session Reframe** — Replaced team-collaboration lock system with multi-machine session system; local session files, no SSH polling
+
+### Archived Plans
+
+- `plans/archive/2026-02-01-lock-ttl-browse-locks.md` — Lock TTL, browse lock column, locks command
+- `plans/archive/2026-02-01-team-sharing-audit-design.md` — Team sharing audit findings and fixes
+- `plans/archive/2026-02-02-auto-up-shell-hook-design.md` — Auto-up shell hook design
+- `plans/archive/2026-02-04-session-reframe-design.md` — Reframe locks as multi-machine sessions
+
+---
+
+*Archived: 2026-02-04*

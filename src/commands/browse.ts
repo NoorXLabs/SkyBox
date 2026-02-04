@@ -3,14 +3,9 @@
 import { getRemoteHost, selectRemote } from "@commands/remote.ts";
 import { configExists, loadConfig } from "@lib/config.ts";
 import { getErrorMessage } from "@lib/errors.ts";
-import {
-	createLockRemoteInfo,
-	formatLockStatus,
-	getAllLockStatuses,
-} from "@lib/lock.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import { error, header, info, spinner } from "@lib/ui.ts";
-import type { LockStatus, RemoteProject } from "@typedefs/index.ts";
+import type { RemoteProject } from "@typedefs/index.ts";
 import chalk from "chalk";
 
 export async function getRemoteProjects(
@@ -42,7 +37,6 @@ export async function getRemoteProjects(
 
 function printProjects(
 	projects: RemoteProject[],
-	lockStatuses: Map<string, LockStatus>,
 	host: string,
 	basePath: string,
 ): void {
@@ -54,13 +48,12 @@ function printProjects(
 	const branchWidth = Math.max(6, ...projects.map((p) => p.branch.length));
 
 	// Header
-	const headerRow = `  ${"NAME".padEnd(nameWidth)}  ${"BRANCH".padEnd(branchWidth)}  LOCK`;
+	const headerRow = `  ${"NAME".padEnd(nameWidth)}  ${"BRANCH".padEnd(branchWidth)}`;
 	console.log(chalk.dim(headerRow));
 
 	// Rows
 	for (const project of projects) {
-		const lock = formatLockStatus(lockStatuses.get(project.name));
-		const row = `  ${project.name.padEnd(nameWidth)}  ${project.branch.padEnd(branchWidth)}  ${lock}`;
+		const row = `  ${project.name.padEnd(nameWidth)}  ${project.branch.padEnd(branchWidth)}`;
 		console.log(row);
 	}
 
@@ -94,17 +87,13 @@ export async function browseCommand(): Promise<void> {
 	const spin = spinner(`Fetching projects from ${remoteName}...`);
 
 	try {
-		const remoteInfo = createLockRemoteInfo(remote);
-		const [projects, lockStatuses] = await Promise.all([
-			getRemoteProjects(host, remote.path),
-			getAllLockStatuses(remoteInfo),
-		]);
+		const projects = await getRemoteProjects(host, remote.path);
 		spin.stop();
 
 		if (projects.length === 0) {
 			printEmpty();
 		} else {
-			printProjects(projects, lockStatuses, host, remote.path);
+			printProjects(projects, host, remote.path);
 		}
 	} catch (err: unknown) {
 		spin.fail("Failed to connect to remote");

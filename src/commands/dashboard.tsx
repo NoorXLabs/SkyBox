@@ -8,6 +8,7 @@ import { CARD_GAP, CARD_WIDTH } from "@lib/constants.ts";
 import { getContainerInfo, getContainerStatus } from "@lib/container.ts";
 import { getSyncStatus } from "@lib/mutagen.ts";
 import { getProjectsDir } from "@lib/paths.ts";
+import { getMachineName, readSession } from "@lib/session.ts";
 import { ContainerStatus } from "@typedefs/index.ts";
 import { Box, render, Text, useApp, useInput, useStdout } from "ink";
 import type React from "react";
@@ -27,6 +28,7 @@ interface DashboardProject {
 	uptime: string;
 	remote: string;
 	encrypted: boolean;
+	sessionStatus: string; // "active here", "active on <machine>", or "none"
 }
 
 async function gatherProjectData(): Promise<DashboardProject[]> {
@@ -34,6 +36,7 @@ async function gatherProjectData(): Promise<DashboardProject[]> {
 	if (!existsSync(projectsDir)) return [];
 
 	const config = loadConfig();
+	const currentMachine = getMachineName();
 
 	const entries = readdirSync(projectsDir).filter((entry) => {
 		const fullPath = join(projectsDir, entry);
@@ -66,6 +69,17 @@ async function gatherProjectData(): Promise<DashboardProject[]> {
 		let sync = "none";
 		if (syncStatus.exists) sync = syncStatus.paused ? "paused" : "syncing";
 
+		// Determine session status from local .devbox/session.lock
+		let sessionStatus = "none";
+		const session = readSession(projectPath);
+		if (session) {
+			if (session.machine === currentMachine) {
+				sessionStatus = "active here";
+			} else {
+				sessionStatus = `active on ${session.machine}`;
+			}
+		}
+
 		const projectConfig = config?.projects?.[name];
 
 		results.push({
@@ -82,6 +96,7 @@ async function gatherProjectData(): Promise<DashboardProject[]> {
 			uptime: containerInfo?.status || "-",
 			remote: projectConfig?.remote || "-",
 			encrypted: !!projectConfig?.encryption,
+			sessionStatus,
 		});
 	}
 
@@ -113,6 +128,11 @@ function getSimpleFields(p: DashboardProject): CardField[] {
 			color: containerColor(p.container),
 		},
 		{ label: "Sync", value: p.sync, color: syncColor(p.sync) },
+		{
+			label: "Session",
+			value: p.sessionStatus,
+			color: sessionColor(p.sessionStatus),
+		},
 		{ label: "Branch", value: p.branch },
 	];
 }
@@ -129,6 +149,11 @@ function getDetailedFields(p: DashboardProject): CardField[] {
 			color: containerColor(p.container),
 		},
 		{ label: "Sync", value: p.sync, color: syncColor(p.sync) },
+		{
+			label: "Session",
+			value: p.sessionStatus,
+			color: sessionColor(p.sessionStatus),
+		},
 		{ label: "Branch", value: p.branch },
 		{
 			label: "Git",
@@ -324,6 +349,13 @@ function syncColor(status: string): string | undefined {
 	if (status === "syncing") return "green";
 	if (status === "paused") return "yellow";
 	if (status === "error") return "red";
+	return undefined;
+}
+
+function sessionColor(status: string): string | undefined {
+	if (status === "active here") return "green";
+	if (status.startsWith("active on ")) return "yellow";
+	if (status === "none") return "gray";
 	return undefined;
 }
 

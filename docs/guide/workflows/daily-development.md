@@ -23,7 +23,7 @@ DevBox auto-detects the project from your current directory.
 
 ### What Happens on Start
 
-1. **Lock Acquisition** - DevBox acquires a lock on the remote to prevent conflicts
+1. **Session Check** - DevBox checks for an existing session and creates one for your machine
 2. **Sync Resume** - If sync was paused, it resumes automatically
 3. **Container Start** - Starts or creates the dev container
 4. **Post-Start** - Prompts for editor/shell options
@@ -88,10 +88,10 @@ Shows a table of all local projects:
 ```
 Projects:
 
-  NAME          CONTAINER  SYNC      BRANCH   LOCK                  LAST ACTIVE  SIZE
-  backend-api   running    syncing   main     locked (this machine) 2 hours ago  245M
-  frontend-app  stopped    paused    develop  unlocked              3 days ago   512M
-  shared-lib    stopped    syncing   main     unlocked              1 day ago    48M
+  NAME          CONTAINER  SYNC      BRANCH   SESSION               LAST ACTIVE  SIZE
+  backend-api   running    syncing   main     active here           2 hours ago  245M
+  frontend-app  stopped    paused    develop  none                  3 days ago   512M
+  shared-lib    stopped    syncing   main     none                  1 day ago    48M
 ```
 
 ### Detailed Project Status
@@ -125,11 +125,11 @@ Git
   Ahead:      3 commits
   Behind:     0 commits
 
-Lock
-  Status:     locked (this machine)
+Session
+  Status:     active here
   Machine:    macbook-pro
   User:       john
-  Timestamp:  2026-02-03T10:30:00Z
+  Started:    2026-02-03T10:30:00Z
 
 Disk Usage
   Local:      245M
@@ -147,7 +147,7 @@ devbox down backend-api
 This:
 1. Flushes pending sync changes to remote
 2. Stops the container
-3. Releases the lock
+3. Ends the session
 4. Optionally pauses sync to save resources
 
 ### Start Another Project
@@ -183,7 +183,7 @@ devbox up backend-api --attach
 devbox up frontend-app --attach
 ```
 
-Note: Each project acquires its own lock, so the same project cannot be actively worked on from two machines simultaneously.
+Note: Each project has its own session, so DevBox will warn you if the same project is active on another machine.
 
 ## Working with Running Containers
 
@@ -202,7 +202,7 @@ devbox open my-project --editor
 devbox open my-project --shell
 ```
 
-This is faster than `devbox up` because it skips lock acquisition and sync checks.
+This is faster than `devbox up` because it skips session checks and sync checks.
 
 ### Using `devbox up` with Running Containers
 
@@ -277,7 +277,7 @@ Interactive prompts:
 ```
 Syncing pending changes... done
 Stopping container... done
-Lock released
+Session ended
 
 ? Remove the container to free up resources? (y/N)
 ? Pause background sync to save resources? (y/N)
@@ -289,7 +289,7 @@ Lock released
 devbox down my-project --no-prompt
 ```
 
-Stops container and releases lock without prompts.
+Stops container and ends session without prompts.
 
 ### Shutdown with Cleanup
 
@@ -307,7 +307,7 @@ Stop all running containers at once using the `--all` flag:
 devbox down --all
 ```
 
-This stops all running containers and releases all locks. If some projects fail to shut down, the command continues with the remaining projects and reports failures at the end.
+This stops all running containers and ends all sessions. If some projects fail to shut down, the command continues with the remaining projects and reports failures at the end.
 
 ## Managing Sync
 
@@ -336,39 +336,40 @@ During `devbox down`, you can choose to pause sync. This saves resources when yo
 
 Running `devbox up` automatically resumes paused sync sessions.
 
-## Lock Management
+## Session Management
 
-### Understanding Locks
+### Understanding Sessions
 
-Locks prevent two machines from editing the same project simultaneously. When you run `devbox up`:
+Sessions track which machine is actively working on a project. When you run `devbox up`:
 
-1. DevBox checks for existing lock on remote
-2. If unlocked, acquires lock for your machine
-3. If locked by another machine, prompts for action
+1. DevBox checks for an existing session file in the project
+2. If no session exists, creates one for your machine
+3. If a session exists from the same machine, updates the timestamp
+4. If a session exists from a different machine, warns and asks to continue
 
-### Lock Conflict Resolution
+### Session Conflict Resolution
 
 ```
-Project locked by 'work-laptop' since 2026-02-03T10:30:00Z
-? Take over lock anyway? (y/N)
+This project is running on work-laptop (since 2026-02-03T10:30:00Z)
+? Continue anyway? (y/N)
 ```
 
-Taking over the lock:
-- Releases the other machine's lock
-- Acquires lock for your current machine
-- The other machine will see "lock lost" on next operation
+Continuing anyway:
+- Creates a new session for your current machine
+- The session file syncs to the other machine via Mutagen
+- Safe as long as you are not actively editing on both machines simultaneously
 
-### Viewing Lock Status
+### Viewing Session Status
 
 ```bash
 devbox status my-project
 ```
 
-Lock section shows:
-- Current lock holder
+Session section shows:
+- Current status (active here / active on another machine / none)
 - Machine name
 - Username
-- Timestamp acquired
+- When the session started
 
 ## Debugging with Logs
 
@@ -427,13 +428,13 @@ Check Mutagen status directly:
 ~/.devbox/bin/mutagen sync list
 ```
 
-### Lock Stuck After Crash
+### Stale Session After Crash
 
-If your machine crashed without releasing the lock:
+If your machine crashed without ending the session, the session automatically expires after 24 hours. You can also start the project immediately:
 
 ```bash
 devbox up my-project
-# Choose "Take over lock anyway" when prompted
+# Choose "Continue anyway" if warned about the stale session
 ```
 
 ### Free Up Disk Space
@@ -450,6 +451,3 @@ Remove project entirely (keeps remote):
 devbox rm my-project
 ```
 
-## Next Steps
-
-- [Team Sharing](/guide/workflows/team-sharing) - Collaborate with teammates on shared projects

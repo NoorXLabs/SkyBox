@@ -34,18 +34,18 @@ The `open` command provides quick access to a running container's editor or shel
 
 | Command | Behavior |
 |---------|----------|
-| `devbox up` | Acquires lock, resumes sync, starts container if needed, then opens editor/shell |
+| `devbox up` | Creates session, resumes sync, starts container if needed, then opens editor/shell |
 | `devbox open` | Only works with running containers, just opens editor/shell |
 
 Use `devbox open` when:
 - Container is already running
-- You want quick access without lock/sync checks
+- You want quick access without session/sync checks
 - You need multiple editor windows or shell sessions
 
 Use `devbox up` when:
 - Starting a work session
 - Container might not be running
-- You need the full startup flow (lock, sync, container start)
+- You need the full startup flow (session, sync, container start)
 
 ### Action Menu
 

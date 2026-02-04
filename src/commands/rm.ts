@@ -10,13 +10,13 @@ import {
 	stopContainer,
 } from "@lib/container.ts";
 import { getErrorMessage } from "@lib/errors.ts";
-import { createLockRemoteInfo, getLockStatus, releaseLock } from "@lib/lock.ts";
 import { terminateSession } from "@lib/mutagen.ts";
 import {
 	getLocalProjects,
 	getProjectPath,
 	projectExists,
 } from "@lib/project.ts";
+import { deleteSession, readSession } from "@lib/session.ts";
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import {
@@ -124,36 +124,19 @@ export async function rmCommand(
 	const projectPath = getProjectPath(project);
 	header(`Removing '${project}'...`);
 
-	// Check lock status and release if owned by us (if project has a remote)
-	const projectRemote = getProjectRemote(project, config);
-	const lockSpin = spinner("Checking lock status...");
+	// Check session status and delete if present
+	const sessionSpin = spinner("Checking session status...");
 	try {
-		if (projectRemote) {
-			const remoteInfo = createLockRemoteInfo(projectRemote.remote);
-			const lockStatus = await getLockStatus(project, remoteInfo);
-
-			if (lockStatus.locked) {
-				if (lockStatus.ownedByMe) {
-					lockSpin.text = "Releasing lock...";
-					const releaseResult = await releaseLock(project, remoteInfo);
-					if (releaseResult.success) {
-						lockSpin.succeed("Lock released");
-					} else {
-						lockSpin.warn("Failed to release lock");
-					}
-				} else {
-					lockSpin.info(
-						`Lock held by ${lockStatus.info.machine} (${lockStatus.info.user})`,
-					);
-				}
-			} else {
-				lockSpin.succeed("No lock held");
-			}
+		const session = readSession(projectPath);
+		if (session) {
+			sessionSpin.text = "Clearing session...";
+			deleteSession(projectPath);
+			sessionSpin.succeed("Session cleared");
 		} else {
-			lockSpin.succeed("No remote configured - skipping lock check");
+			sessionSpin.succeed("No active session");
 		}
 	} catch {
-		lockSpin.warn("Could not check lock status");
+		sessionSpin.warn("Could not check session status");
 	}
 
 	// Check container status and stop if running

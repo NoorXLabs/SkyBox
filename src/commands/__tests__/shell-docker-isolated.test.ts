@@ -16,25 +16,30 @@ import {
 import {
 	DEVCONTAINER_CONFIG_NAME,
 	DEVCONTAINER_DIR_NAME,
+	SESSION_TTL_MS,
 } from "@lib/constants.ts";
-import type { LockInfo, LockStatus } from "@typedefs/index.ts";
+import type { SessionConflictResult, SessionInfo } from "@lib/session.ts";
 
 // Mock execa first - this will persist globally for this file
 const mockExeca = mock(() => Promise.resolve({ exitCode: 0 }));
 mock.module("execa", () => ({ execa: mockExeca }));
 
-// Import original lock module BEFORE mocking to preserve real implementations
-import * as originalLock from "@lib/lock.ts";
+// Import original session module BEFORE mocking to preserve real implementations
+import * as originalSession from "@lib/session.ts";
 
-// Mock the lock module - spread original exports, only override getLockStatus
-const mockGetLockStatus = mock(
-	(_project: string, _config: unknown): Promise<LockStatus> =>
-		Promise.resolve({ locked: false }),
+// Mock the session module - spread original exports, only override checkSessionConflict and readSession
+const mockCheckSessionConflict = mock(
+	(_projectPath: string): SessionConflictResult => ({ hasConflict: false }),
 );
 
-mock.module("../../lib/lock.ts", () => ({
-	...originalLock,
-	getLockStatus: mockGetLockStatus,
+const mockReadSession = mock(
+	(_projectPath: string): SessionInfo | null => null,
+);
+
+mock.module("../../lib/session.ts", () => ({
+	...originalSession,
+	checkSessionConflict: mockCheckSessionConflict,
+	readSession: mockReadSession,
 }));
 
 // Mock inquirer
@@ -140,7 +145,8 @@ projects: {}
 
 		// Reset all mocks
 		mockExeca.mockReset();
-		mockGetLockStatus.mockReset();
+		mockCheckSessionConflict.mockReset();
+		mockReadSession.mockReset();
 		mockPrompt.mockReset();
 		mockGetContainerStatus.mockReset();
 		mockGetContainerId.mockReset();
@@ -149,7 +155,14 @@ projects: {}
 
 		// Set default mock returns
 		mockExeca.mockResolvedValue({ exitCode: 0 });
-		mockGetLockStatus.mockResolvedValue({ locked: false });
+		mockCheckSessionConflict.mockReturnValue({ hasConflict: false });
+		mockReadSession.mockReturnValue({
+			machine: hostname(),
+			user: userInfo().username,
+			timestamp: new Date().toISOString(),
+			pid: process.pid,
+			expires: new Date(Date.now() + SESSION_TTL_MS).toISOString(),
+		});
 		mockPrompt.mockResolvedValue({ startContainer: true });
 		mockGetContainerStatus.mockResolvedValue("running");
 		mockGetContainerId.mockResolvedValue("container-abc123");
@@ -165,19 +178,17 @@ projects: {}
 	});
 
 	describe("successful execution", () => {
-		test("proceeds when lock is owned by current machine", async () => {
-			const lockInfo: LockInfo = {
+		test("proceeds when session is from current machine", async () => {
+			const sessionInfo: SessionInfo = {
 				machine: hostname(),
 				user: userInfo().username,
 				timestamp: new Date().toISOString(),
 				pid: process.pid,
+				expires: new Date(Date.now() + SESSION_TTL_MS).toISOString(),
 			};
 
-			mockGetLockStatus.mockResolvedValueOnce({
-				locked: true,
-				ownedByMe: true,
-				info: lockInfo,
-			});
+			mockCheckSessionConflict.mockReturnValueOnce({ hasConflict: false });
+			mockReadSession.mockReturnValueOnce(sessionInfo);
 
 			const { shellCommand } = await import("../shell.ts");
 			await shellCommand("myapp", {});
@@ -186,8 +197,9 @@ projects: {}
 			expect(mockExeca).toHaveBeenCalled();
 		});
 
-		test("proceeds when project is not locked", async () => {
-			mockGetLockStatus.mockResolvedValueOnce({ locked: false });
+		test("proceeds when no session exists", async () => {
+			mockCheckSessionConflict.mockReturnValueOnce({ hasConflict: false });
+			mockReadSession.mockReturnValueOnce(null);
 
 			const { shellCommand } = await import("../shell.ts");
 			await shellCommand("myapp", {});

@@ -40,7 +40,7 @@ When run without a project argument, `devbox clone` enters an interactive flow:
 3. **Multi-Select** - Shows a checkbox list of available projects (already-local projects are filtered out)
 4. **Batch Clone** - Clones each selected project sequentially
 5. **Summary** - Reports how many projects were cloned (e.g., "Cloned 3 projects: foo, bar, baz")
-6. **Start Working** - If one project was cloned, offers to start its container. If multiple were cloned, prompts you to choose which project to start working on (or "None" to skip). The selected project goes through the full `devbox up` flow (lock, container, editor/shell).
+6. **Start Working** - If one project was cloned, offers to start its container. If multiple were cloned, prompts you to choose which project to start working on (or "None" to skip). The selected project goes through the full `devbox up` flow (session, container, editor/shell).
 7. **Reminder** - After starting a project, prints a reminder with the remaining cloned projects you can start later with `devbox up`
 
 ### Local Storage

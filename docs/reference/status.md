@@ -32,7 +32,7 @@ Shows a table of all local projects with columns:
 | CONTAINER | Container status (running/stopped) |
 | SYNC | Sync status (syncing/paused/error/no session) |
 | BRANCH | Current git branch |
-| LOCK | Lock status (unlocked/locked by machine) |
+| SESSION | Session status (none/active here/active on machine) |
 | LAST ACTIVE | Time since last activity |
 | SIZE | Local disk usage |
 
@@ -59,10 +59,10 @@ Shows comprehensive information organized into sections:
 - Commits ahead of upstream
 - Commits behind upstream
 
-**Lock**
-- Lock status
-- Machine holding lock (if locked)
-- User and timestamp
+**Session**
+- Session status (none / active here / active on another machine)
+- Machine name (if active)
+- User and start time
 
 **Disk Usage**
 - Local size
@@ -83,10 +83,10 @@ devbox status my-api
 ```
 Projects:
 
-  NAME          CONTAINER  SYNC      BRANCH  LOCK      LAST ACTIVE  SIZE
-  my-api        running    syncing   main    unlocked  2 hours ago  1.2G
-  frontend-app  stopped    paused    dev     unlocked  3 days ago   856M
-  data-service  running    syncing   main    locked    just now     2.1G
+  NAME          CONTAINER  SYNC      BRANCH  SESSION          LAST ACTIVE  SIZE
+  my-api        running    syncing   main    active here      2 hours ago  1.2G
+  frontend-app  stopped    paused    dev     none             3 days ago   856M
+  data-service  running    syncing   main    active here      just now     2.1G
 ```
 
 ### Detailed Output Example
@@ -117,8 +117,8 @@ devbox status my-api
 #   Ahead:      0 commits
 #   Behind:     0 commits
 #
-# Lock
-#   Status:     unlocked
+# Session
+#   Status:     none
 #
 # Disk Usage
 #   Local:      1.2G

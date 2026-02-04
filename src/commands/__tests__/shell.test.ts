@@ -74,7 +74,7 @@ Projects: {}
 		expect(existsSync(configPath)).toBe(true);
 	});
 
-	describe("lock status checking", () => {
+	describe("session status checking", () => {
 		test("ShellOptions type includes force flag", () => {
 			// Type-level test - if this compiles, the type is correct
 			const options: ShellOptions = { force: true };

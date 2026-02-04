@@ -28,7 +28,7 @@ The `rm` command removes a project from your local machine. This is useful for f
 The command performs the following steps:
 
 1. **Confirmation** - Prompts for confirmation (unless `--force` is used)
-2. **Lock Release** - Releases any lock held by this machine
+2. **Session Cleanup** - Removes any active session for this project
 3. **Container Cleanup** - Stops and removes the container and volumes
 4. **Sync Termination** - Terminates the Mutagen sync session
 5. **File Removal** - Deletes local project files
@@ -55,9 +55,9 @@ If the project does not exist locally but `--remote` is passed, the command skip
 - You can always restore a locally-removed project with `devbox clone`
 - Running containers are stopped before removal
 
-### Lock Handling
+### Session Handling
 
-If you hold the lock for this project, it will be released. If another machine holds the lock, the command will notify you but continue with the removal.
+If a session exists for this project, it will be removed as part of the cleanup. If another machine has an active session, the command continues with the removal since the project is being deleted locally.
 
 ## Examples
 
@@ -88,7 +88,7 @@ devbox rm my-project
 # ? Remove project 'my-project' locally? This will NOT delete remote files. (y/N) y
 #
 # Removing 'my-project'...
-#   Lock released
+#   Session cleared
 #   Container stopped
 #   Container removed
 #   Sync session terminated
@@ -106,7 +106,7 @@ devbox rm my-project --remote
 # ? Remove project 'my-project' locally AND from the remote server? (y/N) y
 #
 # Removing 'my-project'...
-#   Lock released
+#   Session cleared
 #   Container stopped
 #   Container removed
 #   Sync session terminated
