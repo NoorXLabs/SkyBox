@@ -1,6 +1,6 @@
 // tests/unit/lib/config.test.ts
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { writeFileSync } from "node:fs";
+import { statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
 	configExists,
@@ -256,5 +256,58 @@ describe("config error paths", () => {
 		saveConfig(config);
 
 		expect(getRemote("nonexistent")).toBeNull();
+	});
+});
+
+describe("config file permissions", () => {
+	let ctx: TestContext;
+	let originalEnv: string | undefined;
+
+	beforeEach(() => {
+		ctx = createTestContext("config-permissions");
+		originalEnv = process.env.DEVBOX_HOME;
+	});
+
+	afterEach(() => {
+		// Restore env before cleanup since cleanup also restores it
+		if (originalEnv) {
+			process.env.DEVBOX_HOME = originalEnv;
+		}
+		ctx.cleanup();
+	});
+
+	test("saveConfig creates directory with mode 0o700", () => {
+		// Point DEVBOX_HOME to a non-existent subdirectory so saveConfig creates it
+		const newDir = join(ctx.testDir, "new-devbox-home");
+		process.env.DEVBOX_HOME = newDir;
+
+		const config = {
+			editor: "cursor",
+			defaults: { sync_mode: "two-way-resolved", ignore: [] },
+			remotes: {},
+			projects: {},
+		};
+
+		saveConfig(config);
+
+		const stats = statSync(newDir);
+		const mode = stats.mode & 0o777;
+		expect(mode).toBe(0o700);
+	});
+
+	test("saveConfig creates config file with mode 0o600", () => {
+		const config = {
+			editor: "cursor",
+			defaults: { sync_mode: "two-way-resolved", ignore: [] },
+			remotes: {},
+			projects: {},
+		};
+
+		saveConfig(config);
+
+		const configPath = join(ctx.testDir, "config.yaml");
+		const stats = statSync(configPath);
+		const mode = stats.mode & 0o777;
+		expect(mode).toBe(0o600);
 	});
 });

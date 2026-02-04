@@ -48,11 +48,11 @@ export function saveConfig(config: DevboxConfigV2): void {
 	const dir = dirname(configPath);
 
 	if (!existsSync(dir)) {
-		mkdirSync(dir, { recursive: true });
+		mkdirSync(dir, { recursive: true, mode: 0o700 });
 	}
 
 	const content = stringify(config);
-	writeFileSync(configPath, content, "utf-8");
+	writeFileSync(configPath, content, { encoding: "utf-8", mode: 0o600 });
 }
 
 /**
