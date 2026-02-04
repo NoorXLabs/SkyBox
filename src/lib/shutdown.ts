@@ -23,7 +23,10 @@ export function registerCleanupHandler(handler: CleanupHandler): void {
 /**
  * Run all registered cleanup handlers.
  * Handlers are run in reverse order and only once.
- * Async handlers are given a brief timeout to complete.
+ *
+ * NOTE: Async handlers are given a brief timeout but run with best-effort
+ * semantics - they may not complete before process exit. For guaranteed
+ * cleanup, use synchronous handlers.
  */
 export function runCleanupHandlers(): void {
 	if (cleanupRan) return;

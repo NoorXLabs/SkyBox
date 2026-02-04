@@ -100,6 +100,11 @@ export async function verifyGpgSignature(
 
 /**
  * Fetch Mutagen's public GPG key from GitHub.
+ *
+ * TRUST MODEL: This fetches the key from GitHub's key hosting service.
+ * Users implicitly trust that GitHub's infrastructure hasn't been compromised.
+ * For higher security requirements, the key could be embedded in the codebase,
+ * though this trades off the ability to rotate keys without code updates.
  */
 export async function fetchMutagenPublicKey(): Promise<string | null> {
 	try {

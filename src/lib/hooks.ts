@@ -6,6 +6,9 @@ import type { HookEntry, HookEvent, HooksConfig } from "@typedefs/index.ts";
 
 const execFileAsync = promisify(execFile);
 
+/** Track whether the hook security warning has been shown this session. */
+const hookState = { warningShown: false };
+
 interface HookResult {
 	success: boolean;
 	errors: string[];
@@ -30,6 +33,10 @@ function normalizeHookEntries(
 /**
  * Run all hooks for a given lifecycle event.
  * Hooks are non-fatal: failures are reported but do not stop the parent operation.
+ *
+ * SECURITY NOTE: Hook commands execute with full shell access.
+ * Users are responsible for securing their hook configurations.
+ * Hooks should only be defined in trusted config files.
  */
 export async function runHooks(
 	event: HookEvent,
@@ -42,6 +49,13 @@ export async function runHooks(
 	if (entries.length === 0) return { success: true, errors: [] };
 
 	info(`Running ${event} hooks...`);
+
+	// Show one-time security warning (can be disabled with env var)
+	if (!hookState.warningShown && process.env.DEVBOX_HOOK_WARNINGS !== "0") {
+		warn("Executing user-defined hooks (see devbox docs for security info)");
+		hookState.warningShown = true;
+	}
+
 	const errors: string[] = [];
 
 	for (const entry of entries) {
@@ -61,4 +75,12 @@ export async function runHooks(
 	}
 
 	return { success: errors.length === 0, errors };
+}
+
+/**
+ * Reset hook warning state (for testing purposes).
+ * @internal
+ */
+export function resetHookWarningState(): void {
+	hookState.warningShown = false;
 }

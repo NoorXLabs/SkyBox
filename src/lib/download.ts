@@ -11,8 +11,17 @@ import {
 import { join } from "node:path";
 import { MUTAGEN_REPO, MUTAGEN_VERSION } from "@lib/constants.ts";
 import { getErrorMessage } from "@lib/errors.ts";
+import {
+	fetchMutagenPublicKey,
+	fetchMutagenSignature,
+	isGpgAvailable,
+	verifyGpgSignature,
+} from "@lib/gpg.ts";
 import { getBinDir, getMutagenPath } from "@lib/paths.ts";
 import { extract } from "tar";
+
+/** Whether to require GPG verification (can be disabled via env) */
+const REQUIRE_GPG_VERIFICATION = process.env.DEVBOX_SKIP_GPG !== "1";
 
 export function getMutagenDownloadUrl(
 	platform: string,
@@ -125,6 +134,54 @@ export async function downloadMutagen(
 			return { success: false, error: "Failed to fetch checksums" };
 		}
 
+		// Verify checksums file GPG signature BEFORE trusting checksums
+		// This ensures we verify the integrity of the checksum list before using it
+		if (await isGpgAvailable()) {
+			onProgress?.("Verifying GPG signature...");
+
+			const [publicKey, gpgSignature] = await Promise.all([
+				fetchMutagenPublicKey(),
+				fetchMutagenSignature(MUTAGEN_VERSION),
+			]);
+
+			if (!publicKey || !gpgSignature) {
+				if (REQUIRE_GPG_VERIFICATION) {
+					return {
+						success: false,
+						error: "Failed to fetch GPG key or signature",
+					};
+				}
+				onProgress?.(
+					"GPG signature unavailable - checksums not cryptographically verified",
+				);
+			} else {
+				const gpgResult = await verifyGpgSignature(
+					Buffer.from(checksumContent),
+					gpgSignature,
+					publicKey,
+				);
+
+				if (!gpgResult.verified) {
+					if (REQUIRE_GPG_VERIFICATION) {
+						return {
+							success: false,
+							error: gpgResult.error || "GPG signature verification failed",
+						};
+					}
+					onProgress?.(
+						"GPG signature invalid - checksums not cryptographically verified",
+					);
+				} else {
+					onProgress?.("GPG signature verified");
+				}
+			}
+		} else {
+			if (REQUIRE_GPG_VERIFICATION) {
+				onProgress?.("GPG not available - using checksum verification only");
+			}
+		}
+
+		// Parse expected hash from verified checksums file
 		const expectedHash = parseSHA256Sums(checksumContent, filename);
 		if (!expectedHash) {
 			return { success: false, error: `No checksum found for ${filename}` };
