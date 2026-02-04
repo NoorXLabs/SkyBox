@@ -67,9 +67,60 @@ describe("shutdown handlers", () => {
 });
 
 describe("signal handling", () => {
+	// Track listeners added during test for cleanup
+	let initialSIGHUP: number;
+	let initialSIGINT: number;
+	let initialSIGTERM: number;
+	let initialExit: number;
+	let initialUncaughtException: number;
+
+	beforeEach(() => {
+		initialSIGHUP = process.listenerCount("SIGHUP");
+		initialSIGINT = process.listenerCount("SIGINT");
+		initialSIGTERM = process.listenerCount("SIGTERM");
+		initialExit = process.listenerCount("exit");
+		initialUncaughtException = process.listenerCount("uncaughtException");
+	});
+
+	afterEach(() => {
+		// Remove any listeners added during the test to prevent leaks
+		const signals = ["SIGHUP", "SIGINT", "SIGTERM"] as const;
+		for (const signal of signals) {
+			const listeners = process.listeners(signal);
+			const initialCount =
+				signal === "SIGHUP"
+					? initialSIGHUP
+					: signal === "SIGINT"
+						? initialSIGINT
+						: initialSIGTERM;
+			// Remove listeners added during test (keep original ones)
+			while (process.listenerCount(signal) > initialCount) {
+				const lastListener = listeners.pop();
+				if (lastListener) process.off(signal, lastListener);
+			}
+		}
+		// Clean up exit and uncaughtException listeners
+		while (process.listenerCount("exit") > initialExit) {
+			const listeners = process.listeners("exit");
+			const lastListener = listeners.pop();
+			if (lastListener)
+				process.off("exit", lastListener as NodeJS.ExitListener);
+		}
+		while (
+			process.listenerCount("uncaughtException") > initialUncaughtException
+		) {
+			const listeners = process.listeners("uncaughtException");
+			const lastListener = listeners.pop();
+			if (lastListener)
+				process.off(
+					"uncaughtException",
+					lastListener as NodeJS.UncaughtExceptionListener,
+				);
+		}
+	});
+
 	test("installShutdownHandlers registers SIGHUP handler", () => {
-		const initialListeners = process.listenerCount("SIGHUP");
 		installShutdownHandlers();
-		expect(process.listenerCount("SIGHUP")).toBeGreaterThan(initialListeners);
+		expect(process.listenerCount("SIGHUP")).toBeGreaterThan(initialSIGHUP);
 	});
 });

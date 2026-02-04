@@ -343,6 +343,7 @@ describe("config schema validation edge cases", () => {
 		};
 
 		expect(() => validateConfig(invalidConfig)).toThrow(ConfigValidationError);
+		expect(() => validateConfig(invalidConfig)).toThrow("host or path");
 	});
 
 	test("rejects config with invalid sync_mode", () => {

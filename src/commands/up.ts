@@ -6,6 +6,7 @@ import {
 	getRemotePath,
 } from "@commands/remote.ts";
 import { checkbox, password, select } from "@inquirer/prompts";
+import { AuditActions, logAuditEvent } from "@lib/audit.ts";
 import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
 import {
 	DEVCONTAINER_CONFIG_NAME,
@@ -62,6 +63,32 @@ import inquirer from "inquirer";
 interface ResolvedProject {
 	project: string;
 	projectPath: string;
+}
+
+/**
+ * Sanitize Docker error output for display.
+ * Removes potentially sensitive information while preserving useful details.
+ * @internal Exported for testing
+ */
+export function sanitizeDockerError(errorStr: string): string {
+	// Remove absolute paths that could expose system structure
+	let sanitized = errorStr.replace(/\/[\w\-/.]+/g, (match) => {
+		// Keep relative paths and common paths
+		if (match.startsWith("/tmp") || match.startsWith("/var/run/docker")) {
+			return match;
+		}
+		// Redact user home paths
+		if (match.includes("/Users/") || match.includes("/home/")) {
+			return "[REDACTED_PATH]";
+		}
+		return match;
+	});
+
+	// Remove potential credential fragments
+	sanitized = sanitized.replace(/password[=:]\S+/gi, "password=[REDACTED]");
+	sanitized = sanitized.replace(/token[=:]\S+/gi, "token=[REDACTED]");
+
+	return sanitized;
 }
 
 /**
@@ -396,7 +423,7 @@ async function handleDecryption(
 
 	for (let attempt = 1; attempt <= MAX_PASSPHRASE_ATTEMPTS; attempt++) {
 		const passphrase = await password({
-			message: `Enter passphrase (attempt ${attempt}/${MAX_PASSPHRASE_ATTEMPTS}):`,
+			message: "Enter passphrase:",
 		});
 
 		if (!passphrase) {
@@ -438,15 +465,12 @@ async function handleDecryption(
 			decryptSpin.succeed("Project decrypted and extracted");
 			return true;
 		} catch {
-			decryptSpin.fail(
-				"Decryption failed — incorrect passphrase or corrupted archive",
-			);
 			if (attempt === MAX_PASSPHRASE_ATTEMPTS) {
-				error(
-					`Failed to decrypt after ${MAX_PASSPHRASE_ATTEMPTS} attempts. Run 'devbox up' to try again.`,
-				);
+				decryptSpin.fail("Decryption failed");
+				error("Too many failed attempts. Run 'devbox up' to try again.");
 				return false;
 			}
+			decryptSpin.fail("Wrong passphrase. Please try again.");
 		} finally {
 			// Clean up entire temp directory
 			try {
@@ -553,6 +577,7 @@ async function startSingleProject(
 	config: DevboxConfigV2,
 	options: UpOptions,
 ): Promise<void> {
+	logAuditEvent(AuditActions.UP_START, { project });
 	header(`Starting '${project}'...`);
 
 	if (isDryRun()) {
@@ -609,6 +634,8 @@ async function startSingleProject(
 		}
 
 		await startContainerWithRetry(projectPath, options);
+
+		logAuditEvent(AuditActions.UP_SUCCESS, { project });
 
 		// Run post-up hooks
 		if (projectConfig?.hooks) {
@@ -773,7 +800,7 @@ async function startContainerWithRetry(
 			error(result.error || "Unknown error");
 			if (options.verbose) {
 				console.log("\nFull error output:");
-				console.log(result.error);
+				console.log(sanitizeDockerError(result.error || ""));
 			} else {
 				info("Run with --verbose for full logs.");
 			}

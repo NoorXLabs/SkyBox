@@ -13,6 +13,40 @@ function getSSHDir(): string {
 	return join(home, ".ssh");
 }
 
+/**
+ * Sanitize SSH error messages for user display.
+ * Removes authentication details and host-specific info.
+ * @internal Exported for testing
+ */
+export function sanitizeSshError(error: string): string {
+	let sanitized = error;
+
+	// Remove private key paths
+	sanitized = sanitized.replace(
+		/identity file[^,\n]*/gi,
+		"identity file [REDACTED]",
+	);
+
+	// Remove specific host fingerprints
+	sanitized = sanitized.replace(
+		/[A-Fa-f0-9]{2}(:[A-Fa-f0-9]{2}){15,}/g,
+		"[FINGERPRINT]",
+	);
+
+	// Remove usernames from error if embedded
+	sanitized = sanitized.replace(/user(name)?[=:\s]+\S+/gi, "user=[REDACTED]");
+
+	// Generic auth failure message
+	if (
+		sanitized.includes("Permission denied") ||
+		sanitized.includes("authentication")
+	) {
+		return "SSH authentication failed. Check your SSH key and remote configuration.";
+	}
+
+	return sanitized;
+}
+
 export function parseSSHConfig(): SSHHost[] {
 	const configPath = join(getSSHDir(), "config");
 
@@ -97,7 +131,10 @@ export async function testConnection(
 		await execa("ssh", args, { timeout: SSH_TIMEOUT_MS });
 		return { success: true };
 	} catch (error: unknown) {
-		return { success: false, error: getExecaErrorMessage(error) };
+		return {
+			success: false,
+			error: sanitizeSshError(getExecaErrorMessage(error)),
+		};
 	}
 }
 
@@ -109,7 +146,7 @@ export async function copyKey(
 		await execa("ssh-copy-id", ["-i", keyPath, host], { stdio: "inherit" });
 		return { success: true };
 	} catch (error: unknown) {
-		return { success: false, error: getErrorMessage(error) };
+		return { success: false, error: sanitizeSshError(getErrorMessage(error)) };
 	}
 }
 
@@ -127,7 +164,10 @@ export async function runRemoteCommand(
 		const result = await execa("ssh", args);
 		return { success: true, stdout: result.stdout };
 	} catch (error: unknown) {
-		return { success: false, error: getExecaErrorMessage(error) };
+		return {
+			success: false,
+			error: sanitizeSshError(getExecaErrorMessage(error)),
+		};
 	}
 }
 
