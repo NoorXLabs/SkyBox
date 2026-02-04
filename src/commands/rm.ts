@@ -21,6 +21,7 @@ import {
 	getProjectPath,
 	projectExists,
 } from "@lib/project.ts";
+import { validateProjectName } from "@lib/projectTemplates.ts";
 import { deleteSession, readSession } from "@lib/session.ts";
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
@@ -35,7 +36,6 @@ import {
 	success,
 	warn,
 } from "@lib/ui.ts";
-import { validatePath } from "@lib/validation.ts";
 import {
 	ContainerStatus,
 	type DevboxConfigV2,
@@ -324,11 +324,11 @@ export async function rmCommand(
 		return;
 	}
 
-	// Validate project name
-	const pathCheck = validatePath(project);
-	if (!pathCheck.valid) {
-		error(`Invalid project name: ${pathCheck.error}`);
-		return;
+	// Validate project name (consistent with clone.ts, new.ts, push.ts)
+	const validation = validateProjectName(project);
+	if (!validation.valid) {
+		error(`Invalid project name: ${validation.error}`);
+		process.exit(1);
 	}
 
 	// Check config exists
