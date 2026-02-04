@@ -385,13 +385,14 @@ async function handleDecryption(
 
 	const { tmpdir } = await import("node:os");
 	const { join } = await import("node:path");
-	const { unlinkSync } = await import("node:fs");
+	const { mkdtempSync, rmSync } = await import("node:fs");
 	const { execa } = await import("execa");
 	const { decryptFile } = await import("../lib/encryption.ts");
 
-	const timestamp = Date.now();
-	const localEncPath = join(tmpdir(), `devbox-${project}-${timestamp}.tar.enc`);
-	const localTarPath = join(tmpdir(), `devbox-${project}-${timestamp}.tar`);
+	// Use mkdtempSync for unpredictable temp directory (prevents symlink attacks)
+	const tempDir = mkdtempSync(join(tmpdir(), "devbox-"));
+	const localEncPath = join(tempDir, "archive.tar.enc");
+	const localTarPath = join(tempDir, "archive.tar");
 
 	for (let attempt = 1; attempt <= MAX_PASSPHRASE_ATTEMPTS; attempt++) {
 		const passphrase = await password({
@@ -447,11 +448,9 @@ async function handleDecryption(
 				return false;
 			}
 		} finally {
+			// Clean up entire temp directory
 			try {
-				unlinkSync(localEncPath);
-			} catch {}
-			try {
-				unlinkSync(localTarPath);
+				rmSync(tempDir, { recursive: true, force: true });
 			} catch {}
 		}
 	}
