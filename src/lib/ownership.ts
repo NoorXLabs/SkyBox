@@ -104,8 +104,11 @@ export async function setOwnership(
 	const json = JSON.stringify(info, null, 2);
 	const ownershipFile = `${projectPath}/${OWNERSHIP_FILE_NAME}`;
 
-	// Write ownership file (overwrite if exists)
-	const command = `echo ${escapeShellArg(json)} > ${escapeShellArg(ownershipFile)}`;
+	// Encode as base64 for safe shell transport (like lock.ts)
+	const jsonBase64 = Buffer.from(json).toString("base64");
+
+	// Write ownership file using base64 decode (avoids shell escaping issues)
+	const command = `echo ${escapeShellArg(jsonBase64)} | base64 -d > ${escapeShellArg(ownershipFile)}`;
 	const result = await runRemoteCommand(host, command);
 
 	if (!result.success) {

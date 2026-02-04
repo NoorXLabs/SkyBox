@@ -3,6 +3,7 @@
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { configExists } from "@lib/config.ts";
+import { getErrorMessage } from "@lib/errors.ts";
 import { getProjectsDir } from "@lib/paths.ts";
 import { error, header, info } from "@lib/ui.ts";
 import type { LocalProject } from "@typedefs/index.ts";
@@ -19,7 +20,7 @@ async function getGitBranch(projectPath: string): Promise<string> {
 		return result.stdout.trim() || "-";
 	} catch (err) {
 		if (process.env.DEBUG) {
-			console.error("[debug] getGitBranch:", err);
+			console.error("[debug] getGitBranch:", getErrorMessage(err));
 		}
 		return "-";
 	}
@@ -47,7 +48,10 @@ async function getLocalProjects(): Promise<LocalProject[]> {
 			}
 		} catch (err) {
 			if (process.env.DEBUG) {
-				console.error(`[debug] getLocalProjects entry "${entry}":`, err);
+				console.error(
+					`[debug] getLocalProjects entry "${entry}":`,
+					getErrorMessage(err),
+				);
 			}
 		}
 	}

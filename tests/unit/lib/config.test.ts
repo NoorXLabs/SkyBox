@@ -335,15 +335,15 @@ describe("config schema validation edge cases", () => {
 		expect(() => validateConfig(invalidConfig)).toThrow("remotes.work");
 	});
 
-	test("rejects config with remote missing host and path", () => {
+	test("rejects config with remote missing host", () => {
 		const invalidConfig = {
 			editor: "cursor",
-			remotes: { work: { user: "deploy" } },
+			remotes: { work: { user: "deploy", path: "~/code" } },
 			projects: {},
 		};
 
 		expect(() => validateConfig(invalidConfig)).toThrow(ConfigValidationError);
-		expect(() => validateConfig(invalidConfig)).toThrow("host or path");
+		expect(() => validateConfig(invalidConfig)).toThrow("valid host");
 	});
 
 	test("rejects config with invalid sync_mode", () => {
