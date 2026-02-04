@@ -18,6 +18,7 @@ import {
 	success,
 	warn,
 } from "@lib/ui.ts";
+import { validateRemotePath } from "@lib/validation.ts";
 import type { DevboxConfigV2, RemoteEntry } from "@typedefs/index.ts";
 import chalk from "chalk";
 import inquirer from "inquirer";
@@ -127,6 +128,15 @@ export async function addRemoteDirect(
 		};
 	}
 
+	// Validate remote path for shell safety
+	const pathValidation = validateRemotePath(parsed.path);
+	if (!pathValidation.valid) {
+		return {
+			success: false,
+			error: pathValidation.error,
+		};
+	}
+
 	let config = loadConfig();
 	if (!config) {
 		// Create default config if none exists
@@ -219,6 +229,10 @@ export async function addRemoteInteractive(): Promise<void> {
 			name: "path",
 			message: "Remote projects directory:",
 			default: "~/code",
+			validate: (input: string) => {
+				const result = validateRemotePath(input);
+				return result.valid ? true : result.error;
+			},
 		},
 	]);
 
