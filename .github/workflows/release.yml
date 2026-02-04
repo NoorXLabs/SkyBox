@@ -60,15 +60,24 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
+            devbox-darwin-arm64
+            devbox-darwin-x64
+            devbox-linux-x64
+            devbox-linux-arm64
             devbox-darwin-arm64.tar.gz
             devbox-darwin-x64.tar.gz
             devbox-linux-x64.tar.gz
             devbox-linux-arm64.tar.gz
+            checksums.txt
           body_path: release-notes.md
 
       - name: Compute SHA256 hashes
         id: sha
         run: |
+          # Generate checksums.txt for users (both raw binaries and tarballs)
+          shasum -a 256 devbox-darwin-arm64 devbox-darwin-x64 devbox-linux-x64 devbox-linux-arm64 \
+            devbox-darwin-arm64.tar.gz devbox-darwin-x64.tar.gz devbox-linux-x64.tar.gz devbox-linux-arm64.tar.gz > checksums.txt
+          # Output tarball hashes for Homebrew formula
           echo "darwin_arm64=$(shasum -a 256 devbox-darwin-arm64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
           echo "darwin_x64=$(shasum -a 256 devbox-darwin-x64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
           echo "linux_x64=$(shasum -a 256 devbox-linux-x64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
