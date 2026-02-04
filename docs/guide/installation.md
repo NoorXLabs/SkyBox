@@ -13,7 +13,7 @@ DevBox requires:
 | SSH | - | Remote server connection |
 
 ::: tip Note
-The devcontainer CLI requires Node.js, but on macOS with Homebrew this is handled automatically.
+The devcontainer CLI requires Node.js. On macOS with Homebrew this is handled automatically; otherwise you'll need to install Node.js separately.
 :::
 
 ### Installing Prerequisites
@@ -26,6 +26,18 @@ brew install --cask docker
 
 # Install devcontainer CLI (includes Node.js automatically)
 brew install devcontainer
+```
+
+```bash [macOS (Direct Download)]
+# 1. Install Docker Desktop
+#    Download from: https://docs.docker.com/desktop/install/mac-install/
+#    Choose the version for your chip (Apple Silicon or Intel)
+
+# 2. Install Node.js (required for devcontainer CLI)
+#    Download LTS version from: https://nodejs.org/
+
+# 3. Install devcontainer CLI
+npm install -g @devcontainers/cli
 ```
 
 ```bash [Linux (Ubuntu/Debian)]
@@ -87,19 +99,14 @@ brew tap NoorXLabs/homebrew-tap
 brew install devbox
 ```
 
+```bash [macOS (Direct Download)]
+# Install with one command (auto-detects architecture)
+curl -fsSL https://install.noorxlabs.com/devbox | bash
+```
+
 ```bash [Linux / WSL]
-# Download the latest release for your platform
-# from https://github.com/NoorXLabs/DevBox/releases
-
-# For x64:
-curl -L -o devbox https://github.com/NoorXLabs/DevBox/releases/latest/download/devbox-linux-x64
-chmod +x devbox
-sudo mv devbox /usr/local/bin/
-
-# For ARM64:
-curl -L -o devbox https://github.com/NoorXLabs/DevBox/releases/latest/download/devbox-linux-arm64
-chmod +x devbox
-sudo mv devbox /usr/local/bin/
+# Install with one command (auto-detects architecture)
+curl -fsSL https://install.noorxlabs.com/devbox | bash
 ```
 
 ```bash [From Source]
@@ -233,9 +240,9 @@ If `devcontainer --version` fails:
 brew install devcontainer
 ```
 
-**Linux / WSL:**
+**macOS (without Homebrew) / Linux / WSL:**
 ```bash
-sudo npm install -g @devcontainers/cli
+npm install -g @devcontainers/cli
 ```
 
 If npm is not found, install Node.js first (see [Prerequisites](#installing-prerequisites)).
