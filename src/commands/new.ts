@@ -13,7 +13,16 @@ import { validateProjectName } from "@lib/projectTemplates.ts";
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import { selectTemplate } from "@lib/templates.ts";
-import { error, header, info, spinner, success, warn } from "@lib/ui.ts";
+import {
+	dryRun,
+	error,
+	header,
+	info,
+	isDryRun,
+	spinner,
+	success,
+	warn,
+} from "@lib/ui.ts";
 import type { DevcontainerConfig, RemoteEntry } from "@typedefs/index.ts";
 import inquirer from "inquirer";
 
@@ -84,6 +93,21 @@ export async function newCommand(): Promise<void> {
 	// Step 3: Select template using unified selector
 	const selection = await selectTemplate();
 	if (!selection) {
+		return;
+	}
+
+	if (isDryRun()) {
+		const remotePath = `${remote.path}/${projectName}`;
+		if (selection.source === "git") {
+			dryRun(`Would clone git template to ${host}:${remotePath}`);
+		} else {
+			dryRun(`Would create project directory on remote: ${host}:${remotePath}`);
+			dryRun(`Would write devcontainer.json from template`);
+			dryRun(`Would initialize git repo on remote`);
+		}
+		if (config.defaults.encryption) {
+			dryRun("Would prompt for encryption configuration");
+		}
 		return;
 	}
 

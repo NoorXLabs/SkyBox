@@ -21,9 +21,11 @@ import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import {
 	confirmDestructiveAction,
+	dryRun,
 	error,
 	header,
 	info,
+	isDryRun,
 	spinner,
 	success,
 } from "@lib/ui.ts";
@@ -123,6 +125,24 @@ export async function rmCommand(
 
 	const projectPath = getProjectPath(project);
 	header(`Removing '${project}'...`);
+
+	if (isDryRun()) {
+		dryRun(`Would clear session file for '${project}'`);
+		const containerStatus = await getContainerStatus(projectPath);
+		if (containerStatus === ContainerStatus.Running) {
+			dryRun(`Would stop running container`);
+		}
+		if (containerStatus !== ContainerStatus.NotFound) {
+			dryRun(`Would remove container and volumes`);
+		}
+		dryRun(`Would terminate sync session`);
+		dryRun(`Would delete local files: ${projectPath}`);
+		dryRun(`Would remove '${project}' from config`);
+		if (options.remote) {
+			dryRun(`Would delete project from remote server`);
+		}
+		return;
+	}
 
 	// Check session status and delete if present
 	const sessionSpin = spinner("Checking session status...");

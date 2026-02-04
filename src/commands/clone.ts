@@ -26,9 +26,11 @@ import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import {
 	confirmDestructiveAction,
+	dryRun,
 	error,
 	header,
 	info,
+	isDryRun,
 	spinner,
 	success,
 } from "@lib/ui.ts";
@@ -64,8 +66,19 @@ async function cloneSingleProject(
 	}
 	checkSpin.succeed("Project found on remote");
 
-	// Check local doesn't exist
 	const localPath = join(getProjectsDir(), project);
+
+	if (isDryRun()) {
+		if (existsSync(localPath)) {
+			dryRun(`Would remove existing local directory: ${localPath}`);
+		}
+		dryRun(`Would create local directory: ${localPath}`);
+		dryRun(`Would create sync session: ${host}:${remotePath} <-> ${localPath}`);
+		dryRun(`Would register project '${project}' in config`);
+		return true;
+	}
+
+	// Check local doesn't exist
 
 	if (existsSync(localPath)) {
 		const confirmed = await confirmDestructiveAction({

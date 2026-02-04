@@ -16,9 +16,11 @@ import {
 	writeSSHConfigEntry,
 } from "@lib/ssh.ts";
 import {
+	dryRun,
 	error,
 	header,
 	info,
+	isDryRun,
 	printNextSteps,
 	spinner,
 	success,
@@ -409,6 +411,16 @@ export async function initCommand(): Promise<void> {
 			info("Keeping existing configuration.");
 			return;
 		}
+	}
+
+	if (isDryRun()) {
+		dryRun("Would check dependencies (Docker, Node.js)");
+		dryRun("Would download/install Mutagen binary");
+		dryRun("Would configure remote server via SSH");
+		dryRun("Would configure editor preference");
+		dryRun(`Would create directories: ${getDevboxHome()}`);
+		dryRun("Would save config.yaml");
+		return;
 	}
 
 	// Check dependencies

@@ -11,7 +11,15 @@ import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
 import { decryptFile, deriveKey } from "@lib/encryption.ts";
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
-import { error, info, spinner, success, warn } from "@lib/ui.ts";
+import {
+	dryRun,
+	error,
+	info,
+	isDryRun,
+	spinner,
+	success,
+	warn,
+} from "@lib/ui.ts";
 import chalk from "chalk";
 
 /**
@@ -270,6 +278,17 @@ export async function encryptCommand(
 	subcommand?: string,
 	project?: string,
 ): Promise<void> {
+	if (isDryRun()) {
+		if (subcommand === "enable") {
+			dryRun(`Would enable encryption for project '${project}'`);
+		} else if (subcommand === "disable") {
+			dryRun(`Would disable encryption for project '${project}'`);
+		} else {
+			dryRun("Would show encryption status");
+		}
+		return;
+	}
+
 	if (subcommand === "enable") {
 		await enableEncryption(project);
 		return;

@@ -21,9 +21,11 @@ import { checkRemoteProjectExists } from "@lib/remote.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import {
 	confirmDestructiveAction,
+	dryRun,
 	error,
 	header,
 	info,
+	isDryRun,
 	spinner,
 	success,
 } from "@lib/ui.ts";
@@ -84,6 +86,21 @@ export async function pushCommand(
 	const remotePath = getRemotePath(remote, projectName);
 
 	header(`Pushing '${projectName}' to ${host}:${remotePath}...`);
+
+	if (isDryRun()) {
+		if (!(await isGitRepo(absolutePath))) {
+			dryRun("Would initialize git repository");
+		}
+		dryRun(`Would check if project exists on remote`);
+		dryRun(`Would create remote directory: ${host}:${remotePath}`);
+		const localPath = join(getProjectsDir(), projectName);
+		if (absolutePath !== localPath) {
+			dryRun(`Would copy ${absolutePath} to ${localPath}`);
+		}
+		dryRun(`Would create sync session: ${localPath} <-> ${host}:${remotePath}`);
+		dryRun(`Would register project '${projectName}' in config`);
+		return;
+	}
 
 	// Check if git repo
 	if (!(await isGitRepo(absolutePath))) {

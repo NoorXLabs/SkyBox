@@ -2,7 +2,7 @@
 
 import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
 import { SUPPORTED_EDITORS } from "@lib/constants.ts";
-import { error, header, info, success } from "@lib/ui.ts";
+import { dryRun, error, header, info, isDryRun, success } from "@lib/ui.ts";
 import inquirer from "inquirer";
 
 export async function editorCommand(): Promise<void> {
@@ -52,6 +52,11 @@ export async function editorCommand(): Promise<void> {
 
 	if (editor === config.editor) {
 		info("Editor unchanged.");
+		return;
+	}
+
+	if (isDryRun()) {
+		dryRun(`Would change editor from '${config.editor}' to '${editor}'`);
 		return;
 	}
 
