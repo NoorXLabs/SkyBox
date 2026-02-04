@@ -464,11 +464,11 @@ export async function initCommand(): Promise<void> {
 		default: false,
 	});
 
-	// Create directories
+	// Create directories with secure permissions (owner-only access)
 	header("Setting up devbox...");
 	try {
-		mkdirSync(getProjectsDir(), { recursive: true });
-		mkdirSync(getBinDir(), { recursive: true });
+		mkdirSync(getProjectsDir(), { recursive: true, mode: 0o700 });
+		mkdirSync(getBinDir(), { recursive: true, mode: 0o700 });
 	} catch (err) {
 		error(`Failed to create devbox directories: ${getErrorMessage(err)}`);
 		process.exit(1);
