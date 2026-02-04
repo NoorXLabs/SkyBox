@@ -138,18 +138,31 @@ bun run src/index.ts <command>
 
 ## Testing Guidelines
 
+### Test Tiers
+
+| Tier | Runs Against | When | Speed |
+|------|--------------|------|-------|
+| **Unit** | Mocks/filesystem | Every commit, pre-commit | ~5s |
+| **Integration** | Real Docker locally | CI + manual | ~60s |
+| **E2E** | Real remote server | CI nightly or pre-release | ~3-5min |
+
 ### Running Tests
 
 ```bash
-# Run all tests
-bun test
-
-# Run specific test file
-bun test src/lib/__tests__/config.test.ts
-
-# Run tests matching pattern
-bun test --grep "config"
+bun test              # Unit tests only (default)
+bun test:integration  # Docker integration tests (requires Docker)
+bun test:e2e          # Remote server tests (requires E2E env vars)
+bun test:all          # Run all test tiers
 ```
+
+### Test File Locations
+
+| Location | Type |
+|----------|------|
+| `src/lib/__tests__/` | Unit tests for libraries |
+| `src/commands/__tests__/` | Unit tests for commands |
+| `src/__integration__/` | Docker integration tests |
+| `src/__e2e__/` | Remote server E2E tests |
 
 ### Test Structure Pattern
 
@@ -192,13 +205,31 @@ describe("feature name", () => {
 });
 ```
 
-### Test Conventions
+### Unit Test Conventions
 
 - Each test uses isolated temp directory with unique timestamp
 - Mock `DEVBOX_HOME` via `process.env` for config isolation
 - Clean up all created files in `afterEach`
 - Use real filesystem operations (no mocking fs module)
 - Test both success and error cases
+
+### Integration Test Conventions
+
+- Tests skip gracefully if Docker isn't running: `describe.skipIf(!await isDockerAvailable())`
+- Each test uses isolated temp directory and unique container names
+- Containers are labeled with `devbox-test=true` for cleanup
+- Import helpers from `src/__integration__/helpers/docker-test-utils.ts`
+
+### E2E Test Conventions
+
+- Tests skip if environment not configured: `describe.skipIf(!isE2EConfigured())`
+- Required environment variables:
+  - `E2E_HOST`: Remote server hostname
+  - `E2E_USER`: SSH username
+  - `E2E_PATH`: Base path for test data (optional, defaults to `~/devbox-e2e-tests`)
+  - `E2E_SSH_KEY_PATH`: Path to SSH key (optional)
+- Use `withRetry()` wrapper for flaky network operations
+- Import helpers from `src/__e2e__/helpers/`
 
 ## Git Workflow
 
