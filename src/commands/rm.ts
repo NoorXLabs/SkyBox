@@ -8,6 +8,7 @@ import {
 	selectRemote,
 } from "@commands/remote.ts";
 import { checkbox } from "@inquirer/prompts";
+import { AuditActions, logAuditEvent } from "@lib/audit.ts";
 import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
 import {
 	getContainerStatus,
@@ -16,6 +17,7 @@ import {
 } from "@lib/container.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { terminateSession } from "@lib/mutagen.ts";
+import { checkWriteAuthorization } from "@lib/ownership.ts";
 import {
 	getLocalProjects,
 	getProjectPath,
@@ -414,6 +416,7 @@ export async function rmCommand(
 	if (options.remote) {
 		await deleteFromRemote(project, config, options);
 	} else {
+		logAuditEvent(AuditActions.RM_LOCAL, { project });
 		success(`Project '${project}' removed locally. Remote copy preserved.`);
 	}
 }
@@ -435,6 +438,18 @@ async function deleteFromRemote(
 	const { remote } = projectRemote;
 	const remotePath = `${remote.path}/${project}`;
 	const host = getRemoteHost(remote);
+
+	// Check authorization before remote deletion
+	const authCheckSpin = spinner("Checking authorization...");
+	const authResult = await checkWriteAuthorization(host, remotePath);
+
+	if (!authResult.authorized) {
+		authCheckSpin.fail("Not authorized");
+		error(`Cannot delete: ${authResult.error}`);
+		info("Only the project owner can delete remote projects.");
+		process.exit(1);
+	}
+	authCheckSpin.succeed("Authorization verified");
 
 	// Double confirmation for remote deletion unless --force
 	if (!options.force) {
@@ -460,5 +475,11 @@ async function deleteFromRemote(
 		saveConfig(config);
 	}
 
+	logAuditEvent(AuditActions.RM_REMOTE, {
+		project,
+		remote: projectRemote.name,
+		host,
+		path: remotePath,
+	});
 	success(`Project '${project}' removed locally and from remote.`);
 }

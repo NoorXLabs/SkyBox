@@ -10,6 +10,7 @@ import {
 } from "@commands/remote.ts";
 import { upCommand } from "@commands/up.ts";
 import { checkbox, select } from "@inquirer/prompts";
+import { AuditActions, logAuditEvent } from "@lib/audit.ts";
 import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
 import {
 	createSelectiveSyncSessions,
@@ -51,6 +52,8 @@ export async function cloneSingleProject(
 	const host = getRemoteHost(remote);
 	const remotePath = getRemotePath(remote, project);
 
+	logAuditEvent(AuditActions.CLONE_START, { project, remote: remoteName });
+
 	header(`Cloning '${project}' from ${host}:${remotePath}...`);
 
 	const localPath = join(getProjectsDir(), project);
@@ -75,6 +78,11 @@ export async function cloneSingleProject(
 		error(
 			`Project '${project}' not found on remote. Run 'devbox browse' to see available projects.`,
 		);
+		logAuditEvent(AuditActions.CLONE_FAIL, {
+			project,
+			remote: remoteName,
+			error: "Project not found on remote",
+		});
 		return false;
 	}
 	checkSpin.succeed("Project found on remote");
@@ -128,6 +136,11 @@ export async function cloneSingleProject(
 		syncSpin.fail("Failed to create sync session");
 		rmSync(localPath, { recursive: true, force: true });
 		error(createResult.error || "Unknown error");
+		logAuditEvent(AuditActions.CLONE_FAIL, {
+			project,
+			remote: remoteName,
+			error: createResult.error || "Failed to create sync session",
+		});
 		return false;
 	}
 
@@ -142,6 +155,11 @@ export async function cloneSingleProject(
 		await terminateSession(project);
 		rmSync(localPath, { recursive: true, force: true });
 		error(syncResult.error || "Unknown error");
+		logAuditEvent(AuditActions.CLONE_FAIL, {
+			project,
+			remote: remoteName,
+			error: syncResult.error || "Sync failed",
+		});
 		return false;
 	}
 
@@ -163,6 +181,7 @@ export async function cloneSingleProject(
 		info("You'll need the passphrase when running 'devbox up' to decrypt it.");
 	}
 
+	logAuditEvent(AuditActions.CLONE_SUCCESS, { project, remote: remoteName });
 	return true;
 }
 
