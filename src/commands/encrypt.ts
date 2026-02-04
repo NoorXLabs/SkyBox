@@ -208,19 +208,14 @@ async function disableEncryption(project?: string): Promise<void> {
 			try {
 				const { tmpdir } = await import("node:os");
 				const { join } = await import("node:path");
-				const { unlinkSync } = await import("node:fs");
+				const { mkdtempSync, rmSync } = await import("node:fs");
 				const { execa } = await import("execa");
 
 				const key = await deriveKey(passphrase, projectConfig.encryption.salt);
-				const timestamp = Date.now();
-				const localEncPath = join(
-					tmpdir(),
-					`devbox-${project}-${timestamp}.tar.enc`,
-				);
-				const localTarPath = join(
-					tmpdir(),
-					`devbox-${project}-${timestamp}.tar`,
-				);
+				// Use mkdtempSync for unpredictable temp directory (prevents symlink attacks)
+				const tempDir = mkdtempSync(join(tmpdir(), "devbox-"));
+				const localEncPath = join(tempDir, "archive.tar.enc");
+				const localTarPath = join(tempDir, "archive.tar");
 
 				try {
 					decryptSpin.text = "Downloading encrypted archive...";
@@ -247,11 +242,9 @@ async function disableEncryption(project?: string): Promise<void> {
 
 					decryptSpin.succeed("Remote archive decrypted");
 				} finally {
+					// Clean up entire temp directory
 					try {
-						unlinkSync(localEncPath);
-					} catch {}
-					try {
-						unlinkSync(localTarPath);
+						rmSync(tempDir, { recursive: true, force: true });
 					} catch {}
 				}
 			} catch {
