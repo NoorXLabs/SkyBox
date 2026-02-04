@@ -1,11 +1,12 @@
 /** Mutagen binary download and installation. */
 
+import { createHash } from "node:crypto";
 import {
 	chmodSync,
-	createWriteStream,
 	existsSync,
 	mkdirSync,
 	unlinkSync,
+	writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
 import { MUTAGEN_REPO, MUTAGEN_VERSION } from "@lib/constants.ts";
@@ -38,6 +39,28 @@ export function parseSHA256Sums(
 		}
 	}
 	return null;
+}
+
+/**
+ * Verify a buffer's SHA256 hash matches the expected value.
+ */
+export function verifyChecksum(data: Buffer, expectedHash: string): boolean {
+	const actualHash = createHash("sha256").update(data).digest("hex");
+	return actualHash.toLowerCase() === expectedHash.toLowerCase();
+}
+
+/**
+ * Fetch the SHA256SUMS file for a given Mutagen version.
+ */
+export async function fetchChecksums(version: string): Promise<string | null> {
+	const url = getMutagenChecksumUrl(version);
+	try {
+		const response = await fetch(url);
+		if (!response.ok) return null;
+		return await response.text();
+	} catch {
+		return null;
+	}
 }
 
 export function getMutagenChecksumUrl(version: string): string {
@@ -82,14 +105,29 @@ export async function downloadMutagen(
 		return { success: false, error: `Unsupported platform: ${platform}` };
 	}
 
+	const os = platform === "darwin" ? "darwin" : "linux";
+	const cpu = arch === "arm64" ? "arm64" : "amd64";
+	const filename = `mutagen_${os}_${cpu}_v${MUTAGEN_VERSION}.tar.gz`;
 	const url = getMutagenDownloadUrl(platform, arch, MUTAGEN_VERSION);
 	const binDir = getBinDir();
 	const tarPath = join(binDir, "mutagen.tar.gz");
 
 	try {
-		// Create bin directory
+		// Create bin directory with secure permissions
 		if (!existsSync(binDir)) {
-			mkdirSync(binDir, { recursive: true });
+			mkdirSync(binDir, { recursive: true, mode: 0o700 });
+		}
+
+		// Fetch checksums first
+		onProgress?.("Fetching checksums...");
+		const checksumContent = await fetchChecksums(MUTAGEN_VERSION);
+		if (!checksumContent) {
+			return { success: false, error: "Failed to fetch checksums" };
+		}
+
+		const expectedHash = parseSHA256Sums(checksumContent, filename);
+		if (!expectedHash) {
+			return { success: false, error: `No checksum found for ${filename}` };
 		}
 
 		onProgress?.(`Downloading mutagen v${MUTAGEN_VERSION}...`);
@@ -100,40 +138,22 @@ export async function downloadMutagen(
 			return { success: false, error: `Download failed: ${response.status}` };
 		}
 
-		// Write to file with proper error handling
-		const reader = response.body?.getReader();
+		// Read entire response into buffer for checksum verification
+		const arrayBuffer = await response.arrayBuffer();
+		const downloadedBuffer = Buffer.from(arrayBuffer);
 
-		if (!reader) {
-			return { success: false, error: "Failed to read response body" };
+		// Verify checksum BEFORE writing to disk
+		onProgress?.("Verifying checksum...");
+		if (!verifyChecksum(downloadedBuffer, expectedHash)) {
+			return {
+				success: false,
+				error:
+					"Checksum verification failed - download may be corrupted or tampered",
+			};
 		}
 
-		await new Promise<void>((resolve, reject) => {
-			const fileStream = createWriteStream(tarPath);
-
-			fileStream.on("error", (err) => {
-				reject(new Error(`Failed to write file: ${err.message}`));
-			});
-
-			fileStream.on("finish", () => {
-				resolve();
-			});
-
-			(async () => {
-				try {
-					while (true) {
-						const { done, value } = await reader.read();
-						if (done) {
-							fileStream.end();
-							break;
-						}
-						fileStream.write(value);
-					}
-				} catch (err) {
-					fileStream.destroy();
-					reject(err);
-				}
-			})();
-		});
+		// Write verified file to disk
+		writeFileSync(tarPath, downloadedBuffer, { mode: 0o600 });
 
 		onProgress?.("Extracting...");
 
