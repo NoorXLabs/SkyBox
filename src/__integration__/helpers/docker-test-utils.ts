@@ -26,8 +26,11 @@ import {
 import type { DevcontainerConfig, Template } from "@typedefs/index.ts";
 import { execa } from "execa";
 
-// Re-export isDockerAvailable from existing test-utils
-export { isDockerAvailable } from "@lib/__tests__/test-utils.ts";
+// Re-export availability checks from existing test-utils
+export {
+	isDevcontainerCliAvailable,
+	isDockerAvailable,
+} from "@lib/__tests__/test-utils.ts";
 
 /**
  * Container state as reported by Docker inspect.

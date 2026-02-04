@@ -118,3 +118,18 @@ export const isDockerAvailable = async (): Promise<boolean> => {
 		return false;
 	}
 };
+
+/**
+ * Check if the devcontainer CLI is available on the system.
+ * Integration tests require both Docker AND the devcontainer CLI.
+ */
+export const isDevcontainerCliAvailable = async (): Promise<boolean> => {
+	try {
+		const result = await execa("devcontainer", ["--version"], {
+			timeout: 5000,
+		});
+		return result.exitCode === 0;
+	} catch {
+		return false;
+	}
+};
