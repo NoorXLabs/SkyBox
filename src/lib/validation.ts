@@ -49,7 +49,8 @@ export function validateRemotePath(
 	if (dangerousChars.test(path)) {
 		return {
 			valid: false,
-			error: "Remote path cannot contain shell metacharacters (;|&)",
+			error:
+				"Remote path cannot contain shell metacharacters (;|&) or line breaks",
 		};
 	}
 

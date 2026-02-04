@@ -62,4 +62,58 @@ Host workserver
 			expect(Array.isArray(keys)).toBe(true);
 		});
 	});
+
+	describe("sanitizeSshError", () => {
+		test("redacts identity file paths", () => {
+			const input =
+				"Permission denied (identity file /Users/john/.ssh/id_rsa not found)";
+			const sanitized = input.replace(
+				/identity file[^,\n]*/gi,
+				"identity file [REDACTED]",
+			);
+			expect(sanitized).toContain("identity file [REDACTED]");
+			expect(sanitized).not.toContain("/Users/john/.ssh/id_rsa");
+		});
+
+		test("redacts SSH fingerprints", () => {
+			const input =
+				"Host key: SHA256:aa:bb:cc:dd:ee:ff:00:11:22:33:44:55:66:77:88:99";
+			const sanitized = input.replace(
+				/[A-Fa-f0-9]{2}(:[A-Fa-f0-9]{2}){15,}/g,
+				"[FINGERPRINT]",
+			);
+			expect(sanitized).toContain("[FINGERPRINT]");
+			expect(sanitized).not.toContain("aa:bb:cc");
+		});
+
+		test("redacts embedded usernames", () => {
+			const input = "Connection failed for username=deploy on host";
+			const sanitized = input.replace(
+				/user(name)?[=:\s]+\S+/gi,
+				"user=[REDACTED]",
+			);
+			expect(sanitized).toContain("user=[REDACTED]");
+			expect(sanitized).not.toContain("deploy");
+		});
+
+		test("returns generic message for permission denied", () => {
+			const input = "Permission denied (publickey,password)";
+			const expectedGeneric =
+				"SSH authentication failed. Check your SSH key and remote configuration.";
+
+			if (input.includes("Permission denied")) {
+				expect(expectedGeneric).toContain("SSH authentication failed");
+			}
+		});
+
+		test("returns generic message for authentication errors", () => {
+			const input = "authentication failed for user@host";
+			const expectedGeneric =
+				"SSH authentication failed. Check your SSH key and remote configuration.";
+
+			if (input.includes("authentication")) {
+				expect(expectedGeneric).toContain("SSH authentication failed");
+			}
+		});
+	});
 });

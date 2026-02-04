@@ -415,3 +415,32 @@ Note: `bun run check` is enforced automatically by a native Stop hook — no man
 - **Background process spawning**: For detached background processes, use `spawn("cmd", args, { detached: true, stdio: [...] })` followed by `child.unref()` to allow parent to exit. See `src/commands/hook.ts` for example.
 
 - **`@tests/*` alias is test-only**: The `@tests/*` path alias must NEVER be imported from production code in `src/`. It exists solely for test-to-test imports. Biome cannot enforce this, so treat it as a convention.
+
+- **Ownership uses local OS username**: The `.devbox-owner` system uses `userInfo().username` (local OS username), not the SSH remote user. This means ownership is consistent for a user across machines but could conflict if different people share the same local username. This is a deliberate trade-off for simplicity.
+
+## Environment Variables
+
+DevBox respects the following environment variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DEVBOX_HOME` | `~/.devbox` | Override DevBox data directory location |
+| `DEVBOX_AUDIT` | `0` | Set to `1` to enable audit logging to `~/.devbox/audit.log` |
+| `DEVBOX_SKIP_GPG` | `0` | Set to `1` to skip GPG signature verification for Mutagen downloads |
+| `DEVBOX_HOOK_WARNINGS` | `1` | Set to `0` to suppress one-time hook security warning |
+| `DEBUG` | unset | Set to any value to enable debug output in list command |
+
+### Audit Logging
+
+When `DEVBOX_AUDIT=1`, security-relevant operations are logged to `~/.devbox/audit.log` in JSON Lines format:
+
+```json
+{"timestamp":"2026-02-04T12:00:00Z","action":"push:success","user":"john","machine":"macbook","details":{"project":"myapp"}}
+```
+
+Logged actions: `clone:start`, `clone:success`, `clone:fail`, `push:start`, `push:success`, `push:fail`, `rm:local`, `rm:remote`, `up:start`, `up:success`, `down`, `lock:force`, `config:change`.
+
+**Log rotation:** The audit log grows unbounded. For long-running deployments, rotate manually with:
+```bash
+mv ~/.devbox/audit.log ~/.devbox/audit.log.$(date +%Y%m%d)
+```
