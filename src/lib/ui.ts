@@ -19,6 +19,10 @@ export function info(message: string): void {
 	console.log(chalk.blue("  ℹ"), message);
 }
 
+export function dryRun(message: string): void {
+	console.log(chalk.dim("  ⏭"), chalk.dim(`[dry-run] ${message}`));
+}
+
 export function header(message: string): void {
 	console.log();
 	console.log(chalk.bold(message));
