@@ -295,11 +295,31 @@ templates:
 
 ## Environment Variables
 
-| Variable | Description |
-|----------|-------------|
-| `DEVBOX_HOME` | Override the default DevBox home directory (`~/.devbox`) |
-| `HOME` | Used for `~` expansion in paths (e.g., remote `path` and `key` fields) |
-| `EDITOR` | Fallback editor command if not configured in DevBox config |
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DEVBOX_HOME` | `~/.devbox` | Override the default DevBox home directory |
+| `DEVBOX_AUDIT` | `0` | Set to `1` to enable audit logging to `~/.devbox/audit.log` |
+| `DEVBOX_SKIP_GPG` | `0` | Set to `1` to skip GPG signature verification for Mutagen downloads |
+| `DEVBOX_HOOK_WARNINGS` | `1` | Set to `0` to suppress one-time hook security warnings |
+| `HOME` | - | Used for `~` expansion in paths (e.g., remote `path` and `key` fields) |
+| `EDITOR` | - | Fallback editor command if not configured in DevBox config |
+
+### Audit Logging
+
+When `DEVBOX_AUDIT=1`, security-relevant operations are logged to `~/.devbox/audit.log` in JSON Lines format:
+
+```json
+{"timestamp":"2026-02-04T12:00:00Z","action":"clone:success","user":"john","machine":"macbook","details":{"project":"myapp"}}
+```
+
+Logged actions include: `clone:start`, `clone:success`, `clone:fail`, `push:start`, `push:success`, `push:fail`, `rm:local`, `rm:remote`, `up:start`, `up:success`, `down`, `lock:force`, `config:change`.
+
+::: tip Log Rotation
+The audit log grows unbounded. For long-running deployments, rotate manually:
+```bash
+mv ~/.devbox/audit.log ~/.devbox/audit.log.$(date +%Y%m%d)
+```
+:::
 
 ## Creating Configuration
 

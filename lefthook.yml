@@ -1,6 +1,10 @@
 pre-commit:
   piped: true
   commands:
+    lockfile:
+      priority: 0
+      run: bun run scripts/verify-lockfile.ts
+      glob: "package.json|bun.lock"
     check:
       priority: 1
       glob: "*.{js,ts,json}"

@@ -13,3 +13,6 @@ vendor/
 # Bun build artifacts
 devbox-bin
 *.bun-build
+
+# Lockfile integrity cache
+.lockfile-integrity
