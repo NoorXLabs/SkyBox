@@ -159,6 +159,12 @@ export async function pushCommand(
 			info(
 				"Contact the project owner to transfer ownership or use a different project name.",
 			);
+			logAuditEvent(AuditActions.AUTH_DENIED, {
+				project: projectName,
+				remote: remoteName,
+				operation: "push",
+				error: authResult.error,
+			});
 			process.exit(1);
 		}
 		checkSpin.warn("Project already exists on remote (you have permission)");

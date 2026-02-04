@@ -207,6 +207,19 @@ export const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 // ── Templates (large structured data) ──
 
+/**
+ * SECURITY: Container images are pinned by SHA256 digest to prevent supply chain attacks.
+ *
+ * To update image digests:
+ * 1. Pull the new image: docker pull mcr.microsoft.com/devcontainers/javascript-node:20
+ * 2. Get the digest: docker inspect --format='{{index .RepoDigests 0}}' <image>
+ * 3. Update the digest in the TEMPLATES array below
+ * 4. Test the new image works correctly
+ * 5. Document the update in CHANGELOG.md
+ *
+ * Check for updates periodically at: https://mcr.microsoft.com/en-us/catalog?search=devcontainers
+ */
+
 /** Common devcontainer features for all templates. */
 export const COMMON_FEATURES = {
 	"ghcr.io/devcontainers/features/common-utils:2": {

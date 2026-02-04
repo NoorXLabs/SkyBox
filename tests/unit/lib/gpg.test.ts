@@ -44,11 +44,9 @@ describe("GPG verification", () => {
 		});
 
 		test("returns gpgUnavailable: true when GPG not installed", async () => {
-			if (await isGpgAvailable()) {
-				// GPG is available, skip this test
-				expect(true).toBe(true);
-				return;
-			}
+			// Skip if GPG is available - this test verifies behavior when GPG is missing
+			const gpgAvailable = await isGpgAvailable();
+			if (gpgAvailable) return;
 
 			const result = await verifyGpgSignature(
 				Buffer.from("test data"),
@@ -61,10 +59,9 @@ describe("GPG verification", () => {
 		});
 
 		test("cleans up temp directory on success", async () => {
-			if (!(await isGpgAvailable())) {
-				expect(true).toBe(true);
-				return;
-			}
+			// Skip if GPG is not available - this test requires GPG to be installed
+			const gpgAvailable = await isGpgAvailable();
+			if (!gpgAvailable) return;
 
 			const tempBase = tmpdir();
 			const beforeDirs = readdirSync(tempBase).filter((d) =>

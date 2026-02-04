@@ -447,6 +447,12 @@ async function deleteFromRemote(
 		authCheckSpin.fail("Not authorized");
 		error(`Cannot delete: ${authResult.error}`);
 		info("Only the project owner can delete remote projects.");
+		logAuditEvent(AuditActions.AUTH_DENIED, {
+			project,
+			remote: projectRemote.name,
+			operation: "rm",
+			error: authResult.error,
+		});
 		process.exit(1);
 	}
 	authCheckSpin.succeed("Authorization verified");

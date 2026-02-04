@@ -99,4 +99,20 @@ describe("audit logging", () => {
 		expect(entry.details.project).toBe("my-project");
 		expect(entry.details.remote).toBe("work");
 	});
+
+	test("setAuditEnabled(null) restores default env var behavior", () => {
+		// Disable override to use env var
+		setAuditEnabled(null);
+
+		// With no env var set, logging should be disabled
+		delete process.env.DEVBOX_AUDIT;
+		logAuditEvent("should-not-log", {});
+		const logPath = getAuditLogPath();
+		expect(existsSync(logPath)).toBe(false);
+
+		// With env var set, logging should be enabled
+		process.env.DEVBOX_AUDIT = "1";
+		logAuditEvent("should-log", {});
+		expect(existsSync(logPath)).toBe(true);
+	});
 });

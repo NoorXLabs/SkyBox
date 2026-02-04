@@ -64,6 +64,29 @@ describe("shutdown handlers", () => {
 		runCleanupHandlers();
 		expect(handler2Called).toBe(true);
 	});
+
+	test("async handlers are handled without blocking", async () => {
+		let asyncHandlerStarted = false;
+		let syncHandlerCalled = false;
+
+		// Register async handler that takes a while
+		registerCleanupHandler(async () => {
+			asyncHandlerStarted = true;
+			// Simulate async work
+			await new Promise((resolve) => setTimeout(resolve, 10));
+		});
+
+		// Register sync handler
+		registerCleanupHandler(() => {
+			syncHandlerCalled = true;
+		});
+
+		runCleanupHandlers();
+
+		// Both should have been called/started
+		expect(syncHandlerCalled).toBe(true);
+		expect(asyncHandlerStarted).toBe(true);
+	});
 });
 
 describe("signal handling", () => {

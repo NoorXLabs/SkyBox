@@ -19,13 +19,26 @@ export interface AuditEntry {
 	details: Record<string, unknown>;
 }
 
-let auditEnabled = process.env.DEVBOX_AUDIT === "1";
+/** Cached audit enabled state (can be overridden for testing). */
+let auditEnabledOverride: boolean | null = null;
+
+/**
+ * Check if audit logging is enabled.
+ * Checks env var on each call to support dynamic configuration.
+ */
+function isAuditEnabled(): boolean {
+	if (auditEnabledOverride !== null) {
+		return auditEnabledOverride;
+	}
+	return process.env.DEVBOX_AUDIT === "1";
+}
 
 /**
  * Enable or disable audit logging (for testing).
+ * Pass null to restore default behavior (check env var).
  */
-export function setAuditEnabled(enabled: boolean): void {
-	auditEnabled = enabled;
+export function setAuditEnabled(enabled: boolean | null): void {
+	auditEnabledOverride = enabled;
 }
 
 /**
@@ -49,7 +62,7 @@ export function logAuditEvent(
 	action: string,
 	details: Record<string, unknown>,
 ): void {
-	if (!auditEnabled) return;
+	if (!isAuditEnabled()) return;
 
 	const entry: AuditEntry = {
 		timestamp: new Date().toISOString(),
@@ -84,9 +97,11 @@ export const AuditActions = {
 	PUSH_FAIL: "push:fail",
 	RM_LOCAL: "rm:local",
 	RM_REMOTE: "rm:remote",
+	RM_FAIL: "rm:fail",
 	UP_START: "up:start",
 	UP_SUCCESS: "up:success",
 	DOWN: "down",
 	FORCE_LOCK: "lock:force",
 	CONFIG_CHANGE: "config:change",
+	AUTH_DENIED: "auth:denied",
 } as const;
