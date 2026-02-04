@@ -71,18 +71,20 @@ interface ResolvedProject {
  * @internal Exported for testing
  */
 export function sanitizeDockerError(errorStr: string): string {
-	// Remove absolute paths that could expose system structure
-	let sanitized = errorStr.replace(/\/[\w\-/.]+/g, (match) => {
-		// Keep relative paths and common paths
-		if (match.startsWith("/tmp") || match.startsWith("/var/run/docker")) {
-			return match;
-		}
-		// Redact user home paths
-		if (match.includes("/Users/") || match.includes("/home/")) {
-			return "[REDACTED_PATH]";
-		}
-		return match;
-	});
+	let sanitized = errorStr;
+
+	// Only redact paths that likely contain sensitive info
+	// Keep general paths for debugging, redact config/credential paths
+	const sensitivePathPatterns = [
+		/\/Users\/[^/]+\/(\.ssh|\.aws|\.config|\.gnupg|\.devbox)[^\s]*/g,
+		/\/home\/[^/]+\/(\.ssh|\.aws|\.config|\.gnupg|\.devbox)[^\s]*/g,
+		/\/Users\/[^/]+\/\.[^/\s]+/g, // Any dotfile in home
+		/\/home\/[^/]+\/\.[^/\s]+/g, // Any dotfile in home
+	];
+
+	for (const pattern of sensitivePathPatterns) {
+		sanitized = sanitized.replace(pattern, "[REDACTED_PATH]");
+	}
 
 	// Remove potential credential fragments
 	sanitized = sanitized.replace(/password[=:]\S+/gi, "password=[REDACTED]");

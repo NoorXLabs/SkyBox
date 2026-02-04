@@ -33,18 +33,24 @@ describe("up command", () => {
 });
 
 describe("sanitizeDockerError", () => {
-	test("redacts macOS home directory paths", () => {
-		const input = "Error at /Users/john/projects/app/file.ts";
+	test("redacts sensitive macOS home directory paths", () => {
+		const input = "Error reading /Users/john/.ssh/id_rsa";
 		const sanitized = sanitizeDockerError(input);
 		expect(sanitized).toContain("[REDACTED_PATH]");
-		expect(sanitized).not.toContain("/Users/john");
+		expect(sanitized).not.toContain(".ssh");
 	});
 
-	test("redacts Linux home directory paths", () => {
-		const input = "Error at /home/deploy/app/config.json";
+	test("redacts sensitive Linux home directory paths", () => {
+		const input = "Error reading /home/deploy/.aws/credentials";
 		const sanitized = sanitizeDockerError(input);
 		expect(sanitized).toContain("[REDACTED_PATH]");
-		expect(sanitized).not.toContain("/home/deploy");
+		expect(sanitized).not.toContain(".aws");
+	});
+
+	test("preserves non-sensitive project paths", () => {
+		const input = "Error at /Users/john/projects/app/file.ts";
+		const sanitized = sanitizeDockerError(input);
+		expect(sanitized).toContain("/Users/john/projects/app/file.ts");
 	});
 
 	test("preserves /tmp paths", () => {
