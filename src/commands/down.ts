@@ -18,7 +18,6 @@ import {
 import { deriveKey, encryptFile } from "@lib/encryption.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { runHooks } from "@lib/hooks.ts";
-import { createLockRemoteInfo, releaseLock } from "@lib/lock.ts";
 import { pauseSync, waitForSync } from "@lib/mutagen.ts";
 import {
 	getLocalProjects,
@@ -26,6 +25,7 @@ import {
 	projectExists,
 	resolveProjectFromCwd,
 } from "@lib/project.ts";
+import { deleteSession } from "@lib/session.ts";
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import { error, header, info, spinner, success, warn } from "@lib/ui.ts";
@@ -281,19 +281,9 @@ export async function downCommand(
 			warn("Encryption failed — project files remain unencrypted on remote");
 		}
 
-		// Release lock after container stopped (if project has a remote)
-		const projectRemote = getProjectRemote(project ?? "", config);
-		if (projectRemote) {
-			const remoteInfo = createLockRemoteInfo(projectRemote.remote);
-			const lockResult = await releaseLock(project ?? "", remoteInfo);
-			if (lockResult.success && lockResult.skipped) {
-				warn("Lock owned by another machine — skipping release");
-			} else if (lockResult.success) {
-				success("Lock released");
-			} else {
-				warn(`Could not release lock: ${lockResult.error}`);
-			}
-		}
+		// End session after container stopped
+		deleteSession(projectPath);
+		success("Session ended");
 	}
 
 	// Ask about cleanup

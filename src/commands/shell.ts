@@ -1,6 +1,5 @@
 // src/commands/shell.ts
 
-import { getProjectRemote } from "@commands/remote.ts";
 import { upCommand } from "@commands/up.ts";
 import { configExists, loadConfig } from "@lib/config.ts";
 import { WORKSPACE_PATH_PREFIX } from "@lib/constants.ts";
@@ -9,8 +8,8 @@ import {
 	getContainerStatus,
 	getDevcontainerConfig,
 } from "@lib/container.ts";
-import { createLockRemoteInfo, getLockStatus } from "@lib/lock.ts";
 import { getProjectPath, projectExists } from "@lib/project.ts";
+import { checkSessionConflict, readSession } from "@lib/session.ts";
 import { error, header, info, warn } from "@lib/ui.ts";
 import { ContainerStatus, type ShellOptions } from "@typedefs/index.ts";
 import { execa } from "execa";
@@ -42,26 +41,23 @@ export async function shellCommand(
 
 	const projectPath = getProjectPath(project);
 
-	// Step 3: Check lock status
+	// Step 3: Check session status
 	if (!options.force) {
-		const projectRemote = getProjectRemote(project, config);
-		if (projectRemote) {
-			const remoteInfo = createLockRemoteInfo(projectRemote.remote);
-			const lockStatus = await getLockStatus(project, remoteInfo);
+		const sessionConflict = checkSessionConflict(projectPath);
 
-			if (lockStatus.locked && !lockStatus.ownedByMe) {
-				error(
-					`Project '${project}' is locked by ${lockStatus.info.machine} (${lockStatus.info.user}).`,
-				);
-				info("Use --force to bypass lock check (use with caution).");
-				process.exit(1);
-			}
+		if (sessionConflict.hasConflict && sessionConflict.existingSession) {
+			error(
+				`Project '${project}' has an active session on ${sessionConflict.existingSession.machine} (${sessionConflict.existingSession.user}).`,
+			);
+			info("Use --force to bypass session check (use with caution).");
+			process.exit(1);
+		}
 
-			if (!lockStatus.locked) {
-				warn(
-					"No lock held. Run 'devbox up' first to acquire lock for safe editing.",
-				);
-			}
+		const currentSession = readSession(projectPath);
+		if (!currentSession) {
+			warn(
+				"No active session. Consider running 'devbox up' first to prevent sync conflicts across machines.",
+			);
 		}
 	}
 

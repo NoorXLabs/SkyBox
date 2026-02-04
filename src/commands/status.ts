@@ -3,18 +3,21 @@
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { getProjectRemote, getRemoteHost } from "@commands/remote.ts";
-import { configExists, loadConfig } from "@lib/config.ts";
+import { configExists } from "@lib/config.ts";
 import { getContainerInfo, getContainerStatus } from "@lib/container.ts";
-import { createLockRemoteInfo, getLockStatus } from "@lib/lock.ts";
 import { getSyncStatus, sessionName } from "@lib/mutagen.ts";
 import { getProjectsDir } from "@lib/paths.ts";
+import {
+	checkSessionConflict,
+	getMachineName,
+	readSession,
+	type SessionInfo,
+} from "@lib/session.ts";
 import { error, header } from "@lib/ui.ts";
 import {
 	type ContainerDetails,
 	ContainerStatus,
-	type DevboxConfigV2,
 	type GitDetails,
-	type LockStatus,
 	type ProjectSummary,
 	type SyncDetails,
 } from "@typedefs/index.ts";
@@ -154,14 +157,15 @@ function colorSync(status: string): string {
 	}
 }
 
-function formatLockStatus(lockStatus: LockStatus): string {
-	if (!lockStatus.locked) {
-		return "unlocked";
+function formatSessionStatus(session: SessionInfo | null): string {
+	if (!session) {
+		return "none";
 	}
-	if (lockStatus.ownedByMe) {
-		return "locked (this machine)";
+	const currentMachine = getMachineName();
+	if (session.machine === currentMachine) {
+		return "active here";
 	}
-	return `locked (${lockStatus.info.machine})`;
+	return `active on ${session.machine}`;
 }
 
 async function getContainerDetails(
@@ -258,10 +262,7 @@ async function getRemoteDiskUsage(projectName: string): Promise<string> {
 	}
 }
 
-async function getProjectSummary(
-	projectName: string,
-	config: DevboxConfigV2 | null,
-): Promise<ProjectSummary> {
+async function getProjectSummary(projectName: string): Promise<ProjectSummary> {
 	const projectPath = join(getProjectsDir(), projectName);
 
 	// Run checks in parallel
@@ -274,16 +275,9 @@ async function getProjectSummary(
 			getLastActive(projectPath),
 		]);
 
-	// Get lock status if config is available and project has a remote
-	let lockDisplay = "unavailable";
-	if (config) {
-		const projectRemote = getProjectRemote(projectName, config);
-		if (projectRemote) {
-			const remoteInfo = createLockRemoteInfo(projectRemote.remote);
-			const lockStatus = await getLockStatus(projectName, remoteInfo);
-			lockDisplay = formatLockStatus(lockStatus);
-		}
-	}
+	// Get session status from local session file
+	const session = readSession(projectPath);
+	const sessionDisplay = formatSessionStatus(session);
 
 	// Map container status
 	let container: ProjectSummary["container"] = "unknown";
@@ -306,7 +300,7 @@ async function getProjectSummary(
 		container,
 		sync,
 		branch: gitInfo?.branch || "-",
-		lock: lockDisplay,
+		session: sessionDisplay,
 		lastActive,
 		size: diskUsage,
 		path: projectPath,
@@ -320,7 +314,7 @@ function formatOverviewTable(summaries: ProjectSummary[]): void {
 		"CONTAINER",
 		"SYNC",
 		"BRANCH",
-		"LOCK",
+		"SESSION",
 		"LAST ACTIVE",
 		"SIZE",
 	];
@@ -338,7 +332,7 @@ function formatOverviewTable(summaries: ProjectSummary[]): void {
 				case 3:
 					return s.branch;
 				case 4:
-					return s.lock;
+					return s.session;
 				case 5:
 					return formatRelativeTime(s.lastActive);
 				case 6:
@@ -361,14 +355,14 @@ function formatOverviewTable(summaries: ProjectSummary[]): void {
 			Math.max(0, widths[1] - s.container.length),
 		);
 		const syncPad = " ".repeat(Math.max(0, widths[2] - s.sync.length));
-		const lockPad = " ".repeat(Math.max(0, widths[4] - s.lock.length));
+		const sessionPad = " ".repeat(Math.max(0, widths[4] - s.session.length));
 
 		const row = [
 			s.name.padEnd(widths[0]),
 			colorContainer(s.container) + containerPad,
 			colorSync(s.sync) + syncPad,
 			s.branch.padEnd(widths[3]),
-			chalk.dim(s.lock) + lockPad,
+			chalk.dim(s.session) + sessionPad,
 			formatRelativeTime(s.lastActive).padEnd(widths[5]),
 			s.size.padEnd(widths[6]),
 		].join("  ");
@@ -413,12 +407,9 @@ async function showOverview(): Promise<void> {
 		return;
 	}
 
-	// Load config for lock status checks
-	const config = loadConfig();
-
 	// Gather summaries in parallel
 	const summaries = await Promise.all(
-		projectDirs.map((project) => getProjectSummary(project, config)),
+		projectDirs.map((project) => getProjectSummary(project)),
 	);
 
 	header("Projects:");
@@ -437,24 +428,18 @@ async function showDetailed(projectName: string): Promise<void> {
 		process.exit(1);
 	}
 
-	// Load config for lock status
-	const config = loadConfig();
-
-	// Get project's remote for lock status
-	const projectRemote = config ? getProjectRemote(projectName, config) : null;
-
 	// Gather all details
-	const [container, sync, git, localDisk, remoteDisk, lockStatus] =
-		await Promise.all([
-			getContainerDetails(projectPath),
-			getSyncDetails(projectName),
-			getGitInfo(projectPath),
-			getDiskUsage(projectPath),
-			getRemoteDiskUsage(projectName),
-			projectRemote
-				? getLockStatus(projectName, createLockRemoteInfo(projectRemote.remote))
-				: Promise.resolve({ locked: false } as LockStatus),
-		]);
+	const [container, sync, git, localDisk, remoteDisk] = await Promise.all([
+		getContainerDetails(projectPath),
+		getSyncDetails(projectName),
+		getGitInfo(projectPath),
+		getDiskUsage(projectPath),
+		getRemoteDiskUsage(projectName),
+	]);
+
+	// Get session status from local file
+	const session = readSession(projectPath);
+	const conflictResult = checkSessionConflict(projectPath);
 
 	// Print header
 	console.log();
@@ -491,25 +476,27 @@ async function showDetailed(projectName: string): Promise<void> {
 		console.log(chalk.dim("  Not a git repository"));
 	}
 
-	// Lock section
+	// Session section
 	console.log();
-	console.log(chalk.bold("Lock"));
-	if (!config || !projectRemote) {
-		console.log(
-			`  Status:     ${chalk.dim("unavailable (no remote configured)")}`,
-		);
-	} else if (!lockStatus.locked) {
-		console.log(`  Status:     ${chalk.green("unlocked")}`);
+	console.log(chalk.bold("Session"));
+	if (!session) {
+		console.log(`  Status:     ${chalk.dim("none")}`);
+	} else if (!conflictResult.hasConflict) {
+		// Session exists and belongs to this machine
+		console.log(`  Status:     ${chalk.green("active here")}`);
+		console.log(`  Machine:    ${session.machine}`);
+		console.log(`  User:       ${session.user}`);
+		console.log(`  Started:    ${session.timestamp}`);
+		console.log(`  PID:        ${session.pid}`);
 	} else {
-		const statusColor = lockStatus.ownedByMe ? chalk.yellow : chalk.red;
-		const statusText = lockStatus.ownedByMe
-			? "locked (this machine)"
-			: `locked (${lockStatus.info.machine})`;
-		console.log(`  Status:     ${statusColor(statusText)}`);
-		console.log(`  Machine:    ${lockStatus.info.machine}`);
-		console.log(`  User:       ${lockStatus.info.user}`);
-		console.log(`  Timestamp:  ${lockStatus.info.timestamp}`);
-		console.log(`  PID:        ${lockStatus.info.pid}`);
+		// Session belongs to a different machine
+		console.log(
+			`  Status:     ${chalk.yellow(`active on ${session.machine}`)}`,
+		);
+		console.log(`  Machine:    ${session.machine}`);
+		console.log(`  User:       ${session.user}`);
+		console.log(`  Started:    ${session.timestamp}`);
+		console.log(`  PID:        ${session.pid}`);
 	}
 
 	// Disk section

@@ -265,77 +265,77 @@ For each remote, you specify:
 
 ```
 ~/code/                          # Base path
-├── .devbox-locks/               # Lock files
-│   ├── my-app.lock
-│   └── other-project.lock
 ├── my-app/                      # Project directories
+│   ├── .devbox/
+│   │   └── session.lock         # Session file (synced via Mutagen)
 │   ├── src/
 │   └── ...
 └── other-project/
     └── ...
 ```
 
-### Lock System
+### Session System
 
-DevBox uses a **lock system** to prevent conflicts when working from multiple machines.
+DevBox uses a **session system** to prevent conflicts when working from multiple machines. Sessions are local files stored inside each project that sync to other machines via Mutagen.
 
 When you run `devbox up`:
 
-1. DevBox checks for an existing lock on the remote
-2. If unlocked, creates a lock file with your machine info
-3. If locked by you, updates the timestamp
-4. If locked by another machine, warns and offers to take over
+1. DevBox checks for an existing session file in the project's `.devbox/` directory
+2. If no session exists, creates one with your machine info
+3. If a session exists from the same machine, updates the timestamp
+4. If a session exists from a different machine, warns and asks to continue
 
-Lock file format (stored as JSON):
+Session file format (stored as JSON):
 
 ```json
 {
   "machine": "my-laptop",
   "user": "developer",
   "timestamp": "2026-02-03T10:30:00Z",
-  "pid": 12345
+  "pid": 12345,
+  "expires": "2026-02-04T10:30:00Z"
 }
 ```
 
-### Lock States
+### Session States
 
 | State | Description |
 |-------|-------------|
-| Unlocked | No machine currently holds the lock |
-| Locked (this machine) | Your current machine holds the lock |
-| Locked (other) | Another machine holds the lock |
+| None | No active session for this project |
+| Active here | Your current machine has the session |
+| Active on other | Another machine has the session |
 
-### Atomic Lock Acquisition
+### How Session Sync Works
 
-Lock acquisition uses an atomic test-and-set approach via the shell's `noclobber` mode (`set -C`). This prevents race conditions where two machines try to acquire the same lock simultaneously -- only one will succeed in creating the file.
+Session files live inside the project directory at `<project>/.devbox/session.lock`. Because Mutagen syncs project files bidirectionally, the session file is automatically visible on all machines syncing the same project. This means no SSH round-trip is needed to check session status.
 
-If the atomic creation fails (file already exists), DevBox checks ownership:
-- If the current machine owns the lock, the timestamp is updated
-- If another machine owns it, the user is prompted to take over
+### Session Conflicts
 
-### Taking Over a Lock
-
-If another machine holds the lock:
+If another machine has an active session:
 
 ```
-Project locked by 'work-laptop' since 2026-02-03T08:00:00Z
-Take over lock anyway? (y/N)
+This project is running on 'work-laptop' (since 2026-02-03T08:00:00Z)
+? Continue anyway? (y/N)
 ```
 
-Taking over is safe when:
-- You know the other machine isn't actively working
+Continuing is safe when:
+- You know the other machine isn't actively editing
 - The other machine is unreachable
-- You want to force work on this machine
+- You want to work from this machine instead
+
+### Session Expiry
+
+Sessions automatically expire after 24 hours. If a machine crashes without running `devbox down`, the session becomes stale and is treated as inactive. No manual intervention is needed.
 
 ### Force Bypass
 
-You can bypass the lock check entirely when opening a shell:
+You can bypass the session check entirely when opening a shell:
 
 ```bash
 devbox shell --force my-app
 ```
 
-This skips lock verification and opens the container shell directly, without acquiring or checking the lock.
+This skips session verification and opens the container shell directly.
 
 ## Non-interactive Mode
 
@@ -347,7 +347,7 @@ devbox down --no-prompt my-app
 devbox open --no-prompt my-app
 ```
 
-When `--no-prompt` is set, DevBox will **error instead of prompting**. For example, if a lock is held by another machine, the command will exit with an error rather than asking whether to take over. This makes DevBox safe to use in automated workflows where no human is available to respond to prompts.
+When `--no-prompt` is set, DevBox will **error instead of prompting**. For example, if a session is active on another machine, the command will exit with an error rather than asking whether to continue. This makes DevBox safe to use in automated workflows where no human is available to respond to prompts.
 
 ## Configuration
 
@@ -417,9 +417,9 @@ projects:
 │                       Remote Server                          │
 │                                                              │
 │  ~/code/                                                     │
-│  ├── .devbox-locks/        Lock files                       │
-│  │   └── my-app.lock                                        │
 │  └── my-app/               Synced project files             │
+│      └── .devbox/                                            │
+│          └── session.lock  Session file                      │
 │                                                              │
 └─────────────────────────────────────────────────────────────┘
 ```

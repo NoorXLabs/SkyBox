@@ -282,13 +282,13 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
 2. **Resolve manually:**
    Choose which version to keep and delete the other
 
-## Lock Issues
+## Session Issues
 
-### Project Locked by Another Machine
+### Project Active on Another Machine
 
 **Symptoms:**
-- `devbox up` fails with lock error
-- Message: "Project is locked by [machine]"
+- `devbox up` warns that the project is running on another machine
+- Message: "This project is running on [machine]"
 
 **Solutions:**
 
@@ -297,44 +297,30 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
    devbox down myproject
    ```
 
-2. **Force takeover (use with caution):**
-   ```bash
-   devbox up myproject --force
-   ```
+2. **Continue anyway:** When prompted during `devbox up`, choose "Continue anyway" if you know the other machine is idle.
 
-### Lock Takeover Failed
+3. **Wait for expiry:** Sessions automatically expire after 24 hours if the other machine crashed without running `devbox down`.
+
+### Stale Session
 
 **Symptoms:**
-- `devbox up --force` fails to take over an existing lock
-- Permission denied on lock file
+- Session from a crashed machine
+- Machine listed no longer exists or is unreachable
 
 **Solutions:**
 
-1. **Check SSH permissions** to the remote lock directory:
+1. **Start the project:** Sessions expire after 24 hours automatically. If expired, `devbox up` proceeds without warning:
    ```bash
-   ssh your-host ls -la ~/.devbox-locks/
+   devbox up myproject
    ```
 
-2. **Manually remove the lock file:**
+2. **Continue past the warning:** If the session hasn't expired yet:
    ```bash
-   ssh your-host rm ~/.devbox-locks/myproject.lock
+   devbox up myproject
+   # Choose "Continue anyway" when prompted
    ```
 
-### Stale Lock
-
-**Symptoms:**
-- Lock from crashed session
-- Machine listed no longer exists
-- Remote server was restarted while a project was locked
-
-**Solutions:**
-
-1. **Force acquire lock:**
-   ```bash
-   devbox up myproject --force
-   ```
-
-2. **Bypass lock for shell access** (read-only, does not acquire lock):
+3. **Bypass session check for shell access:**
    ```bash
    devbox shell myproject --force
    ```

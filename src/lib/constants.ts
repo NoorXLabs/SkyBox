@@ -48,11 +48,11 @@ export const MAX_NAME_ATTEMPTS = 5;
 /** Config filename. */
 export const CONFIG_FILENAME = "config.yaml";
 
-/** Directory name for lock files on remote server. */
-export const LOCKS_DIR_NAME = ".devbox-locks";
+/** Session file path relative to project directory. */
+export const SESSION_FILE = ".devbox/session.lock";
 
-/** Default lock TTL in milliseconds (24 hours). */
-export const LOCK_TTL_MS = 24 * 60 * 60 * 1000;
+/** Session TTL in milliseconds (24 hours). */
+export const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
 
 /** Default DevBox home directory name. */
 export const DEVBOX_HOME_DIR = ".devbox";

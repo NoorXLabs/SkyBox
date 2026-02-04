@@ -46,7 +46,7 @@ devbox up my-project
 
 ## Option 2: Clone from Remote
 
-If a project already exists on your remote server (perhaps pushed by a teammate), clone it locally.
+If a project already exists on your remote server (perhaps pushed from another machine), clone it locally.
 
 ### Step 1: Browse Available Projects
 
@@ -301,11 +301,10 @@ Git
   Branch:     main
   Status:     clean
 
-Lock
-  Status:     locked (this machine)
+Session
+  Status:     active here
 ```
 
 ## Next Steps
 
 - [Daily Development](/guide/workflows/daily-development) - Learn the day-to-day workflow
-- [Team Sharing](/guide/workflows/team-sharing) - Share projects with teammates

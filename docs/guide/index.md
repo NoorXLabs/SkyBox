@@ -8,7 +8,7 @@ DevBox manages the complete lifecycle of containerized development environments:
 
 - **Local Development** - Run containers on your machine with native performance
 - **Remote Sync** - Automatically backup code to a remote server using Mutagen
-- **Multi-Machine Workflow** - Seamlessly switch between machines with lock-based coordination
+- **Multi-Machine Workflow** - Seamlessly switch between machines with session-based coordination
 - **Editor Integration** - Open projects directly in Cursor, VS Code, or your preferred editor
 
 ## How It Works
@@ -31,7 +31,7 @@ Your Machine                     Remote Server
 1. Projects are stored locally in `~/.devbox/Projects/`
 2. Mutagen syncs files bidirectionally to your remote server
 3. Docker containers run locally using devcontainer configurations
-4. Lock files on the remote prevent conflicts between machines
+4. Session files prevent conflicts when switching between machines
 
 ## Why DevBox?
 
@@ -50,7 +50,7 @@ Your code is automatically synced to remote servers:
 
 - Never lose work due to local machine issues
 - Easy to switch between work laptop and home desktop
-- Built-in lock system prevents simultaneous edits from different machines
+- Built-in session system warns when a project is active on another machine
 - Multi-remote support for organizing projects across different servers
 
 ### Developer Experience

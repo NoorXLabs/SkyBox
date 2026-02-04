@@ -51,7 +51,7 @@ src/
 │   ├── validation.ts      # Path safety and input validation
 │   ├── mutagen.ts        # Sync session management
 │   ├── ssh.ts            # SSH operations and host parsing
-│   ├── lock.ts           # Multi-machine lock system (atomic acquisition)
+│   ├── session.ts        # Local session management (multi-machine conflict detection)
 │   ├── remote.ts         # Remote project operations
 │   ├── project.ts        # Project path resolution
 │   ├── download.ts       # Binary downloads (Mutagen)
@@ -298,15 +298,15 @@ Use `src/lib/config.ts` functions:
 
 ## Architecture Notes
 
-### Lock System
+### Session System
 
-Multi-machine lock prevents conflicts when same project is opened on multiple machines:
-- Lock file stored on remote: `~/.devbox-locks/<project>.lock`
+Local session files detect multi-machine conflicts:
+- Session file stored locally: `<project>/.devbox/session.lock`
 - Contains: machine name, user, timestamp, PID, expires (24h TTL)
-- Acquired by `devbox up`, released by `devbox down`
-- Uses atomic test-and-set (shell noclobber mode) to prevent race conditions
-- Locks expire after 24 hours (`LOCK_TTL_MS` in constants.ts) — stale locks treated as unlocked
-- See `src/lib/lock.ts` for implementation
+- Written by `devbox up`, deleted by `devbox down`
+- Uses atomic write (temp file + rename) to prevent corruption
+- Sessions expire after 24 hours (`SESSION_TTL_MS` in constants.ts) — expired sessions ignored
+- See `src/lib/session.ts` for implementation
 
 ### Sync System
 
@@ -331,7 +331,7 @@ Uses Docker with devcontainer spec:
 | `src/lib/config.ts` | Config file operations |
 | `src/lib/container.ts` | Docker operations |
 | `src/lib/mutagen.ts` | Sync session management |
-| `src/lib/lock.ts` | Multi-machine lock system |
+| `src/lib/session.ts` | Local session management (conflict detection) |
 | `src/lib/ui.ts` | Terminal output helpers |
 | `src/lib/errors.ts` | Error handling utilities |
 | `src/lib/encryption.ts` | AES-256-GCM encrypt/decrypt for config values |
@@ -393,7 +393,7 @@ Note: `bun run check` is enforced automatically by a native Stop hook — no man
 
 - **Shell injection in remote commands**: Always use `escapeShellArg()` from `src/lib/shell.ts` when interpolating user input into SSH commands via `runRemoteCommand()`.
 
-- **`mock.module("execa")` is global in bun test**: Several test files (`shell-docker-isolated`, `rm-remote`, `lock`, `container-id-isolated`) mock `execa` at module level. This contaminates all test files in the same `bun test` run. New modules that need reliable subprocess execution in tests should use `node:child_process` instead of `execa`.
+- **`mock.module("execa")` is global in bun test**: Several test files (`shell-docker-isolated`, `rm-remote`, `container-id-isolated`) mock `execa` at module level. This contaminates all test files in the same `bun test` run. New modules that need reliable subprocess execution in tests should use `node:child_process` instead of `execa`.
 
 - **Lefthook `biome check --write` reverts edits on failed commits**: When a pre-commit hook fails after the `check` stage, biome has already rewritten staged files. The working tree ends up with biome's version, not yours. Re-apply edits after any failed commit.
 

@@ -105,7 +105,7 @@ If your project doesn't have a `devcontainer.json`, DevBox will offer to create 
 
 ```
 Starting 'my-project'...
-  Lock acquired
+  Session started
   Sync is active
   No devcontainer.json found
 
@@ -157,9 +157,9 @@ Output:
 ```
 Projects:
 
-  NAME         CONTAINER  SYNC     BRANCH  LOCK           LAST ACTIVE  SIZE
-  my-project   running    syncing  main    locked (this)  2 hours ago  45M
-  other-proj   stopped    paused   dev     unlocked       3 days ago   120M
+  NAME         CONTAINER  SYNC     BRANCH  SESSION       LAST ACTIVE  SIZE
+  my-project   running    syncing  main    active here   2 hours ago  45M
+  other-proj   stopped    paused   dev     none          3 days ago   120M
 ```
 
 Get detailed info about a specific project:
@@ -192,11 +192,11 @@ Git
   Ahead:      0 commits
   Behind:     0 commits
 
-Lock
-  Status:     locked (this machine)
+Session
+  Status:     active here
   Machine:    my-laptop
   User:       me
-  Timestamp:  2026-02-03T10:30:00Z
+  Started:    2026-02-03T10:30:00Z
   PID:        12345
 
 Disk Usage
@@ -235,7 +235,7 @@ When moving from one machine to another:
    devbox up my-project
    ```
 
-DevBox's lock system will warn you if you try to start on a new machine while another machine still holds the lock.
+DevBox's session system will warn you if you try to start on a new machine while another machine has an active session.
 
 ### Quick Container Access
 

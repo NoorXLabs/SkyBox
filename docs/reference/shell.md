@@ -19,7 +19,7 @@ devbox shell <project> [options]
 | Option | Description |
 |--------|-------------|
 | `-c, --command <cmd>` | Run a single command and exit instead of interactive shell |
-| `-f, --force` | Bypass lock check (use with caution) |
+| `-f, --force` | Bypass session check (use with caution) |
 
 ## Description
 
@@ -27,20 +27,20 @@ The `shell` command provides interactive shell access to a running development c
 
 1. **Configuration Check** - Verifies DevBox is configured
 2. **Project Verification** - Checks the project exists locally
-3. **Lock Check** - Verifies lock status before allowing access
+3. **Session Check** - Verifies session status before allowing access
 4. **Container Status** - Checks if container is running
 5. **Auto-Start** - Offers to start the container if not running
 6. **Shell Attach** - Opens an interactive shell inside the container
 
-### Lock Check
+### Session Check
 
-Before attaching, `devbox shell` checks the project's lock status:
+Before attaching, `devbox shell` checks the project's session status:
 
-- If the project is locked by **another machine**, the command errors out with a message showing which machine holds the lock. Use `--force` to bypass this check.
-- If **no lock is held** at all, a warning is shown recommending you run `devbox up` first to acquire a lock for safe editing.
-- If the lock is held by **your machine**, the command proceeds normally.
+- If the project has an active session on **another machine**, the command warns you and shows which machine has the session. Use `--force` to bypass this check.
+- If **no session exists**, a warning is shown recommending you run `devbox up` first to start a session for safe editing.
+- If the session belongs to **your machine**, the command proceeds normally.
 
-Use `-f, --force` to skip the lock check entirely (e.g., for quick read-only inspection).
+Use `-f, --force` to skip the session check entirely (e.g., for quick read-only inspection).
 
 ### Interactive Mode
 
@@ -75,7 +75,7 @@ devbox shell my-project -c "node --version"
 # Run tests inside container
 devbox shell my-project -c "npm test"
 
-# Bypass lock check for quick inspection
+# Bypass session check for quick inspection
 devbox shell my-project --force
 
 # Interactive shell for debugging
@@ -104,8 +104,8 @@ devbox shell my-project -c "npm install && npm run build"
 
 | Command | Behavior |
 |---------|----------|
-| `devbox up --attach` | Starts container + acquires lock + attaches shell |
-| `devbox shell` | Checks lock + attaches to existing/started container |
+| `devbox up --attach` | Starts container + creates session + attaches shell |
+| `devbox shell` | Checks session + attaches to existing/started container |
 
 Use `devbox shell` when:
 - Container is already running
@@ -114,7 +114,7 @@ Use `devbox shell` when:
 
 Use `devbox up --attach` when:
 - Starting a work session
-- You need the lock acquired
+- You need a session created
 - Container might not be running
 
 ## Exit Codes
@@ -122,7 +122,7 @@ Use `devbox up --attach` when:
 | Code | Meaning |
 |------|---------|
 | 0 | Success (interactive mode exited cleanly) |
-| 1 | Error (project not found, container failed to start, lock held by another machine) |
+| 1 | Error (project not found, container failed to start, session active on another machine) |
 | * | Command exit code (when using `-c` flag) |
 
 ## See Also

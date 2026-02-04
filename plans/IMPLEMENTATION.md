@@ -54,13 +54,6 @@ Named sync configurations (minimal, full, custom) for different workflows.
 - **Config:** Add `sync_profiles` to project config
 - **Notes:** Useful for large repos where you only need a subset of files
 
-- [ ] ### Auto-Up on Directory Enter
-
-Shell hook (bash/zsh) to auto-start container when entering a project directory.
-
-- **Files:** New `src/commands/hook.ts` or shell script generator
-- **Notes:** Generate shell function that wraps `cd`; check if directory is a DevBox project
-
 - [ ] ### Project Aliases
 
 Short aliases for frequently used projects (e.g., `devbox up web` instead of `devbox up my-company-web-frontend`).
@@ -157,7 +150,7 @@ bash/zsh/fish completion scripts for all commands and options.
 - [ ] Test with large project (1GB+)
 - [ ] Git operations: commit, branch, checkout
 - [ ] Work offline for 30 min, reconnect
-- [ ] Test lock takeover between two computers
+- [ ] Test session conflict between two computers
 - [ ] Multiple projects running simultaneously
 - [ ] macOS (Intel and ARM)
 - [ ] Linux (Ubuntu, Debian)
@@ -198,4 +191,4 @@ One-line description of what this feature does and why.
 
 ---
 
-*Last updated: 2026-02-02*
+*Last updated: 2026-02-04*

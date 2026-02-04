@@ -22,33 +22,27 @@ The `browse` command connects to your configured remote server and lists all pro
 
 - Project name (directory name)
 - Current git branch (if it's a git repository)
-- Lock status (who currently has the project locked, if anyone)
 
-This is useful for discovering what projects are available to clone and seeing who's currently working on what.
+This is useful for discovering what projects are available to clone.
 
 ### Remote Connection
 
-The command uses SSH to connect to the remote server configured during `devbox init`. It runs a script on the remote to enumerate directories, their git status, and lock file information.
+The command uses SSH to connect to the remote server configured during `devbox init`. It runs a script on the remote to enumerate directories and their git status.
 
 ### Output Format
 
-Projects are displayed in a table with name, branch, and lock status:
+Projects are displayed in a table with name and branch:
 
 ```
 Remote projects (my-server:~/code):
 
-  NAME           BRANCH           LOCK
-  my-api         main             locked (bobs-macbook)
-  frontend-app   feature/new-ui   unlocked
-  data-service   develop          locked (you)
+  NAME           BRANCH
+  my-api         main
+  frontend-app   feature/new-ui
+  data-service   develop
 
 Run 'devbox clone <project>' to clone a project locally.
 ```
-
-Lock status values:
-- `unlocked` — No one is working on this project
-- `locked (you)` — You have the lock on this project
-- `locked (<machine>)` — Another machine has the lock
 
 If no projects exist on the remote:
 
@@ -76,14 +70,14 @@ devbox browse
 # Output:
 # Remote projects (my-server:~/code):
 #
-#   NAME              BRANCH              LOCK
-#   awesome-project   main                unlocked
-#   another-project   feature/cool-stuff  locked (alice-mbp)
+#   NAME              BRANCH
+#   awesome-project   main
+#   another-project   feature/cool-stuff
 
-# Clone an unlocked project to work on it
+# Clone a project to work on it
 devbox clone awesome-project
 
-# Start the container (acquires lock)
+# Start the container (creates session)
 devbox up awesome-project
 ```
 
@@ -96,7 +90,6 @@ devbox up awesome-project
 
 ## See Also
 
-- [devbox locks](/reference/locks) - Show only lock statuses for all projects
 - [devbox clone](/reference/clone) - Clone a project from remote
 - [devbox push](/reference/push) - Push a local project to remote
 - [devbox list](/reference/list) - List local projects
