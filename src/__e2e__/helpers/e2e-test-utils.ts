@@ -6,6 +6,7 @@
 import { mkdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import type { RemoteEntry } from "@typedefs/index.ts";
 import { getTestRemoteConfig } from "./test-config.ts";
@@ -105,7 +106,7 @@ export function createE2ETestContext(name: string): E2ETestContext {
 
 			const result = await runRemoteCommand(
 				host,
-				`mkdir -p ${remotePath}`,
+				`mkdir -p ${escapeShellArg(remotePath)}`,
 				testRemote.key,
 			);
 
@@ -181,7 +182,11 @@ export async function cleanupRemoteTestDir(
 	const remotePath = `~/devbox-e2e-tests/run-${runId}`;
 	const host = remote.user ? `${remote.user}@${remote.host}` : remote.host;
 
-	await runRemoteCommand(host, `rm -rf ${remotePath}`, remote.key);
+	await runRemoteCommand(
+		host,
+		`rm -rf ${escapeShellArg(remotePath)}`,
+		remote.key,
+	);
 }
 
 /**

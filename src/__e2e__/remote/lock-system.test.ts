@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { hostname } from "node:os";
+import { escapeShellArg } from "@lib/shell.ts";
 import {
 	createE2ETestContext,
 	type E2ETestContext,
@@ -35,23 +36,26 @@ describe.skipIf(!e2eConfigured)("lock system", () => {
 		const encodedContent = Buffer.from(lockContent).toString("base64");
 		await runTestRemoteCommand(
 			ctx.testRemote,
-			`mkdir -p ~/.devbox-locks && echo "${encodedContent}" | base64 -d > ${lockPath}`,
+			`mkdir -p ~/.devbox-locks && echo "${encodedContent}" | base64 -d > ${escapeShellArg(lockPath)}`,
 		);
 
 		// Verify lock exists
 		const { stdout: lockExists } = await runTestRemoteCommand(
 			ctx.testRemote,
-			`test -f ${lockPath} && echo "exists" || echo "missing"`,
+			`test -f ${escapeShellArg(lockPath)} && echo "exists" || echo "missing"`,
 		);
 		expect(lockExists?.trim()).toBe("exists");
 
 		// Remove lock
-		await runTestRemoteCommand(ctx.testRemote, `rm -f ${lockPath}`);
+		await runTestRemoteCommand(
+			ctx.testRemote,
+			`rm -f ${escapeShellArg(lockPath)}`,
+		);
 
 		// Verify lock removed
 		const { stdout: lockRemoved } = await runTestRemoteCommand(
 			ctx.testRemote,
-			`test -f ${lockPath} && echo "exists" || echo "missing"`,
+			`test -f ${escapeShellArg(lockPath)} && echo "exists" || echo "missing"`,
 		);
 		expect(lockRemoved?.trim()).toBe("missing");
 	}, 30000);

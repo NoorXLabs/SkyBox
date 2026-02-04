@@ -15,9 +15,12 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
+	CONTAINER_POLL_INTERVAL,
+	DEFAULT_CONTAINER_TIMEOUT,
 	DEVCONTAINER_CONFIG_NAME,
 	DEVCONTAINER_DIR_NAME,
 	DOCKER_LABEL_KEY,
+	DOCKER_TEST_LABEL,
 	TEMPLATES,
 } from "@lib/constants.ts";
 import type { DevcontainerConfig, Template } from "@typedefs/index.ts";
@@ -25,15 +28,6 @@ import { execa } from "execa";
 
 // Re-export isDockerAvailable from existing test-utils
 export { isDockerAvailable } from "@lib/__tests__/test-utils.ts";
-
-/** Docker label used to identify test containers for cleanup */
-export const DOCKER_TEST_LABEL = "devbox-test=true";
-
-/** Default timeout for waiting on containers (30 seconds) */
-export const DEFAULT_CONTAINER_TIMEOUT = 30000;
-
-/** Polling interval for container status checks (500ms) */
-export const CONTAINER_POLL_INTERVAL = 500;
 
 /**
  * Container state as reported by Docker inspect.

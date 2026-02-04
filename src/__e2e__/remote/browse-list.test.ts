@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { escapeShellArg } from "@lib/shell.ts";
 import {
 	createE2ETestContext,
 	type E2ETestContext,
@@ -18,7 +19,7 @@ describe.skipIf(!e2eConfigured)("browse and list remote projects", () => {
 		// Create some test project directories on remote
 		await runTestRemoteCommand(
 			ctx.testRemote,
-			`mkdir -p ${ctx.remotePath}/project-a ${ctx.remotePath}/project-b`,
+			`mkdir -p ${escapeShellArg(`${ctx.remotePath}/project-a`)} ${escapeShellArg(`${ctx.remotePath}/project-b`)}`,
 		);
 	});
 
@@ -29,7 +30,7 @@ describe.skipIf(!e2eConfigured)("browse and list remote projects", () => {
 	test("can list directories in remote path", async () => {
 		const { stdout } = await runTestRemoteCommand(
 			ctx.testRemote,
-			`ls -1 ${ctx.remotePath}`,
+			`ls -1 ${escapeShellArg(ctx.remotePath)}`,
 		);
 
 		const projects = stdout?.trim().split("\n").filter(Boolean) ?? [];

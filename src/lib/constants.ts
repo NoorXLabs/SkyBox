@@ -99,6 +99,15 @@ export const DEVCONTAINER_ALT_CONFIG_NAME = ".devcontainer.json";
  */
 export const DOCKER_LABEL_KEY = "devcontainer.local_folder";
 
+/** Docker label used to identify test containers for cleanup. */
+export const DOCKER_TEST_LABEL = "devbox-test=true";
+
+/** Default timeout for waiting on containers in tests (30 seconds). */
+export const DEFAULT_CONTAINER_TIMEOUT = 30000;
+
+/** Polling interval for container status checks in tests (500ms). */
+export const CONTAINER_POLL_INTERVAL = 500;
+
 // ── Editors ──
 
 /** Default editor preference. */

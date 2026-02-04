@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { escapeShellArg } from "@lib/shell.ts";
 import { execa } from "execa";
 import {
 	createE2ETestContext,
@@ -42,7 +43,7 @@ describe.skipIf(!e2eConfigured)("full lifecycle workflow", () => {
 		// Step 3: Verify files on remote
 		const { stdout: remoteFiles } = await runTestRemoteCommand(
 			ctx.testRemote,
-			`ls -1 ${ctx.remotePath}/${ctx.projectName}`,
+			`ls -1 ${escapeShellArg(`${ctx.remotePath}/${ctx.projectName}`)}`,
 		);
 		const files = remoteFiles?.trim().split("\n") ?? [];
 		expect(files).toContain("README.md");
@@ -51,7 +52,7 @@ describe.skipIf(!e2eConfigured)("full lifecycle workflow", () => {
 		// Step 4: Verify content matches
 		const { stdout: content } = await runTestRemoteCommand(
 			ctx.testRemote,
-			`cat ${ctx.remotePath}/${ctx.projectName}/index.ts`,
+			`cat ${escapeShellArg(`${ctx.remotePath}/${ctx.projectName}/index.ts`)}`,
 		);
 		expect(content?.trim()).toBe("console.log('hello');");
 	}, 60000);

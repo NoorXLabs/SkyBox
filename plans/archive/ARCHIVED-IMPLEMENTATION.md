@@ -326,6 +326,7 @@
 - [x] **Auto-Up Shell Hooks** — `devbox hook bash/zsh` for auto-starting containers on directory enter — `afb693b`
 - [x] **Devcontainer Template Unification** — Refactored templates to feature-based architecture — `a4e634d`
 - [x] **Session Reframe** — Replaced team-collaboration lock system with multi-machine session system; local session files, no SSH polling
+- [x] **Layered Integration & E2E Test Suites** — Docker integration tests, remote E2E tests, test helpers with retry logic, security-hardened test utilities — `6c38f8f`
 
 ### Archived Plans
 
@@ -333,6 +334,7 @@
 - `plans/archive/2026-02-01-team-sharing-audit-design.md` — Team sharing audit findings and fixes
 - `plans/archive/2026-02-02-auto-up-shell-hook-design.md` — Auto-up shell hook design
 - `plans/archive/2026-02-04-session-reframe-design.md` — Reframe locks as multi-machine sessions
+- `plans/archive/2026-02-03-layered-integration-tests-design.md` — Layered integration and E2E test suites design
 
 ---
 

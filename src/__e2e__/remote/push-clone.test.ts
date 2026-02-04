@@ -5,6 +5,7 @@ import {
 	createTestConfig,
 	writeTestConfig,
 } from "@lib/__tests__/test-utils.ts";
+import { escapeShellArg } from "@lib/shell.ts";
 import { execa } from "execa";
 import {
 	createE2ETestContext,
@@ -64,7 +65,7 @@ describe.skipIf(!e2eConfigured)("rsync push and clone workflow", () => {
 		// Verify file exists on remote
 		const result = await runTestRemoteCommand(
 			ctx.testRemote,
-			`cat ${ctx.remotePath}/${ctx.projectName}/marker.txt`,
+			`cat ${escapeShellArg(`${ctx.remotePath}/${ctx.projectName}/marker.txt`)}`,
 		);
 		expect(result.success).toBe(true);
 		expect(result.stdout?.trim()).toBe("test-content-from-e2e");

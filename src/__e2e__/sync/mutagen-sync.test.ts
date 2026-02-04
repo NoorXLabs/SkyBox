@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { escapeShellArg } from "@lib/shell.ts";
 import { execa } from "execa";
 import {
 	createE2ETestContext,
@@ -37,14 +38,14 @@ describe.skipIf(!e2eConfigured)("file synchronization", () => {
 		// Verify on remote
 		const { stdout } = await runTestRemoteCommand(
 			ctx.testRemote,
-			`cat ${ctx.remotePath}/sync-test/sync-marker.txt`,
+			`cat ${escapeShellArg(`${ctx.remotePath}/sync-test/sync-marker.txt`)}`,
 		);
 		expect(stdout?.trim()).toBe("synced-content");
 
 		// Modify on remote
 		await runTestRemoteCommand(
 			ctx.testRemote,
-			`echo "modified-on-remote" > ${ctx.remotePath}/sync-test/sync-marker.txt`,
+			`echo "modified-on-remote" > ${escapeShellArg(`${ctx.remotePath}/sync-test/sync-marker.txt`)}`,
 		);
 
 		// Sync back
