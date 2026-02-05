@@ -321,6 +321,7 @@ export function createMinimalDevcontainer(
 	const config: DevcontainerConfig & {
 		runArgs?: string[];
 		containerEnv?: Record<string, string>;
+		onCreateCommand?: string;
 	} = {
 		name: `test-${templateId}`,
 		image: template.config.image,
@@ -336,6 +337,9 @@ export function createMinimalDevcontainer(
 		// so bind mounts fail. Tests don't need workspace files mounted.
 		workspaceMount: "",
 		workspaceFolder: "/workspaces/test",
+		// Create the workspace directory since the bind mount is disabled.
+		// Without this, devcontainer exec fails with "chdir to cwd failed: no such file or directory".
+		onCreateCommand: "mkdir -p /workspaces/test",
 	};
 
 	// Create directory and write config
