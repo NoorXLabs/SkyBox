@@ -128,13 +128,8 @@ export async function rmCommand(
 
 	if (isDryRun()) {
 		dryRun(`Would clear session file for '${project}'`);
-		const containerStatus = await getContainerStatus(projectPath);
-		if (containerStatus === ContainerStatus.Running) {
-			dryRun(`Would stop running container`);
-		}
-		if (containerStatus !== ContainerStatus.NotFound) {
-			dryRun(`Would remove container and volumes`);
-		}
+		dryRun(`Would stop container if running`);
+		dryRun(`Would remove container and volumes if present`);
 		dryRun(`Would terminate sync session`);
 		dryRun(`Would delete local files: ${projectPath}`);
 		dryRun(`Would remove '${project}' from config`);

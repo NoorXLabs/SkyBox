@@ -53,6 +53,19 @@ async function cloneSingleProject(
 
 	header(`Cloning '${project}' from ${host}:${remotePath}...`);
 
+	const localPath = join(getProjectsDir(), project);
+
+	if (isDryRun()) {
+		dryRun(`Would check if project exists on remote`);
+		if (existsSync(localPath)) {
+			dryRun(`Would remove existing local directory: ${localPath}`);
+		}
+		dryRun(`Would create local directory: ${localPath}`);
+		dryRun(`Would create sync session: ${host}:${remotePath} <-> ${localPath}`);
+		dryRun(`Would register project '${project}' in config`);
+		return true;
+	}
+
 	// Check project exists on remote
 	const checkSpin = spinner("Checking remote project...");
 	const exists = await checkRemoteProjectExists(host, remote.path, project);
@@ -65,18 +78,6 @@ async function cloneSingleProject(
 		return false;
 	}
 	checkSpin.succeed("Project found on remote");
-
-	const localPath = join(getProjectsDir(), project);
-
-	if (isDryRun()) {
-		if (existsSync(localPath)) {
-			dryRun(`Would remove existing local directory: ${localPath}`);
-		}
-		dryRun(`Would create local directory: ${localPath}`);
-		dryRun(`Would create sync session: ${host}:${remotePath} <-> ${localPath}`);
-		dryRun(`Would register project '${project}' in config`);
-		return true;
-	}
 
 	// Check local doesn't exist
 

@@ -10,7 +10,7 @@ import {
 } from "@lib/container.ts";
 import { getProjectPath, projectExists } from "@lib/project.ts";
 import { checkSessionConflict, readSession } from "@lib/session.ts";
-import { error, header, info, warn } from "@lib/ui.ts";
+import { dryRun, error, header, info, isDryRun, warn } from "@lib/ui.ts";
 import { ContainerStatus, type ShellOptions } from "@typedefs/index.ts";
 import { execa } from "execa";
 import inquirer from "inquirer";
@@ -40,6 +40,17 @@ export async function shellCommand(
 	}
 
 	const projectPath = getProjectPath(project);
+
+	if (isDryRun()) {
+		if (options.command) {
+			dryRun(
+				`Would execute command in container for '${project}': ${options.command}`,
+			);
+		} else {
+			dryRun(`Would enter interactive shell for '${project}'`);
+		}
+		return;
+	}
 
 	// Step 3: Check session status
 	if (!options.force) {

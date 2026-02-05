@@ -13,7 +13,7 @@ import { getProjectPath, projectExists } from "@lib/project.ts";
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import { selectTemplate, writeDevcontainerConfig } from "@lib/templates.ts";
-import { error, info, spinner, success } from "@lib/ui.ts";
+import { dryRun, error, info, isDryRun, spinner, success } from "@lib/ui.ts";
 import type { DevboxConfigV2 } from "@typedefs/index.ts";
 import { execa } from "execa";
 
@@ -35,6 +35,12 @@ export async function devcontainerEditCommand(project: string): Promise<void> {
 		info(
 			'Use "devbox config devcontainer reset" to create one from a template.',
 		);
+		return;
+	}
+
+	if (isDryRun()) {
+		dryRun(`Would open ${configPath} in editor`);
+		dryRun(`Would push devcontainer.json to remote`);
 		return;
 	}
 
@@ -65,6 +71,12 @@ export async function devcontainerResetCommand(project: string): Promise<void> {
 	}
 
 	const projectPath = getProjectPath(project);
+
+	if (isDryRun()) {
+		dryRun(`Would reset devcontainer.json for '${project}' from template`);
+		dryRun(`Would push devcontainer.json to remote`);
+		return;
+	}
 
 	const selection = await selectTemplate();
 	if (!selection) {

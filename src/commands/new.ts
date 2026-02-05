@@ -41,6 +41,19 @@ export async function newCommand(): Promise<void> {
 
 	header("Create a new project");
 
+	if (isDryRun()) {
+		dryRun("Would prompt for remote selection");
+		dryRun("Would prompt for project name");
+		dryRun("Would check if project exists on remote via SSH");
+		dryRun("Would prompt for template selection");
+		dryRun("Would create project on remote server");
+		if (config.defaults.encryption) {
+			dryRun("Would prompt for encryption configuration");
+		}
+		dryRun("Would offer to clone project locally");
+		return;
+	}
+
 	// Select which remote to create the project on
 	const remoteName = await selectRemote(config);
 	const remote = config.remotes[remoteName];
@@ -93,21 +106,6 @@ export async function newCommand(): Promise<void> {
 	// Step 3: Select template using unified selector
 	const selection = await selectTemplate();
 	if (!selection) {
-		return;
-	}
-
-	if (isDryRun()) {
-		const remotePath = `${remote.path}/${projectName}`;
-		if (selection.source === "git") {
-			dryRun(`Would clone git template to ${host}:${remotePath}`);
-		} else {
-			dryRun(`Would create project directory on remote: ${host}:${remotePath}`);
-			dryRun(`Would write devcontainer.json from template`);
-			dryRun(`Would initialize git repo on remote`);
-		}
-		if (config.defaults.encryption) {
-			dryRun("Would prompt for encryption configuration");
-		}
 		return;
 	}
 
