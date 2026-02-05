@@ -1,6 +1,25 @@
-import { defineConfig } from 'vitepress'
+import { resolve } from 'node:path'
+import { defineConfig, type HeadConfig } from 'vitepress'
+import { loadEnv } from 'vite'
 import llmstxt from 'vitepress-plugin-llms'
 import { commands } from './commands'
+
+const env = loadEnv('', resolve(import.meta.dirname, '..'))
+
+const head: HeadConfig[] = [
+  ['link', { rel: 'icon', type: 'image/svg+xml', href: '/devbox-logo-grey.svg' }],
+]
+
+if (env.VITE_RYBBIT_SRC && env.VITE_RYBBIT_SITE_ID) {
+  head.push([
+    'script',
+    {
+      src: env.VITE_RYBBIT_SRC,
+      'data-site-id': env.VITE_RYBBIT_SITE_ID,
+      defer: ''
+    }
+  ])
+}
 
 export default defineConfig({
   title: 'DevBox',
@@ -15,17 +34,7 @@ export default defineConfig({
     plugins: [llmstxt()]
   },
 
-  head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/devbox-logo-grey.svg' }],
-    [
-      'script',
-      {
-        src: 'https://rybbit.jcjmrhjts.uk/api/script.js',
-        'data-site-id': '8bedf30d2eff',
-        defer: ''
-      }
-    ],
-  ],
+  head,
 
   themeConfig: {
     logo: '/devbox-logo-grey.svg',
