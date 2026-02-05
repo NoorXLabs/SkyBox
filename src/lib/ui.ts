@@ -1,5 +1,6 @@
 /** Terminal UI helpers: colored output, spinners, headers. */
 import chalk from "chalk";
+import { program } from "commander";
 import inquirer from "inquirer";
 import ora, { type Ora } from "ora";
 
@@ -17,6 +18,10 @@ export function warn(message: string): void {
 
 export function info(message: string): void {
 	console.log(chalk.blue("  ℹ"), message);
+}
+
+export function dryRun(message: string): void {
+	console.log(chalk.dim("  ⏭"), chalk.dim(`[dry-run] ${message}`));
 }
 
 export function header(message: string): void {
@@ -79,4 +84,8 @@ export async function confirmDestructiveAction(options: {
 	}
 
 	return true;
+}
+
+export function isDryRun(): boolean {
+	return program.opts().dryRun === true;
 }

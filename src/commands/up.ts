@@ -41,7 +41,16 @@ import {
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import { selectTemplate, writeDevcontainerConfig } from "@lib/templates.ts";
-import { error, header, info, spinner, success, warn } from "@lib/ui.ts";
+import {
+	dryRun,
+	error,
+	header,
+	info,
+	isDryRun,
+	spinner,
+	success,
+	warn,
+} from "@lib/ui.ts";
 import {
 	ContainerStatus,
 	type DevboxConfigV2,
@@ -547,6 +556,20 @@ async function startSingleProject(
 ): Promise<void> {
 	header(`Starting '${project}'...`);
 
+	if (isDryRun()) {
+		const projectConfig = config.projects[project];
+		if (projectConfig?.hooks) {
+			dryRun(`Would run pre-up hooks for '${project}'`);
+		}
+		dryRun(`Would write session file at ${projectPath}`);
+		dryRun(`Would check and resume sync for '${project}'`);
+		dryRun(`Would start container at ${projectPath}`);
+		if (projectConfig?.hooks) {
+			dryRun(`Would run post-up hooks for '${project}'`);
+		}
+		return;
+	}
+
 	// Run pre-up hooks
 	const projectConfig = config.projects[project];
 	if (projectConfig?.hooks) {
@@ -872,6 +895,11 @@ async function handlePostStart(
 	config: DevboxConfigV2,
 	options: UpOptions,
 ): Promise<void> {
+	if (isDryRun()) {
+		dryRun("Would prompt for post-start action (editor/shell)");
+		return;
+	}
+
 	const { action, editor } = await determinePostStartAction(config, options);
 
 	// Handle editor preference saving (only in interactive mode)

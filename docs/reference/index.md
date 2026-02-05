@@ -25,6 +25,7 @@ All commands support these global options:
 ```bash
 -h, --help     Show help for a command
 -v, --version  Show DevBox version
+--dry-run      Preview commands without executing them
 ```
 
 ## Quick Reference

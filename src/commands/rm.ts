@@ -26,9 +26,11 @@ import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import {
 	confirmDestructiveAction,
+	dryRun,
 	error,
 	header,
 	info,
+	isDryRun,
 	spinner,
 	success,
 	warn,
@@ -378,6 +380,19 @@ export async function rmCommand(
 	}
 
 	header(`Removing '${project}'...`);
+
+	if (isDryRun()) {
+		dryRun(`Would clear session file for '${project}'`);
+		dryRun(`Would stop container if running`);
+		dryRun(`Would remove container and volumes if present`);
+		dryRun(`Would terminate sync session`);
+		dryRun(`Would delete local files: ${getProjectPath(project)}`);
+		dryRun(`Would remove '${project}' from config`);
+		if (options.remote) {
+			dryRun(`Would delete project from remote server`);
+		}
+		return;
+	}
 
 	// Perform local cleanup
 	try {

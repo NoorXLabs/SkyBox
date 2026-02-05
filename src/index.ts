@@ -42,7 +42,8 @@ if (showDockerBanner) {
 program
 	.name("devbox")
 	.description("Local-first dev containers with remote sync")
-	.version(pkg.version, "-v, --version");
+	.version(pkg.version, "-v, --version")
+	.option("--dry-run", "Preview commands without executing them");
 
 program
 	.command("init")

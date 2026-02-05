@@ -7,7 +7,16 @@ import {
 	runRemoteCommand,
 	testConnection,
 } from "@lib/ssh.ts";
-import { error, header, info, spinner, success, warn } from "@lib/ui.ts";
+import {
+	dryRun,
+	error,
+	header,
+	info,
+	isDryRun,
+	spinner,
+	success,
+	warn,
+} from "@lib/ui.ts";
 import type { DevboxConfigV2, RemoteEntry } from "@typedefs/index.ts";
 import chalk from "chalk";
 import inquirer from "inquirer";
@@ -139,6 +148,13 @@ export async function addRemoteDirect(
 		};
 	}
 
+	if (isDryRun()) {
+		dryRun(
+			`Would add remote '${name}' (${parsed.user}@${parsed.host}:${parsed.path})`,
+		);
+		return { success: true };
+	}
+
 	// Add the new remote
 	const newRemote: RemoteEntry = {
 		host: parsed.host,
@@ -158,6 +174,13 @@ export async function addRemoteDirect(
  */
 export async function addRemoteInteractive(): Promise<void> {
 	header("Add new remote");
+
+	if (isDryRun()) {
+		dryRun("Would prompt for remote connection details");
+		dryRun("Would test SSH connection");
+		dryRun("Would save remote to config");
+		return;
+	}
 
 	// Prompt for remote name
 	const { name } = await inquirer.prompt([
@@ -387,6 +410,11 @@ export async function removeRemote(name: string): Promise<void> {
 		return;
 	}
 
+	if (isDryRun()) {
+		dryRun(`Would remove remote '${name}' from config`);
+		return;
+	}
+
 	// Check if any projects use this remote
 	const projectsUsingRemote = Object.entries(config.projects)
 		.filter(([_, project]) => project.remote === name)
@@ -440,6 +468,11 @@ export async function renameRemote(
 
 	if (config.remotes[newName]) {
 		error(`Remote "${newName}" already exists`);
+		return;
+	}
+
+	if (isDryRun()) {
+		dryRun(`Would rename remote '${oldName}' to '${newName}'`);
 		return;
 	}
 

@@ -26,9 +26,11 @@ import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import {
 	confirmDestructiveAction,
+	dryRun,
 	error,
 	header,
 	info,
+	isDryRun,
 	spinner,
 	success,
 } from "@lib/ui.ts";
@@ -51,6 +53,19 @@ export async function cloneSingleProject(
 
 	header(`Cloning '${project}' from ${host}:${remotePath}...`);
 
+	const localPath = join(getProjectsDir(), project);
+
+	if (isDryRun()) {
+		dryRun(`Would check if project exists on remote`);
+		if (existsSync(localPath)) {
+			dryRun(`Would remove existing local directory: ${localPath}`);
+		}
+		dryRun(`Would create local directory: ${localPath}`);
+		dryRun(`Would create sync session: ${host}:${remotePath} <-> ${localPath}`);
+		dryRun(`Would register project '${project}' in config`);
+		return true;
+	}
+
 	// Check project exists on remote
 	const checkSpin = spinner("Checking remote project...");
 	const exists = await checkRemoteProjectExists(host, remote.path, project);
@@ -65,7 +80,6 @@ export async function cloneSingleProject(
 	checkSpin.succeed("Project found on remote");
 
 	// Check local doesn't exist
-	const localPath = join(getProjectsDir(), project);
 
 	if (existsSync(localPath)) {
 		const confirmed = await confirmDestructiveAction({
@@ -178,6 +192,8 @@ export async function cloneCommand(project?: string): Promise<void> {
 			process.exit(1);
 		}
 
+		if (isDryRun()) return;
+
 		// Offer to start container (existing behavior)
 		console.log();
 		const { startContainer } = await inquirer.prompt([
@@ -243,6 +259,8 @@ export async function cloneCommand(project?: string): Promise<void> {
 			cloned.push(name);
 		}
 	}
+
+	if (isDryRun()) return;
 
 	if (cloned.length === 0) {
 		error("No projects were cloned successfully.");

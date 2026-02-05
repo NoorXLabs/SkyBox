@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Dry-Run Mode** (`--dry-run`): Global flag to preview what any command would do without executing side effects (SSH, Docker, filesystem writes, sync sessions)
+
 ## [0.7.7] - 2026-02-01
 
 ### Fixed

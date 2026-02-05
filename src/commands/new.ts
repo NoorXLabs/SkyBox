@@ -18,7 +18,16 @@ import { validateProjectName } from "@lib/projectTemplates.ts";
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import { selectTemplate, writeDevcontainerConfig } from "@lib/templates.ts";
-import { error, header, info, spinner, success, warn } from "@lib/ui.ts";
+import {
+	dryRun,
+	error,
+	header,
+	info,
+	isDryRun,
+	spinner,
+	success,
+	warn,
+} from "@lib/ui.ts";
 import type {
 	DevboxConfigV2,
 	DevcontainerConfig,
@@ -51,6 +60,19 @@ export async function newCommand(): Promise<void> {
 	}
 
 	header("Create a new project");
+
+	if (isDryRun()) {
+		dryRun("Would prompt for remote selection");
+		dryRun("Would prompt for project name");
+		dryRun("Would check if project exists on remote via SSH");
+		dryRun("Would prompt for template selection");
+		dryRun("Would create project on remote server");
+		if (config.defaults.encryption) {
+			dryRun("Would prompt for encryption configuration");
+		}
+		dryRun("Would offer to clone project locally");
+		return;
+	}
 
 	// Select which remote to create the project on
 	const remoteName = await selectRemote(config);

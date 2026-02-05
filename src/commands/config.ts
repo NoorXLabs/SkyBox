@@ -6,7 +6,15 @@ import {
 } from "@commands/config-devcontainer.ts";
 import { loadConfig, saveConfig } from "@lib/config.ts";
 import { testConnection } from "@lib/ssh.ts";
-import { error, header, info, spinner, success } from "@lib/ui.ts";
+import {
+	dryRun,
+	error,
+	header,
+	info,
+	isDryRun,
+	spinner,
+	success,
+} from "@lib/ui.ts";
 import { validatePath } from "@lib/validation.ts";
 import chalk from "chalk";
 
@@ -121,6 +129,10 @@ export async function setConfigValue(
 	}
 
 	if (key === "editor") {
+		if (isDryRun()) {
+			dryRun(`Would set editor to '${value}'`);
+			return;
+		}
 		config.editor = value;
 		saveConfig(config);
 		success(`Set editor to "${value}"`);
@@ -255,6 +267,15 @@ export async function configCommand(
 				error(`Invalid sync path "${p}": ${check.error}`);
 				return;
 			}
+		}
+
+		if (isDryRun()) {
+			if (paths.length === 0) {
+				dryRun(`Would clear sync paths for '${arg1}'`);
+			} else {
+				dryRun(`Would set sync paths for '${arg1}': ${paths.join(", ")}`);
+			}
+			return;
 		}
 
 		if (paths.length === 0) {

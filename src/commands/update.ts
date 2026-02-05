@@ -5,10 +5,15 @@ import {
 	ensureMutagenExtracted,
 	needsMutagenExtraction,
 } from "@lib/mutagen-extract.ts";
-import { info, spinner, success } from "@lib/ui.ts";
+import { dryRun, info, isDryRun, spinner, success } from "@lib/ui.ts";
 
 export async function updateCommand(): Promise<void> {
 	info("Checking for updates...\n");
+
+	if (isDryRun()) {
+		dryRun("Would download and install latest Mutagen binary");
+		return;
+	}
 
 	const installedVersion = await getInstalledMutagenVersion();
 	const targetVersion = MUTAGEN_VERSION;

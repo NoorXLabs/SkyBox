@@ -12,7 +12,7 @@ import {
 	projectExists,
 	resolveProjectFromCwd,
 } from "@lib/project.ts";
-import { error, header, info, success } from "@lib/ui.ts";
+import { dryRun, error, header, info, isDryRun, success } from "@lib/ui.ts";
 import { ContainerStatus, type OpenOptions } from "@typedefs/index.ts";
 import inquirer from "inquirer";
 
@@ -73,6 +73,11 @@ export async function openCommand(
 	}
 
 	const projectPath = getProjectPath(project ?? "");
+
+	if (isDryRun()) {
+		dryRun(`Would open editor/shell for '${project}'`);
+		return;
+	}
 
 	// Step 3: Check container is running
 	const containerStatus = await getContainerStatus(projectPath);

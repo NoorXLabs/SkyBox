@@ -11,7 +11,7 @@ import { isAutoUpEnabled, loadConfig } from "@lib/config.ts";
 import { getContainerStatus } from "@lib/container.ts";
 import { getAutoUpLogPath, getLogsDir } from "@lib/paths.ts";
 import { resolveProjectFromCwd } from "@lib/project.ts";
-import { error } from "@lib/ui.ts";
+import { dryRun, error, isDryRun } from "@lib/ui.ts";
 import { ContainerStatus } from "@typedefs/index.ts";
 
 /**
@@ -114,6 +114,11 @@ export async function hookCommand(shell: string | undefined): Promise<void> {
  */
 export async function hookCheckCommand(): Promise<void> {
 	try {
+		if (isDryRun()) {
+			dryRun("Would check and auto-start container if needed");
+			process.exit(0);
+		}
+
 		// Resolve project from current working directory
 		const project = resolveProjectFromCwd();
 		if (!project) {

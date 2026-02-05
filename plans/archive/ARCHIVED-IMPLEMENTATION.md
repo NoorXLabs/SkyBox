@@ -336,4 +336,14 @@
 
 ---
 
+## Dry Run Mode
+
+- [x] **Dry Run Mode** — Global `--dry-run` flag to preview commands without executing side effects — `28d0eca`, `9c58398`, `8a5329c`, `87106fb`, `4a12005`, `a0217f1`, `a3d646a`
+
+### Archived Plans
+
+- `plans/archive/2026-02-04-dry-run-mode.md` — Dry run mode implementation plan
+
+---
+
 *Archived: 2026-02-04*
