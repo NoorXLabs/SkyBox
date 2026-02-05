@@ -192,6 +192,8 @@ export async function cloneCommand(project?: string): Promise<void> {
 			process.exit(1);
 		}
 
+		if (isDryRun()) return;
+
 		// Offer to start container (existing behavior)
 		console.log();
 		const { startContainer } = await inquirer.prompt([
@@ -257,6 +259,8 @@ export async function cloneCommand(project?: string): Promise<void> {
 			cloned.push(name);
 		}
 	}
+
+	if (isDryRun()) return;
 
 	if (cloned.length === 0) {
 		error("No projects were cloned successfully.");
