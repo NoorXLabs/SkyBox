@@ -331,6 +331,11 @@ export function createMinimalDevcontainer(
 		// Skip post commands for faster test startup
 		postCreateCommand: undefined,
 		postStartCommand: undefined,
+		// Disable workspace bind mount: CI self-hosted runners (e.g. Coolify) run inside
+		// Docker containers. Paths in /tmp inside the runner don't exist on the Docker host,
+		// so bind mounts fail. Tests don't need workspace files mounted.
+		workspaceMount: "",
+		workspaceFolder: "/workspaces/test",
 	};
 
 	// Create directory and write config
