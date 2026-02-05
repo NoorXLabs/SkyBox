@@ -76,9 +76,10 @@ async function cleanupLocalProject(
 			const stopResult = await stopContainer(projectPath);
 			if (!stopResult.success) {
 				stopSpin.fail("Failed to stop container");
-				error(stopResult.error || "Unknown error");
+				const msg = stopResult.error || "Unknown error";
+				error(msg);
 				if (!force) {
-					process.exit(1);
+					throw new Error(`Failed to stop container: ${msg}`);
 				}
 			} else {
 				stopSpin.succeed("Container stopped");
@@ -94,9 +95,10 @@ async function cleanupLocalProject(
 			removeSpin.succeed("Container removed");
 		} else {
 			removeSpin.warn("Failed to remove container");
+			const msg = removeResult.error || "Unknown error";
+			error(msg);
 			if (!force) {
-				error(removeResult.error || "Unknown error");
-				process.exit(1);
+				throw new Error(`Failed to remove container: ${msg}`);
 			}
 		}
 	} else {
@@ -121,8 +123,9 @@ async function cleanupLocalProject(
 		rmSpin.succeed("Local files removed");
 	} catch (err: unknown) {
 		rmSpin.fail("Failed to remove local files");
-		error(getErrorMessage(err));
-		process.exit(1);
+		const msg = getErrorMessage(err);
+		error(msg);
+		throw new Error(`Failed to remove local files: ${msg}`);
 	}
 }
 
@@ -374,7 +377,12 @@ export async function rmCommand(
 	header(`Removing '${project}'...`);
 
 	// Perform local cleanup
-	await cleanupLocalProject(project, !!options.force);
+	try {
+		await cleanupLocalProject(project, !!options.force);
+	} catch (err: unknown) {
+		error(getErrorMessage(err));
+		process.exit(1);
+	}
 
 	// Remove project from config if present
 	if (config.projects?.[project]) {

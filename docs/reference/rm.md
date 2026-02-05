@@ -38,6 +38,19 @@ The command performs the following steps:
 
 When run without a project argument, `devbox rm` displays a checkbox list of all local projects. You can select multiple projects for batch removal using the spacebar and confirm with enter.
 
+### Remote Interactive Multi-Select
+
+When run with `--remote` but **no project argument** (`devbox rm --remote`), the command enters an interactive flow for bulk-deleting projects from a remote server:
+
+1. **Remote selection** - If multiple remotes are configured, prompts you to select which remote to delete from
+2. **Project list** - Fetches all projects from the remote and displays them as a checkbox list (with branch names if available)
+3. **Selection** - Select one or more projects using the spacebar, then press enter
+4. **Double confirmation** - Lists the selected projects and requires two confirmations before proceeding
+5. **Deletion** - Deletes each selected project from the remote. If a deletion fails, the remaining projects are still processed
+6. **Local cleanup offer** - For each deleted remote project that also exists locally, prompts whether to remove the local copy too
+
+With `--force`, all confirmation prompts are skipped and local copies are kept by default (since the user did not explicitly opt in to local removal).
+
 ### Remote Deletion
 
 When using `--remote`, the command also deletes the project from the remote server. Because this is an irreversible action, it requires **double confirmation**:
@@ -77,6 +90,13 @@ devbox rm my-project --remote --force
 # Interactive multi-select (no argument)
 devbox rm
 # Shows checkbox list: select projects with spacebar, confirm with enter
+
+# Interactive remote multi-select (no argument, --remote)
+devbox rm --remote
+# Prompts for remote, shows checkbox list of remote projects, double confirms
+
+# Force delete all selected remote projects (no prompts)
+devbox rm --remote --force
 ```
 
 ### Interactive Session
@@ -117,6 +137,33 @@ devbox rm my-project --remote
 #   Deleted 'my-project' from remote
 #
 #   Project 'my-project' removed locally and from remote.
+```
+
+### Remote Multi-Select Session
+
+```bash
+devbox rm --remote
+
+# Output:
+# ? Select a remote: work
+# ⠋ Fetching projects from work...
+# ? Select remote projects to delete:
+#   ◻ old-api (main)
+#   ◻ prototype (dev)
+#   ◻ archived-site
+# (select with spacebar, confirm with enter)
+#
+# ⚠ The following projects will be permanently deleted from remote:
+#     old-api
+#     prototype
+#
+# ? Delete 2 project(s) from work? (y/N) y
+# ? Are you absolutely sure? This action cannot be undone. (y/N) y
+#   Deleted 'old-api' from remote
+# ? 'old-api' also exists locally. Remove local copy too? (y/N) n
+#   Deleted 'prototype' from remote
+#
+#   Done. 2 project(s) processed from work.
 ```
 
 ### Workflow Example
