@@ -22,7 +22,7 @@ Install the following tools from their official sources before continuing:
 
 - **Docker Desktop** (20.10+) — [Get Docker](https://docs.docker.com/get-started/get-docker/)
 - **Node.js** (LTS) — [Download Node.js](https://nodejs.org/en/download) *(required for devcontainer CLI)*
-- **Devcontainer CLI** (0.50+) — [Installation instructions](https://github.com/devcontainers/cli)
+- **Devcontainer CLI** (0.50+) — [Installation instructions](https://github.com/devcontainers/cli#npm-install)
 - **SSH** — Pre-installed on macOS and Linux. Windows users need [WSL 2](https://learn.microsoft.com/en-us/windows/wsl/install).
 
 ## Install SkyBox
