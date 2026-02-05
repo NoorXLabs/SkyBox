@@ -40,7 +40,7 @@ import inquirer from "inquirer";
  * Clone a single project from remote. This is the core clone logic
  * used by both direct invocation and interactive multi-clone.
  */
-async function cloneSingleProject(
+export async function cloneSingleProject(
 	project: string,
 	remoteName: string,
 	config: ReturnType<typeof loadConfig>,
@@ -219,7 +219,7 @@ export async function cloneCommand(project?: string): Promise<void> {
 	const host = getRemoteHost(remote);
 
 	const fetchSpin = spinner(`Fetching projects from ${remoteName}...`);
-	const remoteProjects = await getRemoteProjects(host, remote.path);
+	const remoteProjects = await getRemoteProjects(host, remote.path, remote.key);
 	fetchSpin.succeed("Projects fetched");
 
 	if (remoteProjects.length === 0) {

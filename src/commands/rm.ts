@@ -1,7 +1,12 @@
 // src/commands/rm.ts
 
 import { existsSync, rmSync } from "node:fs";
-import { getProjectRemote, getRemoteHost } from "@commands/remote.ts";
+import { getRemoteProjects } from "@commands/browse.ts";
+import {
+	getProjectRemote,
+	getRemoteHost,
+	selectRemote,
+} from "@commands/remote.ts";
 import { checkbox } from "@inquirer/prompts";
 import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
 import {
@@ -28,20 +33,271 @@ import {
 	isDryRun,
 	spinner,
 	success,
+	warn,
 } from "@lib/ui.ts";
 import { validatePath } from "@lib/validation.ts";
 import {
 	ContainerStatus,
 	type DevboxConfigV2,
+	type RemoteEntry,
+	type RemoteProject,
 	type RmOptions,
 } from "@typedefs/index.ts";
 import inquirer from "inquirer";
+
+/**
+ * Clean up a local project: stop container, terminate sync, remove files, clear session.
+ * Logs errors but continues on failure (resilient cleanup).
+ */
+async function cleanupLocalProject(
+	project: string,
+	force: boolean,
+): Promise<void> {
+	const projectPath = getProjectPath(project);
+
+	// Check session status and delete if present
+	const sessionSpin = spinner("Checking session status...");
+	try {
+		const session = readSession(projectPath);
+		if (session) {
+			sessionSpin.text = "Clearing session...";
+			deleteSession(projectPath);
+			sessionSpin.succeed("Session cleared");
+		} else {
+			sessionSpin.succeed("No active session");
+		}
+	} catch {
+		sessionSpin.warn("Could not check session status");
+	}
+
+	// Check container status and stop if running
+	const containerStatus = await getContainerStatus(projectPath);
+
+	if (containerStatus !== ContainerStatus.NotFound) {
+		if (containerStatus === ContainerStatus.Running) {
+			const stopSpin = spinner("Stopping container...");
+			const stopResult = await stopContainer(projectPath);
+			if (!stopResult.success) {
+				stopSpin.fail("Failed to stop container");
+				const msg = stopResult.error || "Unknown error";
+				if (!force) {
+					throw new Error(`Failed to stop container: ${msg}`);
+				}
+			} else {
+				stopSpin.succeed("Container stopped");
+			}
+		}
+
+		// Remove the container
+		const removeSpin = spinner("Removing container...");
+		const removeResult = await removeContainer(projectPath, {
+			removeVolumes: true,
+		});
+		if (removeResult.success) {
+			removeSpin.succeed("Container removed");
+		} else {
+			removeSpin.warn("Failed to remove container");
+			const msg = removeResult.error || "Unknown error";
+			if (!force) {
+				throw new Error(`Failed to remove container: ${msg}`);
+			}
+		}
+	} else {
+		info("No container found for this project.");
+	}
+
+	// Terminate mutagen sync session
+	const syncSpin = spinner("Terminating sync session...");
+	const syncResult = await terminateSession(project);
+	if (syncResult.success) {
+		syncSpin.succeed("Sync session terminated");
+	} else {
+		syncSpin.warn("No sync session found or already terminated");
+	}
+
+	// Delete local files
+	const rmSpin = spinner("Removing local files...");
+	try {
+		if (existsSync(projectPath)) {
+			rmSync(projectPath, { recursive: true });
+		}
+		rmSpin.succeed("Local files removed");
+	} catch (err: unknown) {
+		rmSpin.fail("Failed to remove local files");
+		const msg = getErrorMessage(err);
+		throw new Error(`Failed to remove local files: ${msg}`);
+	}
+}
+
+/**
+ * Delete a single project from a remote server via rm -rf.
+ * Does NOT prompt for confirmation — caller is responsible for that.
+ * Returns true on success, false on failure (logs error).
+ */
+async function deleteProjectFromRemote(
+	project: string,
+	host: string,
+	remote: RemoteEntry,
+): Promise<boolean> {
+	const remotePath = `${remote.path}/${project}`;
+	const remoteSpin = spinner(`Deleting '${project}' from remote...`);
+	try {
+		const result = await runRemoteCommand(
+			host,
+			`rm -rf ${escapeShellArg(remotePath)}`,
+			remote.key,
+		);
+
+		if (result.success) {
+			remoteSpin.succeed(`Deleted '${project}' from remote`);
+			return true;
+		}
+		remoteSpin.fail(`Failed to delete '${project}' from remote`);
+		error(result.error || "Unknown error");
+		return false;
+	} catch (err: unknown) {
+		remoteSpin.fail(`Failed to delete '${project}' from remote`);
+		error(getErrorMessage(err));
+		return false;
+	}
+}
+
+/**
+ * Interactive multi-select flow for deleting remote projects.
+ * Triggered by `devbox rm --remote` (no project argument).
+ */
+async function rmRemoteInteractive(
+	config: DevboxConfigV2,
+	options: RmOptions,
+): Promise<void> {
+	// Select which remote to delete from
+	const remoteName = await selectRemote(config);
+	const remote = config.remotes[remoteName];
+	const host = getRemoteHost(remote);
+
+	// Fetch remote project list
+	const fetchSpin = spinner(`Fetching projects from ${remoteName}...`);
+	let projects: RemoteProject[];
+	try {
+		projects = await getRemoteProjects(host, remote.path, remote.key);
+		fetchSpin.stop();
+	} catch (err: unknown) {
+		fetchSpin.fail("Failed to connect to remote");
+		error(getErrorMessage(err));
+		return;
+	}
+
+	if (projects.length === 0) {
+		info("No projects found on remote.");
+		return;
+	}
+
+	// Interactive checkbox to select projects
+	const selected = await checkbox({
+		message: "Select remote projects to delete:",
+		choices: projects.map((p) => ({
+			name: p.branch !== "-" ? `${p.name} (${p.branch})` : p.name,
+			value: p.name,
+		})),
+	});
+
+	if (selected.length === 0) {
+		info("No projects selected.");
+		return;
+	}
+
+	// Double confirmation listing what will be deleted
+	if (!options.force) {
+		console.log();
+		warn("The following projects will be permanently deleted from remote:");
+		for (const name of selected) {
+			console.log(`    ${name}`);
+		}
+		console.log();
+
+		const confirmed = await confirmDestructiveAction({
+			firstPrompt: `Delete ${selected.length} project(s) from ${remoteName}?`,
+			secondPrompt: "Are you absolutely sure? This action cannot be undone.",
+			cancelMessage: "Remote deletion cancelled.",
+		});
+
+		if (!confirmed) {
+			return;
+		}
+	}
+
+	// Delete each selected project from remote
+	let deletedCount = 0;
+	for (const projectName of selected) {
+		const deleted = await deleteProjectFromRemote(projectName, host, remote);
+
+		if (!deleted) {
+			// Log error but continue with remaining projects
+			continue;
+		}
+
+		deletedCount++;
+
+		// Remove project from config
+		if (config.projects?.[projectName]) {
+			delete config.projects[projectName];
+			saveConfig(config);
+		}
+
+		// Check if project also exists locally and offer to remove
+		if (projectExists(projectName)) {
+			if (!options.force) {
+				const { removeLocal } = await inquirer.prompt([
+					{
+						type: "confirm",
+						name: "removeLocal",
+						message: `'${projectName}' also exists locally. Remove local copy too?`,
+						default: false,
+					},
+				]);
+
+				if (removeLocal) {
+					header(`Removing '${projectName}' locally...`);
+					try {
+						await cleanupLocalProject(projectName, false);
+					} catch (err: unknown) {
+						error(
+							`Failed to clean up local project '${projectName}': ${getErrorMessage(err)}`,
+						);
+					}
+				}
+			}
+			// --force: default to keeping local copies (user didn't explicitly opt in)
+		}
+	}
+
+	success(
+		`Done. ${deletedCount} of ${selected.length} project(s) deleted from ${remoteName}.`,
+	);
+}
 
 export async function rmCommand(
 	project: string | undefined,
 	options: RmOptions,
 ): Promise<void> {
-	// Interactive multi-select when no project argument given
+	// Interactive remote multi-select when --remote flag but no project argument
+	if (!project && options.remote) {
+		if (!configExists()) {
+			error("devbox not configured. Run 'devbox init' first.");
+			process.exit(1);
+		}
+
+		const config = loadConfig();
+		if (!config) {
+			error("Failed to load config.");
+			process.exit(1);
+		}
+
+		await rmRemoteInteractive(config, options);
+		return;
+	}
+
+	// Interactive local multi-select when no project argument given
 	if (!project) {
 		const localProjects = getLocalProjects();
 		if (localProjects.length === 0) {
@@ -123,7 +379,6 @@ export async function rmCommand(
 		}
 	}
 
-	const projectPath = getProjectPath(project);
 	header(`Removing '${project}'...`);
 
 	if (isDryRun()) {
@@ -131,7 +386,7 @@ export async function rmCommand(
 		dryRun(`Would stop container if running`);
 		dryRun(`Would remove container and volumes if present`);
 		dryRun(`Would terminate sync session`);
-		dryRun(`Would delete local files: ${projectPath}`);
+		dryRun(`Would delete local files: ${getProjectPath(project)}`);
 		dryRun(`Would remove '${project}' from config`);
 		if (options.remote) {
 			dryRun(`Would delete project from remote server`);
@@ -139,75 +394,10 @@ export async function rmCommand(
 		return;
 	}
 
-	// Check session status and delete if present
-	const sessionSpin = spinner("Checking session status...");
+	// Perform local cleanup
 	try {
-		const session = readSession(projectPath);
-		if (session) {
-			sessionSpin.text = "Clearing session...";
-			deleteSession(projectPath);
-			sessionSpin.succeed("Session cleared");
-		} else {
-			sessionSpin.succeed("No active session");
-		}
-	} catch {
-		sessionSpin.warn("Could not check session status");
-	}
-
-	// Check container status and stop if running
-	const containerStatus = await getContainerStatus(projectPath);
-
-	if (containerStatus !== ContainerStatus.NotFound) {
-		if (containerStatus === ContainerStatus.Running) {
-			const stopSpin = spinner("Stopping container...");
-			const stopResult = await stopContainer(projectPath);
-			if (!stopResult.success) {
-				stopSpin.fail("Failed to stop container");
-				error(stopResult.error || "Unknown error");
-				if (!options.force) {
-					process.exit(1);
-				}
-			} else {
-				stopSpin.succeed("Container stopped");
-			}
-		}
-
-		// Remove the container
-		const removeSpin = spinner("Removing container...");
-		const removeResult = await removeContainer(projectPath, {
-			removeVolumes: true,
-		});
-		if (removeResult.success) {
-			removeSpin.succeed("Container removed");
-		} else {
-			removeSpin.warn("Failed to remove container");
-			if (!options.force) {
-				error(removeResult.error || "Unknown error");
-				process.exit(1);
-			}
-		}
-	} else {
-		info("No container found for this project.");
-	}
-
-	// Terminate mutagen sync session
-	const syncSpin = spinner("Terminating sync session...");
-	const syncResult = await terminateSession(project);
-	if (syncResult.success) {
-		syncSpin.succeed("Sync session terminated");
-	} else {
-		syncSpin.warn("No sync session found or already terminated");
-	}
-
-	// Delete local files
-	const rmSpin = spinner("Removing local files...");
-	try {
-		if (existsSync(projectPath)) {
-			rmSync(projectPath, { recursive: true });
-		}
-		rmSpin.succeed("Local files removed");
+		await cleanupLocalProject(project, !!options.force);
 	} catch (err: unknown) {
-		rmSpin.fail("Failed to remove local files");
 		error(getErrorMessage(err));
 		process.exit(1);
 	}
@@ -259,24 +449,8 @@ async function deleteFromRemote(
 		}
 	}
 
-	const remoteSpin = spinner(`Deleting '${project}' from remote...`);
-	try {
-		const result = await runRemoteCommand(
-			host,
-			`rm -rf ${escapeShellArg(remotePath)}`,
-			remote.key,
-		);
-
-		if (result.success) {
-			remoteSpin.succeed(`Deleted '${project}' from remote`);
-		} else {
-			remoteSpin.fail("Failed to delete from remote");
-			error(result.error || "Unknown error");
-			return;
-		}
-	} catch (err: unknown) {
-		remoteSpin.fail("Failed to delete from remote");
-		error(getErrorMessage(err));
+	const deleted = await deleteProjectFromRemote(project, host, remote);
+	if (!deleted) {
 		return;
 	}
 
