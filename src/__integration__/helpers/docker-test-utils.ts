@@ -321,7 +321,6 @@ export function createMinimalDevcontainer(
 	const config: DevcontainerConfig & {
 		runArgs?: string[];
 		containerEnv?: Record<string, string>;
-		onCreateCommand?: string;
 	} = {
 		name: `test-${templateId}`,
 		image: template.config.image,
@@ -336,10 +335,10 @@ export function createMinimalDevcontainer(
 		// Docker containers. Paths in /tmp inside the runner don't exist on the Docker host,
 		// so bind mounts fail. Tests don't need workspace files mounted.
 		workspaceMount: "",
-		workspaceFolder: "/workspaces/test",
-		// Create the workspace directory since the bind mount is disabled.
-		// Without this, devcontainer exec fails with "chdir to cwd failed: no such file or directory".
-		onCreateCommand: "mkdir -p /workspaces/test",
+		// Use /tmp as workspaceFolder since it always exists in every container image.
+		// Cannot use /workspaces/test because onCreateCommand (which would create it)
+		// runs via docker exec, which chdir's to workspaceFolder first — circular dependency.
+		workspaceFolder: "/tmp",
 	};
 
 	// Create directory and write config
