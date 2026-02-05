@@ -271,7 +271,7 @@ export interface OpenOptions {
 // Ownership types
 /** Project ownership metadata stored in .devbox-owner */
 export interface OwnershipInfo {
-	owner: string; // SSH username who created the project
+	owner: string; // Local OS username who created the project
 	created: string; // ISO 8601 timestamp
 	machine: string; // Hostname where project was created
 }

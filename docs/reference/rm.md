@@ -62,6 +62,17 @@ Both confirmations are skipped when `--force` is used.
 
 If the project does not exist locally but `--remote` is passed, the command skips local cleanup and proceeds directly to remote deletion.
 
+#### Ownership Check
+
+Remote deletion requires project ownership. If the project on the remote is owned by a different user, the deletion is blocked:
+
+```
+Only the project owner can delete remote projects.
+Project owned by 'alice' (created on alice-macbook)
+```
+
+Projects without an ownership file (created before this feature) can be deleted by anyone.
+
 ### Data Safety
 
 - Without `--remote`, remote files are **never deleted**

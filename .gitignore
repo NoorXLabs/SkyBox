@@ -3,7 +3,6 @@
 .worktrees/
 node_modules/
 dist/
-bun.lock
 docs/.vitepress/cache/
 docs/.vitepress/dist/
 

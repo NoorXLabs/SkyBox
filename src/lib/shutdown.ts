@@ -8,6 +8,7 @@ type CleanupHandler = () => void | Promise<void>;
 
 const cleanupHandlers: CleanupHandler[] = [];
 let cleanupRan = false;
+let installed = false;
 
 /** Timeout for async cleanup handlers (ms) */
 const CLEANUP_TIMEOUT_MS = 3000;
@@ -24,11 +25,10 @@ export function registerCleanupHandler(handler: CleanupHandler): void {
  * Run all registered cleanup handlers.
  * Handlers are run in reverse order and only once.
  *
- * NOTE: Async handlers are given a brief timeout but run with best-effort
- * semantics - they may not complete before process exit. For guaranteed
- * cleanup, use synchronous handlers.
+ * Returns a promise that resolves when all handlers (including async ones)
+ * have completed or timed out.
  */
-export function runCleanupHandlers(): void {
+export async function runCleanupHandlers(): Promise<void> {
 	if (cleanupRan) return;
 	cleanupRan = true;
 
@@ -42,7 +42,7 @@ export function runCleanupHandlers(): void {
 				const timeout = new Promise<void>((resolve) =>
 					setTimeout(resolve, CLEANUP_TIMEOUT_MS),
 				);
-				Promise.race([result, timeout]).catch(() => {});
+				await Promise.race([result, timeout]).catch(() => {});
 			}
 		} catch {
 			// Continue running other handlers even if one fails
@@ -56,40 +56,52 @@ export function runCleanupHandlers(): void {
 export function resetCleanupHandlers(): void {
 	cleanupHandlers.length = 0;
 	cleanupRan = false;
+	installed = false;
 }
 
 /**
  * Install process exit handlers.
- * Should be called once at startup.
+ * Should be called once at startup. Subsequent calls are no-ops.
  */
 export function installShutdownHandlers(): void {
+	if (installed) return;
+	installed = true;
+
+	const handleSignal = (_signal: string, code: number) => {
+		runCleanupHandlers()
+			.then(() => process.exit(code))
+			.catch(() => process.exit(code));
+	};
+
 	// Handle normal exit
 	process.on("exit", () => {
-		runCleanupHandlers();
+		// exit handler must be synchronous - best-effort only
+		if (!cleanupRan) {
+			cleanupRan = true;
+			for (let i = cleanupHandlers.length - 1; i >= 0; i--) {
+				try {
+					cleanupHandlers[i]();
+				} catch {
+					// Continue running other handlers even if one fails
+				}
+			}
+		}
 	});
 
 	// Handle SIGINT (Ctrl+C)
-	process.on("SIGINT", () => {
-		runCleanupHandlers();
-		process.exit(130);
-	});
+	process.on("SIGINT", () => handleSignal("SIGINT", 130));
 
 	// Handle SIGTERM
-	process.on("SIGTERM", () => {
-		runCleanupHandlers();
-		process.exit(143);
-	});
+	process.on("SIGTERM", () => handleSignal("SIGTERM", 143));
 
 	// Handle SIGHUP (terminal hangup, SSH disconnect)
-	process.on("SIGHUP", () => {
-		runCleanupHandlers();
-		process.exit(129);
-	});
+	process.on("SIGHUP", () => handleSignal("SIGHUP", 129));
 
 	// Handle uncaught exceptions
 	process.on("uncaughtException", (err) => {
 		console.error("Uncaught exception:", err.message);
-		runCleanupHandlers();
-		process.exit(1);
+		runCleanupHandlers()
+			.then(() => process.exit(1))
+			.catch(() => process.exit(1));
 	});
 }

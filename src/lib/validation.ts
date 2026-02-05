@@ -33,12 +33,13 @@ export function validateRemotePath(
 		return { valid: false, error: "Remote path cannot be empty" };
 	}
 
-	// Check for command substitution: $(...) or `...`
-	if (/\$\(/.test(path) || /`/.test(path)) {
+	// Check for command substitution: $(...), ${...}, or `...`
+	if (/\$[({]/.test(path) || /`/.test(path)) {
 		return {
 			valid: false,
 			error:
-				"Remote path cannot contain command substitution ($() or backticks)",
+				// biome-ignore lint/suspicious/noTemplateCurlyInString: literal error message describing ${} syntax
+				"Remote path cannot contain command substitution ($(), ${}, or backticks)",
 		};
 	}
 

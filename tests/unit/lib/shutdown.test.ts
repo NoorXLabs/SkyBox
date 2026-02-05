@@ -15,17 +15,17 @@ describe("shutdown handlers", () => {
 		resetCleanupHandlers();
 	});
 
-	test("registerCleanupHandler adds handler", () => {
+	test("registerCleanupHandler adds handler", async () => {
 		let called = false;
 		registerCleanupHandler(() => {
 			called = true;
 		});
 
-		runCleanupHandlers();
+		await runCleanupHandlers();
 		expect(called).toBe(true);
 	});
 
-	test("cleanup handlers run in reverse order", () => {
+	test("cleanup handlers run in reverse order", async () => {
 		const order: number[] = [];
 		registerCleanupHandler(() => {
 			order.push(1);
@@ -37,22 +37,22 @@ describe("shutdown handlers", () => {
 			order.push(3);
 		});
 
-		runCleanupHandlers();
+		await runCleanupHandlers();
 		expect(order).toEqual([3, 2, 1]);
 	});
 
-	test("cleanup handlers only run once", () => {
+	test("cleanup handlers only run once", async () => {
 		let count = 0;
 		registerCleanupHandler(() => {
 			count++;
 		});
 
-		runCleanupHandlers();
-		runCleanupHandlers();
+		await runCleanupHandlers();
+		await runCleanupHandlers();
 		expect(count).toBe(1);
 	});
 
-	test("handlers run even if one throws", () => {
+	test("handlers run even if one throws", async () => {
 		let handler2Called = false;
 		registerCleanupHandler(() => {
 			throw new Error("Handler 1 error");
@@ -61,31 +61,40 @@ describe("shutdown handlers", () => {
 			handler2Called = true;
 		});
 
-		runCleanupHandlers();
+		await runCleanupHandlers();
 		expect(handler2Called).toBe(true);
 	});
 
-	test("async handlers are handled without blocking", async () => {
-		let asyncHandlerStarted = false;
-		let syncHandlerCalled = false;
+	test("async handlers complete before runCleanupHandlers resolves", async () => {
+		let asyncHandlerCompleted = false;
 
-		// Register async handler that takes a while
 		registerCleanupHandler(async () => {
-			asyncHandlerStarted = true;
-			// Simulate async work
-			await new Promise((resolve) => setTimeout(resolve, 10));
+			await new Promise((resolve) => setTimeout(resolve, 50));
+			asyncHandlerCompleted = true;
 		});
 
-		// Register sync handler
-		registerCleanupHandler(() => {
-			syncHandlerCalled = true;
+		await runCleanupHandlers();
+
+		// After awaiting, the async handler should have fully completed
+		expect(asyncHandlerCompleted).toBe(true);
+	});
+
+	test("async handlers time out after CLEANUP_TIMEOUT_MS", async () => {
+		let asyncHandlerCompleted = false;
+
+		// Register a handler that takes longer than the timeout
+		registerCleanupHandler(async () => {
+			await new Promise((resolve) => setTimeout(resolve, 10_000));
+			asyncHandlerCompleted = true;
 		});
 
-		runCleanupHandlers();
+		const start = Date.now();
+		await runCleanupHandlers();
+		const elapsed = Date.now() - start;
 
-		// Both should have been called/started
-		expect(syncHandlerCalled).toBe(true);
-		expect(asyncHandlerStarted).toBe(true);
+		// Should have timed out, not waited 10 seconds
+		expect(elapsed).toBeLessThan(5000);
+		expect(asyncHandlerCompleted).toBe(false);
 	});
 });
 
@@ -98,6 +107,7 @@ describe("signal handling", () => {
 	let initialUncaughtException: number;
 
 	beforeEach(() => {
+		resetCleanupHandlers();
 		initialSIGHUP = process.listenerCount("SIGHUP");
 		initialSIGINT = process.listenerCount("SIGINT");
 		initialSIGTERM = process.listenerCount("SIGTERM");
@@ -140,10 +150,32 @@ describe("signal handling", () => {
 					lastListener as NodeJS.UncaughtExceptionListener,
 				);
 		}
+		resetCleanupHandlers();
 	});
 
 	test("installShutdownHandlers registers SIGHUP handler", () => {
 		installShutdownHandlers();
 		expect(process.listenerCount("SIGHUP")).toBeGreaterThan(initialSIGHUP);
+	});
+
+	test("installShutdownHandlers is idempotent - no duplicate listeners", () => {
+		installShutdownHandlers();
+		const countAfterFirst = process.listenerCount("SIGHUP");
+
+		installShutdownHandlers();
+		const countAfterSecond = process.listenerCount("SIGHUP");
+
+		expect(countAfterSecond).toBe(countAfterFirst);
+	});
+
+	test("installShutdownHandlers registers all signal handlers", () => {
+		installShutdownHandlers();
+		expect(process.listenerCount("SIGINT")).toBeGreaterThan(initialSIGINT);
+		expect(process.listenerCount("SIGTERM")).toBeGreaterThan(initialSIGTERM);
+		expect(process.listenerCount("SIGHUP")).toBeGreaterThan(initialSIGHUP);
+		expect(process.listenerCount("exit")).toBeGreaterThan(initialExit);
+		expect(process.listenerCount("uncaughtException")).toBeGreaterThan(
+			initialUncaughtException,
+		);
 	});
 });

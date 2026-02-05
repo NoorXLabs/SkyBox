@@ -136,6 +136,13 @@ export const MUTAGEN_REPO = "mutagen-io/mutagen";
 /** Default sync mode for Mutagen sessions. */
 export const DEFAULT_SYNC_MODE = "two-way-resolved";
 
+/** Valid sync mode values for configuration validation. */
+export const VALID_SYNC_MODES = [
+	"two-way-resolved",
+	"two-way-safe",
+	"one-way-replica",
+];
+
 /** Default file ignore patterns for sync. */
 export const DEFAULT_IGNORE = [
 	".git/index.lock",
@@ -176,6 +183,12 @@ export const ARGON2_TIME_COST = 3;
 
 /** Argon2 parallelism factor. OWASP minimum: 4. */
 export const ARGON2_PARALLELISM = 4;
+
+/** Legacy Argon2 time cost (pre-v0.7.7, before OWASP hardening). */
+export const ARGON2_LEGACY_TIME_COST = 2;
+
+/** Legacy Argon2 parallelism (pre-v0.7.7, before OWASP hardening). */
+export const ARGON2_LEGACY_PARALLELISM = 1;
 
 /** Filename for the encryption verification marker inside archives. */
 export const ENCRYPTION_CHECK_FILENAME = ".devbox-enc-check";

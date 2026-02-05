@@ -3,7 +3,7 @@ pre-commit:
   commands:
     lockfile:
       priority: 0
-      run: bun run scripts/verify-lockfile.ts
+      run: bun run src/lib/verify-lockfile.ts
       glob: "package.json|bun.lock"
     check:
       priority: 1

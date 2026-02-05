@@ -2,7 +2,7 @@
 
 > **Version:** 0.7.7
 >
-> **Progress:** 1/17 future features | 0/18 checklist items | 0/2 release tasks
+> **Progress:** 0/16 future features | 0/18 checklist items | 0/2 release tasks
 >
 > **Completed work archived:** [`plans/archive/ARCHIVED-IMPLEMENTATION.md`](archive/ARCHIVED-IMPLEMENTATION.md)
 
@@ -53,14 +53,6 @@ Named sync configurations (minimal, full, custom) for different workflows.
 - **Files:** `src/types/index.ts` (new `SyncProfile` type), `src/lib/mutagen.ts`
 - **Config:** Add `sync_profiles` to project config
 - **Notes:** Useful for large repos where you only need a subset of files
-
-- [x] ### Auto-Up on Directory Enter ✓ IMPLEMENTED
-
-Shell hook (bash/zsh) to auto-start container when entering a project directory.
-
-- **Files:** `src/commands/hook.ts`, `src/commands/__tests__/hook.test.ts`
-- **Commits:** `afb693b`, `1c66eb0` (PR #31)
-- **Notes:** Implemented via `devbox hook bash` and `devbox hook zsh` commands
 
 - [ ] ### Project Aliases
 
@@ -199,4 +191,4 @@ One-line description of what this feature does and why.
 
 ---
 
-*Last updated: 2026-02-03*
+*Last updated: 2026-02-05*

@@ -351,11 +351,15 @@ Uses Docker with devcontainer spec:
 | `src/lib/validation.ts` | Path traversal prevention, input validation |
 | `src/lib/shell.ts` | Shell escaping: `escapeShellArg()`, `buildShellCommand()` |
 | `src/lib/hooks.ts` | Hook runner for pre/post lifecycle events |
+| `src/lib/audit.ts` | Audit logging (JSON Lines to `~/.devbox/audit.log`) |
+| `src/lib/gpg.ts` | GPG signature verification for Mutagen downloads |
+| `src/lib/shutdown.ts` | Graceful shutdown and signal handling |
 | `src/commands/dashboard.tsx` | Ink/React TUI dashboard |
 | `.github/workflows/release.yml` | Release workflow: builds 4 platform binaries (darwin-arm64, darwin-x64, linux-x64, linux-arm64) |
 | `biome.json` | Linting/formatting config |
 | `lefthook.yml` | Git hooks config |
 | `tsconfig.json` | TypeScript config |
+| `src/lib/verify-lockfile.ts` | Verify bun.lock integrity (supply chain security) |
 
 ## Documentation
 

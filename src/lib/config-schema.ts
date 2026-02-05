@@ -2,6 +2,7 @@
  * Runtime schema validation for DevBox config.
  */
 
+import { VALID_SYNC_MODES } from "@lib/constants.ts";
 import type { DevboxConfigV2 } from "@typedefs/index.ts";
 
 export class ConfigValidationError extends Error {
@@ -10,12 +11,6 @@ export class ConfigValidationError extends Error {
 		this.name = "ConfigValidationError";
 	}
 }
-
-const VALID_SYNC_MODES = [
-	"two-way-resolved",
-	"two-way-safe",
-	"one-way-replica",
-];
 
 /**
  * Validate a config object at runtime.

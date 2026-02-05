@@ -65,6 +65,15 @@ Each entry supports:
 - Hooks are **non-fatal** — if a hook fails, a warning is shown but the operation continues
 - Multiple hooks for the same event run **sequentially** in order
 - Hook output is captured and displayed if the hook fails
+- A one-time security warning is shown the first time hooks execute in a session
+
+::: tip Suppress Warning
+Set `DEVBOX_HOOK_WARNINGS=0` to disable the one-time hook security warning.
+:::
+
+::: warning Security
+Hook commands execute with full shell access on your host machine. Only define hooks in trusted configuration files. Review hooks before running `devbox up` or `devbox down` on shared configs.
+:::
 
 ## Examples
 

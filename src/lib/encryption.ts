@@ -8,6 +8,8 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import {
+	ARGON2_LEGACY_PARALLELISM,
+	ARGON2_LEGACY_TIME_COST,
 	ARGON2_MEMORY_COST,
 	ARGON2_PARALLELISM,
 	ARGON2_TIME_COST,
@@ -32,6 +34,26 @@ export async function deriveKey(
 		memoryCost: ARGON2_MEMORY_COST,
 		timeCost: ARGON2_TIME_COST,
 		parallelism: ARGON2_PARALLELISM,
+		hashLength: ENCRYPTION_KEY_LENGTH,
+		raw: true,
+	});
+}
+
+/**
+ * Derive a 256-bit key using legacy Argon2 parameters (pre-v0.7.7).
+ * Used as a fallback when decryption with current parameters fails,
+ * indicating the data was encrypted before the OWASP parameter hardening.
+ */
+export async function deriveKeyLegacy(
+	passphrase: string,
+	salt: string,
+): Promise<Buffer> {
+	return argon2.hash(passphrase, {
+		type: argon2.argon2id,
+		salt: Buffer.from(salt, "hex"),
+		memoryCost: ARGON2_MEMORY_COST,
+		timeCost: ARGON2_LEGACY_TIME_COST,
+		parallelism: ARGON2_LEGACY_PARALLELISM,
 		hashLength: ENCRYPTION_KEY_LENGTH,
 		raw: true,
 	});
@@ -124,4 +146,45 @@ export function decryptFile(
 		decipher.final(),
 	]);
 	writeFileSync(outputPath, decrypted);
+}
+
+/**
+ * Decrypt an `ENC[base64...]` string with automatic legacy parameter fallback.
+ * First attempts decryption with the current key. If that fails (e.g., data was
+ * encrypted with pre-v0.7.7 Argon2 parameters), re-derives the key using legacy
+ * parameters and retries.
+ */
+export async function decryptWithFallback(
+	ciphertext: string,
+	passphrase: string,
+	salt: string,
+): Promise<string> {
+	const currentKey = await deriveKey(passphrase, salt);
+	try {
+		return decrypt(ciphertext, currentKey);
+	} catch {
+		const legacyKey = await deriveKeyLegacy(passphrase, salt);
+		return decrypt(ciphertext, legacyKey);
+	}
+}
+
+/**
+ * Decrypt a file with automatic legacy parameter fallback.
+ * First attempts decryption with the current key. If that fails (e.g., file was
+ * encrypted with pre-v0.7.7 Argon2 parameters), re-derives the key using legacy
+ * parameters and retries. Re-throws if both attempts fail.
+ */
+export async function decryptFileWithFallback(
+	inputPath: string,
+	outputPath: string,
+	passphrase: string,
+	salt: string,
+): Promise<void> {
+	const currentKey = await deriveKey(passphrase, salt);
+	try {
+		decryptFile(inputPath, outputPath, currentKey);
+	} catch {
+		const legacyKey = await deriveKeyLegacy(passphrase, salt);
+		decryptFile(inputPath, outputPath, legacyKey);
+	}
 }

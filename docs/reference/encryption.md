@@ -57,7 +57,7 @@ You must enter your passphrase to disable encryption. If an encrypted archive ex
 
 | Component | Implementation |
 |-----------|---------------|
-| Key derivation | Argon2id (64 MiB memory, 2 passes) |
+| Key derivation | Argon2id (64 MiB memory, 3 iterations, parallelism 4) |
 | Encryption | AES-256-GCM via `node:crypto` |
 | Salt | Random 16 bytes per project, stored in config |
 | Passphrase | Never stored — entered on every operation |

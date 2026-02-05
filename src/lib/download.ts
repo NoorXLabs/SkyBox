@@ -20,8 +20,10 @@ import {
 import { getBinDir, getMutagenPath } from "@lib/paths.ts";
 import { extract } from "tar";
 
-/** Whether to require GPG verification (can be disabled via env) */
-const REQUIRE_GPG_VERIFICATION = process.env.DEVBOX_SKIP_GPG !== "1";
+/** Whether GPG verification is preferred (evaluated at call time, not module load). */
+function isGpgPreferred(): boolean {
+	return process.env.DEVBOX_SKIP_GPG !== "1";
+}
 
 export function getMutagenDownloadUrl(
 	platform: string,
@@ -145,7 +147,7 @@ export async function downloadMutagen(
 			]);
 
 			if (!publicKey || !gpgSignature) {
-				if (REQUIRE_GPG_VERIFICATION) {
+				if (isGpgPreferred()) {
 					return {
 						success: false,
 						error: "Failed to fetch GPG key or signature",
@@ -162,7 +164,7 @@ export async function downloadMutagen(
 				);
 
 				if (!gpgResult.verified) {
-					if (REQUIRE_GPG_VERIFICATION) {
+					if (isGpgPreferred()) {
 						return {
 							success: false,
 							error: gpgResult.error || "GPG signature verification failed",
@@ -176,7 +178,7 @@ export async function downloadMutagen(
 				}
 			}
 		} else {
-			if (REQUIRE_GPG_VERIFICATION) {
+			if (isGpgPreferred()) {
 				onProgress?.("GPG not available - using checksum verification only");
 			}
 		}

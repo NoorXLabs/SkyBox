@@ -58,10 +58,10 @@ export async function verifyGpgSignature(
 		const keyPath = join(tempDir, "key.asc");
 		const keyringPath = join(tempDir, "keyring.gpg");
 
-		// Write files
-		writeFileSync(dataPath, data);
-		writeFileSync(sigPath, signature);
-		writeFileSync(keyPath, publicKey);
+		// Write files with restricted permissions (owner-only read/write)
+		writeFileSync(dataPath, data, { mode: 0o600 });
+		writeFileSync(sigPath, signature, { mode: 0o600 });
+		writeFileSync(keyPath, publicKey, { mode: 0o600 });
 
 		// Import the key to a temporary keyring
 		await execFileAsync("gpg", [

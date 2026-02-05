@@ -87,6 +87,16 @@ describe("validation", () => {
 			}
 		});
 
+		// biome-ignore lint/suspicious/noTemplateCurlyInString: testing literal ${} in paths
+		test("rejects variable expansion with ${}", () => {
+			// biome-ignore lint/suspicious/noTemplateCurlyInString: testing literal ${USER} injection
+			const result = validateRemotePath("/home/${USER}/code");
+			expect(result.valid).toBe(false);
+			if (!result.valid) {
+				expect(result.error).toContain("command substitution");
+			}
+		});
+
 		test("rejects semicolon command chaining", () => {
 			const result = validateRemotePath("/home/user; rm -rf /");
 			expect(result.valid).toBe(false);

@@ -30,7 +30,7 @@ jobs:
         run: bash scripts/download-mutagen.sh
 
       - name: Verify lockfile integrity
-        run: bun run scripts/verify-lockfile.ts
+        run: bun run src/lib/verify-lockfile.ts
 
       - name: Build all platforms
         run: |
@@ -181,4 +181,8 @@ jobs:
 
       - name: Cleanup
         if: always()
-        run: rm -rf devbox-* homebrew-tap
+        run: |
+          rm -rf devbox-* homebrew-tap
+          rm -rf ${{ runner.temp }}/homebrew-tap
+          rm -f ~/.git-credentials
+          git config --global --unset credential.helper || true

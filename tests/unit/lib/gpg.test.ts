@@ -58,7 +58,7 @@ describe("GPG verification", () => {
 			expect(result.gpgUnavailable).toBe(true);
 		});
 
-		test("cleans up temp directory on success", async () => {
+		test("cleans up temp directory after verification", async () => {
 			// Skip if GPG is not available - this test requires GPG to be installed
 			const gpgAvailable = await isGpgAvailable();
 			if (!gpgAvailable) return;
@@ -77,23 +77,98 @@ describe("GPG verification", () => {
 			const afterDirs = readdirSync(tempBase).filter((d) =>
 				d.startsWith("devbox-gpg-"),
 			);
-			expect(afterDirs.length).toBeLessThanOrEqual(beforeDirs.length + 1);
+			expect(afterDirs.length).toBe(beforeDirs.length);
 		});
 	});
 
 	describe("fetchMutagenPublicKey", () => {
-		test("returns string or null", async () => {
-			const result = await fetchMutagenPublicKey();
+		test("returns string on success", async () => {
+			const originalFetch = globalThis.fetch;
+			globalThis.fetch = (async () =>
+				new Response(
+					"-----BEGIN PGP PUBLIC KEY BLOCK-----\nfake\n-----END PGP PUBLIC KEY BLOCK-----",
+					{ status: 200 },
+				)) as unknown as typeof fetch;
 
-			expect(result === null || typeof result === "string").toBe(true);
+			try {
+				const result = await fetchMutagenPublicKey();
+				expect(typeof result).toBe("string");
+				expect(result).toContain("BEGIN PGP PUBLIC KEY BLOCK");
+			} finally {
+				globalThis.fetch = originalFetch;
+			}
+		});
+
+		test("returns null on fetch failure", async () => {
+			const originalFetch = globalThis.fetch;
+			globalThis.fetch = (async () =>
+				new Response(null, { status: 404 })) as unknown as typeof fetch;
+
+			try {
+				const result = await fetchMutagenPublicKey();
+				expect(result).toBeNull();
+			} finally {
+				globalThis.fetch = originalFetch;
+			}
+		});
+
+		test("returns null on network error", async () => {
+			const originalFetch = globalThis.fetch;
+			globalThis.fetch = (async () => {
+				throw new Error("network error");
+			}) as unknown as typeof fetch;
+
+			try {
+				const result = await fetchMutagenPublicKey();
+				expect(result).toBeNull();
+			} finally {
+				globalThis.fetch = originalFetch;
+			}
 		});
 	});
 
 	describe("fetchMutagenSignature", () => {
-		test("returns Buffer or null", async () => {
-			const result = await fetchMutagenSignature("0.18.1");
+		test("returns Buffer on success", async () => {
+			const originalFetch = globalThis.fetch;
+			const fakeSignature = new Uint8Array([0x89, 0x02, 0x33]);
+			globalThis.fetch = (async () =>
+				new Response(fakeSignature, {
+					status: 200,
+				})) as unknown as typeof fetch;
 
-			expect(result === null || Buffer.isBuffer(result)).toBe(true);
+			try {
+				const result = await fetchMutagenSignature("0.18.1");
+				expect(Buffer.isBuffer(result)).toBe(true);
+			} finally {
+				globalThis.fetch = originalFetch;
+			}
+		});
+
+		test("returns null on fetch failure", async () => {
+			const originalFetch = globalThis.fetch;
+			globalThis.fetch = (async () =>
+				new Response(null, { status: 404 })) as unknown as typeof fetch;
+
+			try {
+				const result = await fetchMutagenSignature("0.18.1");
+				expect(result).toBeNull();
+			} finally {
+				globalThis.fetch = originalFetch;
+			}
+		});
+
+		test("returns null on network error", async () => {
+			const originalFetch = globalThis.fetch;
+			globalThis.fetch = (async () => {
+				throw new Error("network error");
+			}) as unknown as typeof fetch;
+
+			try {
+				const result = await fetchMutagenSignature("0.18.1");
+				expect(result).toBeNull();
+			} finally {
+				globalThis.fetch = originalFetch;
+			}
 		});
 	});
 });
