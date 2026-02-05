@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Add `devbox open [project]` command that shows an action menu (editor/shell/both) for running containers without restarting them.
+**Goal:** Add `skybox open [project]` command that shows an action menu (editor/shell/both) for running containers without restarting them.
 
 **Architecture:** The `open` command reuses `determinePostStartAction()` and `executePostStartAction()` from `up.ts` but only works on already-running containers. It fills the gap between `up` (starts + opens) and `shell` (shell only).
 
@@ -142,7 +142,7 @@ export async function openCommand(
 ): Promise<void> {
 	// Step 1: Check config exists
 	if (!configExists()) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -164,7 +164,7 @@ export async function openCommand(
 
 		if (projects.length === 0) {
 			error(
-				"No local projects found. Run 'devbox clone' or 'devbox push' first.",
+				"No local projects found. Run 'skybox clone' or 'skybox push' first.",
 			);
 			process.exit(1);
 		}
@@ -187,7 +187,7 @@ export async function openCommand(
 
 	if (!projectExists(project ?? "")) {
 		error(
-			`Project '${project}' not found locally. Run 'devbox clone ${project}' first.`,
+			`Project '${project}' not found locally. Run 'skybox clone ${project}' first.`,
 		);
 		process.exit(1);
 	}
@@ -199,7 +199,7 @@ export async function openCommand(
 
 	if (containerStatus !== ContainerStatus.Running) {
 		error(`Container for '${project}' is not running.`);
-		info("Run 'devbox up' to start the container first.");
+		info("Run 'skybox up' to start the container first.");
 		process.exit(1);
 	}
 
@@ -327,11 +327,11 @@ describe("open command", () => {
 	let originalEnv: string | undefined;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-open-test-${Date.now()}`);
+		testDir = join(tmpdir(), `skybox-open-test-${Date.now()}`);
 		mkdirSync(testDir, { recursive: true });
 
-		originalEnv = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
+		originalEnv = process.env.SKYBOX_HOME;
+		process.env.SKYBOX_HOME = testDir;
 
 		// Create minimal config
 		const configDir = testDir;
@@ -351,14 +351,14 @@ projects: {}
 	afterEach(() => {
 		rmSync(testDir, { recursive: true, force: true });
 		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
+			process.env.SKYBOX_HOME = originalEnv;
 		} else {
-			delete process.env.DEVBOX_HOME;
+			delete process.env.SKYBOX_HOME;
 		}
 	});
 
 	test("should require project to exist locally", async () => {
-		// Import dynamically to use mocked DEVBOX_HOME
+		// Import dynamically to use mocked SKYBOX_HOME
 		const { projectExists } = await import("../../lib/project.ts");
 		expect(projectExists("nonexistent")).toBe(false);
 	});
@@ -403,13 +403,13 @@ git commit -m "test(open): add basic tests for open command"
 In the Future Features > High Priority section, change:
 
 ```markdown
-- [ ] **Open Command:** `devbox open [project]` - Show action menu (editor/shell/both) for running containers without restarting
+- [ ] **Open Command:** `skybox open [project]` - Show action menu (editor/shell/both) for running containers without restarting
 ```
 
 To:
 
 ```markdown
-- [x] **Open Command:** `devbox open [project]` - Show action menu (editor/shell/both) for running containers without restarting
+- [x] **Open Command:** `skybox open [project]` - Show action menu (editor/shell/both) for running containers without restarting
   - Commit: `<commit-hash>`
 ```
 

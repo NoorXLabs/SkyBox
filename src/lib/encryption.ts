@@ -1,5 +1,5 @@
 /**
- * Encryption utilities for DevBox.
+ * Encryption utilities for SkyBox.
  * Provides AES-256-GCM encryption for both config values (string-based)
  * and project archives (file-based).
  * Key derivation uses Argon2id (memory-hard KDF).

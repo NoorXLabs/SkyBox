@@ -1,16 +1,16 @@
 {
-  "name": "devbox",
+  "name": "skybox",
   "version": "0.7.7",
   "description": "Local-first dev containers with remote sync",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/NoorXLabs/DevBox.git"
+    "url": "git+https://github.com/NoorXLabs/SkyBox.git"
   },
   "bugs": {
-    "url": "https://github.com/NoorXLabs/DevBox/issues"
+    "url": "https://github.com/NoorXLabs/SkyBox/issues"
   },
-  "homepage": "https://github.com/NoorXLabs/DevBox#readme",
-  "keywords": ["devbox", "devcontainer", "docker", "remote-development", "sync", "mutagen", "cli"],
+  "homepage": "https://github.com/NoorXLabs/SkyBox#readme",
+  "keywords": ["skybox", "devcontainer", "docker", "remote-development", "sync", "mutagen", "cli"],
   "license": "Apache-2.0",
   "author": "Noor Chasib",
   "type": "module",
@@ -18,12 +18,12 @@
     "bun": ">=1.0.0"
   },
   "bin": {
-    "devbox": "./bin/devbox"
+    "skybox": "./bin/skybox"
   },
   "scripts": {
     "prepare": "lefthook install",
     "dev": "bun run src/index.ts",
-    "build": "bun build ./src/index.ts --compile --outfile=devbox-bin",
+    "build": "bun build ./src/index.ts --compile --outfile=skybox-bin",
     "test": "bun test --preload ./tests/helpers/test-utils.ts tests/unit",
     "test:integration": "bun test tests/integration",
     "test:e2e": "bun test tests/e2e",
@@ -34,7 +34,7 @@
     "check": "biome check --write ./src ./tests",
     "check:ci": "biome check ./src ./tests",
     "vendor:mutagen": "bash scripts/download-mutagen.sh",
-    "build:bundle": "bun run vendor:mutagen && bun build ./src/index.ts --compile --outfile=devbox-bin",
+    "build:bundle": "bun run vendor:mutagen && bun build ./src/index.ts --compile --outfile=skybox-bin",
     "docs:dev": "cd docs && bun run dev",
     "docs:build": "cd docs && bun run build",
     "docs:preview": "cd docs && bun run preview"

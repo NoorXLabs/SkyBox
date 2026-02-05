@@ -1,14 +1,14 @@
 /**
  * Audit logging for security-sensitive operations.
  *
- * Writes JSON Lines format to ~/.devbox/audit.log.
- * Enabled via DEVBOX_AUDIT=1 environment variable.
+ * Writes JSON Lines format to ~/.skybox/audit.log.
+ * Enabled via SKYBOX_AUDIT=1 environment variable.
  */
 
 import { appendFileSync, existsSync, mkdirSync } from "node:fs";
 import { hostname, userInfo } from "node:os";
 import { dirname, join } from "node:path";
-import { getDevboxHome } from "@lib/paths.ts";
+import { getSkyboxHome } from "@lib/paths.ts";
 
 /** Audit log entry structure */
 export interface AuditEntry {
@@ -30,7 +30,7 @@ function isAuditEnabled(): boolean {
 	if (auditEnabledOverride !== null) {
 		return auditEnabledOverride;
 	}
-	return process.env.DEVBOX_AUDIT === "1";
+	return process.env.SKYBOX_AUDIT === "1";
 }
 
 /**
@@ -45,7 +45,7 @@ export function setAuditEnabled(enabled: boolean | null): void {
  * Get the audit log file path.
  */
 export function getAuditLogPath(): string {
-	return join(getDevboxHome(), "audit.log");
+	return join(getSkyboxHome(), "audit.log");
 }
 
 /**

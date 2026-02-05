@@ -8,18 +8,18 @@ describe("update-check", () => {
 	let originalEnv: string | undefined;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-test-update-${Date.now()}`);
+		testDir = join(tmpdir(), `skybox-test-update-${Date.now()}`);
 		mkdirSync(testDir, { recursive: true });
-		originalEnv = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
+		originalEnv = process.env.SKYBOX_HOME;
+		process.env.SKYBOX_HOME = testDir;
 	});
 
 	afterEach(() => {
 		rmSync(testDir, { recursive: true, force: true });
 		if (originalEnv !== undefined) {
-			process.env.DEVBOX_HOME = originalEnv;
+			process.env.SKYBOX_HOME = originalEnv;
 		} else {
-			delete process.env.DEVBOX_HOME;
+			delete process.env.SKYBOX_HOME;
 		}
 	});
 
@@ -66,8 +66,8 @@ describe("update-check", () => {
 
 	test("getUpgradeCommand returns correct command per install method", async () => {
 		const { getUpgradeCommand } = await import("@lib/update-check.ts");
-		expect(getUpgradeCommand("homebrew")).toBe("brew upgrade devbox");
-		expect(getUpgradeCommand("npm")).toBe("npm update -g devbox");
+		expect(getUpgradeCommand("homebrew")).toBe("brew upgrade skybox");
+		expect(getUpgradeCommand("npm")).toBe("npm update -g skybox");
 		expect(getUpgradeCommand("github-release")).toContain("github.com");
 		expect(getUpgradeCommand("source")).toBe("git pull && bun install");
 	});

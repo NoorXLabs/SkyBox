@@ -1,29 +1,29 @@
 # Configuration Reference
 
-DevBox uses a YAML configuration file to store global settings, remote server connections, sync preferences, and project-specific configurations.
+SkyBox uses a YAML configuration file to store global settings, remote server connections, sync preferences, and project-specific configurations.
 
 ## Config File Location
 
 The configuration file is located at:
 
 ```
-~/.devbox/config.yaml
+~/.skybox/config.yaml
 ```
 
-You can override the DevBox home directory by setting the `DEVBOX_HOME` environment variable:
+You can override the SkyBox home directory by setting the `SKYBOX_HOME` environment variable:
 
 ```bash
-export DEVBOX_HOME=/custom/path/.devbox
+export SKYBOX_HOME=/custom/path/.skybox
 ```
 
-When set, the config file will be located at `$DEVBOX_HOME/config.yaml`.
+When set, the config file will be located at `$SKYBOX_HOME/config.yaml`.
 
 ## Directory Structure
 
-DevBox creates the following directory structure:
+SkyBox creates the following directory structure:
 
 ```
-~/.devbox/
+~/.skybox/
 ├── config.yaml      # Main configuration file
 ├── Projects/        # Local synced project copies
 │   ├── my-app/
@@ -105,7 +105,7 @@ ignore:
   - ".venv"
   - "__pycache__"
   - "*.pyc"
-  - ".devbox-local"
+  - ".skybox-local"
   - "dist"
   - "build"
   - ".next"
@@ -184,11 +184,11 @@ projects:
 | `enabled` | `boolean` | Whether encryption at rest is active |
 | `salt` | `string` | Auto-generated hex salt for key derivation. Do not edit. |
 
-Use `devbox encrypt enable/disable` to manage these settings. See [`devbox encrypt`](/reference/encryption).
+Use `skybox encrypt enable/disable` to manage these settings. See [`skybox encrypt`](/reference/encryption).
 
 ### `templates` (Optional)
 
-Custom project templates as git repository URLs. These templates appear in `devbox new` when selecting "From a template".
+Custom project templates as git repository URLs. These templates appear in `skybox new` when selecting "From a template".
 
 ```yaml
 templates:
@@ -197,7 +197,7 @@ templates:
 ```
 
 ::: tip
-You can also create local templates stored as `.json` files in `~/.devbox/templates/`. See [Custom Templates](/reference/custom-templates) for details.
+You can also create local templates stored as `.json` files in `~/.skybox/templates/`. See [Custom Templates](/reference/custom-templates) for details.
 :::
 
 ## Complete Example
@@ -233,8 +233,8 @@ defaults:
     - "target"
     - "vendor"
 
-    # DevBox local files
-    - ".devbox-local"
+    # SkyBox local files
+    - ".skybox-local"
 
 # Remote server configurations
 remotes:
@@ -297,16 +297,16 @@ templates:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DEVBOX_HOME` | `~/.devbox` | Override the default DevBox home directory |
-| `DEVBOX_AUDIT` | `0` | Set to `1` to enable audit logging to `~/.devbox/audit.log` |
-| `DEVBOX_SKIP_GPG` | `0` | Set to `1` to skip GPG signature verification for Mutagen downloads |
-| `DEVBOX_HOOK_WARNINGS` | `1` | Set to `0` to suppress one-time hook security warnings |
+| `SKYBOX_HOME` | `~/.skybox` | Override the default SkyBox home directory |
+| `SKYBOX_AUDIT` | `0` | Set to `1` to enable audit logging to `~/.skybox/audit.log` |
+| `SKYBOX_SKIP_GPG` | `0` | Set to `1` to skip GPG signature verification for Mutagen downloads |
+| `SKYBOX_HOOK_WARNINGS` | `1` | Set to `0` to suppress one-time hook security warnings |
 | `HOME` | - | Used for `~` expansion in paths (e.g., remote `path` and `key` fields) |
-| `EDITOR` | - | Fallback editor command if not configured in DevBox config |
+| `EDITOR` | - | Fallback editor command if not configured in SkyBox config |
 
 ### Audit Logging
 
-When `DEVBOX_AUDIT=1`, security-relevant operations are logged to `~/.devbox/audit.log` in JSON Lines format:
+When `SKYBOX_AUDIT=1`, security-relevant operations are logged to `~/.skybox/audit.log` in JSON Lines format:
 
 ```json
 {"timestamp":"2026-02-04T12:00:00Z","action":"clone:success","user":"john","machine":"macbook","details":{"project":"myapp"}}
@@ -317,7 +317,7 @@ Logged actions include: `clone:start`, `clone:success`, `clone:fail`, `push:star
 ::: tip Log Rotation
 The audit log grows unbounded. For long-running deployments, rotate manually:
 ```bash
-mv ~/.devbox/audit.log ~/.devbox/audit.log.$(date +%Y%m%d)
+mv ~/.skybox/audit.log ~/.skybox/audit.log.$(date +%Y%m%d)
 ```
 :::
 
@@ -326,7 +326,7 @@ mv ~/.devbox/audit.log ~/.devbox/audit.log.$(date +%Y%m%d)
 The configuration file is automatically created when you run:
 
 ```bash
-devbox init
+skybox init
 ```
 
 This interactive command will:
@@ -338,23 +338,23 @@ This interactive command will:
 
 ## Modifying Configuration
 
-### Using DevBox Commands
+### Using SkyBox Commands
 
 ```bash
 # View current configuration
-devbox config
+skybox config
 
 # Change editor
-devbox config set editor vim
+skybox config set editor vim
 
 # Add a new remote
-devbox remote add myserver user@host:~/code
+skybox remote add myserver user@host:~/code
 
 # Remove a remote
-devbox remote remove myserver
+skybox remote remove myserver
 
 # Validate all remote connections
-devbox config --validate
+skybox config --validate
 ```
 
 ### Direct File Editing
@@ -363,11 +363,11 @@ You can edit the configuration file directly:
 
 ```bash
 # Open with your default editor
-$EDITOR ~/.devbox/config.yaml
+$EDITOR ~/.skybox/config.yaml
 
 # Or use any text editor
-nano ~/.devbox/config.yaml
-vim ~/.devbox/config.yaml
+nano ~/.skybox/config.yaml
+vim ~/.skybox/config.yaml
 ```
 
 Changes take effect immediately for new commands. Running containers or sync sessions may need to be restarted to pick up configuration changes.
@@ -397,18 +397,18 @@ projects:
 
 ## Validation
 
-DevBox validates the configuration file on load. Common issues include:
+SkyBox validates the configuration file on load. Common issues include:
 
 - **Missing remotes section**: At least one remote must be configured
 - **Invalid project remote reference**: Project references a non-existent remote
 - **Invalid YAML syntax**: Check for proper indentation and formatting
 - **Invalid sync mode**: Use one of the supported Mutagen sync modes
 
-If the configuration is invalid, DevBox commands will fail with an error message indicating the issue.
+If the configuration is invalid, SkyBox commands will fail with an error message indicating the issue.
 
 ## Migration from Old Format
 
-If you have an older configuration with a single `remote` section (instead of `remotes`), DevBox will automatically migrate it on first use:
+If you have an older configuration with a single `remote` section (instead of `remotes`), SkyBox will automatically migrate it on first use:
 
 **Old format:**
 ```yaml

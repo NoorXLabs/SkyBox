@@ -1,18 +1,18 @@
-# devbox down
+# skybox down
 
 Stop a development container.
 
 ## Usage
 
 ```bash
-devbox down [project] [options]
+skybox down [project] [options]
 ```
 
 ## Arguments
 
 | Argument | Description |
 |----------|-------------|
-| `[project]` | Name of the project to stop. If omitted, DevBox will try to detect the project from the current directory or prompt for selection. |
+| `[project]` | Name of the project to stop. If omitted, SkyBox will try to detect the project from the current directory or prompt for selection. |
 
 ## Options
 
@@ -40,11 +40,11 @@ The `down` command stops a running development container. It performs the follow
 
 ### Sync Safety
 
-Before stopping the container, DevBox waits for all pending file changes to sync to the remote server. This prevents data loss when switching between machines. If the sync flush fails, you are warned but the stop continues.
+Before stopping the container, SkyBox waits for all pending file changes to sync to the remote server. This prevents data loss when switching between machines. If the sync flush fails, you are warned but the stop continues.
 
 ### Archive Encryption
 
-If the project has encryption enabled, after the sync is flushed and the container is stopped, DevBox will:
+If the project has encryption enabled, after the sync is flushed and the container is stopped, SkyBox will:
 
 1. Prompt for your passphrase
 2. Create a tar archive of the project on the remote
@@ -52,11 +52,11 @@ If the project has encryption enabled, after the sync is flushed and the contain
 4. Upload the encrypted archive back to the remote
 5. Delete plaintext files from the remote
 
-If encryption fails, a warning is shown but the shutdown continues. Project files remain unencrypted on the remote in this case. See [`devbox encrypt`](/reference/encryption) for more details.
+If encryption fails, a warning is shown but the shutdown continues. Project files remain unencrypted on the remote in this case. See [`skybox encrypt`](/reference/encryption) for more details.
 
 ### Cleanup Options
 
-When using `--cleanup`, DevBox will:
+When using `--cleanup`, SkyBox will:
 
 - Remove the Docker container
 - Remove associated volumes
@@ -66,48 +66,48 @@ The first prompt asks if you want to remove local files. If you say yes, a secon
 
 ### Sync Pausing
 
-If you are not cleaning up, DevBox offers to pause the background sync session to save system resources when you are not actively working on the project. Sync is automatically resumed the next time you run `devbox up`.
+If you are not cleaning up, SkyBox offers to pause the background sync session to save system resources when you are not actively working on the project. Sync is automatically resumed the next time you run `skybox up`.
 
 ### Batch Mode
 
-With `-A, --all`, DevBox stops every local project sequentially and reports a summary of how many succeeded and how many failed.
+With `-A, --all`, SkyBox stops every local project sequentially and reports a summary of how many succeeded and how many failed.
 
 ## Examples
 
 ```bash
 # Stop a specific project
-devbox down my-project
+skybox down my-project
 
 # Stop and clean up container
-devbox down my-project --cleanup
+skybox down my-project --cleanup
 
 # Force stop (ignore errors)
-devbox down my-project --force
+skybox down my-project --force
 
 # Stop from within project directory
-cd ~/.devbox/Projects/my-project
-devbox down
+cd ~/.skybox/Projects/my-project
+skybox down
 
 # Non-interactive stop (for scripts)
-devbox down my-project --no-prompt
+skybox down my-project --no-prompt
 
 # Stop all local projects
-devbox down --all
+skybox down --all
 ```
 
 ### Workflow Example
 
 ```bash
 # Done working for the day
-devbox down my-project
+skybox down my-project
 
 # Switching to different machine - clean up local resources
-devbox down my-project --cleanup
+skybox down my-project --cleanup
 # Keep remote copy, remove local files when prompted
 
 # Later, on another machine
-devbox clone my-project
-devbox up my-project
+skybox clone my-project
+skybox up my-project
 ```
 
 ## Exit Codes
@@ -119,6 +119,6 @@ devbox up my-project
 
 ## See Also
 
-- [devbox up](/reference/up) - Start the container
-- [devbox status](/reference/status) - Check container status
-- [devbox rm](/reference/rm) - Remove project locally
+- [skybox up](/reference/up) - Start the container
+- [skybox status](/reference/status) - Check container status
+- [skybox rm](/reference/rm) - Remove project locally

@@ -6,7 +6,7 @@ import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
 import { DEFAULT_IGNORE } from "@lib/constants.ts";
 import { downloadMutagen, isMutagenInstalled } from "@lib/download.ts";
 import { getErrorMessage } from "@lib/errors.ts";
-import { getBinDir, getDevboxHome, getProjectsDir } from "@lib/paths.ts";
+import { getBinDir, getProjectsDir, getSkyboxHome } from "@lib/paths.ts";
 import { escapeShellArg } from "@lib/shell.ts";
 import {
 	copyKey,
@@ -27,7 +27,7 @@ import {
 	success,
 	warn,
 } from "@lib/ui.ts";
-import type { DevboxConfigV2 } from "@typedefs/index.ts";
+import type { SkyboxConfigV2 } from "@typedefs/index.ts";
 import { execa } from "execa";
 import inquirer from "inquirer";
 
@@ -379,7 +379,7 @@ async function configureEditor(): Promise<string> {
 
 export async function initCommand(): Promise<void> {
 	console.log();
-	console.log("Welcome to devbox setup!");
+	console.log("Welcome to skybox setup!");
 	console.log();
 
 	// Check for existing config
@@ -403,7 +403,7 @@ export async function initCommand(): Promise<void> {
 			{
 				type: "confirm",
 				name: "reconfigure",
-				message: "devbox is already configured. Reconfigure?",
+				message: "skybox is already configured. Reconfigure?",
 				default: false,
 			},
 		]);
@@ -419,7 +419,7 @@ export async function initCommand(): Promise<void> {
 		dryRun("Would download/install Mutagen binary");
 		dryRun("Would configure remote server via SSH");
 		dryRun("Would configure editor preference");
-		dryRun(`Would create directories: ${getDevboxHome()}`);
+		dryRun(`Would create directories: ${getSkyboxHome()}`);
 		dryRun("Would save config.yaml");
 		return;
 	}
@@ -466,18 +466,18 @@ export async function initCommand(): Promise<void> {
 	});
 
 	// Create directories with secure permissions (owner-only access)
-	header("Setting up devbox...");
+	header("Setting up skybox...");
 	try {
 		mkdirSync(getProjectsDir(), { recursive: true, mode: 0o700 });
 		mkdirSync(getBinDir(), { recursive: true, mode: 0o700 });
 	} catch (err) {
-		error(`Failed to create devbox directories: ${getErrorMessage(err)}`);
+		error(`Failed to create skybox directories: ${getErrorMessage(err)}`);
 		process.exit(1);
 	}
-	success(`Created ${getDevboxHome()}`);
+	success(`Created ${getSkyboxHome()}`);
 
 	// Save config
-	const config: DevboxConfigV2 = {
+	const config: SkyboxConfigV2 = {
 		editor,
 		defaults: {
 			sync_mode: "two-way-resolved",
@@ -500,11 +500,11 @@ export async function initCommand(): Promise<void> {
 
 	// Done!
 	console.log();
-	success("devbox is ready!");
+	success("skybox is ready!");
 
 	printNextSteps([
-		`Push a local project: devbox push ./my-project`,
-		`Clone from remote: devbox clone <project-name>`,
-		`Browse remote projects: devbox browse`,
+		`Push a local project: skybox push ./my-project`,
+		`Clone from remote: skybox clone <project-name>`,
+		`Browse remote projects: skybox browse`,
 	]);
 }

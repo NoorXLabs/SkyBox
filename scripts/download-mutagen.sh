@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Download Mutagen binaries for bundling into the compiled DevBox binary.
+# Download Mutagen binaries for bundling into the compiled SkyBox binary.
 # Usage: ./scripts/download-mutagen.sh [version]
 # Downloads tarballs for all supported platforms into vendor/mutagen/
 

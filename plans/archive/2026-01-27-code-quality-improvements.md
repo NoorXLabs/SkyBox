@@ -1,8 +1,8 @@
-# DevBox Code Quality & Production Readiness Implementation Plan
+# SkyBox Code Quality & Production Readiness Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Address all code review findings and complete remaining work to prepare DevBox for production release.
+**Goal:** Address all code review findings and complete remaining work to prepare SkyBox for production release.
 
 **Architecture:** Fix critical security issues first, then eliminate code duplication by extracting shared utilities, improve type safety across the codebase, and complete remaining documentation and testing tasks.
 
@@ -266,7 +266,7 @@ export const DOCKER_LABEL_KEY = "devcontainer.local_folder";
 /**
  * Directory name for lock files on remote server.
  */
-export const LOCKS_DIR_NAME = ".devbox-locks";
+export const LOCKS_DIR_NAME = ".skybox-locks";
 
 /**
  * Config filename.
@@ -490,7 +490,7 @@ EOF
 import { mkdirSync, rmSync, existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import type { DevboxConfigV2, RemoteEntry } from "../../types/index.ts";
+import type { SkyboxConfigV2, RemoteEntry } from "../../types/index.ts";
 
 export interface TestContext {
 	testDir: string;
@@ -498,14 +498,14 @@ export interface TestContext {
 }
 
 /**
- * Creates an isolated test environment with DEVBOX_HOME set.
+ * Creates an isolated test environment with SKYBOX_HOME set.
  */
 export function createTestContext(name: string): TestContext {
-	const testDir = join(tmpdir(), `devbox-${name}-test-${Date.now()}`);
-	const originalEnv = process.env.DEVBOX_HOME;
+	const testDir = join(tmpdir(), `skybox-${name}-test-${Date.now()}`);
+	const originalEnv = process.env.SKYBOX_HOME;
 
 	mkdirSync(testDir, { recursive: true });
-	process.env.DEVBOX_HOME = testDir;
+	process.env.SKYBOX_HOME = testDir;
 
 	return {
 		testDir,
@@ -514,9 +514,9 @@ export function createTestContext(name: string): TestContext {
 				rmSync(testDir, { recursive: true });
 			}
 			if (originalEnv) {
-				process.env.DEVBOX_HOME = originalEnv;
+				process.env.SKYBOX_HOME = originalEnv;
 			} else {
-				delete process.env.DEVBOX_HOME;
+				delete process.env.SKYBOX_HOME;
 			}
 		},
 	};
@@ -526,8 +526,8 @@ export function createTestContext(name: string): TestContext {
  * Creates a test config with sensible defaults.
  */
 export function createTestConfig(
-	overrides: Partial<DevboxConfigV2> = {},
-): DevboxConfigV2 {
+	overrides: Partial<SkyboxConfigV2> = {},
+): SkyboxConfigV2 {
 	return {
 		editor: "cursor",
 		defaults: { sync_mode: "two-way-resolved", ignore: [] },
@@ -557,7 +557,7 @@ export function createTestRemote(
  */
 export function writeTestConfig(
 	testDir: string,
-	config: DevboxConfigV2,
+	config: SkyboxConfigV2,
 ): void {
 	const { stringify } = require("yaml");
 	const configPath = join(testDir, "config.yaml");
@@ -664,7 +664,7 @@ EOF
 
 import { spinner, warning } from "./ui.ts";
 import { getProjectRemote } from "../commands/remote.ts";
-import type { DevboxConfigV2 } from "../types/index.ts";
+import type { SkyboxConfigV2 } from "../types/index.ts";
 
 /**
  * Check lock status with spinner and handle common error case.
@@ -672,7 +672,7 @@ import type { DevboxConfigV2 } from "../types/index.ts";
  */
 export async function checkAndReportLockStatus(
 	project: string,
-	config: DevboxConfigV2,
+	config: SkyboxConfigV2,
 ): Promise<LockStatus | null> {
 	const projectRemote = getProjectRemote(project, config);
 	if (!projectRemote) {
@@ -1099,10 +1099,10 @@ Add/update these fields:
 {
   "description": "Local-first development containers with remote sync",
   "license": "Apache-2.0",
-  "author": "DevBox Team",
-  "homepage": "https://github.com/noorchasib/devbox",
+  "author": "SkyBox Team",
+  "homepage": "https://github.com/noorchasib/skybox",
   "bugs": {
-    "url": "https://github.com/noorchasib/devbox/issues"
+    "url": "https://github.com/noorchasib/skybox/issues"
   },
   "engines": {
     "bun": ">=1.0.0"
@@ -1228,7 +1228,7 @@ export interface LockInfo {
 	user: string;
 	/** ISO timestamp when lock was acquired */
 	timestamp: string;
-	/** Process ID of the devbox process holding the lock */
+	/** Process ID of the skybox process holding the lock */
 	pid: number;
 }
 

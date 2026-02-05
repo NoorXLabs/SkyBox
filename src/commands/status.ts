@@ -372,7 +372,7 @@ function formatOverviewTable(summaries: ProjectSummary[]): void {
 
 export async function statusCommand(project?: string): Promise<void> {
 	if (!configExists()) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -388,7 +388,7 @@ async function showOverview(): Promise<void> {
 	if (!existsSync(projectsDir)) {
 		console.log();
 		console.log(
-			"No projects found. Use 'devbox clone' or 'devbox push' to get started.",
+			"No projects found. Use 'skybox clone' or 'skybox push' to get started.",
 		);
 		return;
 	}
@@ -402,7 +402,7 @@ async function showOverview(): Promise<void> {
 	if (projectDirs.length === 0) {
 		console.log();
 		console.log(
-			"No projects found. Use 'devbox clone' or 'devbox push' to get started.",
+			"No projects found. Use 'skybox clone' or 'skybox push' to get started.",
 		);
 		return;
 	}
@@ -423,7 +423,7 @@ async function showDetailed(projectName: string): Promise<void> {
 
 	if (!existsSync(projectPath)) {
 		error(
-			`Project '${projectName}' not found. Run 'devbox list' to see available projects.`,
+			`Project '${projectName}' not found. Run 'skybox list' to see available projects.`,
 		);
 		process.exit(1);
 	}

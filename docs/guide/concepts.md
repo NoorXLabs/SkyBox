@@ -1,19 +1,19 @@
 # Core Concepts
 
-This page explains the key concepts behind DevBox: how projects, containers, sync, and the remote server work together.
+This page explains the key concepts behind SkyBox: how projects, containers, sync, and the remote server work together.
 
 ## Projects
 
-A **project** in DevBox is a directory containing your source code, managed as a unit. Projects are:
+A **project** in SkyBox is a directory containing your source code, managed as a unit. Projects are:
 
-- Stored locally in `~/.devbox/Projects/<project-name>/`
+- Stored locally in `~/.skybox/Projects/<project-name>/`
 - Synced to your remote server at `<base_path>/<project-name>/`
-- Registered in the DevBox configuration
+- Registered in the SkyBox configuration
 
 ### Project Structure
 
 ```
-~/.devbox/Projects/my-app/
+~/.skybox/Projects/my-app/
 ├── .devcontainer/
 │   └── devcontainer.json    # Container configuration
 ├── .git/                     # Git repository
@@ -40,7 +40,7 @@ push/clone          up              down              rm
 
 ## Containers
 
-DevBox uses **devcontainers** - Docker containers configured for development. They provide:
+SkyBox uses **devcontainers** - Docker containers configured for development. They provide:
 
 - Isolated development environment
 - Pre-installed tools and dependencies
@@ -68,7 +68,7 @@ Each project can have a `.devcontainer/devcontainer.json` file:
 }
 ```
 
-If no devcontainer configuration exists, DevBox offers templates during `devbox up`.
+If no devcontainer configuration exists, SkyBox offers templates during `skybox up`.
 
 ### Container States
 
@@ -92,13 +92,13 @@ You can:
 
 ## Sync
 
-DevBox uses **Mutagen** for bidirectional file synchronization between your local machine and remote server.
+SkyBox uses **Mutagen** for bidirectional file synchronization between your local machine and remote server.
 
 ### How Sync Works
 
 ```
 Local Machine                    Remote Server
-~/.devbox/Projects/my-app/      ~/code/my-app/
+~/.skybox/Projects/my-app/      ~/code/my-app/
 ├── src/index.js         ◄────► ├── src/index.js
 ├── package.json         ◄────► ├── package.json
 └── ...                         └── ...
@@ -110,7 +110,7 @@ Local Machine                    Remote Server
 
 ### Sync Modes
 
-DevBox uses `two-way-resolved` sync mode:
+SkyBox uses `two-way-resolved` sync mode:
 
 - Both local and remote can be modified
 - If both sides change the same file, local wins
@@ -118,7 +118,7 @@ DevBox uses `two-way-resolved` sync mode:
 
 ### Ignored Files
 
-By default, DevBox excludes certain files from sync:
+By default, SkyBox excludes certain files from sync:
 
 ```yaml
 # Default ignore patterns
@@ -130,7 +130,7 @@ By default, DevBox excludes certain files from sync:
 - .venv
 - __pycache__
 - *.pyc
-- .devbox-local
+- .skybox-local
 - dist
 - build
 - .next
@@ -154,16 +154,16 @@ These patterns prevent syncing:
 
 ### Managing Sync
 
-Sync is managed automatically by DevBox:
+Sync is managed automatically by SkyBox:
 
 - **Created** when you `push` or `clone` a project
-- **Resumed** when you run `devbox up`
-- **Paused** when you run `devbox down`
-- **Terminated** when you run `devbox rm`
+- **Resumed** when you run `skybox up`
+- **Paused** when you run `skybox down`
+- **Terminated** when you run `skybox rm`
 
 ### Selective Sync
 
-For large monorepos or projects where you only need a subset of directories, DevBox supports **selective sync**. Instead of syncing the entire project, you specify which subdirectories to sync, and DevBox creates a separate Mutagen session for each path.
+For large monorepos or projects where you only need a subset of directories, SkyBox supports **selective sync**. Instead of syncing the entire project, you specify which subdirectories to sync, and SkyBox creates a separate Mutagen session for each path.
 
 This is useful when:
 - Your repository is too large to sync entirely
@@ -173,14 +173,14 @@ This is useful when:
 Configure selective sync per project:
 
 ```bash
-devbox config sync-paths my-app packages/frontend,packages/shared,configs
+skybox config sync-paths my-app packages/frontend,packages/shared,configs
 ```
 
-Each listed path gets its own independent Mutagen session (e.g., `devbox-my-app-packages-frontend`), syncing only that subdirectory between local and remote. All sessions use the same sync mode and ignore patterns as full sync.
+Each listed path gets its own independent Mutagen session (e.g., `skybox-my-app-packages-frontend`), syncing only that subdirectory between local and remote. All sessions use the same sync mode and ignore patterns as full sync.
 
 ## Templates
 
-DevBox uses a **unified template selector** whenever a devcontainer configuration is needed — during `devbox up`, `devbox new`, or `devbox config devcontainer reset`. The selector shows three categories:
+SkyBox uses a **unified template selector** whenever a devcontainer configuration is needed — during `skybox up`, `skybox new`, or `skybox config devcontainer reset`. The selector shows three categories:
 
 - **Built-in templates** — pre-configured environments for common languages
 - **Your custom templates** — local devcontainer.json files you create and manage
@@ -206,10 +206,10 @@ All templates include these common features:
 
 ### Custom Local Templates
 
-You can store reusable devcontainer configurations as `.json` files in `~/.devbox/templates/`. The filename (minus `.json`) becomes the display name in the template selector.
+You can store reusable devcontainer configurations as `.json` files in `~/.skybox/templates/`. The filename (minus `.json`) becomes the display name in the template selector.
 
 ```
-~/.devbox/templates/
+~/.skybox/templates/
 ├── bun.json          # Appears as "bun"
 ├── rust.json         # Appears as "rust"
 └── company-stack.json # Appears as "company-stack"
@@ -221,7 +221,7 @@ For full details on creating, validating, and managing custom templates, see [Cu
 
 ## Encryption
 
-DevBox supports **per-project encryption at rest** using **AES-256-GCM** authenticated encryption with **Argon2id** key derivation (64 MiB memory, 3 iterations, parallelism 4).
+SkyBox supports **per-project encryption at rest** using **AES-256-GCM** authenticated encryption with **Argon2id** key derivation (64 MiB memory, 3 iterations, parallelism 4).
 
 ### How It Works
 
@@ -232,7 +232,7 @@ The encrypted payload uses an initialization vector (16 bytes), authentication t
 ### Enabling Encryption
 
 ```bash
-devbox encrypt enable <project>
+skybox encrypt enable <project>
 ```
 
 You will be prompted to set a passphrase. This passphrase is used to derive the encryption key via Argon2id.
@@ -247,11 +247,11 @@ Encryption protects your project files at rest on the remote server. It does not
 
 ## Remote Server
 
-The **remote server** stores your project backups and enables multi-machine workflows. DevBox supports **multiple remotes**, allowing you to organize projects across different servers (e.g., work server, personal server).
+The **remote server** stores your project backups and enables multi-machine workflows. SkyBox supports **multiple remotes**, allowing you to organize projects across different servers (e.g., work server, personal server).
 
 ### Server Setup
 
-During `devbox init`, you configure your first remote. You can add more remotes later with `devbox remote add`.
+During `skybox init`, you configure your first remote. You can add more remotes later with `skybox remote add`.
 
 For each remote, you specify:
 
@@ -266,7 +266,7 @@ For each remote, you specify:
 ```
 ~/code/                          # Base path
 ├── my-app/                      # Project directories
-│   ├── .devbox/
+│   ├── .skybox/
 │   │   └── session.lock         # Session file (synced via Mutagen)
 │   ├── src/
 │   └── ...
@@ -276,11 +276,11 @@ For each remote, you specify:
 
 ### Session System
 
-DevBox uses a **session system** to prevent conflicts when working from multiple machines. Sessions are local files stored inside each project that sync to other machines via Mutagen.
+SkyBox uses a **session system** to prevent conflicts when working from multiple machines. Sessions are local files stored inside each project that sync to other machines via Mutagen.
 
-When you run `devbox up`:
+When you run `skybox up`:
 
-1. DevBox checks for an existing session file in the project's `.devbox/` directory
+1. SkyBox checks for an existing session file in the project's `.skybox/` directory
 2. If no session exists, creates one with your machine info
 3. If a session exists from the same machine, updates the timestamp
 4. If a session exists from a different machine, warns and asks to continue
@@ -307,7 +307,7 @@ Session file format (stored as JSON):
 
 ### How Session Sync Works
 
-Session files live inside the project directory at `<project>/.devbox/session.lock`. Because Mutagen syncs project files bidirectionally, the session file is automatically visible on all machines syncing the same project. This means no SSH round-trip is needed to check session status.
+Session files live inside the project directory at `<project>/.skybox/session.lock`. Because Mutagen syncs project files bidirectionally, the session file is automatically visible on all machines syncing the same project. This means no SSH round-trip is needed to check session status.
 
 ### Session Conflicts
 
@@ -325,15 +325,15 @@ Continuing is safe when:
 
 ### Session Expiry
 
-Sessions automatically expire after 24 hours. If a machine crashes without running `devbox down`, the session becomes stale and is treated as inactive. No manual intervention is needed.
+Sessions automatically expire after 24 hours. If a machine crashes without running `skybox down`, the session becomes stale and is treated as inactive. No manual intervention is needed.
 
 ### Project Ownership
 
-DevBox tracks **project ownership** on the remote server to prevent accidental overwrites and deletions by other users. When you push a project, a `.devbox-owner` file is created on the remote recording your username and machine.
+SkyBox tracks **project ownership** on the remote server to prevent accidental overwrites and deletions by other users. When you push a project, a `.skybox-owner` file is created on the remote recording your username and machine.
 
 Ownership is checked when:
 - **Pushing** to an existing remote project — only the owner can overwrite
-- **Deleting** a remote project with `devbox rm --remote` — only the owner can delete
+- **Deleting** a remote project with `skybox rm --remote` — only the owner can delete
 
 If you are not the owner, the operation is blocked with a message identifying the current owner. Projects without an ownership file (created before this feature) are accessible to anyone, and ownership is set on the next push.
 
@@ -346,26 +346,26 @@ Ownership uses your local OS username (`whoami`), not the SSH remote user. This 
 You can bypass the session check entirely when opening a shell:
 
 ```bash
-devbox shell --force my-app
+skybox shell --force my-app
 ```
 
 This skips session verification and opens the container shell directly.
 
 ## Non-interactive Mode
 
-For scripting and CI pipelines, DevBox supports a `--no-prompt` flag on commands that would normally prompt for user input:
+For scripting and CI pipelines, SkyBox supports a `--no-prompt` flag on commands that would normally prompt for user input:
 
 ```bash
-devbox up --no-prompt my-app
-devbox down --no-prompt my-app
-devbox open --no-prompt my-app
+skybox up --no-prompt my-app
+skybox down --no-prompt my-app
+skybox open --no-prompt my-app
 ```
 
-When `--no-prompt` is set, DevBox will **error instead of prompting**. For example, if a session is active on another machine, the command will exit with an error rather than asking whether to continue. This makes DevBox safe to use in automated workflows where no human is available to respond to prompts.
+When `--no-prompt` is set, SkyBox will **error instead of prompting**. For example, if a session is active on another machine, the command will exit with an error rather than asking whether to continue. This makes SkyBox safe to use in automated workflows where no human is available to respond to prompts.
 
 ## Configuration
 
-DevBox stores its configuration in `~/.devbox/config.yaml`:
+SkyBox stores its configuration in `~/.skybox/config.yaml`:
 
 ```yaml
 editor: cursor             # Default editor
@@ -401,10 +401,10 @@ projects:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DEVBOX_HOME` | `~/.devbox` | Override the default DevBox home directory |
-| `DEVBOX_AUDIT` | `0` | Set to `1` to enable audit logging to `~/.devbox/audit.log` |
-| `DEVBOX_SKIP_GPG` | `0` | Set to `1` to skip GPG signature verification for Mutagen downloads |
-| `DEVBOX_HOOK_WARNINGS` | `1` | Set to `0` to suppress one-time hook security warnings |
+| `SKYBOX_HOME` | `~/.skybox` | Override the default SkyBox home directory |
+| `SKYBOX_AUDIT` | `0` | Set to `1` to enable audit logging to `~/.skybox/audit.log` |
+| `SKYBOX_SKIP_GPG` | `0` | Set to `1` to skip GPG signature verification for Mutagen downloads |
+| `SKYBOX_HOOK_WARNINGS` | `1` | Set to `0` to suppress one-time hook security warnings |
 
 ## Architecture Summary
 
@@ -413,7 +413,7 @@ projects:
 │                        Your Machine                          │
 │                                                              │
 │  ┌──────────────────────────────────────────────────────┐   │
-│  │  ~/.devbox/                                           │   │
+│  │  ~/.skybox/                                           │   │
 │  │  ├── config.yaml        Configuration                │   │
 │  │  ├── bin/mutagen        Sync tool                    │   │
 │  │  └── projects/                                        │   │
@@ -435,7 +435,7 @@ projects:
 │                                                              │
 │  ~/code/                                                     │
 │  └── my-app/               Synced project files             │
-│      └── .devbox/                                            │
+│      └── .skybox/                                            │
 │          └── session.lock  Session file                      │
 │                                                              │
 └─────────────────────────────────────────────────────────────┘

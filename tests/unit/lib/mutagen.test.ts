@@ -4,11 +4,11 @@ import { sessionName } from "@lib/mutagen.ts";
 
 describe("mutagen", () => {
 	test("sessionName formats correctly", () => {
-		expect(sessionName("myapp")).toBe("devbox-myapp");
-		expect(sessionName("my-project")).toBe("devbox-my-project");
+		expect(sessionName("myapp")).toBe("skybox-myapp");
+		expect(sessionName("my-project")).toBe("skybox-my-project");
 	});
 
 	test("sessionName handles special characters", () => {
-		expect(sessionName("app_v2")).toBe("devbox-app_v2");
+		expect(sessionName("app_v2")).toBe("skybox-app_v2");
 	});
 });

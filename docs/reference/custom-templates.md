@@ -4,17 +4,17 @@ Create and manage reusable devcontainer templates stored locally on your machine
 
 ## Overview
 
-Custom templates are `.json` files stored in `~/.devbox/templates/`. Each file is a complete `devcontainer.json` that can be selected whenever DevBox needs a devcontainer configuration — during `devbox up`, `devbox new`, or `devbox config devcontainer reset`.
+Custom templates are `.json` files stored in `~/.skybox/templates/`. Each file is a complete `devcontainer.json` that can be selected whenever SkyBox needs a devcontainer configuration — during `skybox up`, `skybox new`, or `skybox config devcontainer reset`.
 
 ## Template Storage
 
 | Property | Value |
 |----------|-------|
-| Location | `~/.devbox/templates/<name>.json` |
+| Location | `~/.skybox/templates/<name>.json` |
 | Format | Standard devcontainer.json |
 | Display name | Filename without `.json` extension |
 
-**Example:** `~/.devbox/templates/bun.json` appears as "bun" in the template selector.
+**Example:** `~/.skybox/templates/bun.json` appears as "bun" in the template selector.
 
 The templates directory is created automatically the first time you create a template through the CLI.
 
@@ -30,7 +30,7 @@ Every custom template must contain these fields:
 The `/workspaces/` prefix is required by the devcontainer spec — it's the standard location where projects are mounted inside the container.
 
 ::: warning
-When a template is applied to a project, DevBox overrides `workspaceFolder` and `workspaceMount` with project-specific values (e.g., `/workspaces/my-app`). These fields are required for validation but their exact values in the template file are not used directly.
+When a template is applied to a project, SkyBox overrides `workspaceFolder` and `workspaceMount` with project-specific values (e.g., `/workspaces/my-app`). These fields are required for validation but their exact values in the template file are not used directly.
 :::
 
 ## Starter Templates
@@ -52,7 +52,7 @@ This gives you a Debian container with basic dev tools. No SSH passthrough, no D
 
 ### Recommended Template
 
-This template includes the features that DevBox's built-in templates use. These are recommended for a smooth development experience:
+This template includes the features that SkyBox's built-in templates use. These are recommended for a smooth development experience:
 
 ```json
 {
@@ -185,12 +185,12 @@ All commands that need a devcontainer configuration use the same unified selecto
 
 ### Through the CLI
 
-Select "Create new template" from the template selector. DevBox walks you through:
+Select "Create new template" from the template selector. SkyBox walks you through:
 
 1. **Name** — Enter a name (letters, numbers, hyphens, underscores only; no collisions with existing templates)
-2. **Scaffold** — DevBox creates a template file with required fields pre-filled
+2. **Scaffold** — SkyBox creates a template file with required fields pre-filled
 3. **Edit** — Choose how to edit the template:
-   - **Open in editor** — launches your configured DevBox editor
+   - **Open in editor** — launches your configured SkyBox editor
    - **Edit in terminal** — opens with `$EDITOR` (falls back to `vi`)
    - **Skip** — prints the file path, returns to the selector
 
@@ -198,13 +198,13 @@ After creating and optionally editing, you return to the template selector where
 
 ### Manually
 
-Create a `.json` file in `~/.devbox/templates/`. Copy one of the starter templates above and save it:
+Create a `.json` file in `~/.skybox/templates/`. Copy one of the starter templates above and save it:
 
 ```bash
-mkdir -p ~/.devbox/templates
+mkdir -p ~/.skybox/templates
 # Then create your template file, e.g.:
-# ~/.devbox/templates/rust.json
-# ~/.devbox/templates/bun.json
+# ~/.skybox/templates/rust.json
+# ~/.skybox/templates/bun.json
 ```
 
 The template will appear in the selector the next time any command needs a devcontainer configuration.
@@ -213,9 +213,9 @@ The template will appear in the selector the next time any command needs a devco
 
 | Command | When templates are shown |
 |---------|------------------------|
-| `devbox up` | When a project has no `devcontainer.json` |
-| `devbox new` | When creating a new project (built-in/user templates create an empty project with the selected config; git URLs clone the repo) |
-| `devbox config devcontainer reset` | When resetting a project's devcontainer config |
+| `skybox up` | When a project has no `devcontainer.json` |
+| `skybox new` | When creating a new project (built-in/user templates create an empty project with the selected config; git URLs clone the repo) |
+| `skybox config devcontainer reset` | When resetting a project's devcontainer config |
 
 ## Field Reference
 
@@ -246,7 +246,7 @@ For the full devcontainer.json specification, see the [devcontainers spec](https
 
 ## See Also
 
-- [devbox up](/reference/up) - Start a development container
-- [devbox new](/reference/new) - Create a new project
-- [devbox config](/reference/config) - Configure devcontainer settings
+- [skybox up](/reference/up) - Start a development container
+- [skybox new](/reference/new) - Create a new project
+- [skybox config](/reference/config) - Configure devcontainer settings
 - [Core Concepts — Templates](/guide/concepts#templates) - Template overview

@@ -12,7 +12,7 @@
 
 **File:** `src/lib/lock.ts:165-179`
 
-**Problem:** `releaseLock()` does a blind `rm -f` on the lock file without verifying the caller owns the lock. If Alice holds a lock, Bob takes it over, then Alice runs `devbox down`, Alice deletes Bob's lock.
+**Problem:** `releaseLock()` does a blind `rm -f` on the lock file without verifying the caller owns the lock. If Alice holds a lock, Bob takes it over, then Alice runs `skybox down`, Alice deletes Bob's lock.
 
 **Impact:** Bob works without a lock unknowingly. A third developer could start working on the same project, causing sync conflicts.
 
@@ -43,7 +43,7 @@ export async function releaseLock(
 }
 ```
 
-**Note:** There's a small TOCTOU window between the check and the delete, but it's acceptable — the worst case is a brief moment where no lock exists, which is the same as normal `devbox down` behavior.
+**Note:** There's a small TOCTOU window between the check and the delete, but it's acceptable — the worst case is a brief moment where no lock exists, which is the same as normal `skybox down` behavior.
 
 ### 1.2 Lock Takeover Race Condition
 
@@ -88,12 +88,12 @@ Then in `up.ts`, replace the release-then-acquire with a single `forceLock()` ca
 
 **Current (wrong):**
 ```bash
-devbox config encrypt myproject
+skybox config encrypt myproject
 ```
 
 **Correct:**
 ```bash
-devbox encrypt enable myproject
+skybox encrypt enable myproject
 ```
 
 Also update the warning text to match actual behavior.
@@ -104,7 +104,7 @@ Also update the warning text to match actual behavior.
 
 **Current (wrong):**
 ```bash
-devbox push ./backend-api --remote backend-server
+skybox push ./backend-api --remote backend-server
 ```
 
 **Reality:** `push` uses whatever remote the project is configured with. There is no `--remote` flag.
@@ -113,38 +113,38 @@ devbox push ./backend-api --remote backend-server
 - **Option A:** Remove the `--remote` flag from docs and explain projects inherit their remote from config.
 - **Option B:** Implement `--remote` flag on push (more work, but matches user expectation).
 
-**Recommendation:** Option A for now. The current workflow is: configure the remote first via `devbox remote add`, then push. Document that instead.
+**Recommendation:** Option A for now. The current workflow is: configure the remote first via `skybox remote add`, then push. Document that instead.
 
 ### 2.3 Lock Takeover Notification Claim
 
 **File:** `docs/guide/workflows/team-sharing.md:138`
 
 **Current (wrong):**
-> Alice's next `devbox up` or `devbox down` will fail gracefully with a notification that her lock was taken.
+> Alice's next `skybox up` or `skybox down` will fail gracefully with a notification that her lock was taken.
 
-**Reality:** `devbox down` blindly deletes the lock (Bug 1.1). `devbox up` would try to acquire and find someone else's lock, but the message says "locked by X" — it doesn't say "your lock was taken over."
+**Reality:** `skybox down` blindly deletes the lock (Bug 1.1). `skybox up` would try to acquire and find someone else's lock, but the message says "locked by X" — it doesn't say "your lock was taken over."
 
 **Fix:** After fixing Bug 1.1, update docs to accurately describe what happens:
-- `devbox down` skips lock release and warns "Lock owned by another machine — skipping release"
-- `devbox up` shows "Project locked by X" as it already does
+- `skybox down` skips lock release and warns "Lock owned by another machine — skipping release"
+- `skybox up` shows "Project locked by X" as it already does
 
 ---
 
 ## 3. Workflow Gaps
 
-### 3.1 `devbox browse` Doesn't Show Lock Status
+### 3.1 `skybox browse` Doesn't Show Lock Status
 
-**Current behavior:** `devbox browse` lists remote projects with branch info only.
+**Current behavior:** `skybox browse` lists remote projects with branch info only.
 
-**Desired behavior:** Show a LOCK column similar to `devbox status` overview table.
+**Desired behavior:** Show a LOCK column similar to `skybox status` overview table.
 
-**Implementation:** In the browse command, after listing projects, check `.devbox-locks/<project>.lock` for each project. Display lock holder or "unlocked".
+**Implementation:** In the browse command, after listing projects, check `.skybox-locks/<project>.lock` for each project. Display lock holder or "unlocked".
 
 **Complexity:** Low — reuse `getLockStatus()` from `lock.ts`.
 
 ### 3.2 No Stale Lock Detection
 
-**Problem:** If a machine crashes without running `devbox down`, the lock persists forever. The only fix is manual takeover.
+**Problem:** If a machine crashes without running `skybox down`, the lock persists forever. The only fix is manual takeover.
 
 **Options:**
 - **Lock TTL:** Add an `expires` field to lock info. Treat expired locks as unlocked. Default TTL: 24 hours.
@@ -156,7 +156,7 @@ devbox push ./backend-api --remote backend-server
 
 **Problem:** Can't see all lock statuses without cloning every project. Teams want a quick "who's working on what" view.
 
-**Fix:** Add `devbox browse --locks` or `devbox locks` command that checks all `.devbox-locks/*.lock` files on the remote in a single SSH call.
+**Fix:** Add `skybox browse --locks` or `skybox locks` command that checks all `.skybox-locks/*.lock` files on the remote in a single SSH call.
 
 ---
 
@@ -180,5 +180,5 @@ After implementing fixes, update these docs pages:
 | P0 | Fix docs: encrypt command, push --remote, takeover claim | Docs fix | Small |
 | P1 | Add `forceLock()` for atomic takeover | Bug fix | Small |
 | P2 | Add lock TTL / expiry | Feature | Medium |
-| P2 | Add lock status to `devbox browse` | Feature | Small |
-| P3 | Add `devbox locks` / `devbox browse --locks` | Feature | Medium |
+| P2 | Add lock status to `skybox browse` | Feature | Small |
+| P3 | Add `skybox locks` / `skybox browse --locks` | Feature | Medium |

@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Add `--all` flag to `devbox up` and `devbox down` to start/stop all local projects in one command.
+**Goal:** Add `--all` flag to `skybox up` and `skybox down` to start/stop all local projects in one command.
 
 **Architecture:** Add `--all` flag to both `up` and `down` commands. When set, iterate over all local projects from `getLocalProjects()` and invoke the existing command logic for each. Show a summary of successes/failures at the end.
 

@@ -1,4 +1,4 @@
-# DevBox - Implementation Tracker
+# SkyBox - Implementation Tracker
 
 > **Version:** 0.7.7
 >
@@ -23,10 +23,10 @@
 
 - [ ] ### Create Template Repositories
 
-Built-in templates (Node.js, Bun, Python, Go) reference non-existent GitHub repos at `devbox-templates/*-starter`. Either create these repos or replace with working alternatives (e.g., official devcontainer templates).
+Built-in templates (Node.js, Bun, Python, Go) reference non-existent GitHub repos at `skybox-templates/*-starter`. Either create these repos or replace with working alternatives (e.g., official devcontainer templates).
 
 - **Files:** `src/lib/projectTemplates.ts` (placeholder URLs)
-- **Notes:** Could use official `devcontainers/templates` or create minimal starter repos under a DevBox GitHub org
+- **Notes:** Could use official `devcontainers/templates` or create minimal starter repos under a SkyBox GitHub org
 
 ---
 
@@ -56,7 +56,7 @@ Named sync configurations (minimal, full, custom) for different workflows.
 
 - [ ] ### Project Aliases
 
-Short aliases for frequently used projects (e.g., `devbox up web` instead of `devbox up my-company-web-frontend`).
+Short aliases for frequently used projects (e.g., `skybox up web` instead of `skybox up my-company-web-frontend`).
 
 - **Files:** `src/types/index.ts` (add `aliases` to config), `src/lib/project.ts` (resolve aliases)
 - **Notes:** Stored in config.yaml under `aliases` section
@@ -121,7 +121,7 @@ bash/zsh/fish completion scripts for all commands and options.
 
 - [ ] ### Watch Mode
 
-`devbox status --watch` for real-time status updates.
+`skybox status --watch` for real-time status updates.
 
 - **Files:** `src/commands/status.ts`
 - **Notes:** Poll Docker and Mutagen status on interval; clear and redraw

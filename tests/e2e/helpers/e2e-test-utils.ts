@@ -46,7 +46,7 @@ export interface E2ETestContext {
 	testRemote: RemoteEntry;
 	/** Generated project name: test-{name}-{runId} */
 	projectName: string;
-	/** Remote test directory path: ~/devbox-e2e-tests/run-{runId} */
+	/** Remote test directory path: ~/skybox-e2e-tests/run-{runId} */
 	remotePath: string;
 	/** Local temporary directory for test files */
 	testDir: string;
@@ -84,7 +84,7 @@ function validateTestName(name: string): void {
 
 /**
  * Creates an E2E test context with unique identifiers and cleanup utilities.
- * Sets DEVBOX_HOME to the test directory for proper config isolation.
+ * Sets SKYBOX_HOME to the test directory for proper config isolation.
  *
  * @param name - Test name used to generate project name (alphanumeric and hyphens only)
  * @returns E2ETestContext with setup and cleanup methods
@@ -96,11 +96,11 @@ export function createE2ETestContext(name: string): E2ETestContext {
 	const runId = generateRunId();
 	const testRemote = getTestRemoteConfig();
 	const projectName = `test-${name}-${runId}`;
-	const remotePath = `~/devbox-e2e-tests/run-${runId}`;
-	const testDir = join(tmpdir(), `devbox-e2e-${runId}`);
+	const remotePath = `~/skybox-e2e-tests/run-${runId}`;
+	const testDir = join(tmpdir(), `skybox-e2e-${runId}`);
 
-	// Store original DEVBOX_HOME for restoration
-	const originalDevboxHome = process.env.DEVBOX_HOME;
+	// Store original SKYBOX_HOME for restoration
+	const originalSkyboxHome = process.env.SKYBOX_HOME;
 
 	return {
 		runId,
@@ -113,8 +113,8 @@ export function createE2ETestContext(name: string): E2ETestContext {
 			// Create local test directory
 			mkdirSync(testDir, { recursive: true });
 
-			// Set DEVBOX_HOME for test isolation
-			process.env.DEVBOX_HOME = testDir;
+			// Set SKYBOX_HOME for test isolation
+			process.env.SKYBOX_HOME = testDir;
 
 			// Create remote test directory
 			const host = testRemote.user
@@ -152,11 +152,11 @@ export function createE2ETestContext(name: string): E2ETestContext {
 				// Local cleanup failure — continue
 			}
 
-			// Restore original DEVBOX_HOME
-			if (originalDevboxHome) {
-				process.env.DEVBOX_HOME = originalDevboxHome;
+			// Restore original SKYBOX_HOME
+			if (originalSkyboxHome) {
+				process.env.SKYBOX_HOME = originalSkyboxHome;
 			} else {
-				delete process.env.DEVBOX_HOME;
+				delete process.env.SKYBOX_HOME;
 			}
 		},
 	};
@@ -206,7 +206,7 @@ export async function cleanupRemoteTestDir(
 	runId: string,
 	remote: RemoteEntry,
 ): Promise<void> {
-	const remotePath = `~/devbox-e2e-tests/run-${runId}`;
+	const remotePath = `~/skybox-e2e-tests/run-${runId}`;
 	const host = remote.user ? `${remote.user}@${remote.host}` : remote.host;
 
 	await runRemoteCommand(
@@ -218,7 +218,7 @@ export async function cleanupRemoteTestDir(
 
 /**
  * Finds and deletes test-* locks on the remote server.
- * Locks matching the pattern test-* in ~/.devbox-locks/ are removed.
+ * Locks matching the pattern test-* in ~/.skybox-locks/ are removed.
  *
  * @param remote - Remote server configuration
  */
@@ -228,7 +228,7 @@ export async function cleanupStaleLocks(remote: RemoteEntry): Promise<void> {
 	// Find and delete test-* locks
 	await runRemoteCommand(
 		host,
-		"rm -f ~/.devbox-locks/test-*.lock 2>/dev/null || true",
+		"rm -f ~/.skybox-locks/test-*.lock 2>/dev/null || true",
 		remote.key,
 	);
 }

@@ -1,6 +1,6 @@
 # Command Reference
 
-DevBox provides a set of commands for managing your local-first development environments with remote sync.
+SkyBox provides a set of commands for managing your local-first development environments with remote sync.
 
 ## Commands Overview
 
@@ -24,7 +24,7 @@ All commands support these global options:
 
 ```bash
 -h, --help     Show help for a command
--v, --version  Show DevBox version
+-v, --version  Show SkyBox version
 --dry-run      Preview commands without executing them
 ```
 
@@ -34,120 +34,120 @@ All commands support these global options:
 
 ```bash
 # Initial setup
-devbox init
+skybox init
 
 # Diagnose common issues
-devbox doctor
+skybox doctor
 
 # View configuration
-devbox config
+skybox config
 
 # Test remote connections
-devbox config --validate
+skybox config --validate
 
 # Change default editor
-devbox editor
+skybox editor
 
 # Or via config
-devbox config set editor vim
+skybox config set editor vim
 
 # Enable project encryption
-devbox encrypt enable my-app
+skybox encrypt enable my-app
 
 # Disable project encryption
-devbox encrypt disable my-app
+skybox encrypt disable my-app
 
 # Set up shell integration (auto-start containers on cd)
-eval "$(devbox hook bash)"  # Add to ~/.bashrc
-eval "$(devbox hook zsh)"   # Or add to ~/.zshrc
+eval "$(skybox hook bash)"  # Add to ~/.bashrc
+eval "$(skybox hook zsh)"   # Or add to ~/.zshrc
 ```
 
 ### Managing Remote Servers
 
 ```bash
 # Add a new remote
-devbox remote add myserver user@host:~/code
+skybox remote add myserver user@host:~/code
 
 # List configured remotes
-devbox remote list
+skybox remote list
 
 # Remove a remote
-devbox remote remove myserver
+skybox remote remove myserver
 
 # Rename a remote
-devbox remote rename myserver production
+skybox remote rename myserver production
 ```
 
 ### Working with Projects
 
 ```bash
 # Start working on a project
-devbox up my-project
+skybox up my-project
 
 # Stop a project
-devbox down my-project
+skybox down my-project
 
 # Open editor/shell for running container
-devbox open my-project
+skybox open my-project
 
 # Access shell inside container
-devbox shell my-project
+skybox shell my-project
 
 # Run a command in container
-devbox shell my-project -c "npm test"
+skybox shell my-project -c "npm test"
 
 # Check project status
-devbox status my-project
+skybox status my-project
 ```
 
 ### Syncing with Remote
 
 ```bash
 # See what's on the remote server
-devbox browse
+skybox browse
 
 # Clone a project from remote
-devbox clone my-project
+skybox clone my-project
 
 # Push a local project to remote
-devbox push ./my-project
+skybox push ./my-project
 
 # Create a new project on remote
-devbox new
+skybox new
 ```
 
 ### Diagnostics & Maintenance
 
 ```bash
 # Show container logs
-devbox logs my-project -f
+skybox logs my-project -f
 
 # Show sync logs
-devbox logs my-project --sync
+skybox logs my-project --sync
 
 # Diagnose common issues
-devbox doctor
+skybox doctor
 
 # Update Mutagen binary
-devbox update
+skybox update
 ```
 
 ### Batch Operations
 
 ```bash
 # Start all projects
-devbox up --all
+skybox up --all
 
 # Stop all projects
-devbox down --all
+skybox down --all
 
 # Remove multiple projects (interactive multi-select)
-devbox rm
+skybox rm
 ```
 
 ### Cleanup
 
 ```bash
 # Remove a project locally (remote copy preserved)
-devbox rm my-project
+skybox rm my-project
 ```

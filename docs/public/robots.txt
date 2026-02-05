@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://devbox.noorxlabs.com/sitemap.xml
+Sitemap: https://skybox.noorxlabs.com/sitemap.xml

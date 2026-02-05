@@ -1,31 +1,30 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
-  <!--
-    Devbox Logo - Inverted Version
+  <!-- 
+    Skybox Logo - Matched Weight Version
     Isometric cube with terminal icon
-    Grey background with white lines
     Stroke weight: 22px (matching original)
   -->
-
+  
   <defs>
     <style>
-      .stroke {
-        fill: none;
-        stroke: #ffffff;
-        stroke-width: 22;
-        stroke-linecap: round;
-        stroke-linejoin: round;
+      .stroke { 
+        fill: none; 
+        stroke: #3d3d3d; 
+        stroke-width: 22; 
+        stroke-linecap: round; 
+        stroke-linejoin: round; 
       }
-      .fill-light { fill: #3d3d3d; }
-      .fill-dark { fill: #ffffff; }
+      .fill-light { fill: #ffffff; }
+      .fill-dark { fill: #3d3d3d; }
       .terminal-stroke {
         fill: none;
-        stroke: #3d3d3d;
+        stroke: #ffffff;
         stroke-width: 16;
         stroke-linecap: round;
         stroke-linejoin: round;
       }
       .cursor {
-        stroke: #3d3d3d;
+        stroke: #ffffff;
         stroke-width: 14;
         stroke-linecap: round;
       }
@@ -44,13 +43,13 @@
 
   <!-- Face fills (drawn first, under strokes) -->
   <g id="fills">
-    <!-- Top face - grey -->
+    <!-- Top face - white -->
     <polygon class="fill-light" points="512,172 800,338 512,504 224,338"/>
-
-    <!-- Left face - grey -->
+    
+    <!-- Left face - white -->
     <polygon class="fill-light" points="224,338 512,504 512,836 224,670"/>
-
-    <!-- Right face - white -->
+    
+    <!-- Right face - dark -->
     <polygon class="fill-dark" points="512,504 800,338 800,670 512,836"/>
   </g>
 
@@ -58,10 +57,10 @@
   <g id="strokes">
     <!-- Top face outline -->
     <polygon class="stroke" points="512,172 800,338 512,504 224,338"/>
-
+    
     <!-- Left face outline -->
     <polygon class="stroke" points="224,338 512,504 512,836 224,670"/>
-
+    
     <!-- Right face outline -->
     <polygon class="stroke" points="512,504 800,338 800,670 512,836"/>
   </g>
@@ -71,7 +70,7 @@
     <!-- Terminal window frame (parallelogram following isometric projection) -->
     <!-- Inset ~35% from right face edges, centered -->
     <polygon class="terminal-stroke" points="568,540 728,448 728,614 568,706"/>
-
+    
     <!-- Cursor underscore -->
     <line class="cursor" x1="592" y1="646" x2="654" y2="610"/>
   </g>

@@ -1,7 +1,7 @@
 // tests/unit/lib/migration.test.ts
 import { describe, expect, test } from "bun:test";
 import { migrateConfig, needsMigration } from "@lib/migration.ts";
-import type { DevboxConfig } from "@typedefs/index.ts";
+import type { SkyboxConfig } from "@typedefs/index.ts";
 
 describe("config migration", () => {
 	describe("needsMigration", () => {
@@ -30,7 +30,7 @@ describe("config migration", () => {
 
 	describe("migrateConfig", () => {
 		test("migrates old config to new format", () => {
-			const oldConfig: DevboxConfig = {
+			const oldConfig: SkyboxConfig = {
 				remote: { host: "my-server", base_path: "~/code" },
 				editor: "cursor",
 				defaults: { sync_mode: "two-way-resolved", ignore: [] },
@@ -51,7 +51,7 @@ describe("config migration", () => {
 		});
 
 		test("preserves existing project settings during migration", () => {
-			const oldConfig: DevboxConfig = {
+			const oldConfig: SkyboxConfig = {
 				remote: { host: "my-server", base_path: "~/code" },
 				editor: "code",
 				defaults: { sync_mode: "two-way-resolved", ignore: [] },

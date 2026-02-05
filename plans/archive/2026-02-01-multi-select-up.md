@@ -1,11 +1,11 @@
-# Design: Multi-select `devbox up`
+# Design: Multi-select `skybox up`
 
 **Date:** 2026-02-01
 **Status:** Approved
 
 ## Summary
 
-When `devbox up` is run without an argument (and can't resolve from cwd), show a checkbox prompt allowing the user to select one or more local projects to start. Multiple projects start sequentially. Post-start behavior adapts based on how many projects were selected.
+When `skybox up` is run without an argument (and can't resolve from cwd), show a checkbox prompt allowing the user to select one or more local projects to start. Multiple projects start sequentially. Post-start behavior adapts based on how many projects were selected.
 
 ## Behavior
 

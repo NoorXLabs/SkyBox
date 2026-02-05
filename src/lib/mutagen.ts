@@ -17,7 +17,7 @@ export function sessionName(project: string): string {
 		.replace(/-+/g, "-")
 		.replace(/^-|-$/g, ""); // Remove leading/trailing hyphens
 
-	return `devbox-${sanitized || "project"}`;
+	return `skybox-${sanitized || "project"}`;
 }
 
 /** Standard result type for Mutagen operations */
@@ -135,7 +135,7 @@ export function selectiveSessionName(project: string, subpath: string): string {
 		.replace(/[^a-z0-9_-]/g, "-")
 		.replace(/-+/g, "-")
 		.replace(/^-|-$/g, "");
-	return `devbox-${sanitizedProject || "project"}-${sanitizedPath || "path"}`;
+	return `skybox-${sanitizedProject || "project"}-${sanitizedPath || "path"}`;
 }
 
 /**

@@ -24,7 +24,7 @@ import chalk from "chalk";
 export async function showConfig(): Promise<void> {
 	const config = loadConfig();
 	if (!config) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -57,7 +57,7 @@ export async function showConfig(): Promise<void> {
 export async function validateConfig(): Promise<void> {
 	const config = loadConfig();
 	if (!config) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -115,7 +115,7 @@ export async function setConfigValue(
 ): Promise<void> {
 	const config = loadConfig();
 	if (!config) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -144,7 +144,7 @@ export async function setConfigValue(
  */
 function showHelp(): void {
 	console.log();
-	console.log(`${chalk.bold("Usage:")} devbox config [subcommand] [options]`);
+	console.log(`${chalk.bold("Usage:")} skybox config [subcommand] [options]`);
 	console.log();
 	console.log(chalk.bold("Subcommands:"));
 	console.log("  (none)                       Show current configuration");
@@ -170,9 +170,9 @@ function showHelp(): void {
 	);
 	console.log();
 	console.log(chalk.bold("Examples:"));
-	console.log("  devbox config                # Show current configuration");
-	console.log("  devbox config --validate     # Test all remote connections");
-	console.log("  devbox config set editor vim # Change default editor");
+	console.log("  skybox config                # Show current configuration");
+	console.log("  skybox config --validate     # Test all remote connections");
+	console.log("  skybox config set editor vim # Change default editor");
 	console.log();
 }
 
@@ -198,7 +198,7 @@ export async function configCommand(
 		if (arg1 === "edit") {
 			if (!arg2) {
 				error(
-					"Missing project name. Usage: devbox config devcontainer edit <project>",
+					"Missing project name. Usage: skybox config devcontainer edit <project>",
 				);
 				return;
 			}
@@ -208,7 +208,7 @@ export async function configCommand(
 		if (arg1 === "reset") {
 			if (!arg2) {
 				error(
-					"Missing project name. Usage: devbox config devcontainer reset <project>",
+					"Missing project name. Usage: skybox config devcontainer reset <project>",
 				);
 				return;
 			}
@@ -223,13 +223,13 @@ export async function configCommand(
 	if (subcommand === "sync-paths") {
 		const config = loadConfig();
 		if (!config) {
-			error("devbox not configured. Run 'devbox init' first.");
+			error("skybox not configured. Run 'skybox init' first.");
 			process.exit(1);
 		}
 
 		if (!arg1) {
 			error(
-				"Missing project name. Usage: devbox config sync-paths <project> [path1,path2,...]",
+				"Missing project name. Usage: skybox config sync-paths <project> [path1,path2,...]",
 			);
 			return;
 		}
@@ -292,7 +292,7 @@ export async function configCommand(
 
 	if (subcommand === "set") {
 		if (!arg1 || !arg2) {
-			error("Missing arguments. Usage: devbox config set <key> <value>");
+			error("Missing arguments. Usage: skybox config set <key> <value>");
 			return;
 		}
 		await setConfigValue(arg1, arg2);

@@ -40,10 +40,10 @@ import {
 } from "@lib/ui.ts";
 import {
 	ContainerStatus,
-	type DevboxConfigV2,
 	type RemoteEntry,
 	type RemoteProject,
 	type RmOptions,
+	type SkyboxConfigV2,
 } from "@typedefs/index.ts";
 import inquirer from "inquirer";
 
@@ -166,10 +166,10 @@ async function deleteProjectFromRemote(
 
 /**
  * Interactive multi-select flow for deleting remote projects.
- * Triggered by `devbox rm --remote` (no project argument).
+ * Triggered by `skybox rm --remote` (no project argument).
  */
 async function rmRemoteInteractive(
-	config: DevboxConfigV2,
+	config: SkyboxConfigV2,
 	options: RmOptions,
 ): Promise<void> {
 	// Select which remote to delete from
@@ -285,7 +285,7 @@ export async function rmCommand(
 	// Interactive remote multi-select when --remote flag but no project argument
 	if (!project && options.remote) {
 		if (!configExists()) {
-			error("devbox not configured. Run 'devbox init' first.");
+			error("skybox not configured. Run 'skybox init' first.");
 			process.exit(1);
 		}
 
@@ -335,7 +335,7 @@ export async function rmCommand(
 
 	// Check config exists
 	if (!configExists()) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -423,7 +423,7 @@ export async function rmCommand(
 
 async function deleteFromRemote(
 	project: string,
-	config: DevboxConfigV2,
+	config: SkyboxConfigV2,
 	options: RmOptions,
 ): Promise<void> {
 	const projectRemote = getProjectRemote(project, config);

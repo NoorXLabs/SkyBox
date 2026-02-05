@@ -120,7 +120,7 @@ describe("status command helpers", () => {
 		);
 	});
 
-	// statusCommand tests are skipped because they require DEVBOX_HOME to be set
+	// statusCommand tests are skipped because they require SKYBOX_HOME to be set
 	// before any module imports, which is not possible with bun's import hoisting.
 	// These should be tested as integration tests instead.
 });

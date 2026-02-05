@@ -1,6 +1,6 @@
 # Design Decisions
 
-This document explains the key architectural decisions in DevBox and the reasoning behind them.
+This document explains the key architectural decisions in SkyBox and the reasoning behind them.
 
 ## Why Local-First?
 
@@ -45,7 +45,7 @@ This document explains the key architectural decisions in DevBox and the reasoni
 
 4. **SSH transport** - Uses existing SSH authentication, no extra ports/services.
 
-5. **No installation needed** - Binary auto-downloads during `devbox init`.
+5. **No installation needed** - Binary auto-downloads during `skybox init`.
 
 **Configuration:**
 
@@ -118,7 +118,7 @@ ignore:
 
 ## Why YAML Configuration?
 
-**Decision:** Use YAML for `~/.devbox/config.yaml`.
+**Decision:** Use YAML for `~/.skybox/config.yaml`.
 
 **Rationale:**
 
@@ -166,7 +166,7 @@ projects: {}               # Per-project overrides
 
 2. **Clear ownership** - Always know which machine has an active session.
 
-3. **Explicit handoff** - `devbox down` removes the session and syncs cleanly.
+3. **Explicit handoff** - `skybox down` removes the session and syncs cleanly.
 
 4. **No SSH round-trip** - Session files live inside the project directory and sync via Mutagen, so checking session status is a local file read.
 
@@ -175,13 +175,13 @@ projects: {}               # Per-project overrides
 **Session Flow:**
 
 ```
-devbox up myproject
-  └─> Read session file (.devbox/session.lock)
+skybox up myproject
+  └─> Read session file (.skybox/session.lock)
       ├─> No file → Write session, proceed
       ├─> File exists, same machine → Update timestamp, proceed
       └─> File exists, different machine → Warn, prompt to continue
 
-devbox down myproject
+skybox down myproject
   └─> Flush sync → Stop container → Delete session file
 ```
 
@@ -222,7 +222,7 @@ Session file writes use atomic write-then-rename to prevent corruption if two pr
 
 3. **Branch switching works** - `git checkout feature` just works.
 
-4. **No extra clone step** - One `devbox clone` gets everything.
+4. **No extra clone step** - One `skybox clone` gets everything.
 
 **Excluded from sync:**
 
@@ -237,13 +237,13 @@ ignore:
 
 ```bash
 # On laptop
-devbox up myproject
+skybox up myproject
 git checkout -b feature-x
 # work, commit
-devbox down myproject    # syncs .git too
+skybox down myproject    # syncs .git too
 
 # On desktop
-devbox up myproject
+skybox up myproject
 git checkout feature-x   # branch is already there!
 ```
 
@@ -325,7 +325,7 @@ if (!result.success) {
 
 **Rationale:**
 
-1. **CI/CD friendly** - Use devbox in automation.
+1. **CI/CD friendly** - Use skybox in automation.
 
 2. **Scripting** - Compose commands in shell scripts.
 
@@ -341,10 +341,10 @@ if (!result.success) {
 
 ```bash
 # In a script
-devbox up myproject --no-prompt --editor
+skybox up myproject --no-prompt --editor
 
 # Fails clearly if no default editor
-# Error: No default editor configured. Use 'devbox editor' to set one.
+# Error: No default editor configured. Use 'skybox editor' to set one.
 ```
 
 ## Why AES-256-GCM for Encryption?
@@ -399,13 +399,13 @@ devbox up myproject --no-prompt --editor
 
 ## Why Built-in Templates + Custom Local Templates?
 
-**Decision:** Ship a set of built-in project templates while also allowing users to create custom local templates stored in `~/.devbox/templates/`.
+**Decision:** Ship a set of built-in project templates while also allowing users to create custom local templates stored in `~/.skybox/templates/`.
 
 **Rationale:**
 
 1. **Quick start** - Built-in templates (Node.js, Python, Go, etc.) let users create projects immediately without setup.
 
-2. **Extensibility** - Users can create custom `devcontainer.json` templates stored as local files in `~/.devbox/templates/`, or provide a git URL during project creation.
+2. **Extensibility** - Users can create custom `devcontainer.json` templates stored as local files in `~/.skybox/templates/`, or provide a git URL during project creation.
 
 3. **No lock-in** - Templates are standard `devcontainer.json` files. Nothing proprietary.
 

@@ -51,12 +51,12 @@ export async function pushCommand(
 	name?: string,
 ): Promise<void> {
 	if (!sourcePath) {
-		error("Usage: devbox push <path> [name]");
+		error("Usage: skybox push <path> [name]");
 		process.exit(1);
 	}
 
 	if (!configExists()) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -204,7 +204,7 @@ export async function pushCommand(
 	}
 	mkdirSpin.succeed("Created remote directory");
 
-	// Copy to devbox projects directory
+	// Copy to skybox projects directory
 	const projectsDir = getProjectsDir();
 	const localPath = join(projectsDir, projectName);
 
@@ -300,6 +300,6 @@ export async function pushCommand(
 		await upCommand(projectName, {});
 	} else {
 		info(`Project saved to ${localPath}`);
-		info(`Run 'devbox up ${projectName}' when ready to start working.`);
+		info(`Run 'skybox up ${projectName}' when ready to start working.`);
 	}
 }

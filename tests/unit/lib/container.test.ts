@@ -56,7 +56,7 @@ describe("hasLocalDevcontainerConfig", () => {
 	let testDir: string;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-container-test-${Date.now()}`);
+		testDir = join(tmpdir(), `skybox-container-test-${Date.now()}`);
 		mkdirSync(testDir, { recursive: true });
 	});
 
@@ -87,7 +87,7 @@ describe("getDevcontainerConfig", () => {
 	let testDir: string;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-container-test-${Date.now()}`);
+		testDir = join(tmpdir(), `skybox-container-test-${Date.now()}`);
 		mkdirSync(testDir, { recursive: true });
 	});
 

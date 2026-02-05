@@ -32,7 +32,7 @@ projects: {}
 	});
 
 	test("should require project to exist locally", async () => {
-		// Import dynamically to use mocked DEVBOX_HOME
+		// Import dynamically to use mocked SKYBOX_HOME
 		const { projectExists } = await import("@lib/project.ts");
 		expect(projectExists("nonexistent")).toBe(false);
 	});

@@ -6,7 +6,7 @@
 
 ## Overview
 
-Add real integration and E2E tests to DevBox to complement the existing unit test suite. The goal is to catch bugs that mocked tests miss, prevent regressions, validate releases, and harden CI/CD — without sacrificing speed or creating maintenance burden.
+Add real integration and E2E tests to SkyBox to complement the existing unit test suite. The goal is to catch bugs that mocked tests miss, prevent regressions, validate releases, and harden CI/CD — without sacrificing speed or creating maintenance burden.
 
 ## Test Tiers
 
@@ -24,17 +24,17 @@ Verify real Docker/devcontainer operations work — not mocked, but without need
 
 ### What Gets Tested
 
-- Container lifecycle: `devbox up` actually starts a container, `devbox down` stops it
-- Shell entry: `devbox shell` opens a real shell in the running container
+- Container lifecycle: `skybox up` actually starts a container, `skybox down` stops it
+- Shell entry: `skybox shell` opens a real shell in the running container
 - Devcontainer config: Templates produce working containers
-- Editor integration: `devbox open` launches with correct paths
+- Editor integration: `skybox open` launches with correct paths
 
 ### Test Isolation Strategy
 
 - Each test uses a unique project name: `test-{timestamp}-{random}`
-- Containers labeled with `devbox-test=true` for easy cleanup
+- Containers labeled with `skybox-test=true` for easy cleanup
 - Cleanup runs in `afterEach` AND a global `afterAll` sweeper catches orphans
-- Test projects live in temp directory, not `~/.devbox`
+- Test projects live in temp directory, not `~/.skybox`
 
 ### File Structure
 
@@ -61,7 +61,7 @@ src/__integration__/
 
 ### Purpose
 
-Verify the full DevBox workflow against a real remote server — SSH, locks, Mutagen sync, and multi-machine scenarios.
+Verify the full SkyBox workflow against a real remote server — SSH, locks, Mutagen sync, and multi-machine scenarios.
 
 ### What Gets Tested
 
@@ -72,8 +72,8 @@ Verify the full DevBox workflow against a real remote server — SSH, locks, Mut
 
 ### Test Isolation Strategy
 
-- Dedicated test directory on remote: `~/devbox-e2e-tests/`
-- Each test run gets a timestamped subfolder: `~/devbox-e2e-tests/run-{timestamp}/`
+- Dedicated test directory on remote: `~/skybox-e2e-tests/`
+- Each test run gets a timestamped subfolder: `~/skybox-e2e-tests/run-{timestamp}/`
 - Config uses a test-specific remote entry (not your real `work` remote)
 - Cleanup script runs via SSH in `afterAll` — removes test directory entirely
 
@@ -158,14 +158,14 @@ bun test:all          # everything
 export async function cleanupTestContainers() {
   // Kill all containers with test label
   await execa("docker", ["rm", "-f",
-    "$(docker ps -aq --filter label=devbox-test=true)"
+    "$(docker ps -aq --filter label=skybox-test=true)"
   ], { shell: true, reject: false });
 }
 
 export async function cleanupTestVolumes() {
   // Remove dangling test volumes
   await execa("docker", ["volume", "prune", "-f",
-    "--filter", "label=devbox-test=true"
+    "--filter", "label=skybox-test=true"
   ], { reject: false });
 }
 ```
@@ -183,14 +183,14 @@ export async function cleanupTestVolumes() {
 export async function cleanupRemoteTestDir(runId: string) {
   await runRemoteCommand(
     testRemote,
-    `rm -rf ~/devbox-e2e-tests/run-${runId}`
+    `rm -rf ~/skybox-e2e-tests/run-${runId}`
   );
 }
 
 export async function cleanupStaleLocks() {
   await runRemoteCommand(
     testRemote,
-    `find ~/.devbox-locks -name "test-*" -delete`
+    `find ~/.skybox-locks -name "test-*" -delete`
   );
 }
 ```
@@ -212,7 +212,7 @@ export async function cleanupStaleLocks() {
 // Integration tier helpers
 export async function createDockerTestContext(name: string) {
   const ctx = createTestContext(name);
-  const containerName = `devbox-test-${name}-${Date.now()}`;
+  const containerName = `skybox-test-${name}-${Date.now()}`;
 
   return {
     ...ctx,
@@ -248,7 +248,7 @@ export function createE2ETestContext(name: string) {
     runId,
     testRemote,
     projectName: `test-${name}-${runId}`,
-    remotePath: `~/devbox-e2e-tests/run-${runId}`,
+    remotePath: `~/skybox-e2e-tests/run-${runId}`,
     async setup() {
       await runRemoteCommand(testRemote, `mkdir -p ${this.remotePath}`);
     },
@@ -263,7 +263,7 @@ export function getTestRemoteConfig(): RemoteEntry {
   return {
     host: process.env.E2E_HOST || "localhost",
     user: process.env.E2E_USER || "test",
-    path: process.env.E2E_PATH || "~/devbox-e2e-tests",
+    path: process.env.E2E_PATH || "~/skybox-e2e-tests",
     key: process.env.E2E_SSH_KEY_PATH,
   };
 }
@@ -308,7 +308,7 @@ describe.skipIf(!isDockerAvailable())("container lifecycle", () => {
 
   afterEach(() => ctx.cleanup());
 
-  test("devbox up starts container and devbox down stops it", async () => {
+  test("skybox up starts container and skybox down stops it", async () => {
     // Start
     await execa("bun", ["run", "src/index.ts", "up", ctx.projectName]);
     await waitForContainer(ctx.containerName);

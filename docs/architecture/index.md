@@ -1,10 +1,10 @@
 # Architecture Overview
 
-This section describes the internal architecture and design decisions of DevBox.
+This section describes the internal architecture and design decisions of SkyBox.
 
 ## High-Level Architecture
 
-DevBox is a local-first development environment tool that syncs code between local machines and a remote server, running containers locally for zero-latency development.
+SkyBox is a local-first development environment tool that syncs code between local machines and a remote server, running containers locally for zero-latency development.
 
 ```mermaid
 flowchart TB
@@ -13,12 +13,12 @@ flowchart TB
     end
 
     subgraph Local["Local Machine"]
-        subgraph CLI["DevBox CLI"]
+        subgraph CLI["SkyBox CLI"]
             Commands["Commands Layer"]
             Libs["Library Layer"]
         end
 
-        subgraph Projects["~/.devbox/"]
+        subgraph Projects["~/.skybox/"]
             Config["config.yaml"]
             LocalProjects["projects/<br/>project-a/"]
             Bin["bin/mutagen"]
@@ -72,7 +72,7 @@ Shared functionality used by commands:
 
 | Module | Responsibility |
 |--------|----------------|
-| `config.ts` | Read/write `~/.devbox/config.yaml` |
+| `config.ts` | Read/write `~/.skybox/config.yaml` |
 | `container.ts` | Docker/devcontainer operations |
 | `mutagen.ts` | Sync session management |
 | `ssh.ts` | SSH connection testing, key setup |
@@ -95,26 +95,26 @@ Shared functionality used by commands:
 ### Type Definitions (`src/types/`)
 
 Centralized TypeScript interfaces for:
-- Configuration (`DevboxConfig`, `ProjectConfig`)
+- Configuration (`SkyboxConfig`, `ProjectConfig`)
 - Container status (`ContainerStatus`, `ContainerInfo`)
 - Sync status (`SyncStatus`)
 - Session management (`SessionInfo`, `SessionConflictResult`)
 - Command options (`UpOptions`, `DownOptions`)
 
-## Data Flow: `devbox up`
+## Data Flow: `skybox up`
 
-Here is the complete flow when a user runs `devbox up myproject`:
+Here is the complete flow when a user runs `skybox up myproject`:
 
 ```mermaid
 sequenceDiagram
     participant User
-    participant CLI as DevBox CLI
+    participant CLI as SkyBox CLI
     participant Session as Session File
     participant Mutagen as Mutagen Sync
     participant Docker as Docker/Devcontainer
     participant Remote as Remote Server
 
-    User->>CLI: devbox up myproject
+    User->>CLI: skybox up myproject
 
     Note over CLI: 1. Validate config exists
     CLI->>CLI: loadConfig()
@@ -123,7 +123,7 @@ sequenceDiagram
     CLI->>CLI: Check projectExists()
 
     Note over CLI: 3. Check session
-    CLI->>Session: Read .devbox/session.lock
+    CLI->>Session: Read .skybox/session.lock
     Session-->>CLI: Session status
     alt Session conflict (different machine)
         CLI->>User: "Active on X. Continue?"
@@ -172,7 +172,7 @@ sequenceDiagram
 ## File System Layout
 
 ```
-~/.devbox/
+~/.skybox/
 ├── config.yaml          # Main configuration
 ├── bin/
 │   └── mutagen          # Bundled sync binary
@@ -186,7 +186,7 @@ sequenceDiagram
 
 ~/code/ (on remote)
 ├── project-a/           # Canonical source
-│   └── .devbox/
+│   └── .skybox/
 │       └── session.lock # Session file (synced via Mutagen)
 └── project-b/
 ```
@@ -197,7 +197,7 @@ sequenceDiagram
 |------|---------|----------|
 | Docker | Container runtime | Required for devcontainers |
 | devcontainer CLI | Container lifecycle | Bundled via npm |
-| Mutagen | File sync | Auto-downloaded to `~/.devbox/bin/` |
+| Mutagen | File sync | Auto-downloaded to `~/.skybox/bin/` |
 | SSH | Remote access | System SSH client |
 
 ## Key Libraries

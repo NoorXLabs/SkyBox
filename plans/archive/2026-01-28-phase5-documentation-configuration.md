@@ -26,7 +26,7 @@ Add the following fields to `package.json`. Note: `description`, `repository`, `
     "bun": ">=1.0.0"
   },
   "keywords": [
-    "devbox",
+    "skybox",
     "devcontainer",
     "docker",
     "remote-development",
@@ -159,7 +159,7 @@ export interface SSHHost { ... }
 /** Fully resolved SSH config entry with all fields required for connection */
 export interface SSHConfigEntry { ... }
 
-/** Legacy single-remote config (V1). Superseded by DevboxConfigV2. */
+/** Legacy single-remote config (V1). Superseded by SkyboxConfigV2. */
 export interface RemoteConfig { ... }
 
 /** Default sync behavior and ignore patterns applied to all projects */
@@ -168,25 +168,25 @@ export interface SyncDefaults { ... }
 /** Per-project overrides for sync and editor settings (V1) */
 export interface ProjectConfig { ... }
 
-/** Legacy config format (V1). Auto-migrated to DevboxConfigV2 on load. */
-export interface DevboxConfig { ... }
+/** Legacy config format (V1). Auto-migrated to SkyboxConfigV2 on load. */
+export interface SkyboxConfig { ... }
 
-/** A single remote server connection. Used as values in DevboxConfigV2.remotes. */
+/** A single remote server connection. Used as values in SkyboxConfigV2.remotes. */
 export interface RemoteEntry { ... }
 
 /** Current config format supporting multiple remotes */
-export interface DevboxConfigV2 { ... }
+export interface SkyboxConfigV2 { ... }
 
 /** Per-project config (V2) referencing a named remote */
 export interface ProjectConfigV2 { ... }
 
-/** Summary view of a project shown by `devbox list` and `devbox status` */
+/** Summary view of a project shown by `skybox list` and `skybox status` */
 export interface ProjectSummary { ... }
 
-/** Detailed container info shown by `devbox status <project>` */
+/** Detailed container info shown by `skybox status <project>` */
 export interface ContainerDetails { ... }
 
-/** Detailed sync session info shown by `devbox status <project>` */
+/** Detailed sync session info shown by `skybox status <project>` */
 export interface SyncDetails { ... }
 
 /** Git working tree status for a project */
@@ -201,7 +201,7 @@ export interface LockInfo { ... }
  */
 export type LockStatus = ...;
 
-/** Result of a `devbox doctor` health check */
+/** Result of a `skybox doctor` health check */
 export interface DoctorCheckResult { ... }
 ```
 
@@ -264,7 +264,7 @@ Format (keep it to 1-2 lines, no fluff):
 /** Config format migration from V1 (single remote) to V2 (multi-remote). */
 
 // src/lib/paths.ts
-/** Centralized path computation for DevBox directories and binaries. */
+/** Centralized path computation for SkyBox directories and binaries. */
 
 // src/lib/errors.ts
 /** Error handling utilities: safe message extraction and type guards. */
@@ -753,10 +753,10 @@ In `loadConfig()`, after the migration block, log a message. Since `ui.ts` may n
 
 ```typescript
 if (needsMigration(rawConfig)) {
-	const migrated = migrateConfig(rawConfig as DevboxConfig);
+	const migrated = migrateConfig(rawConfig as SkyboxConfig);
 	saveConfig(migrated);
 	console.error(
-		"\x1b[33m[devbox]\x1b[0m Config auto-migrated from V1 to V2 format.",
+		"\x1b[33m[skybox]\x1b[0m Config auto-migrated from V1 to V2 format.",
 	);
 	return migrated;
 }

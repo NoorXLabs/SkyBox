@@ -1,11 +1,11 @@
-# devbox new
+# skybox new
 
 Create a new project on the remote server.
 
 ## Usage
 
 ```bash
-devbox new
+skybox new
 ```
 
 ## Arguments
@@ -40,16 +40,16 @@ Project names must:
 The unified template selector offers three types of templates:
 
 - **Built-in templates** (Node.js, Python, Go, Generic) — creates an empty project with a devcontainer.json using that template's configuration
-- **Your custom templates** — local devcontainer.json files stored in `~/.devbox/templates/`. See [Custom Templates](/reference/custom-templates) for details
+- **Your custom templates** — local devcontainer.json files stored in `~/.skybox/templates/`. See [Custom Templates](/reference/custom-templates) for details
 - **Git URL** — clones a git repository to the remote as the project
 
-When selecting a built-in or custom template, DevBox creates the project directory on the remote, writes the devcontainer.json, and initializes a git repo. When using a git URL, DevBox clones the repo instead.
+When selecting a built-in or custom template, SkyBox creates the project directory on the remote, writes the devcontainer.json, and initializes a git repo. When using a git URL, SkyBox clones the repo instead.
 
 ## Examples
 
 ```bash
 # Start the interactive wizard
-devbox new
+skybox new
 ```
 
 ### Example Session
@@ -115,15 +115,15 @@ After creating a project, you're prompted to clone it locally:
 ```
 
 - **Yes** - Syncs the project locally, then offers to start the dev container
-- **No** - Project exists only on remote; clone later with `devbox clone`
+- **No** - Project exists only on remote; clone later with `skybox clone`
 
-If you choose to clone, DevBox also prompts:
+If you choose to clone, SkyBox also prompts:
 
 ```
 ? Start dev container now? (Y/n)
 ```
 
-This lets you go from `devbox new` to a running container in a single flow.
+This lets you go from `skybox new` to a running container in a single flow.
 
 ## Exit Codes
 
@@ -134,8 +134,8 @@ This lets you go from `devbox new` to a running container in a single flow.
 
 ## See Also
 
-- [devbox clone](/reference/clone) - Clone project from remote
-- [devbox push](/reference/push) - Push existing project to remote
-- [devbox browse](/reference/browse) - List projects on remote
-- [devbox remote](/reference/remote) - Manage remote servers
+- [skybox clone](/reference/clone) - Clone project from remote
+- [skybox push](/reference/push) - Push existing project to remote
+- [skybox browse](/reference/browse) - List projects on remote
+- [skybox remote](/reference/remote) - Manage remote servers
 - [Custom Templates](/reference/custom-templates) - Create and manage reusable templates

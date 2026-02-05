@@ -54,7 +54,7 @@ jobs:
       - name: Cleanup remote test data
         if: always()
         run: |
-          ssh -i ~/.ssh/e2e_key $E2E_USER@$E2E_HOST "rm -rf ~/devbox-e2e-tests/run-* 2>/dev/null || true"
+          ssh -i ~/.ssh/e2e_key $E2E_USER@$E2E_HOST "rm -rf ~/skybox-e2e-tests/run-* 2>/dev/null || true"
         continue-on-error: true
 
       - name: Cleanup SSH key

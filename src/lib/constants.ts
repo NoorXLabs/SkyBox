@@ -9,13 +9,13 @@ import type { InstallMethod, Template } from "@typedefs/index.ts";
 
 // ── App & GitHub ──
 
-/** How DevBox was installed. Set at build time via DEVBOX_INSTALL_METHOD env var. */
+/** How SkyBox was installed. Set at build time via SKYBOX_INSTALL_METHOD env var. */
 export const INSTALL_METHOD: InstallMethod =
-	(process.env.DEVBOX_INSTALL_METHOD as InstallMethod) || "source";
+	(process.env.SKYBOX_INSTALL_METHOD as InstallMethod) || "source";
 
 /** GitHub repo coordinates for update checks. */
 export const GITHUB_OWNER = "NoorXLabs";
-export const GITHUB_REPO = "DevBox";
+export const GITHUB_REPO = "SkyBox";
 
 /** GitHub API URL for release checks. */
 export const GITHUB_API_URL = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases`;
@@ -40,7 +40,7 @@ export const CARD_WIDTH = 38;
 /** Gap between dashboard cards. */
 export const CARD_GAP = 2;
 
-/** Maximum project name entry attempts for `devbox new`. */
+/** Maximum project name entry attempts for `skybox new`. */
 export const MAX_NAME_ATTEMPTS = 5;
 
 // ── Paths & Directories ──
@@ -49,16 +49,16 @@ export const MAX_NAME_ATTEMPTS = 5;
 export const CONFIG_FILENAME = "config.yaml";
 
 /** Session file path relative to project directory. */
-export const SESSION_FILE = ".devbox/session.lock";
+export const SESSION_FILE = ".skybox/session.lock";
 
 /** Session TTL in milliseconds (24 hours). */
 export const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
 
 /** Ownership metadata file name. */
-export const OWNERSHIP_FILE_NAME = ".devbox-owner";
+export const OWNERSHIP_FILE_NAME = ".skybox-owner";
 
-/** Default DevBox home directory name. */
-export const DEVBOX_HOME_DIR = ".devbox";
+/** Default SkyBox home directory name. */
+export const SKYBOX_HOME_DIR = ".skybox";
 
 /** Projects subdirectory name. */
 export const PROJECTS_DIR_NAME = "Projects";
@@ -103,7 +103,7 @@ export const DEVCONTAINER_ALT_CONFIG_NAME = ".devcontainer.json";
 export const DOCKER_LABEL_KEY = "devcontainer.local_folder";
 
 /** Docker label used to identify test containers for cleanup. */
-export const DOCKER_TEST_LABEL = "devbox-test=true";
+export const DOCKER_TEST_LABEL = "skybox-test=true";
 
 /** Default timeout for waiting on containers in tests (30 seconds). */
 export const DEFAULT_CONTAINER_TIMEOUT = 30000;
@@ -153,7 +153,7 @@ export const DEFAULT_IGNORE = [
 	".venv",
 	"__pycache__",
 	"*.pyc",
-	".devbox-local",
+	".skybox-local",
 	"dist",
 	"build",
 	".next",
@@ -191,10 +191,10 @@ export const ARGON2_LEGACY_TIME_COST = 2;
 export const ARGON2_LEGACY_PARALLELISM = 1;
 
 /** Filename for the encryption verification marker inside archives. */
-export const ENCRYPTION_CHECK_FILENAME = ".devbox-enc-check";
+export const ENCRYPTION_CHECK_FILENAME = ".skybox-enc-check";
 
 /** Known content for passphrase verification. */
-export const ENCRYPTION_CHECK_CONTENT = "devbox-encryption-verify";
+export const ENCRYPTION_CHECK_CONTENT = "skybox-encryption-verify";
 
 // ── SSH ──
 

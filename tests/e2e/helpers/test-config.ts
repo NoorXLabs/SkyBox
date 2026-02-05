@@ -13,7 +13,7 @@ export function getTestRemoteConfig(): RemoteEntry {
 	return {
 		host: process.env.E2E_HOST || "localhost",
 		user: process.env.E2E_USER || "test",
-		path: process.env.E2E_PATH || "~/devbox-e2e-tests",
+		path: process.env.E2E_PATH || "~/skybox-e2e-tests",
 		key: process.env.E2E_SSH_KEY_PATH,
 	};
 }

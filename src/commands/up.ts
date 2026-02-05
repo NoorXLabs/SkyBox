@@ -54,7 +54,7 @@ import {
 } from "@lib/ui.ts";
 import {
 	ContainerStatus,
-	type DevboxConfigV2,
+	type SkyboxConfigV2,
 	type UpOptions,
 } from "@typedefs/index.ts";
 import inquirer from "inquirer";
@@ -76,8 +76,8 @@ export function sanitizeDockerError(errorStr: string): string {
 	// Only redact paths that likely contain sensitive info
 	// Keep general paths for debugging, redact config/credential paths
 	const sensitivePathPatterns = [
-		/\/Users\/[^/]+\/(\.ssh|\.aws|\.config|\.gnupg|\.devbox)[^\s]*/g,
-		/\/home\/[^/]+\/(\.ssh|\.aws|\.config|\.gnupg|\.devbox)[^\s]*/g,
+		/\/Users\/[^/]+\/(\.ssh|\.aws|\.config|\.gnupg|\.skybox)[^\s]*/g,
+		/\/home\/[^/]+\/(\.ssh|\.aws|\.config|\.gnupg|\.skybox)[^\s]*/g,
 		/\/Users\/[^/]+\/\.[^/\s]+/g, // Any dotfile in home
 		/\/home\/[^/]+\/\.[^/\s]+/g, // Any dotfile in home
 	];
@@ -102,7 +102,7 @@ async function normalizeProject(
 ): Promise<ResolvedProject | null> {
 	if (!projectExists(project)) {
 		error(
-			`Project '${project}' not found locally. Run 'devbox clone ${project}' first.`,
+			`Project '${project}' not found locally. Run 'skybox clone ${project}' first.`,
 		);
 		return null;
 	}
@@ -146,7 +146,7 @@ async function resolveProjects(
 
 	if (projects.length === 0) {
 		error(
-			"No local projects found. Run 'devbox clone' or 'devbox push' first.",
+			"No local projects found. Run 'skybox clone' or 'skybox push' first.",
 		);
 		return null;
 	}
@@ -241,7 +241,7 @@ async function checkAndResumeSync(project: string): Promise<void> {
 
 	if (!syncStatus.exists) {
 		syncSpin.warn("No sync session found - remote backup not active");
-		info("Run 'devbox push' to set up remote sync.");
+		info("Run 'skybox push' to set up remote sync.");
 		return;
 	}
 
@@ -352,7 +352,7 @@ async function ensureDevcontainerConfig(
 
 	if (selection.source === "git") {
 		info(`Git URL templates are not supported for devcontainer setup.`);
-		info("Use 'devbox new' to create a project from a git template.");
+		info("Use 'skybox new' to create a project from a git template.");
 		return false;
 	}
 
@@ -375,7 +375,7 @@ async function ensureDevcontainerConfig(
  */
 async function handleDecryption(
 	project: string,
-	config: DevboxConfigV2,
+	config: SkyboxConfigV2,
 ): Promise<boolean> {
 	const projectConfig = config.projects[project];
 	if (!projectConfig?.encryption?.enabled) {
@@ -407,7 +407,7 @@ async function handleDecryption(
 	const salt = projectConfig.encryption.salt;
 	if (!salt) {
 		error(
-			"Encryption enabled but no salt in config. Run 'devbox encrypt disable' then re-enable.",
+			"Encryption enabled but no salt in config. Run 'skybox encrypt disable' then re-enable.",
 		);
 		return false;
 	}
@@ -419,7 +419,7 @@ async function handleDecryption(
 	const { decryptFile } = await import("../lib/encryption.ts");
 
 	// Use mkdtempSync for unpredictable temp directory (prevents symlink attacks)
-	const tempDir = mkdtempSync(join(tmpdir(), "devbox-"));
+	const tempDir = mkdtempSync(join(tmpdir(), "skybox-"));
 	const localEncPath = join(tempDir, "archive.tar.enc");
 	const localTarPath = join(tempDir, "archive.tar");
 
@@ -469,7 +469,7 @@ async function handleDecryption(
 		} catch {
 			if (attempt === MAX_PASSPHRASE_ATTEMPTS) {
 				decryptSpin.fail("Decryption failed");
-				error("Too many failed attempts. Run 'devbox up' to try again.");
+				error("Too many failed attempts. Run 'skybox up' to try again.");
 				return false;
 			}
 			decryptSpin.fail("Wrong passphrase. Please try again.");
@@ -514,7 +514,7 @@ export async function upCommand(
 
 	// Step 1: Check config exists
 	if (!configExists()) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -576,7 +576,7 @@ export async function upCommand(
 async function startSingleProject(
 	project: string,
 	projectPath: string,
-	config: DevboxConfigV2,
+	config: SkyboxConfigV2,
 	options: UpOptions,
 ): Promise<void> {
 	logAuditEvent(AuditActions.UP_START, { project });
@@ -656,7 +656,7 @@ async function startSingleProject(
  */
 async function handleMultiPostStart(
 	succeeded: ResolvedProject[],
-	config: DevboxConfigV2,
+	config: SkyboxConfigV2,
 	options: UpOptions,
 ): Promise<void> {
 	if (options.noPrompt) {
@@ -819,7 +819,7 @@ export type PostStartAction = "editor" | "shell" | "both" | "none";
  * Determine what post-start action to take based on options or user prompt.
  */
 export async function determinePostStartAction(
-	config: DevboxConfigV2,
+	config: SkyboxConfigV2,
 	options: UpOptions,
 ): Promise<{ action: PostStartAction; editor: string | undefined }> {
 	// Handle flags for non-interactive mode
@@ -893,7 +893,7 @@ export async function executePostStartAction(
 	editor: string | undefined,
 ): Promise<void> {
 	if (action === "none") {
-		success("Container ready. Run 'devbox up' again to open editor or attach.");
+		success("Container ready. Run 'skybox up' again to open editor or attach.");
 		return;
 	}
 
@@ -920,7 +920,7 @@ export async function executePostStartAction(
 
 async function handlePostStart(
 	projectPath: string,
-	config: DevboxConfigV2,
+	config: SkyboxConfigV2,
 	options: UpOptions,
 ): Promise<void> {
 	if (isDryRun()) {

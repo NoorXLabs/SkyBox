@@ -10,7 +10,7 @@
 
 ## Summary
 
-Users can store devcontainer.json files in `~/.devbox/templates/` as reusable templates. The filename (minus `.json`) becomes the display name. These templates appear in a unified CLI selector alongside built-in templates whenever a devcontainer config is needed — during `devbox up`, `devbox clone`, `devbox new`, and `devbox config-devcontainer`.
+Users can store devcontainer.json files in `~/.skybox/templates/` as reusable templates. The filename (minus `.json`) becomes the display name. These templates appear in a unified CLI selector alongside built-in templates whenever a devcontainer config is needed — during `skybox up`, `skybox clone`, `skybox new`, and `skybox config-devcontainer`.
 
 A shared `selectTemplate()` component replaces the currently fragmented template selection logic spread across multiple commands.
 
@@ -18,9 +18,9 @@ A shared `selectTemplate()` component replaces the currently fragmented template
 
 ## Template Storage
 
-- **Location:** `~/.devbox/templates/<name>.json`
-- **Example:** `~/.devbox/templates/bun.json` displays as "bun"
-- **Each file is a complete devcontainer.json** — DevBox does not merge or inject features
+- **Location:** `~/.skybox/templates/<name>.json`
+- **Example:** `~/.skybox/templates/bun.json` displays as "bun"
+- **Each file is a complete devcontainer.json** — SkyBox does not merge or inject features
 - **Required fields:** `workspaceFolder` and `workspaceMount` must be present
 - **Directory auto-created** on first use
 
@@ -70,11 +70,11 @@ A single unified selector used by all commands:
 Validates:
 - No spaces or special characters
 - No collision with existing template names
-- Generates `~/.devbox/templates/bun.json`
+- Generates `~/.skybox/templates/bun.json`
 
 ### Step 2 — Scaffold the File
 
-DevBox writes a template with required fields pre-filled and common optional fields as placeholders:
+SkyBox writes a template with required fields pre-filled and common optional fields as placeholders:
 
 ```json
 {
@@ -103,7 +103,7 @@ DevBox writes a template with required fields pre-filled and common optional fie
   Skip — edit later
 ```
 
-- **Open in editor** — launches configured DevBox editor (from `devbox editor` setting)
+- **Open in editor** — launches configured SkyBox editor (from `skybox editor` setting)
 - **Edit in terminal** — opens with `$EDITOR`, falls back to `vi`
 - **Skip** — prints the file path, returns to template selector
 
@@ -118,7 +118,7 @@ After editing (or skipping), returns to the template selector so the user can se
 A single function that all commands call. It handles:
 
 - Loading built-in templates from `TEMPLATES` array
-- Loading and validating user templates from `~/.devbox/templates/`
+- Loading and validating user templates from `~/.skybox/templates/`
 - Rendering the unified selector with sections
 - The "Create new template" sub-flow
 - Returning a normalized result
@@ -141,15 +141,15 @@ Each command handles the result according to its context:
 
 ## Integration Points
 
-### `devbox up` / `devbox clone` (no devcontainer found)
+### `skybox up` / `skybox clone` (no devcontainer found)
 
-Current flow asks the user to pick a built-in template. Replaced by `selectTemplate()`. When a custom template is selected, DevBox copies the JSON into the project's `.devcontainer/devcontainer.json`.
+Current flow asks the user to pick a built-in template. Replaced by `selectTemplate()`. When a custom template is selected, SkyBox copies the JSON into the project's `.devcontainer/devcontainer.json`.
 
-### `devbox new` (creating a new project)
+### `skybox new` (creating a new project)
 
-Current flow offers only git repo URLs. Now also includes built-in and user local templates. When a local template (built-in or user) is chosen, DevBox creates the project directory on the remote, initializes a git repo, and writes the devcontainer.json — no git clone step needed.
+Current flow offers only git repo URLs. Now also includes built-in and user local templates. When a local template (built-in or user) is chosen, SkyBox creates the project directory on the remote, initializes a git repo, and writes the devcontainer.json — no git clone step needed.
 
-### `devbox config-devcontainer` (reset/change devcontainer)
+### `skybox config-devcontainer` (reset/change devcontainer)
 
 Currently lets users pick a built-in template. Now uses `selectTemplate()` for the full selector.
 

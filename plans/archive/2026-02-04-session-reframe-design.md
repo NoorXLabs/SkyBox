@@ -10,9 +10,9 @@ Replace the team collaboration lock system with a simpler multi-machine session 
 ## Problem
 
 The current lock system is framed as a team collaboration feature, but:
-- It's cumbersome for teams (constant `devbox up`/`down` cycles)
+- It's cumbersome for teams (constant `skybox up`/`down` cycles)
 - Git already handles code collaboration better
-- The primary value of DevBox remotes is disk space offloading, not team coordination
+- The primary value of SkyBox remotes is disk space offloading, not team coordination
 
 However, locks are still valuable for a single user working across multiple machines (laptop + desktop) to prevent Mutagen sync conflicts.
 
@@ -38,12 +38,12 @@ However, locks are still valuable for a single user working across multiple mach
 
 **Before:** Remote-only lock file requiring SSH to check
 ```
-remote:~/.devbox-locks/<project>.lock
+remote:~/.skybox-locks/<project>.lock
 ```
 
 **After:** Session file inside project, synced by Mutagen
 ```
-<project>/.devbox/session.lock
+<project>/.skybox/session.lock
 ```
 
 Benefits:
@@ -65,18 +65,18 @@ Benefits:
 
 Same content as current lock files, just new location.
 
-### Flow: `devbox up`
+### Flow: `skybox up`
 
-1. Check if `<project>/.devbox/session.lock` exists locally
+1. Check if `<project>/.skybox/session.lock` exists locally
 2. If exists and not expired:
    - If same machine: update timestamp, continue
    - If different machine: warn "This project is running on <machine>. Continue anyway?"
 3. If user continues (or no conflict): write new session file
 4. Mutagen syncs session file to remote (and other machines)
 
-### Flow: `devbox down`
+### Flow: `skybox down`
 
-1. Delete `<project>/.devbox/session.lock`
+1. Delete `<project>/.skybox/session.lock`
 2. Mutagen syncs deletion to remote
 
 ### Dashboard Integration
@@ -90,7 +90,7 @@ interface DashboardProject {
 }
 ```
 
-Read from local `.devbox/session.lock` — no SSH needed.
+Read from local `.skybox/session.lock` — no SSH needed.
 
 Display:
 - "active here" → green
@@ -102,7 +102,7 @@ Display:
 | File | Change |
 |------|--------|
 | `src/lib/lock.ts` | Rewrite: local file ops, rename to session terminology |
-| `src/lib/constants.ts` | Add `SESSION_FILE = ".devbox/session.lock"`, remove `LOCKS_DIR_NAME` |
+| `src/lib/constants.ts` | Add `SESSION_FILE = ".skybox/session.lock"`, remove `LOCKS_DIR_NAME` |
 | `src/commands/up.ts` | Update messaging, use new session API |
 | `src/commands/down.ts` | Update messaging, use new session API |
 | `src/commands/status.ts` | Read local session file, update labels |
@@ -140,18 +140,18 @@ Display:
 
 ## Migration
 
-Existing users with locks in `~/.devbox-locks/`:
-- On first `devbox up` after upgrade, ignore old remote locks
+Existing users with locks in `~/.skybox-locks/`:
+- On first `skybox up` after upgrade, ignore old remote locks
 - Old lock files can be left to expire (24h TTL) or manually cleaned
 
 No data migration needed — sessions start fresh.
 
 ## Gitignore
 
-Ensure `.devbox/` is in the default `.gitignore` template for new projects:
+Ensure `.skybox/` is in the default `.gitignore` template for new projects:
 
 ```gitignore
-.devbox/
+.skybox/
 ```
 
 Existing projects should already have this or users should add it.

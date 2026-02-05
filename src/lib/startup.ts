@@ -69,7 +69,7 @@ function printDockerBanner(status: DockerStatus): void {
 		);
 		console.log(
 			yellow("│"),
-			"  Then start Docker Desktop before using DevBox.       ",
+			"  Then start Docker Desktop before using SkyBox.       ",
 			yellow("│"),
 		);
 	} else if (!status.running) {
@@ -86,7 +86,7 @@ function printDockerBanner(status: DockerStatus): void {
 		);
 		console.log(
 			yellow("│"),
-			"  Start Docker Desktop before using DevBox.            ",
+			"  Start Docker Desktop before using SkyBox.            ",
 			yellow("│"),
 		);
 	}

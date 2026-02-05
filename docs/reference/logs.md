@@ -1,11 +1,11 @@
-# devbox logs
+# skybox logs
 
 Show container or sync logs for a project.
 
 ## Usage
 
 ```bash
-devbox logs <project> [options]
+skybox logs <project> [options]
 ```
 
 ## Arguments
@@ -28,7 +28,7 @@ The `logs` command has two modes depending on whether the `--sync` flag is provi
 
 ### Container Logs (default)
 
-By default, `devbox logs` shows Docker container logs for the project. It looks up the running container by project path and passes the request to `docker logs`. The `--follow` and `--lines` options are forwarded to Docker.
+By default, `skybox logs` shows Docker container logs for the project. It looks up the running container by project path and passes the request to `docker logs`. The `--follow` and `--lines` options are forwarded to Docker.
 
 If no container is found for the project, an error is displayed.
 
@@ -42,16 +42,16 @@ Note: In sync mode, the `--follow` and `--lines` options are not used; Mutagen's
 
 ```bash
 # Show last 50 lines of container logs
-devbox logs my-project
+skybox logs my-project
 
 # Follow container logs in real time
-devbox logs my-project --follow
+skybox logs my-project --follow
 
 # Show last 200 lines
-devbox logs my-project --lines 200
+skybox logs my-project --lines 200
 
 # Show sync session activity
-devbox logs my-project --sync
+skybox logs my-project --sync
 ```
 
 ## Exit Codes
@@ -63,6 +63,6 @@ devbox logs my-project --sync
 
 ## See Also
 
-- [devbox up](/reference/up) - Start a project container
-- [devbox down](/reference/down) - Stop a project container
-- [devbox status](/reference/status) - Check project status
+- [skybox up](/reference/up) - Start a project container
+- [skybox down](/reference/down) - Stop a project container
+- [skybox status](/reference/status) - Check project status

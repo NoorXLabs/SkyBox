@@ -1,11 +1,11 @@
-# devbox list
+# skybox list
 
 List projects available on your local machine.
 
 ## Usage
 
 ```bash
-devbox list
+skybox list
 ```
 
 ## Arguments
@@ -18,7 +18,7 @@ This command has no options.
 
 ## Description
 
-The `list` command shows all projects in your local DevBox projects directory (`~/.devbox/Projects`). For each project, it displays:
+The `list` command shows all projects in your local SkyBox projects directory (`~/.skybox/Projects`). For each project, it displays:
 
 - Project name
 - Current git branch
@@ -35,47 +35,47 @@ Local projects:
 
   my-api
     Branch: main
-    Path: /Users/you/.devbox/Projects/my-api
+    Path: /Users/you/.skybox/Projects/my-api
 
   frontend-app
     Branch: feature/new-ui
-    Path: /Users/you/.devbox/Projects/frontend-app
+    Path: /Users/you/.skybox/Projects/frontend-app
 
-Run 'devbox up <project>' to start working.
+Run 'skybox up <project>' to start working.
 ```
 
 If no projects exist locally:
 
 ```
 No local projects yet.
-Run 'devbox clone <project>' or 'devbox push ./path' to get started.
+Run 'skybox clone <project>' or 'skybox push ./path' to get started.
 ```
 
 ## Examples
 
 ```bash
 # List all local projects
-devbox list
+skybox list
 
 # Then start one
-devbox up my-api
+skybox up my-api
 ```
 
 ### Workflow Example
 
 ```bash
 # Check what's available locally
-devbox list
+skybox list
 
 # Output:
 # Local projects:
 #
 #   my-api
 #     Branch: main
-#     Path: /Users/you/.devbox/Projects/my-api
+#     Path: /Users/you/.skybox/Projects/my-api
 
 # Start working on it
-devbox up my-api --editor
+skybox up my-api --editor
 ```
 
 ## Exit Codes
@@ -83,11 +83,11 @@ devbox up my-api --editor
 | Code | Meaning |
 |------|---------|
 | 0 | Success |
-| 1 | Error (DevBox not configured) |
+| 1 | Error (SkyBox not configured) |
 
 ## See Also
 
-- [devbox browse](/reference/browse) - List projects on remote server
-- [devbox up](/reference/up) - Start a project
-- [devbox status](/reference/status) - Show detailed project status
-- [devbox clone](/reference/clone) - Clone a project from remote
+- [skybox browse](/reference/browse) - List projects on remote server
+- [skybox up](/reference/up) - Start a project
+- [skybox status](/reference/status) - Show detailed project status
+- [skybox clone](/reference/clone) - Clone a project from remote

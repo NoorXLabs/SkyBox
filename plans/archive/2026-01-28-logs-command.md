@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Add `devbox logs [project]` to display container logs and Mutagen sync logs for a project.
+**Goal:** Add `skybox logs [project]` to display container logs and Mutagen sync logs for a project.
 
 **Architecture:** New command that fetches Docker container logs via `docker logs` and Mutagen sync session logs via `mutagen sync monitor`. Supports `--follow` for live tailing and `--lines` to control output length. Defaults to container logs; `--sync` shows sync logs instead.
 

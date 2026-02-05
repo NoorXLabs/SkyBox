@@ -65,7 +65,7 @@ describe("GPG verification", () => {
 
 			const tempBase = tmpdir();
 			const beforeDirs = readdirSync(tempBase).filter((d) =>
-				d.startsWith("devbox-gpg-"),
+				d.startsWith("skybox-gpg-"),
 			);
 
 			await verifyGpgSignature(
@@ -75,7 +75,7 @@ describe("GPG verification", () => {
 			);
 
 			const afterDirs = readdirSync(tempBase).filter((d) =>
-				d.startsWith("devbox-gpg-"),
+				d.startsWith("skybox-gpg-"),
 			);
 			expect(afterDirs.length).toBe(beforeDirs.length);
 		});

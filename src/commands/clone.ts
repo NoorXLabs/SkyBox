@@ -76,7 +76,7 @@ export async function cloneSingleProject(
 	if (!exists) {
 		checkSpin.fail("Project not found on remote");
 		error(
-			`Project '${project}' not found on remote. Run 'devbox browse' to see available projects.`,
+			`Project '${project}' not found on remote. Run 'skybox browse' to see available projects.`,
 		);
 		logAuditEvent(AuditActions.CLONE_FAIL, {
 			project,
@@ -178,7 +178,7 @@ export async function cloneSingleProject(
 
 	if (encCheck.stdout?.includes("ENCRYPTED")) {
 		info("This project is encrypted on the remote.");
-		info("You'll need the passphrase when running 'devbox up' to decrypt it.");
+		info("You'll need the passphrase when running 'skybox up' to decrypt it.");
 	}
 
 	logAuditEvent(AuditActions.CLONE_SUCCESS, { project, remote: remoteName });
@@ -187,7 +187,7 @@ export async function cloneSingleProject(
 
 export async function cloneCommand(project?: string): Promise<void> {
 	if (!configExists()) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -227,7 +227,7 @@ export async function cloneCommand(project?: string): Promise<void> {
 		if (startContainer) {
 			await upCommand(project, {});
 		} else {
-			info(`Run 'devbox up ${project}' when ready to start working.`);
+			info(`Run 'skybox up ${project}' when ready to start working.`);
 		}
 		return;
 	}
@@ -243,7 +243,7 @@ export async function cloneCommand(project?: string): Promise<void> {
 
 	if (remoteProjects.length === 0) {
 		info("No projects found on remote.");
-		info("Run 'devbox push ./my-project' to push your first project.");
+		info("Run 'skybox push ./my-project' to push your first project.");
 		return;
 	}
 
@@ -304,7 +304,7 @@ export async function cloneCommand(project?: string): Promise<void> {
 		if (startContainer) {
 			await upCommand(cloned[0], {});
 		} else {
-			info(`Run 'devbox up ${cloned[0]}' when ready to start working.`);
+			info(`Run 'skybox up ${cloned[0]}' when ready to start working.`);
 		}
 		return;
 	}
@@ -323,14 +323,14 @@ export async function cloneCommand(project?: string): Promise<void> {
 		const remaining = cloned.filter((n) => n !== startProject);
 		if (remaining.length > 0) {
 			console.log();
-			info("Run 'devbox up <name>' to start your other cloned projects:");
+			info("Run 'skybox up <name>' to start your other cloned projects:");
 			for (const name of remaining) {
 				console.log(`  - ${name}`);
 			}
 		}
 	} else {
 		console.log();
-		info("Run 'devbox up <name>' to start your cloned projects:");
+		info("Run 'skybox up <name>' to start your cloned projects:");
 		for (const name of cloned) {
 			console.log(`  - ${name}`);
 		}

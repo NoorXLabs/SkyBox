@@ -1,13 +1,13 @@
 # Troubleshooting
 
-Common issues and solutions for DevBox.
+Common issues and solutions for SkyBox.
 
 ## First Step: Run Doctor
 
 Before diving into specific issues, run the built-in diagnostic tool:
 
 ```bash
-devbox doctor
+skybox doctor
 ```
 
 This checks Docker, Mutagen, SSH connectivity, and configuration in one command. It will identify most common problems and suggest fixes.
@@ -18,7 +18,7 @@ This checks Docker, Mutagen, SSH connectivity, and configuration in one command.
 
 **Symptoms:**
 - Cannot decrypt project configuration
-- `devbox` prompts for passphrase and rejects all attempts
+- `skybox` prompts for passphrase and rejects all attempts
 
 **Solutions:**
 
@@ -39,7 +39,7 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
 1. **Verify the correct passphrase** - ensure no extra whitespace or encoding issues.
 2. **Check config file integrity:**
    ```bash
-   devbox config --validate
+   skybox config --validate
    ```
 3. **Re-encrypt from a clean state** if the encrypted file was corrupted (e.g., partial write during crash).
 
@@ -60,14 +60,14 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
 
 2. **Verify configuration:**
    ```bash
-   devbox config show myproject
+   skybox config show myproject
    ```
    Confirm the `sync_paths` entries use the correct relative format.
 
 3. **Restart sync** after changing selective sync settings:
    ```bash
-   devbox down myproject
-   devbox up myproject
+   skybox down myproject
+   skybox up myproject
    ```
 
 ## Update Issues
@@ -75,7 +75,7 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
 ### Mutagen Download Failures
 
 **Symptoms:**
-- `devbox update` fails during Mutagen binary download
+- `skybox update` fails during Mutagen binary download
 - Network timeout or checksum mismatch errors
 
 **Solutions:**
@@ -87,27 +87,27 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
 
 2. **Retry the update:**
    ```bash
-   devbox update
+   skybox update
    ```
 
-3. **Manual download** - if automated download keeps failing, manually download the Mutagen binary and place it at `~/.devbox/bin/mutagen`.
+3. **Manual download** - if automated download keeps failing, manually download the Mutagen binary and place it at `~/.skybox/bin/mutagen`.
 
 ### Version Mismatches
 
 **Symptoms:**
 - Sync errors after updating
-- `devbox doctor` reports Mutagen version issues
+- `skybox doctor` reports Mutagen version issues
 
 **Solutions:**
 
 1. **Run the update command** to get the latest compatible version:
    ```bash
-   devbox update
+   skybox update
    ```
 
 2. **Force re-download:**
    ```bash
-   devbox update --force
+   skybox update --force
    ```
 
 ## Batch Operation Issues
@@ -115,7 +115,7 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
 ### Partial Failures in `--all` Mode
 
 **Symptoms:**
-- Some projects succeed while others fail during batch operations (e.g., `devbox down --all`)
+- Some projects succeed while others fail during batch operations (e.g., `skybox down --all`)
 - Mixed success/error output
 
 **Solutions:**
@@ -124,13 +124,13 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
 
 2. **Re-run for failed projects only:**
    ```bash
-   devbox up failed-project
+   skybox up failed-project
    ```
 
 3. **Run diagnostics on failing projects:**
    ```bash
-   devbox doctor
-   devbox status failed-project
+   skybox doctor
+   skybox status failed-project
    ```
 
 ## Devcontainer Issues
@@ -145,12 +145,12 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
 
 1. **Reset devcontainer configuration** to regenerate from template:
    ```bash
-   devbox config devcontainer reset <project>
+   skybox config devcontainer reset <project>
    ```
 
 2. **Rebuild the container:**
    ```bash
-   devbox up <project> --rebuild
+   skybox up <project> --rebuild
    ```
 
 ## Connection Issues
@@ -158,8 +158,8 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
 ### SSH Connection Failed
 
 **Symptoms:**
-- `devbox init` fails to connect
-- `devbox browse` times out
+- `skybox init` fails to connect
+- `skybox browse` times out
 
 **Solutions:**
 
@@ -196,9 +196,9 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
    ssh-add ~/.ssh/id_rsa
    ```
 
-2. **Specify key in devbox config:**
+2. **Specify key in skybox config:**
    ```bash
-   devbox remote add myserver user@host --key ~/.ssh/specific_key
+   skybox remote add myserver user@host --key ~/.ssh/specific_key
    ```
 
 ## Container Issues
@@ -206,7 +206,7 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
 ### Container Won't Start
 
 **Symptoms:**
-- `devbox up` hangs or fails
+- `skybox up` hangs or fails
 - Container status shows "error"
 
 **Solutions:**
@@ -218,29 +218,29 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
 
 2. **Rebuild container:**
    ```bash
-   devbox up myproject --rebuild
+   skybox up myproject --rebuild
    ```
 
 3. **Check devcontainer.json:**
    ```bash
-   cat ~/.devbox/Projects/myproject/.devcontainer/devcontainer.json
+   cat ~/.skybox/Projects/myproject/.devcontainer/devcontainer.json
    ```
 
 ### Container Not Found
 
 **Symptoms:**
-- `devbox shell` says container not found
+- `skybox shell` says container not found
 
 **Solutions:**
 
 1. **Start the container first:**
    ```bash
-   devbox up myproject
+   skybox up myproject
    ```
 
 2. **Check container status:**
    ```bash
-   devbox status myproject
+   skybox status myproject
    ```
 
 ## Sync Issues
@@ -249,23 +249,23 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
 
 **Symptoms:**
 - Files not appearing on remote
-- `devbox status` shows sync errors
+- `skybox status` shows sync errors
 
 **Solutions:**
 
 1. **Check Mutagen status:**
    ```bash
-   ~/.devbox/bin/mutagen sync list
+   ~/.skybox/bin/mutagen sync list
    ```
 
 2. **Restart sync session:**
    ```bash
-   devbox down myproject
-   devbox up myproject
+   skybox down myproject
+   skybox up myproject
    ```
 
 3. **Check ignored files:**
-   Review `defaults.ignore` in `~/.devbox/config.yaml`
+   Review `defaults.ignore` in `~/.skybox/config.yaml`
 
 ### Sync Conflicts
 
@@ -276,7 +276,7 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
 
 1. **Check Mutagen conflicts:**
    ```bash
-   ~/.devbox/bin/mutagen sync list --long
+   ~/.skybox/bin/mutagen sync list --long
    ```
 
 2. **Resolve manually:**
@@ -287,19 +287,19 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
 ### Project Active on Another Machine
 
 **Symptoms:**
-- `devbox up` warns that the project is running on another machine
+- `skybox up` warns that the project is running on another machine
 - Message: "This project is running on [machine]"
 
 **Solutions:**
 
 1. **Proper handoff:** On the other machine:
    ```bash
-   devbox down myproject
+   skybox down myproject
    ```
 
-2. **Continue anyway:** When prompted during `devbox up`, choose "Continue anyway" if you know the other machine is idle.
+2. **Continue anyway:** When prompted during `skybox up`, choose "Continue anyway" if you know the other machine is idle.
 
-3. **Wait for expiry:** Sessions automatically expire after 24 hours if the other machine crashed without running `devbox down`.
+3. **Wait for expiry:** Sessions automatically expire after 24 hours if the other machine crashed without running `skybox down`.
 
 ### Stale Session
 
@@ -309,20 +309,20 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
 
 **Solutions:**
 
-1. **Start the project:** Sessions expire after 24 hours automatically. If expired, `devbox up` proceeds without warning:
+1. **Start the project:** Sessions expire after 24 hours automatically. If expired, `skybox up` proceeds without warning:
    ```bash
-   devbox up myproject
+   skybox up myproject
    ```
 
 2. **Continue past the warning:** If the session hasn't expired yet:
    ```bash
-   devbox up myproject
+   skybox up myproject
    # Choose "Continue anyway" when prompted
    ```
 
 3. **Bypass session check for shell access:**
    ```bash
-   devbox shell myproject --force
+   skybox shell myproject --force
    ```
 
 ## Configuration Issues
@@ -337,13 +337,13 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
 
 1. **Validate config:**
    ```bash
-   devbox config --validate
+   skybox config --validate
    ```
 
 2. **Reset config:**
    ```bash
-   rm ~/.devbox/config.yaml
-   devbox init
+   rm ~/.skybox/config.yaml
+   skybox init
    ```
 
 ### Missing Remote
@@ -355,12 +355,12 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
 
 1. **List remotes:**
    ```bash
-   devbox remote list
+   skybox remote list
    ```
 
 2. **Add missing remote:**
    ```bash
-   devbox remote add myremote user@host
+   skybox remote add myremote user@host
    ```
 
 ## Getting Help
@@ -369,18 +369,18 @@ If these solutions don't help:
 
 1. **Run diagnostics:**
    ```bash
-   devbox doctor
+   skybox doctor
    ```
 
 2. **Check project status:**
    ```bash
-   devbox status myproject
+   skybox status myproject
    ```
 
 3. **Run with verbose:**
    ```bash
-   DEVBOX_DEBUG=1 devbox up myproject
+   SKYBOX_DEBUG=1 skybox up myproject
    ```
 
 4. **Report an issue:**
-   [GitHub Issues](https://github.com/NoorChasib/DevBox/issues)
+   [GitHub Issues](https://github.com/NoorXLabs/SkyBox/issues)

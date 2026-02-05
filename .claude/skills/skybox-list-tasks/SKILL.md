@@ -1,5 +1,5 @@
 ---
-name: devbox-list-tasks
+name: skybox-list-tasks
 description: Use when needing to see remaining tasks from IMPLEMENTATION.md, selecting tasks to work on, or preparing task context for a planning skill.
 ---
 

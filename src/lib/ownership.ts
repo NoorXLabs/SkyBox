@@ -94,7 +94,7 @@ export async function getOwnershipStatus(
 
 /**
  * Set ownership for a project on the remote.
- * Creates the .devbox-owner file with current user's info.
+ * Creates the .skybox-owner file with current user's info.
  */
 export async function setOwnership(
 	host: string,

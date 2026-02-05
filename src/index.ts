@@ -32,19 +32,19 @@ import pkg from "../package.json";
 // Install graceful shutdown handlers early
 installShutdownHandlers();
 
-// Run Docker check on bare `devbox` (no args) or `devbox init`
+// Run Docker check on bare `skybox` (no args) or `skybox init`
 const args = process.argv.slice(2);
 const command = args[0];
 const showDockerBanner =
-	args.length === 0 || // bare `devbox`
-	command === "init"; // `devbox init`
+	args.length === 0 || // bare `skybox`
+	command === "init"; // `skybox init`
 
 if (showDockerBanner) {
 	runStartupChecks();
 }
 
 program
-	.name("devbox")
+	.name("skybox")
 	.description("Local-first dev containers with remote sync")
 	.version(pkg.version, "-v, --version")
 	.option("--dry-run", "Preview commands without executing them");

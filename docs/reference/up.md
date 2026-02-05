@@ -1,18 +1,18 @@
-# devbox up
+# skybox up
 
 Start a development container for a project.
 
 ## Usage
 
 ```bash
-devbox up [project] [options]
+skybox up [project] [options]
 ```
 
 ## Arguments
 
 | Argument | Description |
 |----------|-------------|
-| `[project]` | Name of the project to start. If omitted, DevBox will try to detect the project from the current directory or prompt for selection. |
+| `[project]` | Name of the project to start. If omitted, SkyBox will try to detect the project from the current directory or prompt for selection. |
 
 ## Options
 
@@ -41,14 +41,14 @@ The `up` command starts a development container for the specified project. It pe
 
 ### Project Auto-Detection
 
-When no project argument is given, DevBox resolves the project in this order:
+When no project argument is given, SkyBox resolves the project in this order:
 
 1. Checks if the current working directory is inside a known project
 2. Prompts with a multi-select checkbox to start one or more projects at once (unless `--no-prompt` is set)
 
 ### Session System
 
-DevBox uses a session system to detect when a project is active on another machine. When starting a project:
+SkyBox uses a session system to detect when a project is active on another machine. When starting a project:
 
 - If no session exists, one is created automatically for your machine
 - If your machine already has the session, the timestamp is updated
@@ -57,7 +57,7 @@ DevBox uses a session system to detect when a project is active on another machi
 
 ### Archive Decryption
 
-If the project has encryption enabled and an encrypted archive exists on the remote server, DevBox will:
+If the project has encryption enabled and an encrypted archive exists on the remote server, SkyBox will:
 
 1. Prompt for your passphrase (up to 3 attempts)
 2. Download the encrypted archive from the remote
@@ -65,19 +65,19 @@ If the project has encryption enabled and an encrypted archive exists on the rem
 4. Upload the decrypted files back to the remote
 5. Extract and clean up
 
-If decryption fails after 3 attempts, `devbox up` exits without starting the container. See [`devbox encrypt`](/reference/encryption) for more details.
+If decryption fails after 3 attempts, `skybox up` exits without starting the container. See [`skybox encrypt`](/reference/encryption) for more details.
 
 ### Sync Resume
 
-If the Mutagen sync session exists but is paused (e.g., from a previous `devbox down`), it is automatically resumed during startup.
+If the Mutagen sync session exists but is paused (e.g., from a previous `skybox down`), it is automatically resumed during startup.
 
 ### Container Auto-Rebuild
 
-If the container fails to start on the first attempt, DevBox automatically retries with a full rebuild. If the rebuild also fails, the error is displayed. Use `--verbose` to see the full error output.
+If the container fails to start on the first attempt, SkyBox automatically retries with a full rebuild. If the rebuild also fails, the error is displayed. Use `--verbose` to see the full error output.
 
 ### Devcontainer Templates
 
-If no `.devcontainer/devcontainer.json` exists, DevBox offers to create one using the unified template selector. You can choose from built-in templates, your custom local templates stored in `~/.devbox/templates/`, or enter a git URL. See [Custom Templates](/reference/custom-templates) for details on creating and managing templates.
+If no `.devcontainer/devcontainer.json` exists, SkyBox offers to create one using the unified template selector. You can choose from built-in templates, your custom local templates stored in `~/.skybox/templates/`, or enter a git URL. See [Custom Templates](/reference/custom-templates) for details on creating and managing templates.
 
 ### Container States
 
@@ -89,7 +89,7 @@ If the container is already running, you can choose to:
 
 ### Post-Start Action Prompt
 
-After the container starts, DevBox determines what to do next:
+After the container starts, SkyBox determines what to do next:
 
 - If `-e` is passed: opens the configured editor
 - If `-a` is passed: attaches to the container shell
@@ -99,59 +99,59 @@ After the container starts, DevBox determines what to do next:
 
 ### Multi-Project Start
 
-When no project argument is given and multiple local projects exist, DevBox shows a checkbox to select one or more projects. Selected projects are started sequentially. After all projects start, you can choose to open all, choose specific ones, or skip.
+When no project argument is given and multiple local projects exist, SkyBox shows a checkbox to select one or more projects. Selected projects are started sequentially. After all projects start, you can choose to open all, choose specific ones, or skip.
 
 ### Batch Mode
 
-With `-A, --all`, DevBox starts every local project sequentially and reports a summary of how many succeeded and how many failed.
+With `-A, --all`, SkyBox starts every local project sequentially and reports a summary of how many succeeded and how many failed.
 
 ## Examples
 
 ```bash
 # Start a specific project
-devbox up my-project
+skybox up my-project
 
 # Start project and open in editor
-devbox up my-project --editor
+skybox up my-project --editor
 
 # Start project and attach to shell
-devbox up my-project --attach
+skybox up my-project --attach
 
 # Start with both editor and shell
-devbox up my-project -e -a
+skybox up my-project -e -a
 
 # Force rebuild the container
-devbox up my-project --rebuild
+skybox up my-project --rebuild
 
 # Non-interactive start (for scripts)
-devbox up my-project --no-prompt
+skybox up my-project --no-prompt
 
 # Show full error logs on failure
-devbox up my-project --verbose
+skybox up my-project --verbose
 
 # Start all local projects
-devbox up --all
+skybox up --all
 
 # Multi-select start (no argument)
-devbox up
+skybox up
 # Shows checkbox to pick which projects to start
 
 # Start from within project directory
-cd ~/.devbox/Projects/my-project
-devbox up
+cd ~/.skybox/Projects/my-project
+skybox up
 ```
 
 ### Workflow Example
 
 ```bash
 # Clone a project from remote
-devbox clone awesome-project
+skybox clone awesome-project
 
 # Start working on it
-devbox up awesome-project --editor
+skybox up awesome-project --editor
 
 # Or do it all in one go (clone offers to start container)
-devbox clone another-project
+skybox clone another-project
 # Answer "yes" when prompted to start container
 ```
 
@@ -164,9 +164,9 @@ devbox clone another-project
 
 ## See Also
 
-- [devbox down](/reference/down) - Stop the container
-- [devbox status](/reference/status) - Check container status
-- [devbox clone](/reference/clone) - Clone a project from remote
-- [devbox editor](/reference/editor) - Change default editor
+- [skybox down](/reference/down) - Stop the container
+- [skybox status](/reference/status) - Check container status
+- [skybox clone](/reference/clone) - Clone a project from remote
+- [skybox editor](/reference/editor) - Change default editor
 - [Custom Templates](/reference/custom-templates) - Create and manage reusable templates
 - [Hooks](/reference/hooks) - Run commands before/after lifecycle events

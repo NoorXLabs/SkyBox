@@ -10,7 +10,7 @@ docs/.vitepress/dist/
 vendor/
 
 # Bun build artifacts
-devbox-bin
+skybox-bin
 *.bun-build
 
 # Lockfile integrity cache

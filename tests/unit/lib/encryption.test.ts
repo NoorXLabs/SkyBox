@@ -7,7 +7,7 @@ describe("encryption", () => {
 	let testDir: string;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-enc-test-${Date.now()}`);
+		testDir = join(tmpdir(), `skybox-enc-test-${Date.now()}`);
 		mkdirSync(testDir, { recursive: true });
 	});
 
@@ -162,8 +162,8 @@ describe("encryption", () => {
 	test("ENCRYPTION_CHECK constants are exported", async () => {
 		const { ENCRYPTION_CHECK_FILENAME, ENCRYPTION_CHECK_CONTENT } =
 			await import("@lib/constants.ts");
-		expect(ENCRYPTION_CHECK_FILENAME).toBe(".devbox-enc-check");
-		expect(ENCRYPTION_CHECK_CONTENT).toBe("devbox-encryption-verify");
+		expect(ENCRYPTION_CHECK_FILENAME).toBe(".skybox-enc-check");
+		expect(ENCRYPTION_CHECK_CONTENT).toBe("skybox-encryption-verify");
 	});
 
 	test("deriveKeyLegacy produces different key from deriveKey", async () => {

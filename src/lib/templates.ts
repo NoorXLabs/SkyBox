@@ -85,7 +85,7 @@ export function validateTemplate(config: unknown): {
 }
 
 /**
- * Load user templates from ~/.devbox/templates/*.json.
+ * Load user templates from ~/.skybox/templates/*.json.
  */
 export function loadUserTemplates(): UserLocalTemplate[] {
 	const dir = getUserTemplatesDir();

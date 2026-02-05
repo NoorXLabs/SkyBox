@@ -85,7 +85,7 @@ export async function extractBundledMutagen(
 		if (!existsSync(assetPath)) {
 			return {
 				success: false,
-				error: `Bundled Mutagen asset not found at ${assetPath}. Run 'devbox update' to download.`,
+				error: `Bundled Mutagen asset not found at ${assetPath}. Run 'skybox update' to download.`,
 			};
 		}
 

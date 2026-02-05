@@ -1,11 +1,11 @@
-# devbox status
+# skybox status
 
 Show status of projects or detailed information about a specific project.
 
 ## Usage
 
 ```bash
-devbox status [project]
+skybox status [project]
 ```
 
 ## Arguments
@@ -20,7 +20,7 @@ This command has no options.
 
 ## Description
 
-The `status` command displays information about your DevBox projects. It has two modes:
+The `status` command displays information about your SkyBox projects. It has two modes:
 
 ### Overview Mode (no argument)
 
@@ -72,10 +72,10 @@ Shows comprehensive information organized into sections:
 
 ```bash
 # Show overview of all projects
-devbox status
+skybox status
 
 # Show detailed status of specific project
-devbox status my-api
+skybox status my-api
 ```
 
 ### Overview Output Example
@@ -92,7 +92,7 @@ Projects:
 ### Detailed Output Example
 
 ```bash
-devbox status my-api
+skybox status my-api
 
 # Output:
 # Project: my-api
@@ -107,7 +107,7 @@ devbox status my-api
 #
 # Sync
 #   Status:     syncing
-#   Session:    devbox-my-api
+#   Session:    skybox-my-api
 #   Pending:    0 files
 #   Last sync:  -
 #
@@ -130,10 +130,10 @@ devbox status my-api
 | Code | Meaning |
 |------|---------|
 | 0 | Success |
-| 1 | Error (DevBox not configured, project not found) |
+| 1 | Error (SkyBox not configured, project not found) |
 
 ## See Also
 
-- [devbox list](/reference/list) - Simple list of local projects
-- [devbox up](/reference/up) - Start a container
-- [devbox down](/reference/down) - Stop a container
+- [skybox list](/reference/list) - Simple list of local projects
+- [skybox up](/reference/up) - Start a container
+- [skybox down](/reference/down) - Stop a container

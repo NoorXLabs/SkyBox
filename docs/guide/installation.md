@@ -1,10 +1,10 @@
 # Installation
 
-This guide covers installing DevBox and its dependencies.
+This guide covers installing SkyBox and its dependencies.
 
 ## Prerequisites
 
-DevBox requires:
+SkyBox requires:
 
 | Software | Version | Purpose |
 |----------|---------|---------|
@@ -90,23 +90,23 @@ sudo npm install -g @devcontainers/cli
 
 :::
 
-## Install DevBox
+## Install SkyBox
 
 ::: code-group
 
 ```bash [macOS (Homebrew)]
 brew tap NoorXLabs/homebrew-tap
-brew install devbox
+brew install skybox
 ```
 
 ```bash [macOS (Direct Download)]
 # Install with one command (auto-detects architecture)
-curl -fsSL https://install.noorxlabs.com/devbox | bash
+curl -fsSL https://install.noorxlabs.com/skybox | bash
 ```
 
 ```bash [Linux / WSL]
 # Install with one command (auto-detects architecture)
-curl -fsSL https://install.noorxlabs.com/devbox | bash
+curl -fsSL https://install.noorxlabs.com/skybox | bash
 ```
 
 ```bash [From Source]
@@ -116,8 +116,8 @@ curl -fsSL https://install.noorxlabs.com/devbox | bash
 curl -fsSL https://bun.sh/install | bash
 
 # Clone and build
-git clone https://github.com/NoorXLabs/DevBox.git
-cd DevBox
+git clone https://github.com/NoorXLabs/SkyBox.git
+cd SkyBox
 bun install
 bun link
 ```
@@ -126,11 +126,11 @@ bun link
 
 ## Verify Installation
 
-Check that DevBox and its dependencies are installed correctly:
+Check that SkyBox and its dependencies are installed correctly:
 
 ```bash
-# Check DevBox
-devbox --version
+# Check SkyBox
+skybox --version
 
 # Check Docker is installed and running
 docker --version
@@ -147,7 +147,7 @@ You should see version numbers for all three tools. If `docker ps` fails, make s
 Run the interactive setup wizard:
 
 ```bash
-devbox init
+skybox init
 ```
 
 The wizard will:
@@ -160,7 +160,7 @@ The wizard will:
 ### Example Setup Session
 
 ```
-Welcome to devbox setup!
+Welcome to skybox setup!
 
 Checking dependencies...
   Docker installed
@@ -190,41 +190,41 @@ Preferred editor:
   5) Neovim
   6) Other
 
-Setting up devbox...
-  Created ~/.devbox
+Setting up skybox...
+  Created ~/.skybox
   Saved configuration
 
-devbox is ready!
+skybox is ready!
 
 Next steps:
-  Push a local project: devbox push ./my-project
-  Clone from remote: devbox clone <project-name>
-  Browse remote projects: devbox browse
+  Push a local project: skybox push ./my-project
+  Clone from remote: skybox clone <project-name>
+  Browse remote projects: skybox browse
 ```
 
 ## Configuration Location
 
-DevBox stores its configuration and projects in `~/.devbox/`:
+SkyBox stores its configuration and projects in `~/.skybox/`:
 
 ```
-~/.devbox/
+~/.skybox/
 ├── config.yaml      # Main configuration file
 ├── projects/        # Local project files
 ├── bin/             # Downloaded tools (mutagen)
 └── logs/            # Log files
 ```
 
-You can override this location with the `DEVBOX_HOME` environment variable:
+You can override this location with the `SKYBOX_HOME` environment variable:
 
 ```bash
-export DEVBOX_HOME=/custom/path/.devbox
+export SKYBOX_HOME=/custom/path/.skybox
 ```
 
 ## Troubleshooting
 
 ### Docker Not Found
 
-If `devbox init` reports Docker is not found:
+If `skybox init` reports Docker is not found:
 
 1. Ensure Docker is installed: `docker --version`
 2. Check Docker is running: `docker ps`
@@ -261,15 +261,15 @@ If Mutagen fails to install automatically:
 
 1. Check your internet connection
 2. Try manual installation: https://mutagen.io/documentation/introduction/installation
-3. Run `devbox init` again after installing manually
+3. Run `skybox init` again after installing manually
 
 ### Permission Denied Errors
 
 If you encounter permission issues:
 
 ```bash
-# Fix ownership of devbox directory
-sudo chown -R $USER:$USER ~/.devbox
+# Fix ownership of skybox directory
+sudo chown -R $USER:$USER ~/.skybox
 
 # Ensure SSH key has correct permissions
 chmod 600 ~/.ssh/id_ed25519
@@ -281,4 +281,4 @@ chmod 700 ~/.ssh
 Once installation is complete:
 
 - Follow the [Quick Start](/guide/quick-start) to create your first project
-- Learn about [Core Concepts](/guide/concepts) to understand how DevBox works
+- Learn about [Core Concepts](/guide/concepts) to understand how SkyBox works

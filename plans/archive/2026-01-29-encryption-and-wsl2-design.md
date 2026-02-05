@@ -16,11 +16,11 @@
 
 ### Summary
 
-DevBox runs on Bun (TypeScript) with Unix shell semantics. WSL2 provides a full Linux kernel, so DevBox should work as-is. This is a documentation and testing task, not a code change.
+SkyBox runs on Bun (TypeScript) with Unix shell semantics. WSL2 provides a full Linux kernel, so SkyBox should work as-is. This is a documentation and testing task, not a code change.
 
 ### Scope
 
-- Verify DevBox works on WSL2 Ubuntu (install, init, clone, up, down, sync)
+- Verify SkyBox works on WSL2 Ubuntu (install, init, clone, up, down, sync)
 - Verify Docker Desktop WSL2 backend integration
 - Document any setup quirks (e.g., Docker Desktop config, Bun installation)
 - Add WSL2 as a supported platform in docs
@@ -39,7 +39,7 @@ DevBox runs on Bun (TypeScript) with Unix shell semantics. WSL2 provides a full 
 
 ### Summary
 
-Protect project data on the remote server by encrypting it when not in active use. On `devbox down`, the project directory is tarred, encrypted with AES-256-GCM, and the plaintext is deleted. On `devbox up` or `devbox clone`, the user provides their passphrase to decrypt and extract the archive.
+Protect project data on the remote server by encrypting it when not in active use. On `skybox down`, the project directory is tarred, encrypted with AES-256-GCM, and the plaintext is deleted. On `skybox up` or `skybox clone`, the user provides their passphrase to decrypt and extract the archive.
 
 ### Threat Model
 
@@ -47,8 +47,8 @@ An unauthorized user with access to the remote server should not be able to read
 
 ### Encryption Approach: Encrypted Archive
 
-- **On `devbox down`:** Mutagen sync flushes and terminates. Project directory is tarred, encrypted, written as `myproject.tar.enc` inside the project directory. Plaintext files are deleted. Lock is released.
-- **On `devbox up`:** User enters passphrase. Archive is decrypted, extracted into the project directory. Archive is deleted. Mutagen sync starts normally.
+- **On `skybox down`:** Mutagen sync flushes and terminates. Project directory is tarred, encrypted, written as `myproject.tar.enc` inside the project directory. Plaintext files are deleted. Lock is released.
+- **On `skybox up`:** User enters passphrase. Archive is decrypted, extracted into the project directory. Archive is deleted. Mutagen sync starts normally.
 - **Trade-off:** Data is plaintext on the remote during active sessions. This is acceptable because the encrypted archive approach preserves Mutagen delta sync efficiency and avoids complexity of real-time encryption layers.
 
 ### Cryptographic Design
@@ -58,7 +58,7 @@ An unauthorized user with access to the remote server should not be able to read
 | Key derivation | `argon2Sync` from `node:crypto` (Argon2id, 32-byte key output) |
 | Encryption | AES-256-GCM via `node:crypto` `createCipheriv` / `createDecipheriv` |
 | Salt | Random bytes, generated once per project, stored in `config.yaml` |
-| Passphrase | Never stored. Entered by user on every `devbox up` / `devbox clone` / `devbox down` |
+| Passphrase | Never stored. Entered by user on every `skybox up` / `skybox clone` / `skybox down` |
 
 **No new dependencies.** All crypto is built into Bun's `node:crypto`.
 
@@ -99,7 +99,7 @@ defaults:
 
 ### CLI Integration
 
-#### `devbox init`
+#### `skybox init`
 
 After remote setup, add prompt:
 
@@ -109,7 +109,7 @@ Enable encryption for new projects by default? (y/N)
 
 If yes, sets `defaults.encryption: true` in config.
 
-#### `devbox new`
+#### `skybox new`
 
 After project name and template selection:
 
@@ -118,36 +118,36 @@ After project name and template selection:
 3. Prompt for passphrase
 4. Generate salt, save to project config
 
-#### `devbox up`
+#### `skybox up`
 
 1. Check `project.encryption.enabled`
 2. If true and `myproject.tar.enc` exists on remote: prompt passphrase, decrypt, extract, delete archive
 3. If true and no archive exists (first run or encryption just enabled): continue normally
 4. Proceed with normal flow (lock, sync, container)
 
-#### `devbox down`
+#### `skybox down`
 
 1. Normal flow: Mutagen flush and terminate
 2. Check `project.encryption.enabled`
 3. If true: prompt for passphrase, tar project directory on remote, encrypt, write `.tar.enc`, delete plaintext
 4. Release lock
 
-#### `devbox clone`
+#### `skybox clone`
 
 1. If cloning an encrypted project, prompt for passphrase to decrypt after download
 2. If user doesn't know the passphrase, fail with clear message
 
-#### `devbox encrypt enable [project]`
+#### `skybox encrypt enable [project]`
 
-New top-level command replacing `devbox config encryption`:
+New top-level command replacing `skybox config encryption`:
 
 1. If no project argument, show interactive project selection via `select()`
 2. Show double confirmation warning
 3. Prompt for passphrase
 4. Generate salt, save to project config
-5. Next `devbox down` will encrypt the remote data
+5. Next `skybox down` will encrypt the remote data
 
-#### `devbox encrypt disable [project]`
+#### `skybox encrypt disable [project]`
 
 1. If no project argument, show interactive project selection
 2. Prompt for passphrase (to verify access)
@@ -174,7 +174,7 @@ New top-level command replacing `devbox config encryption`:
 ```
 ⚠ Please confirm you understand:
   - There is NO way to recover your data without the passphrase
-  - DevBox cannot reset or bypass encryption
+  - SkyBox cannot reset or bypass encryption
   - You are solely responsible for storing your passphrase safely
 
   I understand the risks (y/N)
@@ -188,19 +188,19 @@ Only after both confirmations does it prompt for the passphrase.
 - AES-GCM decryption fails (auth tag mismatch)
 - Show "Incorrect passphrase" error
 - Allow 3 attempts max
-- After 3 failures: "Failed to decrypt after 3 attempts. Run `devbox up` to try again." and exit
+- After 3 failures: "Failed to decrypt after 3 attempts. Run `skybox up` to try again." and exit
 
-**Interrupted `devbox down` mid-encryption:**
+**Interrupted `skybox down` mid-encryption:**
 - Plaintext still on remote, no archive written
-- Next `devbox up` sees no archive, continues normally
+- Next `skybox up` sees no archive, continues normally
 - Data is safe
 
-**Interrupted `devbox down` after archive written but before plaintext deleted:**
+**Interrupted `skybox down` after archive written but before plaintext deleted:**
 - Both archive and plaintext exist
-- Next `devbox up` sees archive, decrypts, overwrites stale plaintext
+- Next `skybox up` sees archive, decrypts, overwrites stale plaintext
 - Data is safe
 
-**Interrupted `devbox up` mid-decryption:**
+**Interrupted `skybox up` mid-decryption:**
 - Archive still intact on remote
 - Retry works
 
@@ -221,7 +221,7 @@ Only after both confirmations does it prompt for the passphrase.
 
 ### Passphrase Verification
 
-Store a small known-plaintext marker inside the archive (`.devbox-enc-check` file) to verify correct passphrase before full extraction.
+Store a small known-plaintext marker inside the archive (`.skybox-enc-check` file) to verify correct passphrase before full extraction.
 
 ### Files Changed
 
@@ -233,8 +233,8 @@ Store a small known-plaintext marker inside the archive (`.devbox-enc-check` fil
 | `src/commands/clone.ts` | Add passphrase prompt for encrypted projects |
 | `src/commands/new.ts` | Add encryption prompt during project creation |
 | `src/commands/init.ts` | Add default encryption preference prompt |
-| `src/commands/config.ts` | Remove encryption subcommand (moved to `devbox encrypt`) |
-| `src/commands/encrypt.ts` | New file: `devbox encrypt enable/disable [project]` command |
+| `src/commands/config.ts` | Remove encryption subcommand (moved to `skybox encrypt`) |
+| `src/commands/encrypt.ts` | New file: `skybox encrypt enable/disable [project]` command |
 | `src/index.ts` | Register new `encrypt` command |
 | `src/types/index.ts` | Add `ProjectEncryption` interface to project config type |
 
@@ -242,7 +242,7 @@ Store a small known-plaintext marker inside the archive (`.devbox-enc-check` fil
 
 | File | Purpose |
 |------|---------|
-| `src/commands/encrypt.ts` | `devbox encrypt enable/disable [project]` command |
+| `src/commands/encrypt.ts` | `skybox encrypt enable/disable [project]` command |
 | `src/lib/__tests__/encryption.test.ts` | Tests for streaming encrypt/decrypt, argon2 key derivation |
 | `src/commands/__tests__/encrypt.test.ts` | Tests for encrypt command |
 
@@ -252,6 +252,6 @@ Store a small known-plaintext marker inside the archive (`.devbox-enc-check` fil
 |------|---------|
 | `docs/reference/encryption.md` | New page: how encryption works, setup, passphrase management |
 | `docs/reference/commands.md` | Update `up`, `down`, `clone`, `new`, `init` entries; add `encrypt` command |
-| `docs/reference/config.md` | Remove encryption subcommand, reference `devbox encrypt` instead |
+| `docs/reference/config.md` | Remove encryption subcommand, reference `skybox encrypt` instead |
 | `plans/IMPLEMENTATION.md` | Add encryption integration tasks to tracker |
 | `CHANGELOG.md` | Add encryption feature entry |

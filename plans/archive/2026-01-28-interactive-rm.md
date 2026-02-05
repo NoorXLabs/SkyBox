@@ -1,8 +1,8 @@
-# Interactive Remove (`devbox rm`) Implementation Plan
+# Interactive Remove (`skybox rm`) Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** When `devbox rm` is called with no arguments, show a multi-select list of local projects so the user can choose one or more to remove interactively.
+**Goal:** When `skybox rm` is called with no arguments, show a multi-select list of local projects so the user can choose one or more to remove interactively.
 
 **Architecture:** Add argument-less invocation path to the existing `rm` command. When no project argument is given, fetch local projects via `getLocalProjects()`, present them with `checkbox` from `@inquirer/prompts`, then loop through selections calling the existing `rmCommand()` logic for each.
 

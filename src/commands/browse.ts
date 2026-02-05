@@ -59,18 +59,18 @@ function printProjects(
 	}
 
 	console.log();
-	info("Run 'devbox clone <project>' to clone a project locally.");
+	info("Run 'skybox clone <project>' to clone a project locally.");
 }
 
 function printEmpty(): void {
 	console.log();
 	console.log("No projects found on remote.");
-	info("Run 'devbox push ./my-project' to push your first project.");
+	info("Run 'skybox push ./my-project' to push your first project.");
 }
 
 export async function browseCommand(): Promise<void> {
 	if (!configExists()) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 

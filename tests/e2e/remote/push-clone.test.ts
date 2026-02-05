@@ -55,7 +55,7 @@ describe.skipIf(!e2eConfigured)("rsync push and clone workflow", () => {
 			? ["-e", `ssh -i ${ctx.testRemote.key}`]
 			: [];
 
-		// Push to remote using rsync (what devbox push does internally)
+		// Push to remote using rsync (what skybox push does internally)
 		await withRetry(async () => {
 			const remotePath = `${ctx.testRemote.user}@${ctx.testRemote.host}:${ctx.remotePath}/${ctx.projectName}`;
 			await execa("rsync", [

@@ -1,5 +1,5 @@
 ---
-name: devbox-impl-cleanup
+name: skybox-impl-cleanup
 description: Use when completed features need to be archived from IMPLEMENTATION.md, when removing obsolete features, or when the implementation tracker needs cleanup after a release cycle.
 ---
 

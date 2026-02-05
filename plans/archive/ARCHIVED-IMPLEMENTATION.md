@@ -1,8 +1,8 @@
-# DevBox - Archived Implementation History
+# SkyBox - Archived Implementation History
 
 > **Archived:** 2026-01-30
 >
-> This file contains all completed implementation work from the DevBox project, organized by phase with commit references for traceability.
+> This file contains all completed implementation work from the SkyBox project, organized by phase with commit references for traceability.
 >
 > **For active tasks and future features, see:** [`plans/IMPLEMENTATION.md`](../IMPLEMENTATION.md)
 
@@ -12,27 +12,27 @@
 
 ### Commands (22/22 Complete)
 
-- [x] `devbox init` - Interactive setup wizard
-- [x] `devbox browse` - List projects on remote server (with lock status)
-- [x] `devbox list` - List local projects
-- [x] `devbox clone` - Clone remote project locally
-- [x] `devbox push` - Push local project to remote
-- [x] `devbox up` - Start container with lock acquisition
-- [x] `devbox down` - Stop container with sync flush and lock release
-- [x] `devbox status` - Show detailed project status
-- [x] `devbox open` - Open editor/shell for running container
-- [x] `devbox editor` - Configure default editor
-- [x] `devbox rm` - Remove local project
-- [x] `devbox shell` - Enter container shell
-- [x] `devbox new` - Create new project on remote
-- [x] `devbox config` - View/modify configuration
-- [x] `devbox remote` - Manage multiple remote servers
-- [x] `devbox logs` - Show container or sync logs
-- [x] `devbox update` - Update Mutagen binary
-- [x] `devbox encrypt` - Enable/disable project encryption
-- [x] `devbox dashboard` - TUI dashboard with real-time status
-- [x] `devbox locks` - Cross-project lock overview
-- [x] `devbox hook` - Generate shell integration hooks
+- [x] `skybox init` - Interactive setup wizard
+- [x] `skybox browse` - List projects on remote server (with lock status)
+- [x] `skybox list` - List local projects
+- [x] `skybox clone` - Clone remote project locally
+- [x] `skybox push` - Push local project to remote
+- [x] `skybox up` - Start container with lock acquisition
+- [x] `skybox down` - Stop container with sync flush and lock release
+- [x] `skybox status` - Show detailed project status
+- [x] `skybox open` - Open editor/shell for running container
+- [x] `skybox editor` - Configure default editor
+- [x] `skybox rm` - Remove local project
+- [x] `skybox shell` - Enter container shell
+- [x] `skybox new` - Create new project on remote
+- [x] `skybox config` - View/modify configuration
+- [x] `skybox remote` - Manage multiple remote servers
+- [x] `skybox logs` - Show container or sync logs
+- [x] `skybox update` - Update Mutagen binary
+- [x] `skybox encrypt` - Enable/disable project encryption
+- [x] `skybox dashboard` - TUI dashboard with real-time status
+- [x] `skybox locks` - Cross-project lock overview
+- [x] `skybox hook` - Generate shell integration hooks
 
 ### Core Features
 
@@ -92,7 +92,7 @@
 
 ### Path Management
 
-- [x] **Task 17:** Centralize DEVBOX_HOME computation — `b421fa1`
+- [x] **Task 17:** Centralize SKYBOX_HOME computation — `b421fa1`
 - [x] **Task 18:** Use getters for dynamic paths — `b421fa1`
 
 ### Error Handling
@@ -183,15 +183,15 @@
 
 ## Completed Future Features
 
-- [x] **Open Command:** `devbox open [project]` — `63b2f16`
+- [x] **Open Command:** `skybox open [project]` — `63b2f16`
 - [x] **Selective Sync:** sync_paths, selectiveSessionName, createSelectiveSyncSessions
-- [x] **Interactive Remove (`devbox rm`):** Multi-select when no args
-- [x] **Remote Project Delete (`devbox rm --remote`):** With double confirmation
+- [x] **Interactive Remove (`skybox rm`):** Multi-select when no args
+- [x] **Remote Project Delete (`skybox rm --remote`):** With double confirmation
 - [x] **Devcontainer Repair:** edit/reset subcommands under config
-- [x] **Health Check Command:** `devbox doctor` — `0a1a775`, `9ed4095`, `6116e95`, `8c6a18a`, `3510e97`, `779368b`, `fa27fb3`, `2530888`
-- [x] **Logs Command:** `devbox logs`
+- [x] **Health Check Command:** `skybox doctor` — `0a1a775`, `9ed4095`, `6116e95`, `8c6a18a`, `3510e97`, `779368b`, `fa27fb3`, `2530888`
+- [x] **Logs Command:** `skybox logs`
 - [x] **Batch Operations:** `--all` flag on up and down
-- [x] **Update Command:** `devbox update`
+- [x] **Update Command:** `skybox update`
 - [x] **Encryption:** AES-256-GCM foundation + full project encryption at rest (Argon2id KDF)
 - [x] **End-to-end Encryption:** Promoted to Medium Priority; implemented as "Project Encryption at Rest"
 
@@ -270,7 +270,7 @@
 ## Notes
 
 - **Test coverage:** 38 test files with 239+ tests
-- **Environment variables:** `DEVBOX_HOME`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`
+- **Environment variables:** `SKYBOX_HOME`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`
 - **Template repos:** Placeholder URLs in `src/lib/projectTemplates.ts` need real repos or removal (tracked in Future Features > High Priority)
 
 ---
@@ -303,8 +303,8 @@
 
 - [x] **Status Dashboard (TUI)** — Ink/React dashboard with auto-refresh, keyboard navigation — `15f0705`
 - [x] **Hooks System** — Pre/post lifecycle hooks for up/down commands — `15f0705`
-- [x] **Multi-Select Up** — Checkbox multi-select when `devbox up` run without args — `15f0705`
-- [x] **Interactive Clone** — Checkbox multi-select when `devbox clone` run without args — `15f0705`
+- [x] **Multi-Select Up** — Checkbox multi-select when `skybox up` run without args — `15f0705`
+- [x] **Interactive Clone** — Checkbox multi-select when `skybox clone` run without args — `15f0705`
 - [x] **Lock Ownership Fix** — Enforce ownership check before lock release — `ced69e4`
 - [x] **Atomic Lock Takeover** — Force flag with atomic test-and-set for team sync — `ced69e4`
 - [x] **CHANGELOG Release Notes** — GitHub releases populated from CHANGELOG.md — `dc1aa77`
@@ -315,8 +315,8 @@
 
 - [x] **Version Update Notification** — Daily check for new releases with channel-aware updates — `f934571`
 - [x] **Install Method Detection** — Build-time constant for correct upgrade commands — `f934571`
-- [x] **Custom Local Templates** — User templates in `~/.devbox/templates/` with unified selector — `a2e0cab`
-- [x] **Bundle Mutagen with DevBox** — Embedded platform-specific Mutagen binary — `f934571`
+- [x] **Custom Local Templates** — User templates in `~/.skybox/templates/` with unified selector — `a2e0cab`
+- [x] **Bundle Mutagen with SkyBox** — Embedded platform-specific Mutagen binary — `f934571`
 
 ---
 
@@ -328,23 +328,23 @@
   - Added `expires` field to `LockInfo` interface
   - Added `LOCK_TTL_MS` constant (24 hours)
   - `getLockStatus()` checks expiry before returning locked status
-- [x] **Browse Lock Column** — `devbox browse` shows lock status for each project — `9b51100`
-- [x] **Locks Command** — `devbox locks` for cross-project lock overview — `9b51100`
+- [x] **Browse Lock Column** — `skybox browse` shows lock status for each project — `9b51100`
+- [x] **Locks Command** — `skybox locks` for cross-project lock overview — `9b51100`
   - `getAllLockStatuses()` fetches all locks in single SSH call
 
 ### Shell Integration (PR #31)
 
 - [x] **Auto-Up Shell Hooks** — Container auto-starts when entering project directory — `afb693b`
-  - `devbox hook bash` — Generates bash shell hook
-  - `devbox hook zsh` — Generates zsh shell hook
-  - `devbox hook-check` — Hidden command for hook execution
+  - `skybox hook bash` — Generates bash shell hook
+  - `skybox hook zsh` — Generates zsh shell hook
+  - `skybox hook-check` — Hidden command for hook execution
   - Configuration via `auto_up` in project or defaults config
 
 ---
 
 ## Interactive Multi-Select Remote Deletion (PR #39)
 
-- [x] **`devbox rm --remote` Multi-Select** — Interactive checkbox deletion of remote projects with double confirmation — `22e6b82`
+- [x] **`skybox rm --remote` Multi-Select** — Interactive checkbox deletion of remote projects with double confirmation — `22e6b82`
 
 ---
 
@@ -357,7 +357,7 @@ Comprehensive security remediation across 5 batches (CRITICAL → LOW), plus cod
 - [x] **Config file permissions** — Set 0o600 on config, 0o700 on directories — `09a6315`
 - [x] **Shell injection prevention** — Escape all remote command args via `escapeShellArg()` — `e403e61`
 - [x] **Mutagen checksum verification** — SHA256 integrity check before execution — `5e1edb9`
-- [x] **DevBox directory permissions** — Create directories with 0o700 — `d3e1a23`
+- [x] **SkyBox directory permissions** — Create directories with 0o700 — `d3e1a23`
 
 ### Batch 2: High Priority Fixes
 
@@ -372,7 +372,7 @@ Comprehensive security remediation across 5 batches (CRITICAL → LOW), plus cod
 
 ### Batch 3b: Medium Fixes (High Effort)
 
-- [x] **Resource ownership system** — `.devbox-owner` metadata for project access control
+- [x] **Resource ownership system** — `.skybox-owner` metadata for project access control
 - [x] **GPG signature verification** — Verify Mutagen downloads with GPG when available — `f27cb57`
 
 ### Batch 4: Information Disclosure Fixes

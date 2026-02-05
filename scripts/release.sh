@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# Release DevBox
+# Release SkyBox
 #
 # Usage: ./scripts/release.sh <version>
 # Example: ./scripts/release.sh 0.5.0
@@ -55,7 +55,7 @@ echo ""
 echo "Released ${TAG}"
 echo ""
 echo "Watch the build at:"
-echo "  https://github.com/NoorXLabs/DevBox/actions"
+echo "  https://github.com/NoorXLabs/SkyBox/actions"
 echo ""
 echo "Release will appear at:"
-echo "  https://github.com/NoorXLabs/DevBox/releases/tag/${TAG}"
+echo "  https://github.com/NoorXLabs/SkyBox/releases/tag/${TAG}"

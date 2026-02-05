@@ -41,8 +41,8 @@ export interface ProjectConfig {
 	editor?: string;
 }
 
-/** V1 DevBox configuration (single remote, deprecated) */
-export interface DevboxConfig {
+/** V1 SkyBox configuration (single remote, deprecated) */
+export interface SkyboxConfig {
 	remote: RemoteConfig;
 	editor: string;
 	defaults: SyncDefaults;
@@ -66,8 +66,8 @@ export interface ProjectEncryption {
 	salt?: string;
 }
 
-/** V2 DevBox configuration with multiple named remotes */
-export interface DevboxConfigV2 {
+/** V2 SkyBox configuration with multiple named remotes */
+export interface SkyboxConfigV2 {
 	editor: string;
 	defaults: SyncDefaults;
 	remotes: Record<string, RemoteEntry>; // name -> remote
@@ -235,7 +235,7 @@ export interface UserTemplate {
 	url: string;
 }
 
-// User local devcontainer template (stored in ~/.devbox/templates/)
+// User local devcontainer template (stored in ~/.skybox/templates/)
 export interface UserLocalTemplate {
 	name: string;
 	config: DevcontainerConfig;
@@ -269,7 +269,7 @@ export interface OpenOptions {
 }
 
 // Ownership types
-/** Project ownership metadata stored in .devbox-owner */
+/** Project ownership metadata stored in .skybox-owner */
 export interface OwnershipInfo {
 	owner: string; // Local OS username who created the project
 	created: string; // ISO 8601 timestamp

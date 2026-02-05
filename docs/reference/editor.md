@@ -1,11 +1,11 @@
-# devbox editor
+# skybox editor
 
 Change the default editor for opening projects.
 
 ## Usage
 
 ```bash
-devbox editor
+skybox editor
 ```
 
 ## Arguments
@@ -18,11 +18,11 @@ This command has no options.
 
 ## Description
 
-The `editor` command allows you to change the default editor that DevBox uses when opening projects with `devbox up --editor`. It runs interactively and shows your current editor setting.
+The `editor` command allows you to change the default editor that SkyBox uses when opening projects with `skybox up --editor`. It runs interactively and shows your current editor setting.
 
 ### Supported Editors
 
-DevBox has built-in support for:
+SkyBox has built-in support for:
 
 | Editor | Command |
 |--------|---------|
@@ -34,13 +34,13 @@ You can also specify a custom editor command by selecting "Other (specify comman
 
 ### How Editors Are Opened
 
-When you run `devbox up --editor`, DevBox uses the devcontainer CLI to open the project in your configured editor. This ensures the editor connects to the running container with proper devcontainer integration.
+When you run `skybox up --editor`, SkyBox uses the devcontainer CLI to open the project in your configured editor. This ensures the editor connects to the running container with proper devcontainer integration.
 
 ## Examples
 
 ```bash
 # Change default editor
-devbox editor
+skybox editor
 ```
 
 ### Interactive Session
@@ -70,9 +70,9 @@ Default editor updated to sublime.
 
 ## Configuration
 
-The editor setting is stored in `~/.devbox/config.yaml`. You can also set it during initial setup with `devbox init`.
+The editor setting is stored in `~/.skybox/config.yaml`. You can also set it during initial setup with `skybox init`.
 
 ## See Also
 
-- [devbox init](/reference/init) - Initial setup (also sets editor)
-- [devbox up](/reference/up) - Start container and open in editor
+- [skybox init](/reference/init) - Initial setup (also sets editor)
+- [skybox up](/reference/up) - Start container and open in editor

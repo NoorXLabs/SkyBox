@@ -90,7 +90,7 @@ describe("interactive clone with local projects", () => {
 		ctx.cleanup();
 	});
 
-	test("getLocalProjects returns project directories in DEVBOX_HOME/Projects", () => {
+	test("getLocalProjects returns project directories in SKYBOX_HOME/Projects", () => {
 		const projectsDir = join(ctx.testDir, "Projects");
 		mkdirSync(join(projectsDir, "alpha"), { recursive: true });
 		mkdirSync(join(projectsDir, "beta"), { recursive: true });

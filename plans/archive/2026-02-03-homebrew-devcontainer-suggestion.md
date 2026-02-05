@@ -5,7 +5,7 @@
 
 ## Summary
 
-When `devbox doctor` detects that the devcontainer CLI is missing, suggest `brew install devcontainer` if Homebrew is available, otherwise fall back to `npm install -g @devcontainers/cli`.
+When `skybox doctor` detects that the devcontainer CLI is missing, suggest `brew install devcontainer` if Homebrew is available, otherwise fall back to `npm install -g @devcontainers/cli`.
 
 ## Implementation
 
@@ -57,5 +57,5 @@ Update `docs/reference/doctor.md` to mention both install options in the "Devcon
 
 Manual testing:
 1. Uninstall devcontainer CLI
-2. Run `devbox doctor` on macOS with Homebrew - should suggest `brew install devcontainer`
-3. Run `devbox doctor` on system without Homebrew - should suggest npm install
+2. Run `skybox doctor` on macOS with Homebrew - should suggest `brew install devcontainer`
+3. Run `skybox doctor` on system without Homebrew - should suggest npm install

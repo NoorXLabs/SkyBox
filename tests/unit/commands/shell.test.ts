@@ -26,7 +26,7 @@ describe("shell command", () => {
 		writeFileSync(
 			join(ctx.testDir, "config.yaml"),
 			`remote:
-  host: devbox-server
+  host: skybox-server
   base_path: ~/code
 editor: cursor
 defaults:

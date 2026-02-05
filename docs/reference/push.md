@@ -1,11 +1,11 @@
-# devbox push
+# skybox push
 
 Push a local project to the remote server.
 
 ## Usage
 
 ```bash
-devbox push <path> [name]
+skybox push <path> [name]
 ```
 
 ## Arguments
@@ -29,16 +29,16 @@ The `push` command uploads a local project to your configured remote server and 
 4. **Remote Check** - Checks if project already exists on remote (prompts to overwrite)
 5. **Ownership Check** - If the project exists on remote, verifies you are the owner before allowing overwrite
 6. **Remote Setup** - Creates the project directory on the remote server
-7. **Local Copy** - Copies project to DevBox projects directory
+7. **Local Copy** - Copies project to SkyBox projects directory
 8. **Sync Setup** - Creates a Mutagen sync session for bidirectional synchronization (uses selective sync if project has `sync_paths` configured)
 9. **Initial Sync** - Uploads all files to the remote
 10. **Set Ownership** - Records you as the project owner on the remote
-11. **Registration** - Registers the project in DevBox configuration
+11. **Registration** - Registers the project in SkyBox configuration
 12. **Container Prompt** - Offers to start the development container immediately
 
 ### Git Repository
 
-DevBox works best with git repositories. If the project isn't a git repo, you'll be prompted to initialize one. This enables:
+SkyBox works best with git repositories. If the project isn't a git repo, you'll be prompted to initialize one. This enables:
 
 - Branch tracking in status output
 - Change detection
@@ -49,28 +49,28 @@ DevBox works best with git repositories. If the project isn't a git repo, you'll
 If you don't specify a name, the directory name is used:
 
 ```bash
-devbox push ./my-awesome-project
+skybox push ./my-awesome-project
 # Creates project named "my-awesome-project"
 
-devbox push ./my-awesome-project cool-api
+skybox push ./my-awesome-project cool-api
 # Creates project named "cool-api"
 ```
 
 ### Local Storage
 
-After pushing, the project is copied to `~/.devbox/Projects/<project-name>` and sync is established between this location and the remote.
+After pushing, the project is copied to `~/.skybox/Projects/<project-name>` and sync is established between this location and the remote.
 
 ## Examples
 
 ```bash
 # Push current project with directory name
-devbox push ./my-project
+skybox push ./my-project
 
 # Push with a custom name
-devbox push ./my-project my-api
+skybox push ./my-project my-api
 
 # Push project from anywhere
-devbox push /path/to/my-project
+skybox push /path/to/my-project
 ```
 
 ### Container Auto-Start
@@ -81,13 +81,13 @@ After pushing, you'll be prompted to start the development container:
 ? Start dev container now? (y/N)
 ```
 
-Choosing **yes** runs the full [`devbox up`](/reference/up) flow:
+Choosing **yes** runs the full [`skybox up`](/reference/up) flow:
 - Creates a session for your machine
 - Prompts for devcontainer template (if none exists)
 - Starts the container
 - Offers to open in your editor or attach to shell
 
-Choosing **no** displays the project location and you can start later with `devbox up`.
+Choosing **no** displays the project location and you can start later with `skybox up`.
 
 ### Workflow Example
 
@@ -96,7 +96,7 @@ Choosing **no** displays the project location and you can start later with `devb
 cd ~/code/my-new-app
 
 # Push it to remote and start container immediately
-devbox push .
+skybox push .
 # ? Start dev container now? Yes
 # ─── Starting 'my-new-app'... ───
 # ℹ Session started
@@ -106,7 +106,7 @@ devbox push .
 
 ### Project Ownership
 
-When you push a project, DevBox automatically records you as the owner on the remote server (via a `.devbox-owner` file). This prevents other users from accidentally overwriting or deleting your projects.
+When you push a project, SkyBox automatically records you as the owner on the remote server (via a `.skybox-owner` file). This prevents other users from accidentally overwriting or deleting your projects.
 
 If someone else owns the project, the push is blocked:
 
@@ -122,7 +122,7 @@ Projects without an ownership file (e.g., those created before this feature) can
 If the project already exists on remote:
 
 ```bash
-devbox push ./my-project
+skybox push ./my-project
 
 # Output:
 # Pushing 'my-project' to server:~/code/my-project...
@@ -141,7 +141,7 @@ You'll be prompted twice for confirmation to prevent accidental data loss.
 
 ## See Also
 
-- [devbox clone](/reference/clone) - Clone project from remote
-- [devbox browse](/reference/browse) - List projects on remote
-- [devbox up](/reference/up) - Start the container
-- [devbox list](/reference/list) - List local projects
+- [skybox clone](/reference/clone) - Clone project from remote
+- [skybox browse](/reference/browse) - List projects on remote
+- [skybox up](/reference/up) - Start the container
+- [skybox list](/reference/list) - List local projects

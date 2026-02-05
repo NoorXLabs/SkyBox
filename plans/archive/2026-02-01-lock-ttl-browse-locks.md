@@ -2,9 +2,9 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Add lock expiry (TTL), lock status to `devbox browse`, and a `devbox locks` command for cross-project lock overview.
+**Goal:** Add lock expiry (TTL), lock status to `skybox browse`, and a `skybox locks` command for cross-project lock overview.
 
-**Architecture:** Extend `LockInfo` with an `expires` field set on acquire. `getLockStatus()` treats expired locks as unlocked. Browse and locks commands reuse `getLockStatus()` via a new `getAllLockStatuses()` helper that reads all `.devbox-locks/*.lock` files in a single SSH call.
+**Architecture:** Extend `LockInfo` with an `expires` field set on acquire. `getLockStatus()` treats expired locks as unlocked. Browse and locks commands reuse `getLockStatus()` via a new `getAllLockStatuses()` helper that reads all `.skybox-locks/*.lock` files in a single SSH call.
 
 **Tech Stack:** TypeScript, Commander.js, Bun test runner, SSH remote commands
 
@@ -207,7 +207,7 @@ git commit -m "feat: add lock TTL — expired locks treated as unlocked"
 
 ---
 
-## Task 3: Add lock status column to `devbox browse`
+## Task 3: Add lock status column to `skybox browse`
 
 **Files:**
 - Modify: `src/lib/lock.ts` (add `getAllLockStatuses()` helper)
@@ -463,18 +463,18 @@ function printProjects(
 	}
 
 	console.log();
-	info("Run 'devbox clone <project>' to clone a project locally.");
+	info("Run 'skybox clone <project>' to clone a project locally.");
 }
 
 function printEmpty(): void {
 	console.log();
 	console.log("No projects found on remote.");
-	info("Run 'devbox push ./my-project' to push your first project.");
+	info("Run 'skybox push ./my-project' to push your first project.");
 }
 
 export async function browseCommand(): Promise<void> {
 	if (!configExists()) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -521,12 +521,12 @@ Expected: ALL PASS
 
 ```bash
 git add src/lib/lock.ts src/lib/__tests__/lock.test.ts src/commands/browse.ts
-git commit -m "feat: add lock status column to devbox browse"
+git commit -m "feat: add lock status column to skybox browse"
 ```
 
 ---
 
-## Task 4: Add `devbox locks` command
+## Task 4: Add `skybox locks` command
 
 **Files:**
 - Create: `src/commands/locks.ts`
@@ -558,7 +558,7 @@ function formatLockRow(project: string, status: LockStatus): string {
 
 export async function locksCommand(): Promise<void> {
 	if (!configExists()) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -582,7 +582,7 @@ export async function locksCommand(): Promise<void> {
 		if (statuses.size === 0) {
 			console.log();
 			console.log("No lock files found on remote.");
-			info("Locks are created when someone runs 'devbox up'.");
+			info("Locks are created when someone runs 'skybox up'.");
 			return;
 		}
 
@@ -639,7 +639,7 @@ Expected: ALL PASS
 
 ```bash
 git add src/commands/locks.ts src/index.ts
-git commit -m "feat: add devbox locks command for cross-project lock overview"
+git commit -m "feat: add skybox locks command for cross-project lock overview"
 ```
 
 ---
@@ -656,18 +656,18 @@ After the "Stale Lock After Crash" troubleshooting section, add:
 ```markdown
 ### Lock Expiry (TTL)
 
-Locks automatically expire after 24 hours. If a machine crashes without running `devbox down`, the lock becomes stale and other developers can acquire it without a takeover prompt.
+Locks automatically expire after 24 hours. If a machine crashes without running `skybox down`, the lock becomes stale and other developers can acquire it without a takeover prompt.
 
 To check if a lock is stale, run:
 
 ```bash
-devbox status backend-api
+skybox status backend-api
 ```
 
 Expired locks are treated as unlocked — no manual intervention needed.
 ```
 
-**Step 2: Add `devbox locks` to the communication patterns section**
+**Step 2: Add `skybox locks` to the communication patterns section**
 
 After the "Quick Status Check" subsection, add:
 
@@ -677,7 +677,7 @@ After the "Quick Status Check" subsection, add:
 See all locks across projects on a remote:
 
 ```bash
-devbox locks
+skybox locks
 ```
 
 ```
@@ -688,14 +688,14 @@ Locks on team-server:
   frontend-app                    unlocked
 ```
 
-The `devbox browse` command also shows a LOCK column for each remote project.
+The `skybox browse` command also shows a LOCK column for each remote project.
 ```
 
 **Step 3: Commit**
 
 ```bash
 git add docs/guide/workflows/team-sharing.md
-git commit -m "docs: add lock TTL and devbox locks command documentation"
+git commit -m "docs: add lock TTL and skybox locks command documentation"
 ```
 
 ---
@@ -713,5 +713,5 @@ Expected: ALL PASS
 
 | File | Change |
 |------|--------|
-| `docs/guide/workflows/team-sharing.md` | Add lock TTL info, `devbox locks` command, note about browse showing locks |
+| `docs/guide/workflows/team-sharing.md` | Add lock TTL info, `skybox locks` command, note about browse showing locks |
 | `CHANGELOG.md` | Document lock TTL, browse lock column, locks command (at release time) |

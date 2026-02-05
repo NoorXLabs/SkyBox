@@ -524,8 +524,8 @@ Edit `src/lib/hooks.ts`:
 let hookWarningShown = false;
 
 async function executeHook(command: string): Promise<void> {
-	if (!hookWarningShown && process.env.DEVBOX_HOOK_WARNINGS !== "0") {
-		console.warn("⚠️  Executing user-defined hook (see devbox docs for security info)");
+	if (!hookWarningShown && process.env.SKYBOX_HOOK_WARNINGS !== "0") {
+		console.warn("⚠️  Executing user-defined hook (see skybox docs for security info)");
 		hookWarningShown = true;
 	}
 
@@ -546,7 +546,7 @@ git commit -m "$(cat <<'EOF'
 fix(security): add hook execution security warning
 
 Show one-time warning when hooks execute to remind users that hooks
-run with full shell access. Disable with DEVBOX_HOOK_WARNINGS=0.
+run with full shell access. Disable with SKYBOX_HOOK_WARNINGS=0.
 
 Documents MEDIUM finding #20 from security audit.
 EOF
@@ -600,10 +600,10 @@ Create `src/lib/config-schema.ts`:
 
 ```typescript
 /**
- * Runtime schema validation for DevBox config.
+ * Runtime schema validation for SkyBox config.
  */
 
-import type { DevboxConfigV2 } from "@typedefs/index.ts";
+import type { SkyboxConfigV2 } from "@typedefs/index.ts";
 
 export class ConfigValidationError extends Error {
 	constructor(field: string, message: string) {
@@ -619,7 +619,7 @@ const VALID_SYNC_MODES = ["two-way-resolved", "two-way-safe", "one-way-replica"]
  * Validate a config object at runtime.
  * Throws ConfigValidationError if invalid.
  */
-export function validateConfig(config: unknown): asserts config is DevboxConfigV2 {
+export function validateConfig(config: unknown): asserts config is SkyboxConfigV2 {
 	if (typeof config !== "object" || config === null) {
 		throw new ConfigValidationError("root", "Config must be an object");
 	}
@@ -689,7 +689,7 @@ import { validateConfig } from "@lib/config-schema.ts";
 
 **Update loadConfig (around line 40):**
 ```typescript
-export function loadConfig(): DevboxConfigV2 {
+export function loadConfig(): SkyboxConfigV2 {
 	const configPath = getConfigPath();
 
 	if (!existsSync(configPath)) {
@@ -757,7 +757,7 @@ Edit `src/lib/config.ts`:
 import { mkdtempSync, renameSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 
-export function saveConfig(config: DevboxConfigV2): void {
+export function saveConfig(config: SkyboxConfigV2): void {
 	const configPath = getConfigPath();
 	const dir = dirname(configPath);
 
@@ -769,7 +769,7 @@ export function saveConfig(config: DevboxConfigV2): void {
 	const content = stringify(config);
 
 	// Atomic write: create temp file, then rename
-	const tempDir = mkdtempSync(join(tmpdir(), "devbox-config-"));
+	const tempDir = mkdtempSync(join(tmpdir(), "skybox-config-"));
 	const tempPath = join(tempDir, "config.yaml");
 
 	try {

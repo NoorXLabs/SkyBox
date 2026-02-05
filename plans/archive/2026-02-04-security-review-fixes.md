@@ -248,7 +248,7 @@ export function isOwner(info: OwnershipInfo): boolean {
 Add to the Known Gotchas section in `CLAUDE.md`:
 
 ```markdown
-- **Ownership uses local OS username**: The `.devbox-owner` system uses `userInfo().username` (local OS username), not the SSH remote user. This means ownership is consistent for a user across machines but could conflict if different people share the same local username. This is a deliberate trade-off for simplicity.
+- **Ownership uses local OS username**: The `.skybox-owner` system uses `userInfo().username` (local OS username), not the SSH remote user. This means ownership is consistent for a user across machines but could conflict if different people share the same local username. This is a deliberate trade-off for simplicity.
 ```
 
 ### Step 3: Commit
@@ -373,13 +373,13 @@ describe("sanitizeDockerError", () => {
 	});
 
 	test("preserves /tmp paths", () => {
-		const input = "Created temp file at /tmp/devbox-12345/file";
+		const input = "Created temp file at /tmp/skybox-12345/file";
 		const sanitized = input.replace(/\/[\w\-/.]+/g, (match) => {
 			if (match.startsWith("/tmp")) return match;
 			if (match.includes("/Users/") || match.includes("/home/")) return "[REDACTED_PATH]";
 			return match;
 		});
-		expect(sanitized).toContain("/tmp/devbox-12345/file");
+		expect(sanitized).toContain("/tmp/skybox-12345/file");
 	});
 
 	test("preserves Docker socket paths", () => {
@@ -735,9 +735,9 @@ describe("verifyGpgSignature", () => {
 			return;
 		}
 
-		// Get list of devbox-gpg temp dirs before
+		// Get list of skybox-gpg temp dirs before
 		const tempBase = tmpdir();
-		const beforeDirs = readdirSync(tempBase).filter((d) => d.startsWith("devbox-gpg-"));
+		const beforeDirs = readdirSync(tempBase).filter((d) => d.startsWith("skybox-gpg-"));
 
 		// Run verification (will fail with invalid key, but should still cleanup)
 		const { verifyGpgSignature } = await import("@lib/gpg.ts");
@@ -748,7 +748,7 @@ describe("verifyGpgSignature", () => {
 		);
 
 		// Get list after - should be same or fewer (no leaked temp dirs)
-		const afterDirs = readdirSync(tempBase).filter((d) => d.startsWith("devbox-gpg-"));
+		const afterDirs = readdirSync(tempBase).filter((d) => d.startsWith("skybox-gpg-"));
 		expect(afterDirs.length).toBeLessThanOrEqual(beforeDirs.length + 1);
 	});
 });
@@ -856,19 +856,19 @@ Add a new section to `CLAUDE.md` after "Known Gotchas":
 ```markdown
 ## Environment Variables
 
-DevBox respects the following environment variables:
+SkyBox respects the following environment variables:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DEVBOX_HOME` | `~/.devbox` | Override DevBox data directory location |
-| `DEVBOX_AUDIT` | `0` | Set to `1` to enable audit logging to `~/.devbox/audit.log` |
-| `DEVBOX_SKIP_GPG` | `0` | Set to `1` to skip GPG signature verification for Mutagen downloads |
-| `DEVBOX_HOOK_WARNINGS` | `1` | Set to `0` to suppress one-time hook security warning |
+| `SKYBOX_HOME` | `~/.skybox` | Override SkyBox data directory location |
+| `SKYBOX_AUDIT` | `0` | Set to `1` to enable audit logging to `~/.skybox/audit.log` |
+| `SKYBOX_SKIP_GPG` | `0` | Set to `1` to skip GPG signature verification for Mutagen downloads |
+| `SKYBOX_HOOK_WARNINGS` | `1` | Set to `0` to suppress one-time hook security warning |
 | `DEBUG` | unset | Set to any value to enable debug output in list command |
 
 ### Audit Logging
 
-When `DEVBOX_AUDIT=1`, security-relevant operations are logged to `~/.devbox/audit.log` in JSON Lines format:
+When `SKYBOX_AUDIT=1`, security-relevant operations are logged to `~/.skybox/audit.log` in JSON Lines format:
 
 ```json
 {"timestamp":"2026-02-04T12:00:00Z","action":"push:success","user":"john","machine":"macbook","details":{"project":"myapp"}}
@@ -878,7 +878,7 @@ Logged actions: `clone:start`, `clone:success`, `clone:fail`, `push:start`, `pus
 
 **Log rotation:** The audit log grows unbounded. For long-running deployments, rotate manually with:
 ```bash
-mv ~/.devbox/audit.log ~/.devbox/audit.log.$(date +%Y%m%d)
+mv ~/.skybox/audit.log ~/.skybox/audit.log.$(date +%Y%m%d)
 ```
 ```
 
@@ -890,8 +890,8 @@ git commit -m "$(cat <<'EOF'
 docs: document environment variables
 
 Add comprehensive list of environment variables:
-- DEVBOX_HOME, DEVBOX_AUDIT, DEVBOX_SKIP_GPG
-- DEVBOX_HOOK_WARNINGS, DEBUG
+- SKYBOX_HOME, SKYBOX_AUDIT, SKYBOX_SKIP_GPG
+- SKYBOX_HOOK_WARNINGS, DEBUG
 - Include audit logging format and rotation guidance
 
 Addresses code review recommendations #11 and #12.

@@ -514,14 +514,14 @@ Create `src/lib/audit.ts`:
 /**
  * Audit logging for security-sensitive operations.
  *
- * Writes JSON Lines format to ~/.devbox/audit.log.
- * Enabled via DEVBOX_AUDIT=1 environment variable.
+ * Writes JSON Lines format to ~/.skybox/audit.log.
+ * Enabled via SKYBOX_AUDIT=1 environment variable.
  */
 
 import { appendFileSync, existsSync, mkdirSync } from "node:fs";
 import { hostname, userInfo } from "node:os";
 import { dirname, join } from "node:path";
-import { getDevboxHome } from "@lib/paths.ts";
+import { getSkyboxHome } from "@lib/paths.ts";
 
 /** Audit log entry structure */
 export interface AuditEntry {
@@ -532,7 +532,7 @@ export interface AuditEntry {
 	details: Record<string, unknown>;
 }
 
-let auditEnabled = process.env.DEVBOX_AUDIT === "1";
+let auditEnabled = process.env.SKYBOX_AUDIT === "1";
 
 /**
  * Enable or disable audit logging (for testing).
@@ -545,7 +545,7 @@ export function setAuditEnabled(enabled: boolean): void {
  * Get the audit log file path.
  */
 export function getAuditLogPath(): string {
-	return join(getDevboxHome(), "audit.log");
+	return join(getSkyboxHome(), "audit.log");
 }
 
 /**
@@ -632,14 +632,14 @@ Add to `docs/reference/security.md` (if exists) or `README.md`:
 ```markdown
 ## Audit Logging
 
-DevBox can log security-relevant operations for compliance and forensics.
+SkyBox can log security-relevant operations for compliance and forensics.
 
 Enable audit logging:
 ```bash
-export DEVBOX_AUDIT=1
+export SKYBOX_AUDIT=1
 ```
 
-Audit log location: `~/.devbox/audit.log`
+Audit log location: `~/.skybox/audit.log`
 
 Format: JSON Lines (one JSON object per line)
 
@@ -660,8 +660,8 @@ git commit -m "$(cat <<'EOF'
 feat(security): add optional audit logging
 
 New audit module logs security-relevant operations:
-- Enable with DEVBOX_AUDIT=1
-- Logs to ~/.devbox/audit.log
+- Enable with SKYBOX_AUDIT=1
+- Logs to ~/.skybox/audit.log
 - JSON Lines format for easy parsing
 - Includes timestamp, user, machine, action, details
 
@@ -711,7 +711,7 @@ git remote add homebrew https://${{ secrets.HOMEBREW_TAP_TOKEN }}@github.com/org
     GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
   run: |
     # gh CLI uses GH_TOKEN from environment, not visible in logs
-    gh api repos/org/homebrew-tap/contents/Formula/devbox.rb \
+    gh api repos/org/homebrew-tap/contents/Formula/skybox.rb \
       --method PUT \
       --field message="Update to v${{ github.ref_name }}" \
       --field content=$(base64 -w0 formula.rb)
@@ -778,16 +778,16 @@ This plan addresses all 5 LOW priority security findings:
 | 23 | Password attempt count visible | Generic "Wrong passphrase" message |
 | 24 | Process.exit() without cleanup | Graceful shutdown handler system |
 | 25 | Lock file hash not computed | Lockfile integrity verification script |
-| 26 | No audit logging | Optional audit logging (DEVBOX_AUDIT=1) |
+| 26 | No audit logging | Optional audit logging (SKYBOX_AUDIT=1) |
 | 27 | Homebrew token in git URL | Use git credential config instead |
 
 ### Configuration Summary
 
 After all batches, users can configure:
 
-- `DEVBOX_AUDIT=1` - Enable audit logging
-- `DEVBOX_SKIP_GPG=1` - Skip GPG verification (batch 3b)
-- `DEVBOX_HOOK_WARNINGS=0` - Disable hook warnings (batch 4)
+- `SKYBOX_AUDIT=1` - Enable audit logging
+- `SKYBOX_SKIP_GPG=1` - Skip GPG verification (batch 3b)
+- `SKYBOX_HOOK_WARNINGS=0` - Disable hook warnings (batch 4)
 
 ### Security Audit Complete
 

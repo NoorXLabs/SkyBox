@@ -10,25 +10,25 @@ describe("audit logging", () => {
 	let originalHome: string | undefined;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-audit-test-${Date.now()}`);
+		testDir = join(tmpdir(), `skybox-audit-test-${Date.now()}`);
 		mkdirSync(testDir, { recursive: true });
-		originalEnv = process.env.DEVBOX_AUDIT;
-		originalHome = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
+		originalEnv = process.env.SKYBOX_AUDIT;
+		originalHome = process.env.SKYBOX_HOME;
+		process.env.SKYBOX_HOME = testDir;
 		setAuditEnabled(true);
 	});
 
 	afterEach(() => {
 		rmSync(testDir, { recursive: true, force: true });
 		if (originalEnv) {
-			process.env.DEVBOX_AUDIT = originalEnv;
+			process.env.SKYBOX_AUDIT = originalEnv;
 		} else {
-			delete process.env.DEVBOX_AUDIT;
+			delete process.env.SKYBOX_AUDIT;
 		}
 		if (originalHome) {
-			process.env.DEVBOX_HOME = originalHome;
+			process.env.SKYBOX_HOME = originalHome;
 		} else {
-			delete process.env.DEVBOX_HOME;
+			delete process.env.SKYBOX_HOME;
 		}
 		setAuditEnabled(false);
 	});
@@ -105,13 +105,13 @@ describe("audit logging", () => {
 		setAuditEnabled(null);
 
 		// With no env var set, logging should be disabled
-		delete process.env.DEVBOX_AUDIT;
+		delete process.env.SKYBOX_AUDIT;
 		logAuditEvent("should-not-log", {});
 		const logPath = getAuditLogPath();
 		expect(existsSync(logPath)).toBe(false);
 
 		// With env var set, logging should be enabled
-		process.env.DEVBOX_AUDIT = "1";
+		process.env.SKYBOX_AUDIT = "1";
 		logAuditEvent("should-log", {});
 		expect(existsSync(logPath)).toBe(true);
 	});

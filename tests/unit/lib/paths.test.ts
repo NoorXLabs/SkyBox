@@ -5,94 +5,94 @@ import { join } from "node:path";
 import {
 	getBinDir,
 	getConfigPath,
-	getDevboxHome,
 	getLogsDir,
 	getMutagenPath,
 	getProjectsDir,
+	getSkyboxHome,
 } from "@lib/paths.ts";
 
 describe("paths", () => {
 	let originalEnv: string | undefined;
 
 	beforeEach(() => {
-		originalEnv = process.env.DEVBOX_HOME;
+		originalEnv = process.env.SKYBOX_HOME;
 	});
 
 	afterEach(() => {
 		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
+			process.env.SKYBOX_HOME = originalEnv;
 		} else {
-			delete process.env.DEVBOX_HOME;
+			delete process.env.SKYBOX_HOME;
 		}
 	});
 
-	test("getDevboxHome uses default when DEVBOX_HOME not set", () => {
-		delete process.env.DEVBOX_HOME;
-		expect(getDevboxHome()).toBe(join(homedir(), ".devbox"));
+	test("getSkyboxHome uses default when SKYBOX_HOME not set", () => {
+		delete process.env.SKYBOX_HOME;
+		expect(getSkyboxHome()).toBe(join(homedir(), ".skybox"));
 	});
 
-	test("getDevboxHome uses DEVBOX_HOME when set", () => {
-		process.env.DEVBOX_HOME = "/custom/path";
-		expect(getDevboxHome()).toBe("/custom/path");
+	test("getSkyboxHome uses SKYBOX_HOME when set", () => {
+		process.env.SKYBOX_HOME = "/custom/path";
+		expect(getSkyboxHome()).toBe("/custom/path");
 	});
 
-	test("getDevboxHome returns fresh value after env change", () => {
-		process.env.DEVBOX_HOME = "/first/path";
-		expect(getDevboxHome()).toBe("/first/path");
+	test("getSkyboxHome returns fresh value after env change", () => {
+		process.env.SKYBOX_HOME = "/first/path";
+		expect(getSkyboxHome()).toBe("/first/path");
 
-		process.env.DEVBOX_HOME = "/second/path";
-		expect(getDevboxHome()).toBe("/second/path");
+		process.env.SKYBOX_HOME = "/second/path";
+		expect(getSkyboxHome()).toBe("/second/path");
 	});
 
-	test("getConfigPath returns config.yaml under DEVBOX_HOME", () => {
-		process.env.DEVBOX_HOME = "/test/home";
+	test("getConfigPath returns config.yaml under SKYBOX_HOME", () => {
+		process.env.SKYBOX_HOME = "/test/home";
 		expect(getConfigPath()).toBe("/test/home/config.yaml");
 	});
 
-	test("getProjectsDir returns Projects under DEVBOX_HOME", () => {
-		process.env.DEVBOX_HOME = "/test/home";
+	test("getProjectsDir returns Projects under SKYBOX_HOME", () => {
+		process.env.SKYBOX_HOME = "/test/home";
 		expect(getProjectsDir()).toBe("/test/home/Projects");
 	});
 
-	test("getBinDir returns bin under DEVBOX_HOME", () => {
-		process.env.DEVBOX_HOME = "/test/home";
+	test("getBinDir returns bin under SKYBOX_HOME", () => {
+		process.env.SKYBOX_HOME = "/test/home";
 		expect(getBinDir()).toBe("/test/home/bin");
 	});
 
 	test("getMutagenPath returns mutagen under bin", () => {
-		process.env.DEVBOX_HOME = "/test/home";
+		process.env.SKYBOX_HOME = "/test/home";
 		expect(getMutagenPath()).toBe("/test/home/bin/mutagen");
 	});
 
-	test("getLogsDir returns logs under DEVBOX_HOME", () => {
-		process.env.DEVBOX_HOME = "/test/home";
+	test("getLogsDir returns logs under SKYBOX_HOME", () => {
+		process.env.SKYBOX_HOME = "/test/home";
 		expect(getLogsDir()).toBe("/test/home/logs");
 	});
 
-	test("getDevboxHome returns non-empty string when env unset", () => {
-		delete process.env.DEVBOX_HOME;
-		const result = getDevboxHome();
+	test("getSkyboxHome returns non-empty string when env unset", () => {
+		delete process.env.SKYBOX_HOME;
+		const result = getSkyboxHome();
 		expect(result).toBeTruthy();
 		expect(result.length).toBeGreaterThan(0);
-		expect(result).toContain(".devbox");
+		expect(result).toContain(".skybox");
 	});
 
-	test("getConfigPath uses fallback when DEVBOX_HOME unset", () => {
-		delete process.env.DEVBOX_HOME;
+	test("getConfigPath uses fallback when SKYBOX_HOME unset", () => {
+		delete process.env.SKYBOX_HOME;
 		const result = getConfigPath();
-		expect(result).toContain(".devbox");
+		expect(result).toContain(".skybox");
 		expect(result).toEndWith("config.yaml");
 	});
 
-	test("all paths update when DEVBOX_HOME changes", () => {
-		process.env.DEVBOX_HOME = "/path/a";
-		expect(getDevboxHome()).toBe("/path/a");
+	test("all paths update when SKYBOX_HOME changes", () => {
+		process.env.SKYBOX_HOME = "/path/a";
+		expect(getSkyboxHome()).toBe("/path/a");
 		expect(getConfigPath()).toBe("/path/a/config.yaml");
 		expect(getProjectsDir()).toBe("/path/a/Projects");
 		expect(getBinDir()).toBe("/path/a/bin");
 
-		process.env.DEVBOX_HOME = "/path/b";
-		expect(getDevboxHome()).toBe("/path/b");
+		process.env.SKYBOX_HOME = "/path/b";
+		expect(getSkyboxHome()).toBe("/path/b");
 		expect(getConfigPath()).toBe("/path/b/config.yaml");
 		expect(getProjectsDir()).toBe("/path/b/Projects");
 		expect(getBinDir()).toBe("/path/b/bin");

@@ -27,9 +27,9 @@ jobs:
 - `tests/e2e/helpers/e2e-test-utils.ts` (lines 109, 187)
 - `tests/e2e/remote/lock-system.test.ts` (line 39)
 
-`escapeShellArg()` wraps `~`-prefixed paths in single quotes, preventing bash tilde expansion. `mkdir -p '~/devbox-e2e-tests/...'` creates a literal `~` directory instead of expanding to home.
+`escapeShellArg()` wraps `~`-prefixed paths in single quotes, preventing bash tilde expansion. `mkdir -p '~/skybox-e2e-tests/...'` creates a literal `~` directory instead of expanding to home.
 
-In `lock-system.test.ts` line 39, `mkdir -p ~/.devbox-locks` expands correctly (unquoted tilde), but the redirect target `> ${escapeShellArg(lockPath)}` wraps `~/.devbox-locks/...` in single quotes, preventing expansion. Inconsistent behavior on the same line.
+In `lock-system.test.ts` line 39, `mkdir -p ~/.skybox-locks` expands correctly (unquoted tilde), but the redirect target `> ${escapeShellArg(lockPath)}` wraps `~/.skybox-locks/...` in single quotes, preventing expansion. Inconsistent behavior on the same line.
 
 Note: The same pattern exists in production code (`src/commands/rm.ts:147`, `src/commands/new.ts:209`). Investigate whether production users typically use absolute paths or if this is a latent bug.
 
@@ -41,7 +41,7 @@ const resolvedPath = remotePath.replace(/^~/, "$HOME");
 ### 3. Make E2E cleanup fault-tolerant
 **File:** `tests/e2e/helpers/e2e-test-utils.ts` (line 118)
 
-If `cleanupRemoteTestDir()` throws (SSH failure during teardown), subsequent cleanup (stale locks, local dirs, DEVBOX_HOME restore) is skipped.
+If `cleanupRemoteTestDir()` throws (SSH failure during teardown), subsequent cleanup (stale locks, local dirs, SKYBOX_HOME restore) is skipped.
 
 **Fix:** Wrap each cleanup step in independent try/catch:
 ```typescript
@@ -49,10 +49,10 @@ async cleanup(): Promise<void> {
     try { await cleanupRemoteTestDir(runId, testRemote); } catch { /* log */ }
     try { await cleanupStaleLocks(testRemote); } catch { /* log */ }
     try { rmSync(testDir, { recursive: true, force: true }); } catch { /* log */ }
-    if (originalDevboxHome) {
-        process.env.DEVBOX_HOME = originalDevboxHome;
+    if (originalSkyboxHome) {
+        process.env.SKYBOX_HOME = originalSkyboxHome;
     } else {
-        delete process.env.DEVBOX_HOME;
+        delete process.env.SKYBOX_HOME;
     }
 }
 ```

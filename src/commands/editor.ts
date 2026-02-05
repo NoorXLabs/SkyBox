@@ -7,7 +7,7 @@ import inquirer from "inquirer";
 
 export async function editorCommand(): Promise<void> {
 	if (!configExists()) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 

@@ -7,11 +7,11 @@
 
 ## Summary
 
-Add shell hooks (bash/zsh) that automatically start DevBox containers when users `cd` into project directories. This provides a seamless developer experience similar to direnv, where project environments "just work" when you enter the project folder.
+Add shell hooks (bash/zsh) that automatically start SkyBox containers when users `cd` into project directories. This provides a seamless developer experience similar to direnv, where project environments "just work" when you enter the project folder.
 
 ## Motivation
 
-Currently users must manually run `devbox up` every time they want to work on a project. This adds friction, especially when switching between projects frequently. Auto-up eliminates this friction by detecting when the user enters a DevBox project directory and starting the container automatically.
+Currently users must manually run `skybox up` every time they want to work on a project. This adds friction, especially when switching between projects frequently. Auto-up eliminates this friction by detecting when the user enters a SkyBox project directory and starting the container automatically.
 
 ## Design
 
@@ -22,18 +22,18 @@ Currently users must manually run `devbox up` every time they want to work on a 
 │                        User's Shell                             │
 │  ┌───────────────────┐    ┌────────────────────────────────┐    │
 │  │ PROMPT_COMMAND or │    │                                │    │
-│  │ precmd (zsh)      │───>│ _devbox_hook() shell function  │    │
-│  └───────────────────┘    │  - Check if in DevBox project  │    │
-│                           │  - Call `devbox hook-check`    │    │
+│  │ precmd (zsh)      │───>│ _skybox_hook() shell function  │    │
+│  └───────────────────┘    │  - Check if in SkyBox project  │    │
+│                           │  - Call `skybox hook-check`    │    │
 │                           └───────────────┬────────────────┘    │
 └──────────────────────────────────┬────────┘                     │
                                    │                              │
                                    ▼                              │
 ┌─────────────────────────────────────────────────────────────────┐
-│  devbox hook-check (hidden subcommand)                          │
+│  skybox hook-check (hidden subcommand)                          │
 │  - Resolves project from cwd                                    │
 │  - Checks container status                                      │
-│  - If stopped → runs `devbox up --no-prompt`                   │
+│  - If stopped → runs `skybox up --no-prompt`                   │
 │  - Silent output (all output goes to temp log)                  │
 │  - Returns exit code 0 always (don't break shell)              │
 └─────────────────────────────────────────────────────────────────┘
@@ -48,56 +48,56 @@ Following the proven pattern from [direnv](https://direnv.net/docs/hook.html), w
 3. Runs after the directory change is complete
 4. Standard pattern used by direnv, asdf, rtx, etc.
 
-### New Command: `devbox hook`
+### New Command: `skybox hook`
 
 ```bash
-devbox hook <shell>   # Generate shell hook code
-devbox hook-check     # Hidden: check and auto-start (called by hook)
+skybox hook <shell>   # Generate shell hook code
+skybox hook-check     # Hidden: check and auto-start (called by hook)
 ```
 
-**`devbox hook bash`** outputs:
+**`skybox hook bash`** outputs:
 ```bash
-_devbox_hook() {
-  local prev_dir="${_DEVBOX_PREV_DIR:-}"
+_skybox_hook() {
+  local prev_dir="${_SKYBOX_PREV_DIR:-}"
   local cur_dir="$PWD"
 
   # Only run if directory changed
   if [[ "$prev_dir" != "$cur_dir" ]]; then
-    _DEVBOX_PREV_DIR="$cur_dir"
-    devbox hook-check 2>/dev/null &
+    _SKYBOX_PREV_DIR="$cur_dir"
+    skybox hook-check 2>/dev/null &
   fi
 }
 
 # Append to PROMPT_COMMAND
-if [[ ! "$PROMPT_COMMAND" =~ _devbox_hook ]]; then
-  PROMPT_COMMAND="_devbox_hook${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
+if [[ ! "$PROMPT_COMMAND" =~ _skybox_hook ]]; then
+  PROMPT_COMMAND="_skybox_hook${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
 fi
 ```
 
-**`devbox hook zsh`** outputs:
+**`skybox hook zsh`** outputs:
 ```zsh
-_devbox_hook() {
-  local prev_dir="${_DEVBOX_PREV_DIR:-}"
+_skybox_hook() {
+  local prev_dir="${_SKYBOX_PREV_DIR:-}"
   local cur_dir="$PWD"
 
   # Only run if directory changed
   if [[ "$prev_dir" != "$cur_dir" ]]; then
-    _DEVBOX_PREV_DIR="$cur_dir"
-    devbox hook-check 2>/dev/null &
+    _SKYBOX_PREV_DIR="$cur_dir"
+    skybox hook-check 2>/dev/null &
   fi
 }
 
 autoload -Uz add-zsh-hook
-add-zsh-hook precmd _devbox_hook
+add-zsh-hook precmd _skybox_hook
 ```
 
 ### Key Design Decisions
 
-1. **Background execution (`&`)**: The hook runs `devbox hook-check` in the background so it doesn't block the prompt. Users get immediate shell responsiveness.
+1. **Background execution (`&`)**: The hook runs `skybox hook-check` in the background so it doesn't block the prompt. Users get immediate shell responsiveness.
 
 2. **Track previous directory**: Only trigger when directory actually changes, not on every prompt.
 
-3. **Silent by default**: All output from hook-check goes to /dev/null. Users can check `~/.devbox/logs/auto-up.log` if needed.
+3. **Silent by default**: All output from hook-check goes to /dev/null. Users can check `~/.skybox/logs/auto-up.log` if needed.
 
 4. **Non-fatal**: hook-check always exits 0 to never break the shell.
 
@@ -105,7 +105,7 @@ add-zsh-hook precmd _devbox_hook
 
 6. **No editor/shell prompt**: Uses `--no-prompt` mode to prevent interactive prompts from background process.
 
-### `devbox hook-check` Implementation
+### `skybox hook-check` Implementation
 
 This hidden subcommand (not shown in --help) does:
 
@@ -113,7 +113,7 @@ This hidden subcommand (not shown in --help) does:
 2. If not in a project → exit silently
 3. Check if auto-up is enabled for project (config option)
 4. Check container status via `getContainerStatus()`
-5. If container is not running → spawn `devbox up <project> --no-prompt` with output to log file
+5. If container is not running → spawn `skybox up <project> --no-prompt` with output to log file
 6. Exit 0 always
 
 ### Configuration
@@ -121,7 +121,7 @@ This hidden subcommand (not shown in --help) does:
 Add optional per-project and global config:
 
 ```yaml
-# ~/.devbox/config.yaml
+# ~/.skybox/config.yaml
 defaults:
   auto_up: false  # Global default (opt-in)
 
@@ -149,20 +149,20 @@ Future consideration:
 
 ### Phase 1: Core Hook Infrastructure
 
-- [ ] **1.1** Add `devbox hook <shell>` command
+- [ ] **1.1** Add `skybox hook <shell>` command
   - New file: `src/commands/hook.ts`
   - Accepts: `bash`, `zsh`
   - Outputs shell-specific hook code to stdout
   - Register in `src/index.ts`
 
-- [ ] **1.2** Add `devbox hook-check` hidden subcommand
+- [ ] **1.2** Add `skybox hook-check` hidden subcommand
   - Same file: `src/commands/hook.ts`
   - Hidden from `--help` (no `.description()`)
   - Resolve project from cwd
   - Check config for auto_up setting
   - Check container status
-  - Spawn `devbox up --no-prompt` if needed
-  - Log to `~/.devbox/logs/auto-up.log`
+  - Spawn `skybox up --no-prompt` if needed
+  - Log to `~/.skybox/logs/auto-up.log`
   - Always exit 0
 
 ### Phase 2: Configuration
@@ -173,7 +173,7 @@ Future consideration:
   - No constants needed (boolean with default)
 
 - [ ] **2.2** Add helper to resolve auto_up setting
-  - New function in `src/lib/config.ts`: `isAutoUpEnabled(projectName: string, config: DevboxConfigV2): boolean`
+  - New function in `src/lib/config.ts`: `isAutoUpEnabled(projectName: string, config: SkyboxConfigV2): boolean`
   - Checks project config first, falls back to defaults, then to false
 
 ### Phase 3: Shell Script Generation
@@ -226,14 +226,14 @@ After setup, the workflow becomes:
 
 ```bash
 # One-time setup (add to .bashrc or .zshrc)
-$ echo 'eval "$(devbox hook bash)"' >> ~/.bashrc
+$ echo 'eval "$(skybox hook bash)"' >> ~/.bashrc
 $ source ~/.bashrc
 
 # Enable auto-up for a project
-$ devbox config set my-app auto_up true
+$ skybox config set my-app auto_up true
 
 # Now just cd into the project
-$ cd ~/.devbox/Projects/my-app
+$ cd ~/.skybox/Projects/my-app
 # Container starts automatically in background!
 ```
 
@@ -242,10 +242,10 @@ $ cd ~/.devbox/Projects/my-app
 | Risk | Mitigation |
 |------|------------|
 | Hook slows down shell | Background execution with `&` |
-| Silent failures confuse users | Log to `~/.devbox/logs/auto-up.log` |
+| Silent failures confuse users | Log to `~/.skybox/logs/auto-up.log` |
 | Conflicts with other hook systems | Use standard PROMPT_COMMAND/precmd pattern |
-| User forgets they enabled auto-up | `devbox status` shows auto_up=true in output |
-| Container starts when user just passing through | Track _DEVBOX_PREV_DIR to only trigger on actual cd |
+| User forgets they enabled auto-up | `skybox status` shows auto_up=true in output |
+| Container starts when user just passing through | Track _SKYBOX_PREV_DIR to only trigger on actual cd |
 
 ## Alternatives Considered
 
@@ -269,13 +269,13 @@ $ cd ~/.devbox/Projects/my-app
 2. **Should there be a visual indicator when auto-up triggers?**
    - Recommendation: No, keep it silent. Users can check logs or status if curious.
 
-3. **Should we add `devbox hook init` to auto-add to shell rc file?**
+3. **Should we add `skybox hook init` to auto-add to shell rc file?**
    - Recommendation: Maybe in v2. For now, manual setup gives users control.
 
 ## Success Criteria
 
-- [ ] `devbox hook bash` outputs valid, working bash code
-- [ ] `devbox hook zsh` outputs valid, working zsh code
+- [ ] `skybox hook bash` outputs valid, working bash code
+- [ ] `skybox hook zsh` outputs valid, working zsh code
 - [ ] Containers auto-start when entering project directories (if enabled)
 - [ ] Shell prompt is not blocked/delayed
 - [ ] Failures are logged but don't break shell

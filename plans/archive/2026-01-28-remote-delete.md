@@ -1,8 +1,8 @@
-# Remote Project Delete (`devbox rm --remote`) Implementation Plan
+# Remote Project Delete (`skybox rm --remote`) Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Add a `--remote` flag to `devbox rm` that deletes the project directory from the remote server, with safety checks and double confirmation.
+**Goal:** Add a `--remote` flag to `skybox rm` that deletes the project directory from the remote server, with safety checks and double confirmation.
 
 **Architecture:** Extend the existing `rm` command with a `--remote` flag. When set, after local cleanup (or standalone), SSH into the remote server and `rm -rf` the project directory. Safety: require the project to exist in config with a remote, double confirmation via `confirmDestructiveAction()`, and a `--force` flag to skip prompts for scripting.
 

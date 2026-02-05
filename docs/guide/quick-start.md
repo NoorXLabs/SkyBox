@@ -1,53 +1,53 @@
 # Quick Start
 
-This guide walks you through the typical DevBox workflow: from setting up your first project to developing inside a container.
+This guide walks you through the typical SkyBox workflow: from setting up your first project to developing inside a container.
 
 ## Workflow Overview
 
 ```
-devbox init          Set up DevBox (one-time)
+skybox init          Set up SkyBox (one-time)
       │
-      ├── devbox push ./project    Push existing project to remote
+      ├── skybox push ./project    Push existing project to remote
       │         OR
-      └── devbox clone project     Clone project from remote
+      └── skybox clone project     Clone project from remote
               │
               ▼
-         devbox up           Start the dev container
+         skybox up           Start the dev container
               │
               ▼
          Open in Editor      Code inside the container
               │
               ▼
-         devbox down         Stop when done
+         skybox down         Stop when done
 ```
 
-## Step 1: Initialize DevBox
+## Step 1: Initialize SkyBox
 
 If you haven't already, run the setup wizard:
 
 ```bash
-devbox init
+skybox init
 ```
 
 This configures your remote server connection and preferred editor. See [Installation](/guide/installation) for details.
 
 ## Step 2: Add Your First Project
 
-You have two options for adding projects to DevBox:
+You have two options for adding projects to SkyBox:
 
 ### Option A: Push an Existing Local Project
 
-If you have a project on your machine, push it to DevBox:
+If you have a project on your machine, push it to SkyBox:
 
 ```bash
-devbox push ./my-project
+skybox push ./my-project
 ```
 
 This will:
-1. Copy the project to `~/.devbox/Projects/my-project/`
+1. Copy the project to `~/.skybox/Projects/my-project/`
 2. Create the project directory on your remote server
 3. Set up bidirectional sync between local and remote
-4. Register the project in DevBox
+4. Register the project in SkyBox
 
 Example output:
 ```
@@ -66,17 +66,17 @@ If the project already exists on your remote server:
 
 ```bash
 # First, see what's available
-devbox browse
+skybox browse
 
 # Clone the project
-devbox clone my-project
+skybox clone my-project
 ```
 
 Example output:
 ```
 Cloning 'my-project' from my-server:~/code/my-project...
   Project found on remote
-  Created /Users/you/.devbox/Projects/my-project
+  Created /Users/you/.skybox/Projects/my-project
   Setting up sync...
   Syncing files from remote...
   Initial sync complete
@@ -89,19 +89,19 @@ Start dev container now? (Y/n)
 Start the development container:
 
 ```bash
-devbox up my-project
+skybox up my-project
 ```
 
 Or, if you're inside the project directory:
 
 ```bash
-cd ~/.devbox/Projects/my-project
-devbox up
+cd ~/.skybox/Projects/my-project
+skybox up
 ```
 
 ### First-Time Container Setup
 
-If your project doesn't have a `devcontainer.json`, DevBox will offer to create one:
+If your project doesn't have a `devcontainer.json`, SkyBox will offer to create one:
 
 ```
 Starting 'my-project'...
@@ -135,7 +135,7 @@ What would you like to do?
 
 ## Step 4: Develop in Your Editor
 
-When you choose "Open in editor", DevBox opens your project in your configured editor with full devcontainer support:
+When you choose "Open in editor", SkyBox opens your project in your configured editor with full devcontainer support:
 
 - **Cursor/VS Code**: Opens with Dev Containers extension, running inside the container
 - **Other editors**: Opens the project folder
@@ -150,7 +150,7 @@ Your editor connects to the running container, giving you:
 See the status of all your projects:
 
 ```bash
-devbox status
+skybox status
 ```
 
 Output:
@@ -165,7 +165,7 @@ Projects:
 Get detailed info about a specific project:
 
 ```bash
-devbox status my-project
+skybox status my-project
 ```
 
 Output:
@@ -182,7 +182,7 @@ Container
 
 Sync
   Status:     syncing
-  Session:    devbox-my-project
+  Session:    skybox-my-project
   Pending:    0 files
   Last sync:  -
 
@@ -209,13 +209,13 @@ Disk Usage
 When you're finished working:
 
 ```bash
-devbox down my-project
+skybox down my-project
 ```
 
 Or with cleanup to remove the container:
 
 ```bash
-devbox down my-project --cleanup
+skybox down my-project --cleanup
 ```
 
 ## Common Workflows
@@ -226,29 +226,29 @@ When moving from one machine to another:
 
 1. On the old machine, stop the container:
    ```bash
-   devbox down my-project
+   skybox down my-project
    ```
 
 2. On the new machine, clone and start:
    ```bash
-   devbox clone my-project
-   devbox up my-project
+   skybox clone my-project
+   skybox up my-project
    ```
 
-DevBox's session system will warn you if you try to start on a new machine while another machine has an active session.
+SkyBox's session system will warn you if you try to start on a new machine while another machine has an active session.
 
 ### Quick Container Access
 
 Start and immediately attach to shell:
 
 ```bash
-devbox up my-project --attach
+skybox up my-project --attach
 ```
 
 Start and open in editor:
 
 ```bash
-devbox up my-project --editor
+skybox up my-project --editor
 ```
 
 ### Non-Interactive Mode
@@ -256,8 +256,8 @@ devbox up my-project --editor
 For scripts and automation:
 
 ```bash
-devbox up my-project --no-prompt
-devbox down my-project --no-prompt
+skybox up my-project --no-prompt
+skybox down my-project --no-prompt
 ```
 
 ### Force Rebuild Container
@@ -265,27 +265,27 @@ devbox down my-project --no-prompt
 If you need to rebuild the container from scratch:
 
 ```bash
-devbox up my-project --rebuild
+skybox up my-project --rebuild
 ```
 
 ## Command Reference
 
 | Command | Description |
 |---------|-------------|
-| `devbox init` | Set up DevBox |
-| `devbox browse` | List projects on remote |
-| `devbox list` | List local projects |
-| `devbox push <path>` | Push local project to remote |
-| `devbox clone <project>` | Clone remote project locally |
-| `devbox new` | Create new project on remote |
-| `devbox up [project]` | Start development container |
-| `devbox down [project]` | Stop development container |
-| `devbox shell <project>` | Access shell inside container |
-| `devbox status [project]` | Show project status |
-| `devbox remote <subcommand>` | Manage remote servers |
-| `devbox config` | View/modify configuration |
-| `devbox editor` | Change default editor |
-| `devbox rm <project>` | Remove local project |
+| `skybox init` | Set up SkyBox |
+| `skybox browse` | List projects on remote |
+| `skybox list` | List local projects |
+| `skybox push <path>` | Push local project to remote |
+| `skybox clone <project>` | Clone remote project locally |
+| `skybox new` | Create new project on remote |
+| `skybox up [project]` | Start development container |
+| `skybox down [project]` | Stop development container |
+| `skybox shell <project>` | Access shell inside container |
+| `skybox status [project]` | Show project status |
+| `skybox remote <subcommand>` | Manage remote servers |
+| `skybox config` | View/modify configuration |
+| `skybox editor` | Change default editor |
+| `skybox rm <project>` | Remove local project |
 
 ## Next Steps
 

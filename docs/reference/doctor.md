@@ -1,11 +1,11 @@
-# devbox doctor
+# skybox doctor
 
-Diagnose common issues with your DevBox setup, dependencies, and configuration.
+Diagnose common issues with your SkyBox setup, dependencies, and configuration.
 
 ## Usage
 
 ```bash
-devbox doctor
+skybox doctor
 ```
 
 ## Arguments
@@ -18,14 +18,14 @@ This command has no options.
 
 ## Description
 
-The `doctor` command runs a series of health checks to verify that DevBox and its dependencies are properly configured. It checks:
+The `doctor` command runs a series of health checks to verify that SkyBox and its dependencies are properly configured. It checks:
 
 | Check | Description |
 |-------|-------------|
 | Docker | Verifies Docker is installed and the daemon is running |
 | Mutagen | Verifies the Mutagen sync binary is installed |
 | Devcontainer CLI | Verifies the devcontainer CLI is installed |
-| Configuration | Verifies DevBox config exists and is valid |
+| Configuration | Verifies SkyBox config exists and is valid |
 | SSH Connectivity | Tests SSH connection to all configured remotes |
 
 Each check reports one of three statuses:
@@ -33,7 +33,7 @@ Each check reports one of three statuses:
 | Status | Icon | Meaning |
 |--------|------|---------|
 | Pass | `✓` | Check passed successfully |
-| Warning | `!` | Non-critical issue, DevBox may still work |
+| Warning | `!` | Non-critical issue, SkyBox may still work |
 | Fail | `✗` | Critical issue that must be fixed |
 
 For warnings and failures, the command suggests a fix.
@@ -42,13 +42,13 @@ For warnings and failures, the command suggests a fix.
 
 ```bash
 # Run all health checks
-devbox doctor
+skybox doctor
 ```
 
 ### Example Output (All Passing)
 
 ```
-DevBox Doctor
+SkyBox Doctor
 ────────────────────────────────────────
 
   ✓ Docker: Docker 24.0 is running
@@ -61,18 +61,18 @@ DevBox Doctor
 ────────────────────────────────────────
   6 passed
 
-  All checks passed. DevBox is ready to use!
+  All checks passed. SkyBox is ready to use!
 ```
 
 ### Example Output (With Issues)
 
 ```
-DevBox Doctor
+SkyBox Doctor
 ────────────────────────────────────────
 
   ✓ Docker: Docker 24.0 is running
   ! Mutagen: Mutagen not installed (will be downloaded on first use)
-      Fix: Run 'devbox init' to download Mutagen
+      Fix: Run 'skybox init' to download Mutagen
   ✓ Devcontainer CLI: devcontainer 0.62.0
   ✓ Configuration: Config loaded (2 remotes)
   ✓ SSH: work: Connected to work-server
@@ -107,10 +107,10 @@ Start Docker Desktop or run `systemctl start docker` on Linux.
 
 ```
 ! Mutagen: Mutagen not installed (will be downloaded on first use)
-    Fix: Run 'devbox init' to download Mutagen
+    Fix: Run 'skybox init' to download Mutagen
 ```
 
-Run `devbox init` to download Mutagen automatically.
+Run `skybox init` to download Mutagen automatically.
 
 ### Devcontainer CLI not found
 
@@ -139,23 +139,23 @@ npm install -g @devcontainers/cli
 Verify:
 - SSH key exists and has correct permissions (`chmod 600`)
 - SSH host is reachable
-- Correct user/host in DevBox config
+- Correct user/host in SkyBox config
 - SSH agent is running with key loaded
 
 ### Configuration issues
 
 ```
 ✗ Configuration: Config file exists but failed to load
-    Fix: Check ~/.devbox/config.yaml for syntax errors
+    Fix: Check ~/.skybox/config.yaml for syntax errors
 ```
 
 Check your config file for YAML syntax errors. You can validate with:
 ```bash
-cat ~/.devbox/config.yaml
+cat ~/.skybox/config.yaml
 ```
 
 ## See Also
 
-- [devbox init](/reference/init) - Initial setup wizard
-- [devbox config](/reference/config) - View/modify configuration
+- [skybox init](/reference/init) - Initial setup wizard
+- [skybox config](/reference/config) - View/modify configuration
 - [Troubleshooting Guide](/guide/troubleshooting) - Common issues and solutions
