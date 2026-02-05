@@ -13,98 +13,28 @@ SkyBox requires:
 | SSH | - | Remote server connection |
 
 ::: tip Note
-The devcontainer CLI requires Node.js. On macOS with Homebrew this is handled automatically; otherwise you'll need to install Node.js separately.
+The devcontainer CLI requires Node.js. Make sure Node.js is installed before installing the devcontainer CLI.
 :::
 
 ### Installing Prerequisites
 
-::: code-group
+Install the following tools from their official sources before continuing:
 
-```bash [macOS (Homebrew)]
-# Install Docker Desktop
-brew install --cask docker
-
-# Install devcontainer CLI (includes Node.js automatically)
-brew install devcontainer
-```
-
-```bash [macOS (Direct Download)]
-# 1. Install Docker Desktop
-#    Download from: https://docs.docker.com/desktop/install/mac-install/
-#    Choose the version for your chip (Apple Silicon or Intel)
-
-# 2. Install Node.js (required for devcontainer CLI)
-#    Download LTS version from: https://nodejs.org/
-
-# 3. Install devcontainer CLI
-npm install -g @devcontainers/cli
-```
-
-```bash [Linux (Ubuntu/Debian)]
-# Install Docker
-curl -fsSL https://get.docker.com | sh
-sudo usermod -aG docker $USER
-
-# Log out and back in for group changes to take effect, then:
-
-# Install Node.js (LTS)
-curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-sudo apt-get install -y nodejs
-
-# Install devcontainer CLI
-sudo npm install -g @devcontainers/cli
-```
-
-```bash [Linux (Fedora/RHEL)]
-# Install Docker
-sudo dnf -y install dnf-plugins-core
-sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
-sudo dnf install -y docker-ce docker-ce-cli containerd.io
-sudo systemctl start docker
-sudo systemctl enable docker
-sudo usermod -aG docker $USER
-
-# Log out and back in for group changes to take effect, then:
-
-# Install Node.js (LTS)
-sudo dnf module install -y nodejs:22
-
-# Install devcontainer CLI
-sudo npm install -g @devcontainers/cli
-```
-
-```bash [Windows (WSL 2)]
-# 1. Install Docker Desktop for Windows with WSL 2 backend
-#    Download from: https://docs.docker.com/desktop/install/windows-install/
-#    Enable "Use WSL 2 based engine" in Docker Desktop settings
-
-# 2. Inside your WSL 2 distribution (Ubuntu recommended):
-
-# Install Node.js (LTS)
-curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-sudo apt-get install -y nodejs
-
-# Install devcontainer CLI
-sudo npm install -g @devcontainers/cli
-```
-
-:::
+- **Docker Desktop** (20.10+) — [Get Docker](https://docs.docker.com/get-started/get-docker/)
+- **Node.js** (LTS) — [Download Node.js](https://nodejs.org/en/download) *(required for devcontainer CLI)*
+- **Devcontainer CLI** (0.50+) — [Installation instructions](https://github.com/devcontainers/cli)
+- **SSH** — Pre-installed on macOS and Linux. Windows users need [WSL 2](https://learn.microsoft.com/en-us/windows/wsl/install).
 
 ## Install SkyBox
 
 ::: code-group
 
-```bash [macOS (Homebrew)]
+```bash [Homebrew (macOS)]
 brew tap NoorXLabs/homebrew-tap
 brew install skybox
 ```
 
-```bash [macOS (Direct Download)]
-# Install with one command (auto-detects architecture)
-curl -fsSL https://install.noorxlabs.com/skybox | bash
-```
-
-```bash [Linux / WSL]
+```bash [Direct Download (macOS / Linux / WSL)]
 # Install with one command (auto-detects architecture)
 curl -fsSL https://install.noorxlabs.com/skybox | bash
 ```
@@ -235,17 +165,8 @@ If `skybox init` reports Docker is not found:
 
 If `devcontainer --version` fails:
 
-**macOS (Homebrew):**
-```bash
-brew install devcontainer
-```
-
-**macOS (without Homebrew) / Linux / WSL:**
-```bash
-npm install -g @devcontainers/cli
-```
-
-If npm is not found, install Node.js first (see [Prerequisites](#installing-prerequisites)).
+1. Ensure Node.js is installed first (see [Prerequisites](#installing-prerequisites))
+2. Install the devcontainer CLI from the [official instructions](https://github.com/devcontainers/cli)
 
 ### SSH Connection Failed
 
