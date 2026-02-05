@@ -1,4 +1,4 @@
-# DevBox
+# SkyBox
 
 Local-first development containers with remote sync and multi-machine support.
 
@@ -10,7 +10,7 @@ Local-first development containers with remote sync and multi-machine support.
 
 ## The Solution
 
-DevBox stores your code on a remote server while running containers locally. You get:
+SkyBox stores your code on a remote server while running containers locally. You get:
 
 - **Zero latency** - Containers run on your machine
 - **Minimal disk usage** - Code lives on the server, synced on-demand
@@ -23,11 +23,11 @@ DevBox stores your code on a remote server while running containers locally. You
 ┌──────────────────┐        ┌──────────────────┐
 │  Your Machine    │        │  Remote Server   │
 │                  │ Mutagen│                  │
-│  ~/.devbox/      │◄──────►│  ~/code/         │
+│  ~/.skybox/      │◄──────►│  ~/code/         │
 │   projects/      │  sync  │   myproject/     │
 │    myproject/    │        │                  │
 │                  │        │  Lock files:     │
-│  Docker          │        │  .devbox-locks/  │
+│  Docker          │        │  .skybox-locks/  │
 │   Container      │        │                  │
 └──────────────────┘        └──────────────────┘
 ```
@@ -43,7 +43,7 @@ Mutagen is downloaded automatically during setup.
 
 For installation, quick start, commands, and configuration:
 
-**[Please visit the documentation](https://devbox.noorxlabs.com)**
+**[Please visit the documentation](https://skybox.noorxlabs.com)**
 
 ## License
 

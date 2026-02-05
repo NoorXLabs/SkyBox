@@ -72,7 +72,7 @@ export function readSession(projectPath: string): SessionInfo | null {
 
 /**
  * Write a session file for the current machine.
- * Creates the .devbox directory if it doesn't exist.
+ * Creates the .skybox directory if it doesn't exist.
  * Uses atomic write (write to temp file, then rename) to prevent corruption.
  * @param projectPath - Absolute path to the project directory
  */
@@ -80,7 +80,7 @@ export function writeSession(projectPath: string): void {
 	const sessionPath = getSessionFilePath(projectPath);
 	const sessionDir = dirname(sessionPath);
 
-	// Ensure .devbox directory exists
+	// Ensure .skybox directory exists
 	if (!existsSync(sessionDir)) {
 		mkdirSync(sessionDir, { recursive: true });
 	}

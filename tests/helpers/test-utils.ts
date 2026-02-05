@@ -7,7 +7,7 @@
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { DevboxConfigV2, RemoteEntry } from "@typedefs/index.ts";
+import type { RemoteEntry, SkyboxConfigV2 } from "@typedefs/index.ts";
 import { execa } from "execa";
 import { stringify } from "yaml";
 
@@ -17,14 +17,14 @@ export interface TestContext {
 }
 
 /**
- * Creates an isolated test environment with DEVBOX_HOME set.
+ * Creates an isolated test environment with SKYBOX_HOME set.
  */
 export function createTestContext(name: string): TestContext {
-	const testDir = join(tmpdir(), `devbox-${name}-test-${Date.now()}`);
-	const originalEnv = process.env.DEVBOX_HOME;
+	const testDir = join(tmpdir(), `skybox-${name}-test-${Date.now()}`);
+	const originalEnv = process.env.SKYBOX_HOME;
 
 	mkdirSync(testDir, { recursive: true });
-	process.env.DEVBOX_HOME = testDir;
+	process.env.SKYBOX_HOME = testDir;
 
 	return {
 		testDir,
@@ -33,9 +33,9 @@ export function createTestContext(name: string): TestContext {
 				rmSync(testDir, { recursive: true });
 			}
 			if (originalEnv) {
-				process.env.DEVBOX_HOME = originalEnv;
+				process.env.SKYBOX_HOME = originalEnv;
 			} else {
-				delete process.env.DEVBOX_HOME;
+				delete process.env.SKYBOX_HOME;
 			}
 		},
 	};
@@ -45,8 +45,8 @@ export function createTestContext(name: string): TestContext {
  * Creates a test config with sensible defaults.
  */
 export function createTestConfig(
-	overrides: Partial<DevboxConfigV2> = {},
-): DevboxConfigV2 {
+	overrides: Partial<SkyboxConfigV2> = {},
+): SkyboxConfigV2 {
 	return {
 		editor: "cursor",
 		defaults: { sync_mode: "two-way-resolved", ignore: [] },
@@ -74,7 +74,7 @@ export function createTestRemote(
 /**
  * Writes a test config to the test directory.
  */
-export function writeTestConfig(testDir: string, config: DevboxConfigV2): void {
+export function writeTestConfig(testDir: string, config: SkyboxConfigV2): void {
 	const configPath = join(testDir, "config.yaml");
 	writeFileSync(configPath, stringify(config));
 }

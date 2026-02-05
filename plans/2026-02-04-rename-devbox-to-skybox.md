@@ -1,8 +1,8 @@
-# Rename DevBox to SkyBox — Implementation Plan
+# Rename SkyBox to SkyBox — Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Rename every occurrence of "DevBox" / "devbox" / "DEVBOX" to "SkyBox" / "skybox" / "SKYBOX" across the entire codebase — source, tests, docs, config, build, skills, and project identity.
+**Goal:** Rename every occurrence of "SkyBox" / "skybox" / "SKYBOX" to "SkyBox" / "skybox" / "SKYBOX" across the entire codebase — source, tests, docs, config, build, skills, and project identity.
 
 **Architecture:** Mechanical case-ordered find-and-replace across 143 files (~1,800 occurrences). No logic changes. Directory renames via `git mv`. Verification via typecheck, tests, lint, and a final grep sweep.
 
@@ -16,50 +16,50 @@ Every substitution follows this 1:1 map. **Order matters** — replace uppercase
 
 | Order | Old | New | Context |
 |-------|-----|-----|---------|
-| 1 | `DEVBOX` | `SKYBOX` | Env vars (`DEVBOX_HOME`), shell vars (`_DEVBOX_PREV_DIR`), constants |
-| 2 | `DevBox` | `SkyBox` | Product name in UI text, comments, docs, GitHub URLs |
-| 3 | `Devbox` | `Skybox` | TypeScript interfaces (`DevboxConfig`), Homebrew class, mixed-case refs |
-| 4 | `devbox` | `skybox` | CLI name, package name, paths, binary names, Mutagen sessions, everything else |
+| 1 | `SKYBOX` | `SKYBOX` | Env vars (`SKYBOX_HOME`), shell vars (`_SKYBOX_PREV_DIR`), constants |
+| 2 | `SkyBox` | `SkyBox` | Product name in UI text, comments, docs, GitHub URLs |
+| 3 | `Skybox` | `Skybox` | TypeScript interfaces (`SkyboxConfig`), Homebrew class, mixed-case refs |
+| 4 | `skybox` | `skybox` | CLI name, package name, paths, binary names, Mutagen sessions, everything else |
 
 Additionally:
 | Old | New | Context |
 |-----|-----|---------|
-| `bin/devbox` | `bin/skybox` | Bun entrypoint file (git mv) |
-| `devbox-bin` | `skybox-bin` | Build output name in package.json scripts & .gitignore |
-| `.devbox` | `.skybox` | Config directory name (`~/.devbox/` -> `~/.skybox/`) |
-| `NoorXLabs/DevBox` | `NoorXLabs/SkyBox` | GitHub repo URLs |
+| `bin/skybox` | `bin/skybox` | Bun entrypoint file (git mv) |
+| `skybox-bin` | `skybox-bin` | Build output name in package.json scripts & .gitignore |
+| `.skybox` | `.skybox` | Config directory name (`~/.skybox/` -> `~/.skybox/`) |
+| `NoorXLabs/SkyBox` | `NoorXLabs/SkyBox` | GitHub repo URLs |
 
 ---
 
 ## Task 1: Rename skill directories (repo)
 
-Rename the 4 `.claude/skills/devbox-*` directories using `git mv` so git tracks them as renames rather than delete+create.
+Rename the 4 `.claude/skills/skybox-*` directories using `git mv` so git tracks them as renames rather than delete+create.
 
 **Files:**
-- Rename: `.claude/skills/devbox-impl-cleanup/` -> `.claude/skills/skybox-impl-cleanup/`
-- Rename: `.claude/skills/devbox-list-tasks/` -> `.claude/skills/skybox-list-tasks/`
-- Rename: `.claude/skills/devbox-prep-release/` -> `.claude/skills/skybox-prep-release/`
-- Rename: `.claude/skills/devbox-update-docs/` -> `.claude/skills/skybox-update-docs/`
+- Rename: `.claude/skills/skybox-impl-cleanup/` -> `.claude/skills/skybox-impl-cleanup/`
+- Rename: `.claude/skills/skybox-list-tasks/` -> `.claude/skills/skybox-list-tasks/`
+- Rename: `.claude/skills/skybox-prep-release/` -> `.claude/skills/skybox-prep-release/`
+- Rename: `.claude/skills/skybox-update-docs/` -> `.claude/skills/skybox-update-docs/`
 
 **Step 1: Git mv each directory**
 
 ```bash
-cd /Users/noorchasib/conductor/workspaces/DevBox/las-vegas
-git mv .claude/skills/devbox-impl-cleanup .claude/skills/skybox-impl-cleanup
-git mv .claude/skills/devbox-list-tasks .claude/skills/skybox-list-tasks
-git mv .claude/skills/devbox-prep-release .claude/skills/skybox-prep-release
-git mv .claude/skills/devbox-update-docs .claude/skills/skybox-update-docs
+cd /Users/noorchasib/conductor/workspaces/SkyBox/las-vegas
+git mv .claude/skills/skybox-impl-cleanup .claude/skills/skybox-impl-cleanup
+git mv .claude/skills/skybox-list-tasks .claude/skills/skybox-list-tasks
+git mv .claude/skills/skybox-prep-release .claude/skills/skybox-prep-release
+git mv .claude/skills/skybox-update-docs .claude/skills/skybox-update-docs
 ```
 
 **Step 2: Update the `name:` field inside each SKILL.md**
 
 In each of the 4 renamed SKILL.md files, replace the `name:` line:
-- `name: devbox-impl-cleanup` -> `name: skybox-impl-cleanup`
-- `name: devbox-list-tasks` -> `name: skybox-list-tasks`
-- `name: devbox-prep-release` -> `name: skybox-prep-release`
-- `name: devbox-update-docs` -> `name: skybox-update-docs`
+- `name: skybox-impl-cleanup` -> `name: skybox-impl-cleanup`
+- `name: skybox-list-tasks` -> `name: skybox-list-tasks`
+- `name: skybox-prep-release` -> `name: skybox-prep-release`
+- `name: skybox-update-docs` -> `name: skybox-update-docs`
 
-Also replace any `devbox`/`DevBox` references in the skill body text.
+Also replace any `skybox`/`SkyBox` references in the skill body text.
 
 **Step 3: Stage changes**
 
@@ -69,15 +69,15 @@ git add .claude/skills/
 
 ---
 
-## Task 2: Rename bin/devbox entrypoint
+## Task 2: Rename bin/skybox entrypoint
 
 **Files:**
-- Rename: `bin/devbox` -> `bin/skybox`
+- Rename: `bin/skybox` -> `bin/skybox`
 
 **Step 1: Git mv the file**
 
 ```bash
-git mv bin/devbox bin/skybox
+git mv bin/skybox bin/skybox
 ```
 
 The file content (`#!/usr/bin/env bun` + `import "../src/index.ts"`) does not change.
@@ -89,18 +89,18 @@ The file content (`#!/usr/bin/env bun` + `import "../src/index.ts"`) does not ch
 These are outside the repo, on the user's machine.
 
 **Files:**
-- Rename: `~/.claude/skills/devbox-impl-cleanup/` -> `~/.claude/skills/skybox-impl-cleanup/`
-- Rename: `~/.claude/skills/devbox-list-tasks/` -> `~/.claude/skills/skybox-list-tasks/`
-- Rename: `~/.claude/skills/devbox-prep-release/` -> `~/.claude/skills/skybox-prep-release/`
-- Rename: `~/.claude/skills/devbox-update-docs/` -> `~/.claude/skills/skybox-update-docs/`
+- Rename: `~/.claude/skills/skybox-impl-cleanup/` -> `~/.claude/skills/skybox-impl-cleanup/`
+- Rename: `~/.claude/skills/skybox-list-tasks/` -> `~/.claude/skills/skybox-list-tasks/`
+- Rename: `~/.claude/skills/skybox-prep-release/` -> `~/.claude/skills/skybox-prep-release/`
+- Rename: `~/.claude/skills/skybox-update-docs/` -> `~/.claude/skills/skybox-update-docs/`
 
 **Step 1: Rename directories**
 
 ```bash
-mv ~/.claude/skills/devbox-impl-cleanup ~/.claude/skills/skybox-impl-cleanup
-mv ~/.claude/skills/devbox-list-tasks ~/.claude/skills/skybox-list-tasks
-mv ~/.claude/skills/devbox-prep-release ~/.claude/skills/skybox-prep-release
-mv ~/.claude/skills/devbox-update-docs ~/.claude/skills/skybox-update-docs
+mv ~/.claude/skills/skybox-impl-cleanup ~/.claude/skills/skybox-impl-cleanup
+mv ~/.claude/skills/skybox-list-tasks ~/.claude/skills/skybox-list-tasks
+mv ~/.claude/skills/skybox-prep-release ~/.claude/skills/skybox-prep-release
+mv ~/.claude/skills/skybox-update-docs ~/.claude/skills/skybox-update-docs
 ```
 
 **Step 2: Update `name:` field and body text**
@@ -118,14 +118,14 @@ Same edits as Task 1 Step 2, but in the `~/.claude/skills/skybox-*/SKILL.md` fil
 
 | Line | Old | New |
 |------|-----|-----|
-| 2 | `"name": "devbox"` | `"name": "skybox"` |
-| 7 | `"url": "git+https://github.com/NoorXLabs/DevBox.git"` | `"url": "git+https://github.com/NoorXLabs/SkyBox.git"` |
-| 10 | `"url": "https://github.com/NoorXLabs/DevBox/issues"` | `"url": "https://github.com/NoorXLabs/SkyBox/issues"` |
-| 12 | `"homepage": "https://github.com/NoorXLabs/DevBox#readme"` | `"homepage": "https://github.com/NoorXLabs/SkyBox#readme"` |
-| 13 | `"devbox"` in keywords array | `"skybox"` |
-| 21 | `"devbox": "./bin/devbox"` | `"skybox": "./bin/skybox"` |
-| 26 | `--outfile=devbox-bin` | `--outfile=skybox-bin` |
-| 34 | `--outfile=devbox-bin` | `--outfile=skybox-bin` |
+| 2 | `"name": "skybox"` | `"name": "skybox"` |
+| 7 | `"url": "git+https://github.com/NoorXLabs/SkyBox.git"` | `"url": "git+https://github.com/NoorXLabs/SkyBox.git"` |
+| 10 | `"url": "https://github.com/NoorXLabs/SkyBox/issues"` | `"url": "https://github.com/NoorXLabs/SkyBox/issues"` |
+| 12 | `"homepage": "https://github.com/NoorXLabs/SkyBox#readme"` | `"homepage": "https://github.com/NoorXLabs/SkyBox#readme"` |
+| 13 | `"skybox"` in keywords array | `"skybox"` |
+| 21 | `"skybox": "./bin/skybox"` | `"skybox": "./bin/skybox"` |
+| 26 | `--outfile=skybox-bin` | `--outfile=skybox-bin` |
+| 34 | `--outfile=skybox-bin` | `--outfile=skybox-bin` |
 
 ---
 
@@ -138,7 +138,7 @@ Same edits as Task 1 Step 2, but in the `~/.claude/skills/skybox-*/SKILL.md` fil
 
 ```
 # Old (line 14)
-devbox-bin
+skybox-bin
 
 # New
 skybox-bin
@@ -159,30 +159,30 @@ These are the foundational files that other source files depend on. Do these fir
 **Step 1: `src/lib/constants.ts`**
 
 Apply case-ordered replacements:
-1. `DEVBOX` -> `SKYBOX` (env var references like `process.env.DEVBOX_INSTALL_METHOD`)
-2. `DevBox` -> `SkyBox` (any comments)
-3. `Devbox` -> `Skybox` (if any)
-4. `devbox` -> `skybox` (the `DEVBOX_HOME_DIR = ".devbox"` constant becomes `SKYBOX_HOME_DIR = ".skybox"`, and all other lowercase refs)
+1. `SKYBOX` -> `SKYBOX` (env var references like `process.env.SKYBOX_INSTALL_METHOD`)
+2. `SkyBox` -> `SkyBox` (any comments)
+3. `Skybox` -> `Skybox` (if any)
+4. `skybox` -> `skybox` (the `SKYBOX_HOME_DIR = ".skybox"` constant becomes `SKYBOX_HOME_DIR = ".skybox"`, and all other lowercase refs)
 
-**Important:** The constant name itself changes: `DEVBOX_HOME_DIR` -> `SKYBOX_HOME_DIR`. This will require updating all imports of this constant across the codebase.
+**Important:** The constant name itself changes: `SKYBOX_HOME_DIR` -> `SKYBOX_HOME_DIR`. This will require updating all imports of this constant across the codebase.
 
 **Step 2: `src/lib/paths.ts`**
 
-1. Update import: `DEVBOX_HOME_DIR` -> `SKYBOX_HOME_DIR`
-2. `process.env.DEVBOX_HOME` -> `process.env.SKYBOX_HOME`
-3. All comments referencing `DEVBOX_HOME` -> `SKYBOX_HOME`
-4. Function names: `getDevboxHome` -> `getSkyboxHome` (if present — check first)
+1. Update import: `SKYBOX_HOME_DIR` -> `SKYBOX_HOME_DIR`
+2. `process.env.SKYBOX_HOME` -> `process.env.SKYBOX_HOME`
+3. All comments referencing `SKYBOX_HOME` -> `SKYBOX_HOME`
+4. Function names: `getSkyboxHome` -> `getSkyboxHome` (if present — check first)
 
 **Step 3: `src/types/index.ts`**
 
-1. `DevboxConfig` -> `SkyboxConfig`
-2. `DevboxConfigV2` -> `SkyboxConfigV2`
-3. All `DevBox` -> `SkyBox` in comments
-4. All `devbox` -> `skybox` in comments/string references
+1. `SkyboxConfig` -> `SkyboxConfig`
+2. `SkyboxConfigV2` -> `SkyboxConfigV2`
+3. All `SkyBox` -> `SkyBox` in comments
+4. All `skybox` -> `skybox` in comments/string references
 
 **Step 4: `src/lib/migration.ts`**
 
-1. Update imports: `DevboxConfig` -> `SkyboxConfig`, `DevboxConfigV2` -> `SkyboxConfigV2`
+1. Update imports: `SkyboxConfig` -> `SkyboxConfig`, `SkyboxConfigV2` -> `SkyboxConfigV2`
 2. Update function signatures and type annotations accordingly
 
 ---
@@ -202,16 +202,16 @@ Apply case-ordered replacements:
 
 **Step 1: For each file, apply case-ordered replacements**
 
-Order: `DEVBOX` -> `SKYBOX`, then `DevBox` -> `SkyBox`, then `Devbox` -> `Skybox`, then `devbox` -> `skybox`.
+Order: `SKYBOX` -> `SKYBOX`, then `SkyBox` -> `SkyBox`, then `Skybox` -> `Skybox`, then `skybox` -> `skybox`.
 
 **Key changes to watch for:**
 
-- `src/lib/container.ts`: Function `listDevboxContainers` -> `listSkyboxContainers`. All callers must be updated too.
-- `src/lib/mutagen.ts`: Session name prefix `devbox-` -> `skybox-` in template strings.
-- `src/lib/update-check.ts`: GitHub URLs `NoorXLabs/DevBox` -> `NoorXLabs/SkyBox`. User-Agent header `DevBox-CLI` -> `SkyBox-CLI`. Brew/npm command strings.
-- `src/lib/config.ts`: Any imports of renamed types (`DevboxConfig` -> `SkyboxConfig`, etc.) and renamed constants (`DEVBOX_HOME_DIR` -> `SKYBOX_HOME_DIR`).
-- `src/lib/encryption.ts`: Comment `Encryption utilities for DevBox` -> `SkyBox`.
-- `src/lib/templates.ts`: Comment about `~/.devbox/templates/` -> `~/.skybox/templates/`.
+- `src/lib/container.ts`: Function `listSkyboxContainers` -> `listSkyboxContainers`. All callers must be updated too.
+- `src/lib/mutagen.ts`: Session name prefix `skybox-` -> `skybox-` in template strings.
+- `src/lib/update-check.ts`: GitHub URLs `NoorXLabs/SkyBox` -> `NoorXLabs/SkyBox`. User-Agent header `SkyBox-CLI` -> `SkyBox-CLI`. Brew/npm command strings.
+- `src/lib/config.ts`: Any imports of renamed types (`SkyboxConfig` -> `SkyboxConfig`, etc.) and renamed constants (`SKYBOX_HOME_DIR` -> `SKYBOX_HOME_DIR`).
+- `src/lib/encryption.ts`: Comment `Encryption utilities for SkyBox` -> `SkyBox`.
+- `src/lib/templates.ts`: Comment about `~/.skybox/templates/` -> `~/.skybox/templates/`.
 - `src/lib/paths.ts`: Already handled in Task 6.
 
 ---
@@ -245,12 +245,12 @@ Order: `DEVBOX` -> `SKYBOX`, then `DevBox` -> `SkyBox`, then `Devbox` -> `Skybox
 
 **Key changes to watch for:**
 
-- `src/index.ts` line 43: `.name("devbox")` -> `.name("skybox")` — this is the CLI command name.
-- `src/commands/hook.ts`: This file has shell script strings with `_devbox_hook`, `_DEVBOX_PREV_DIR`, `devbox hook-check`, `# DevBox shell hook`, and `spawn("devbox", ...)`. All must be renamed carefully. The shell functions become `_skybox_hook`, `_SKYBOX_PREV_DIR`, etc.
-- `src/commands/init.ts`: Welcome message `"Welcome to devbox setup!"` -> `"Welcome to skybox setup!"`, and all other user-facing strings.
-- `src/commands/doctor.ts`: `chalk.bold("DevBox Doctor")` -> `chalk.bold("SkyBox Doctor")`, and all diagnostic messages.
-- `src/commands/encrypt.ts` and `src/commands/down.ts`: Archive prefix `devbox-${project}` -> `skybox-${project}`.
-- All commands: error messages referencing `devbox` CLI commands (e.g., `"Run 'devbox init' first"` -> `"Run 'skybox init' first"`).
+- `src/index.ts` line 43: `.name("skybox")` -> `.name("skybox")` — this is the CLI command name.
+- `src/commands/hook.ts`: This file has shell script strings with `_skybox_hook`, `_SKYBOX_PREV_DIR`, `skybox hook-check`, `# SkyBox shell hook`, and `spawn("skybox", ...)`. All must be renamed carefully. The shell functions become `_skybox_hook`, `_SKYBOX_PREV_DIR`, etc.
+- `src/commands/init.ts`: Welcome message `"Welcome to skybox setup!"` -> `"Welcome to skybox setup!"`, and all other user-facing strings.
+- `src/commands/doctor.ts`: `chalk.bold("SkyBox Doctor")` -> `chalk.bold("SkyBox Doctor")`, and all diagnostic messages.
+- `src/commands/encrypt.ts` and `src/commands/down.ts`: Archive prefix `skybox-${project}` -> `skybox-${project}`.
+- All commands: error messages referencing `skybox` CLI commands (e.g., `"Run 'skybox init' first"` -> `"Run 'skybox init' first"`).
 
 ---
 
@@ -284,13 +284,13 @@ Order: `DEVBOX` -> `SKYBOX`, then `DevBox` -> `SkyBox`, then `Devbox` -> `Skybox
 **Step 1: For each file, apply case-ordered replacements**
 
 **Key things to watch for:**
-- `hook.test.ts`: String assertions like `expect(hook).toContain("_devbox_hook()")` must become `expect(hook).toContain("_skybox_hook()")`. Same for `_DEVBOX_PREV_DIR` -> `_SKYBOX_PREV_DIR`.
-- `mutagen.test.ts` and `mutagen-selective.test.ts`: Session name assertions like `expect(name).toBe("devbox-my-project")` -> `expect(name).toBe("skybox-my-project")`.
-- `paths.test.ts`: References to `DEVBOX_HOME` env var -> `SKYBOX_HOME`.
-- `config.test.ts`: May reference `DEVBOX_HOME` env var in test setup.
-- `test-utils.ts`: Shared test helpers may reference devbox paths.
-- `shell-docker-isolated.test.ts`: Mock references to `listDevboxContainers` -> `listSkyboxContainers`.
-- All test files that use `process.env.DEVBOX_HOME` in `beforeEach`/`afterEach` -> `process.env.SKYBOX_HOME`.
+- `hook.test.ts`: String assertions like `expect(hook).toContain("_skybox_hook()")` must become `expect(hook).toContain("_skybox_hook()")`. Same for `_SKYBOX_PREV_DIR` -> `_SKYBOX_PREV_DIR`.
+- `mutagen.test.ts` and `mutagen-selective.test.ts`: Session name assertions like `expect(name).toBe("skybox-my-project")` -> `expect(name).toBe("skybox-my-project")`.
+- `paths.test.ts`: References to `SKYBOX_HOME` env var -> `SKYBOX_HOME`.
+- `config.test.ts`: May reference `SKYBOX_HOME` env var in test setup.
+- `test-utils.ts`: Shared test helpers may reference skybox paths.
+- `shell-docker-isolated.test.ts`: Mock references to `listSkyboxContainers` -> `listSkyboxContainers`.
+- All test files that use `process.env.SKYBOX_HOME` in `beforeEach`/`afterEach` -> `process.env.SKYBOX_HOME`.
 
 ---
 
@@ -304,23 +304,23 @@ Order: `DEVBOX` -> `SKYBOX`, then `DevBox` -> `SkyBox`, then `Devbox` -> `Skybox
 **Step 1: `.github/workflows/release.yml`**
 
 This file has the densest concentration of platform-specific binary names. Replace:
-- Binary names: `devbox-darwin-arm64` -> `skybox-darwin-arm64`, etc. (4 platforms)
-- Archive names: `devbox-darwin-arm64.tar.gz` -> `skybox-darwin-arm64.tar.gz`, etc.
-- Homebrew formula: `Formula/devbox.rb` -> `Formula/skybox.rb`
-- Homebrew class: `class Devbox < Formula` -> `class Skybox < Formula`
-- All GitHub URLs: `NoorXLabs/DevBox` -> `NoorXLabs/SkyBox`
-- Install commands: `=> "devbox"` -> `=> "skybox"`
-- User-facing messages: `DevBox requires Docker` -> `SkyBox requires Docker`
-- Commit messages: `"Update devbox to v${VERSION}"` -> `"Update skybox to v${VERSION}"`
+- Binary names: `skybox-darwin-arm64` -> `skybox-darwin-arm64`, etc. (4 platforms)
+- Archive names: `skybox-darwin-arm64.tar.gz` -> `skybox-darwin-arm64.tar.gz`, etc.
+- Homebrew formula: `Formula/skybox.rb` -> `Formula/skybox.rb`
+- Homebrew class: `class Skybox < Formula` -> `class Skybox < Formula`
+- All GitHub URLs: `NoorXLabs/SkyBox` -> `NoorXLabs/SkyBox`
+- Install commands: `=> "skybox"` -> `=> "skybox"`
+- User-facing messages: `SkyBox requires Docker` -> `SkyBox requires Docker`
+- Commit messages: `"Update skybox to v${VERSION}"` -> `"Update skybox to v${VERSION}"`
 
 **Step 2: `scripts/release.sh`**
 
-- Product name in comments: `DevBox` -> `SkyBox`
-- GitHub URLs: `NoorXLabs/DevBox` -> `NoorXLabs/SkyBox`
+- Product name in comments: `SkyBox` -> `SkyBox`
+- GitHub URLs: `NoorXLabs/SkyBox` -> `NoorXLabs/SkyBox`
 
 **Step 3: `scripts/download-mutagen.sh`**
 
-- Comment: `DevBox binary` -> `SkyBox binary`
+- Comment: `SkyBox binary` -> `SkyBox binary`
 
 ---
 
@@ -334,9 +334,9 @@ This file has the densest concentration of platform-specific binary names. Repla
 
 **Step 1: Apply case-ordered replacements in each file**
 
-- `docs/.vitepress/config.ts`: Site title, description, nav items, sidebar labels — all `DevBox`/`devbox` refs.
-- `docs/.vitepress/commands.ts`: Command descriptions referencing `devbox`.
-- `docs/package.json`: If it has a name field with `devbox`.
+- `docs/.vitepress/config.ts`: Site title, description, nav items, sidebar labels — all `SkyBox`/`skybox` refs.
+- `docs/.vitepress/commands.ts`: Command descriptions referencing `skybox`.
+- `docs/package.json`: If it has a name field with `skybox`.
 - `docs/index.md`: Landing page hero text, feature descriptions.
 
 ---
@@ -357,10 +357,10 @@ This file has the densest concentration of platform-specific binary names. Repla
 **Step 1: Apply case-ordered replacements in each file**
 
 These are the heaviest doc files. Key patterns:
-- All CLI command examples: `devbox up`, `devbox clone`, etc. -> `skybox up`, `skybox clone`
-- All path references: `~/.devbox/` -> `~/.skybox/`
-- All env vars: `DEVBOX_HOME`, `DEVBOX_DEBUG` -> `SKYBOX_HOME`, `SKYBOX_DEBUG`
-- Product name: `DevBox` -> `SkyBox` in narrative text
+- All CLI command examples: `skybox up`, `skybox clone`, etc. -> `skybox up`, `skybox clone`
+- All path references: `~/.skybox/` -> `~/.skybox/`
+- All env vars: `SKYBOX_HOME`, `SKYBOX_DEBUG` -> `SKYBOX_HOME`, `SKYBOX_DEBUG`
+- Product name: `SkyBox` -> `SkyBox` in narrative text
 - Code blocks with shell commands
 
 ---
@@ -396,7 +396,7 @@ These are the heaviest doc files. Key patterns:
 
 **Step 1: Apply case-ordered replacements in each file**
 
-Same patterns as Task 12. Every reference page has command examples with `devbox <command>`.
+Same patterns as Task 12. Every reference page has command examples with `skybox <command>`.
 
 ---
 
@@ -419,8 +419,8 @@ Same patterns as Task 12. Every reference page has command examples with `devbox
 
 **Step 1: Apply case-ordered replacements**
 
-- `README.md`: Title `# DevBox` -> `# SkyBox`, all command examples, path references, GitHub URLs.
-- `CHANGELOG.md`: All release notes, commit descriptions, comparison URLs (`NoorXLabs/DevBox/compare/...` -> `NoorXLabs/SkyBox/compare/...`). This file is large (~100+ occurrences).
+- `README.md`: Title `# SkyBox` -> `# SkyBox`, all command examples, path references, GitHub URLs.
+- `CHANGELOG.md`: All release notes, commit descriptions, comparison URLs (`NoorXLabs/SkyBox/compare/...` -> `NoorXLabs/SkyBox/compare/...`). This file is large (~100+ occurrences).
 
 ---
 
@@ -432,11 +432,11 @@ Same patterns as Task 12. Every reference page has command examples with `devbox
 **Step 1: Apply case-ordered replacements**
 
 This is the AI assistant guide. It has extensive references throughout:
-- Title: `# CLAUDE.md - AI Assistant Guide for DevBox` -> `SkyBox`
+- Title: `# CLAUDE.md - AI Assistant Guide for SkyBox` -> `SkyBox`
 - All command examples, path references, type names, constant names
-- Container naming: `devbox-<project-name>` -> `skybox-<project-name>`
-- Environment variables: `DEVBOX_HOME` -> `SKYBOX_HOME`
-- Config directory: `~/.devbox/` -> `~/.skybox/`
+- Container naming: `skybox-<project-name>` -> `skybox-<project-name>`
+- Environment variables: `SKYBOX_HOME` -> `SKYBOX_HOME`
+- Config directory: `~/.skybox/` -> `~/.skybox/`
 - Session file paths, Docker labels, everything
 
 ---
@@ -463,8 +463,8 @@ bun run typecheck
 ```
 
 Expected: 0 errors. If there are errors, they'll be from:
-- Missed import renames (`DevboxConfig` still referenced somewhere)
-- Missed constant renames (`DEVBOX_HOME_DIR` still imported somewhere)
+- Missed import renames (`SkyboxConfig` still referenced somewhere)
+- Missed constant renames (`SKYBOX_HOME_DIR` still imported somewhere)
 
 Fix any errors before proceeding.
 
@@ -476,7 +476,7 @@ bun run test
 
 Expected: All tests pass. If failures, they'll be from:
 - String assertions still expecting old names
-- Environment variable setup still using `DEVBOX_HOME`
+- Environment variable setup still using `SKYBOX_HOME`
 - Mock function names not updated
 
 Fix any failures before proceeding.
@@ -493,7 +493,7 @@ Expected: Clean pass. Biome may auto-fix import ordering after renames.
 
 ```bash
 # Search for any surviving references (excluding node_modules and .git)
-grep -ri "devbox" --include="*.ts" --include="*.tsx" --include="*.json" --include="*.yml" --include="*.sh" --include="*.md" . | grep -v node_modules | grep -v '.git/'
+grep -ri "skybox" --include="*.ts" --include="*.tsx" --include="*.json" --include="*.yml" --include="*.sh" --include="*.md" . | grep -v node_modules | grep -v '.git/'
 ```
 
 Expected: **Zero results.** If any remain, fix them.
@@ -501,7 +501,7 @@ Expected: **Zero results.** If any remain, fix them.
 Also check the bin file was renamed:
 ```bash
 ls bin/
-# Should show: skybox (not devbox)
+# Should show: skybox (not skybox)
 ```
 
 And check .gitignore:
@@ -532,24 +532,24 @@ Verify the file count and renames look correct.
 
 ```bash
 git commit -m "$(cat <<'EOF'
-refactor: rename DevBox to SkyBox
+refactor: rename SkyBox to SkyBox
 
-Rename the entire project from DevBox to SkyBox to avoid name collision
-with Jetify's Devbox (Nix-based dev environment tool).
+Rename the entire project from SkyBox to SkyBox to avoid name collision
+with Jetify's Skybox (Nix-based dev environment tool).
 
 Changes across 143 files:
 - Package identity: name, bin, build output
-- CLI command: devbox -> skybox
-- TypeScript types: DevboxConfig -> SkyboxConfig, DevboxConfigV2 -> SkyboxConfigV2
-- Constants: DEVBOX_HOME_DIR -> SKYBOX_HOME_DIR
-- Environment variables: DEVBOX_HOME -> SKYBOX_HOME, DEVBOX_DEBUG -> SKYBOX_DEBUG
-- Config directory: ~/.devbox/ -> ~/.skybox/
-- Container naming: devbox-<project> -> skybox-<project>
-- Mutagen sessions: devbox-<name> -> skybox-<name>
-- Shell hooks: _devbox_hook -> _skybox_hook, _DEVBOX_PREV_DIR -> _SKYBOX_PREV_DIR
-- GitHub URLs: NoorXLabs/DevBox -> NoorXLabs/SkyBox
-- Binary names: devbox-darwin-arm64 -> skybox-darwin-arm64, etc.
-- Homebrew formula: class Devbox -> class Skybox
+- CLI command: skybox -> skybox
+- TypeScript types: SkyboxConfig -> SkyboxConfig, SkyboxConfigV2 -> SkyboxConfigV2
+- Constants: SKYBOX_HOME_DIR -> SKYBOX_HOME_DIR
+- Environment variables: SKYBOX_HOME -> SKYBOX_HOME, SKYBOX_DEBUG -> SKYBOX_DEBUG
+- Config directory: ~/.skybox/ -> ~/.skybox/
+- Container naming: skybox-<project> -> skybox-<project>
+- Mutagen sessions: skybox-<name> -> skybox-<name>
+- Shell hooks: _skybox_hook -> _skybox_hook, _SKYBOX_PREV_DIR -> _SKYBOX_PREV_DIR
+- GitHub URLs: NoorXLabs/SkyBox -> NoorXLabs/SkyBox
+- Binary names: skybox-darwin-arm64 -> skybox-darwin-arm64, etc.
+- Homebrew formula: class Skybox -> class Skybox
 - All documentation, plans, skills, and CI/CD workflows
 EOF
 )"
@@ -566,20 +566,20 @@ For the mechanical text replacement (Tasks 6-17), you can use `sed` in a loop in
 # Run from repo root. Process order matters!
 
 # Collect all target files
-FILES=$(grep -ril "devbox\|DevBox\|DEVBOX" \
+FILES=$(grep -ril "skybox\|SkyBox\|SKYBOX" \
   --include="*.ts" --include="*.tsx" --include="*.json" \
   --include="*.yml" --include="*.yaml" --include="*.md" \
   --include="*.sh" . | grep -v node_modules | grep -v '.git/')
 
 for f in $FILES; do
-  # Order 1: DEVBOX -> SKYBOX (uppercase)
-  sed -i '' 's/DEVBOX/SKYBOX/g' "$f"
-  # Order 2: DevBox -> SkyBox (PascalCase)
-  sed -i '' 's/DevBox/SkyBox/g' "$f"
-  # Order 3: Devbox -> Skybox (Title case — interfaces, Homebrew)
-  sed -i '' 's/Devbox/Skybox/g' "$f"
-  # Order 4: devbox -> skybox (lowercase — everything else)
-  sed -i '' 's/devbox/skybox/g' "$f"
+  # Order 1: SKYBOX -> SKYBOX (uppercase)
+  sed -i '' 's/SKYBOX/SKYBOX/g' "$f"
+  # Order 2: SkyBox -> SkyBox (PascalCase)
+  sed -i '' 's/SkyBox/SkyBox/g' "$f"
+  # Order 3: Skybox -> Skybox (Title case — interfaces, Homebrew)
+  sed -i '' 's/Skybox/Skybox/g' "$f"
+  # Order 4: skybox -> skybox (lowercase — everything else)
+  sed -i '' 's/skybox/skybox/g' "$f"
 done
 
 echo "Done. Run verification steps next."
@@ -591,7 +591,7 @@ echo "Done. Run verification steps next."
 
 ## Post-Rename Checklist (outside this repo)
 
-- [ ] Rename GitHub repo: `NoorXLabs/DevBox` -> `NoorXLabs/SkyBox`
+- [ ] Rename GitHub repo: `NoorXLabs/SkyBox` -> `NoorXLabs/SkyBox`
 - [ ] Update any Homebrew tap repo if it exists
 - [ ] Reserve `skybox` on npm: `npm publish` (or `npm init --scope` for scoped)
 - [ ] Update any external references (personal site, social, etc.)

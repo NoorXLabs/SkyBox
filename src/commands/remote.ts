@@ -19,7 +19,7 @@ import {
 	warn,
 } from "@lib/ui.ts";
 import { validateRemotePath } from "@lib/validation.ts";
-import type { DevboxConfigV2, RemoteEntry } from "@typedefs/index.ts";
+import type { RemoteEntry, SkyboxConfigV2 } from "@typedefs/index.ts";
 import chalk from "chalk";
 import inquirer from "inquirer";
 
@@ -28,17 +28,17 @@ import inquirer from "inquirer";
  * If only one remote exists, returns it automatically.
  */
 export async function selectRemote(
-	config?: DevboxConfigV2 | null,
+	config?: SkyboxConfigV2 | null,
 ): Promise<string> {
 	const cfg = config ?? loadConfig();
 	if (!cfg) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
 	const remotes = Object.keys(cfg.remotes);
 	if (remotes.length === 0) {
-		error("No remotes configured. Run 'devbox remote add' first.");
+		error("No remotes configured. Run 'skybox remote add' first.");
 		process.exit(1);
 	}
 
@@ -68,7 +68,7 @@ export async function selectRemote(
  */
 export function getProjectRemote(
 	projectName: string,
-	config?: DevboxConfigV2 | null,
+	config?: SkyboxConfigV2 | null,
 ): { name: string; remote: RemoteEntry } | null {
 	const cfg = config ?? loadConfig();
 	if (!cfg) return null;
@@ -395,7 +395,7 @@ export function listRemotes(): void {
 
 	if (!config?.remotes || Object.keys(config.remotes).length === 0) {
 		info("No remotes configured");
-		info("Run: devbox remote add <name> <user@host:path>");
+		info("Run: skybox remote add <name> <user@host:path>");
 		return;
 	}
 
@@ -517,7 +517,7 @@ export async function renameRemote(
  */
 function showHelp(): void {
 	console.log();
-	console.log(`${chalk.bold("Usage:")} devbox remote <subcommand> [options]`);
+	console.log(`${chalk.bold("Usage:")} skybox remote <subcommand> [options]`);
 	console.log();
 	console.log(chalk.bold("Subcommands:"));
 	console.log(
@@ -529,15 +529,15 @@ function showHelp(): void {
 	console.log();
 	console.log(chalk.bold("Examples:"));
 	console.log(
-		"  devbox remote add                             # Interactive wizard",
+		"  skybox remote add                             # Interactive wizard",
 	);
-	console.log("  devbox remote add myserver root@192.168.1.100:~/code");
+	console.log("  skybox remote add myserver root@192.168.1.100:~/code");
 	console.log(
-		"  devbox remote add myserver root@host:~/code --key ~/.ssh/id_ed25519",
+		"  skybox remote add myserver root@host:~/code --key ~/.ssh/id_ed25519",
 	);
-	console.log("  devbox remote list");
-	console.log("  devbox remote remove myserver");
-	console.log("  devbox remote rename myserver production");
+	console.log("  skybox remote list");
+	console.log("  skybox remote remove myserver");
+	console.log("  skybox remote rename myserver production");
 	console.log();
 }
 
@@ -553,7 +553,7 @@ export async function remoteCommand(
 	switch (subcommand) {
 		case "add":
 			if (arg1 && arg2) {
-				// Direct mode: devbox remote add <name> <user@host:path>
+				// Direct mode: skybox remote add <name> <user@host:path>
 				const result = await addRemoteDirect(arg1, arg2, options);
 				if (result.success) {
 					success(`Remote "${arg1}" added`);
@@ -563,7 +563,7 @@ export async function remoteCommand(
 			} else if (arg1 && !arg2) {
 				// Missing path
 				error(
-					"Missing remote path. Expected: devbox remote add <name> <user@host:path>",
+					"Missing remote path. Expected: skybox remote add <name> <user@host:path>",
 				);
 			} else {
 				// Interactive mode
@@ -577,7 +577,7 @@ export async function remoteCommand(
 
 		case "remove":
 			if (!arg1) {
-				error("Missing remote name. Usage: devbox remote remove <name>");
+				error("Missing remote name. Usage: skybox remote remove <name>");
 				return;
 			}
 			await removeRemote(arg1);
@@ -585,7 +585,7 @@ export async function remoteCommand(
 
 		case "rename":
 			if (!arg1 || !arg2) {
-				error("Missing arguments. Usage: devbox remote rename <old> <new>");
+				error("Missing arguments. Usage: skybox remote rename <old> <new>");
 				return;
 			}
 			await renameRemote(arg1, arg2);

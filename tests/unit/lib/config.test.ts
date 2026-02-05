@@ -230,7 +230,7 @@ describe("config error paths", () => {
 
 	test("saveConfig creates parent directories if missing", () => {
 		const nestedDir = join(ctx.testDir, "nested", "deep");
-		process.env.DEVBOX_HOME = nestedDir;
+		process.env.SKYBOX_HOME = nestedDir;
 
 		const config = {
 			editor: "cursor",
@@ -265,21 +265,21 @@ describe("config file permissions", () => {
 
 	beforeEach(() => {
 		ctx = createTestContext("config-permissions");
-		originalEnv = process.env.DEVBOX_HOME;
+		originalEnv = process.env.SKYBOX_HOME;
 	});
 
 	afterEach(() => {
 		// Restore env before cleanup since cleanup also restores it
 		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
+			process.env.SKYBOX_HOME = originalEnv;
 		}
 		ctx.cleanup();
 	});
 
 	test("saveConfig creates directory with mode 0o700", () => {
-		// Point DEVBOX_HOME to a non-existent subdirectory so saveConfig creates it
-		const newDir = join(ctx.testDir, "new-devbox-home");
-		process.env.DEVBOX_HOME = newDir;
+		// Point SKYBOX_HOME to a non-existent subdirectory so saveConfig creates it
+		const newDir = join(ctx.testDir, "new-skybox-home");
+		process.env.SKYBOX_HOME = newDir;
 
 		const config = {
 			editor: "cursor",

@@ -1,9 +1,9 @@
 /**
- * Runtime schema validation for DevBox config.
+ * Runtime schema validation for SkyBox config.
  */
 
 import { VALID_SYNC_MODES } from "@lib/constants.ts";
-import type { DevboxConfigV2 } from "@typedefs/index.ts";
+import type { SkyboxConfigV2 } from "@typedefs/index.ts";
 
 export class ConfigValidationError extends Error {
 	constructor(field: string, message: string) {
@@ -18,7 +18,7 @@ export class ConfigValidationError extends Error {
  */
 export function validateConfig(
 	config: unknown,
-): asserts config is DevboxConfigV2 {
+): asserts config is SkyboxConfigV2 {
 	if (typeof config !== "object" || config === null) {
 		throw new ConfigValidationError("root", "Config must be an object");
 	}

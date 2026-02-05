@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Add two sub-features under `devbox config devcontainer`: (1) `edit` — open local devcontainer.json in editor and push to remote, (2) `reset` — regenerate from built-in template and push to remote.
+**Goal:** Add two sub-features under `skybox config devcontainer`: (1) `edit` — open local devcontainer.json in editor and push to remote, (2) `reset` — regenerate from built-in template and push to remote.
 
 **Architecture:** Add a new `devcontainer` subcommand group under the existing `config` command. The `edit` subcommand opens the local `.devcontainer/devcontainer.json` in `$EDITOR`, then pushes it to the remote via `scp` or `runRemoteCommand`. The `reset` subcommand prompts for a template, regenerates using `createDevcontainerConfig()`, and pushes to remote.
 
@@ -109,7 +109,7 @@ export async function devcontainerEditCommand(
 
 	if (!existsSync(configPath)) {
 		error(`No devcontainer.json found for "${project}".`);
-		info('Use "devbox config devcontainer reset" to create one from a template.');
+		info('Use "skybox config devcontainer reset" to create one from a template.');
 		return;
 	}
 
@@ -210,7 +210,7 @@ case "devcontainer": {
 	const action = arg1; // "edit" or "reset"
 	const project = arg2;
 	if (!project) {
-		error('Usage: devbox config devcontainer <edit|reset> <project>');
+		error('Usage: skybox config devcontainer <edit|reset> <project>');
 		return;
 	}
 	if (action === "edit") {
@@ -219,7 +219,7 @@ case "devcontainer": {
 		await devcontainerResetCommand(project);
 	} else {
 		error(`Unknown devcontainer action: ${action}`);
-		error('Usage: devbox config devcontainer <edit|reset> <project>');
+		error('Usage: skybox config devcontainer <edit|reset> <project>');
 	}
 	break;
 }

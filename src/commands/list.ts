@@ -70,18 +70,18 @@ function printProjects(projects: LocalProject[]): void {
 		console.log();
 	}
 
-	info("Run 'devbox up <project>' to start working.");
+	info("Run 'skybox up <project>' to start working.");
 }
 
 function printEmpty(): void {
 	console.log();
 	console.log("No local projects yet.");
-	info("Run 'devbox clone <project>' or 'devbox push ./path' to get started.");
+	info("Run 'skybox clone <project>' or 'skybox push ./path' to get started.");
 }
 
 export async function listCommand(): Promise<void> {
 	if (!configExists()) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 

@@ -1,14 +1,14 @@
 # Shell Integration
 
-Automatically start DevBox containers when you `cd` into a project directory.
+Automatically start SkyBox containers when you `cd` into a project directory.
 
 ## Overview
 
-The DevBox shell hook integrates with your shell to detect when you navigate into a DevBox project directory. When enabled, it automatically starts the container in the background, so your development environment is ready by the time you need it.
+The SkyBox shell hook integrates with your shell to detect when you navigate into a SkyBox project directory. When enabled, it automatically starts the container in the background, so your development environment is ready by the time you need it.
 
 **Benefits:**
 
-- No manual `devbox up` needed
+- No manual `skybox up` needed
 - Container starts silently in the background
 - Does not block your shell prompt
 - Only triggers on actual directory changes
@@ -20,7 +20,7 @@ The DevBox shell hook integrates with your shell to detect when you navigate int
 Add the hook to your `~/.bashrc`:
 
 ```bash
-echo 'eval "$(devbox hook bash)"' >> ~/.bashrc
+echo 'eval "$(skybox hook bash)"' >> ~/.bashrc
 source ~/.bashrc
 ```
 
@@ -29,7 +29,7 @@ source ~/.bashrc
 Add the hook to your `~/.zshrc`:
 
 ```bash
-echo 'eval "$(devbox hook zsh)"' >> ~/.zshrc
+echo 'eval "$(skybox hook zsh)"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
@@ -40,10 +40,10 @@ The shell hook only auto-starts containers for projects with `auto_up` enabled. 
 ### Enable for a Specific Project
 
 ```bash
-devbox config set my-project auto_up true
+skybox config set my-project auto_up true
 ```
 
-Or edit `~/.devbox/config.yaml` directly:
+Or edit `~/.skybox/config.yaml` directly:
 
 ```yaml
 projects:
@@ -84,21 +84,21 @@ projects:
    - Zsh: Registers a `precmd` hook via `add-zsh-hook`
 
 2. **Directory Change Detection**
-   - Tracks the previous directory in `_DEVBOX_PREV_DIR`
+   - Tracks the previous directory in `_SKYBOX_PREV_DIR`
    - Only triggers when `$PWD` differs from the previous directory
 
 3. **Project Resolution**
-   - Checks if the current directory is inside `~/.devbox/Projects/`
+   - Checks if the current directory is inside `~/.skybox/Projects/`
    - Extracts the project name from the path
 
 4. **Auto-Start Logic**
    - Verifies `auto_up` is enabled for the project
    - Checks if the container is already running
-   - If not running, spawns `devbox up <project> --no-prompt` in the background
+   - If not running, spawns `skybox up <project> --no-prompt` in the background
 
 5. **Background Execution**
-   - The `devbox up` process runs detached from your shell
-   - Output is logged to `~/.devbox/logs/auto-up.log`
+   - The `skybox up` process runs detached from your shell
+   - Output is logged to `~/.skybox/logs/auto-up.log`
    - Your shell prompt returns immediately
 
 ## Troubleshooting
@@ -108,7 +108,7 @@ projects:
 All auto-up activity is logged:
 
 ```bash
-cat ~/.devbox/logs/auto-up.log
+cat ~/.skybox/logs/auto-up.log
 ```
 
 Example output:
@@ -124,13 +124,13 @@ Example output:
 
 ```bash
 echo "$PROMPT_COMMAND"
-# Should contain: _devbox_hook
+# Should contain: _skybox_hook
 ```
 
 **Zsh:**
 
 ```bash
-typeset -f _devbox_hook
+typeset -f _skybox_hook
 # Should output the function definition
 ```
 
@@ -139,28 +139,28 @@ typeset -f _devbox_hook
 1. **Check if auto_up is enabled:**
 
    ```bash
-   devbox config show my-project
+   skybox config show my-project
    ```
 
    Look for `auto_up: true` in the output.
 
-2. **Verify you are in a DevBox project directory:**
+2. **Verify you are in a SkyBox project directory:**
 
    ```bash
    pwd
-   # Should be inside ~/.devbox/Projects/<project-name>
+   # Should be inside ~/.skybox/Projects/<project-name>
    ```
 
-3. **Check if devbox is in your PATH:**
+3. **Check if skybox is in your PATH:**
 
    ```bash
-   which devbox
+   which skybox
    ```
 
 4. **Try running the check manually:**
 
    ```bash
-   devbox hook-check
+   skybox hook-check
    ```
 
    This is the hidden command the hook calls. It should exit silently if everything is working.
@@ -170,7 +170,7 @@ typeset -f _devbox_hook
 To disable shell integration without removing it:
 
 ```bash
-unset -f _devbox_hook
+unset -f _skybox_hook
 ```
 
 This lasts until you open a new shell.
@@ -178,5 +178,5 @@ This lasts until you open a new shell.
 ## See Also
 
 - [Daily Development](/guide/workflows/daily-development) - Manual startup workflow
-- [devbox up](/reference/up) - Start a development container
-- [Configuration](/reference/configuration) - DevBox config reference
+- [skybox up](/reference/up) - Start a development container
+- [Configuration](/reference/configuration) - SkyBox config reference

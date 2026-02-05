@@ -1,10 +1,10 @@
 # Introduction
 
-DevBox is a CLI tool for local-first development containers with remote sync. It provides the best of both worlds: run your containers locally for speed and full resource access while automatically syncing your code to a remote server for backup and multi-machine workflows.
+SkyBox is a CLI tool for local-first development containers with remote sync. It provides the best of both worlds: run your containers locally for speed and full resource access while automatically syncing your code to a remote server for backup and multi-machine workflows.
 
-## What is DevBox?
+## What is SkyBox?
 
-DevBox manages the complete lifecycle of containerized development environments:
+SkyBox manages the complete lifecycle of containerized development environments:
 
 - **Local Development** - Run containers on your machine with native performance
 - **Remote Sync** - Automatically backup code to a remote server using Mutagen
@@ -16,7 +16,7 @@ DevBox manages the complete lifecycle of containerized development environments:
 ```
 Your Machine                     Remote Server
 ┌─────────────────────┐         ┌─────────────────────┐
-│  ~/.devbox/Projects │◄───────►│    ~/code/          │
+│  ~/.skybox/Projects │◄───────►│    ~/code/          │
 │  ├── project-a/     │  Sync   │    ├── project-a/   │
 │  └── project-b/     │         │    └── project-b/   │
 └─────────────────────┘         └─────────────────────┘
@@ -28,16 +28,16 @@ Your Machine                     Remote Server
 └─────────────────────┘
 ```
 
-1. Projects are stored locally in `~/.devbox/Projects/`
+1. Projects are stored locally in `~/.skybox/Projects/`
 2. Mutagen syncs files bidirectionally to your remote server
 3. Docker containers run locally using devcontainer configurations
 4. Session files prevent conflicts when switching between machines
 
-## Why DevBox?
+## Why SkyBox?
 
 ### Local-First Performance
 
-Unlike cloud-based development environments, DevBox runs containers on your machine. This means:
+Unlike cloud-based development environments, SkyBox runs containers on your machine. This means:
 
 - No network latency for file operations
 - Full access to local resources (CPU, memory, GPU)
@@ -55,24 +55,24 @@ Your code is automatically synced to remote servers:
 
 ### Developer Experience
 
-DevBox is designed for developers who want minimal friction:
+SkyBox is designed for developers who want minimal friction:
 
-- Interactive setup wizard (`devbox init`)
+- Interactive setup wizard (`skybox init`)
 - Smart project detection when running commands
 - Direct editor integration with devcontainer support
 - Clean status views showing all your projects at a glance
 
 ## Prerequisites
 
-Before installing DevBox, ensure you have:
+Before installing SkyBox, ensure you have:
 
 - **Docker** - For running development containers
 - **Node.js** - Required for the devcontainer CLI
 - **SSH access** to a remote server (for sync functionality)
-- **Bun** - JavaScript runtime for running DevBox
+- **Bun** - JavaScript runtime for running SkyBox
 
 ## Next Steps
 
-- [Installation](/guide/installation) - Install DevBox on your system
+- [Installation](/guide/installation) - Install SkyBox on your system
 - [Quick Start](/guide/quick-start) - Get your first project running
-- [Concepts](/guide/concepts) - Understand how DevBox works under the hood
+- [Concepts](/guide/concepts) - Understand how SkyBox works under the hood

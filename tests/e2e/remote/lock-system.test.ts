@@ -23,7 +23,7 @@ describe.skipIf(!e2eConfigured)("lock system", () => {
 	});
 
 	test("can create and remove lock file on remote", async () => {
-		const lockPath = `~/.devbox-locks/${ctx.projectName}.lock`;
+		const lockPath = `~/.skybox-locks/${ctx.projectName}.lock`;
 		const machine = hostname();
 		const lockContent = JSON.stringify({
 			machine,
@@ -36,7 +36,7 @@ describe.skipIf(!e2eConfigured)("lock system", () => {
 		const encodedContent = Buffer.from(lockContent).toString("base64");
 		const createResult = await runTestRemoteCommand(
 			ctx.testRemote,
-			`mkdir -p ~/.devbox-locks && echo "${encodedContent}" | base64 -d > ${escapeShellPath(lockPath)}`,
+			`mkdir -p ~/.skybox-locks && echo "${encodedContent}" | base64 -d > ${escapeShellPath(lockPath)}`,
 		);
 		expect(createResult.success).toBe(true);
 

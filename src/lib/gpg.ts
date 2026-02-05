@@ -50,7 +50,7 @@ export async function verifyGpgSignature(
 	}
 
 	// Create a temporary directory for GPG operations
-	const tempDir = mkdtempSync(join(tmpdir(), "devbox-gpg-"));
+	const tempDir = mkdtempSync(join(tmpdir(), "skybox-gpg-"));
 
 	try {
 		const dataPath = join(tempDir, "data");

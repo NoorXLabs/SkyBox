@@ -1,11 +1,11 @@
-# devbox rm
+# skybox rm
 
 Remove a project from your local machine, with optional remote deletion.
 
 ## Usage
 
 ```bash
-devbox rm [project] [options]
+skybox rm [project] [options]
 ```
 
 ## Arguments
@@ -32,15 +32,15 @@ The command performs the following steps:
 3. **Container Cleanup** - Stops and removes the container and volumes
 4. **Sync Termination** - Terminates the Mutagen sync session
 5. **File Removal** - Deletes local project files
-6. **Deregistration** - Removes project from DevBox configuration
+6. **Deregistration** - Removes project from SkyBox configuration
 
 ### Interactive Multi-Select
 
-When run without a project argument, `devbox rm` displays a checkbox list of all local projects. You can select multiple projects for batch removal using the spacebar and confirm with enter.
+When run without a project argument, `skybox rm` displays a checkbox list of all local projects. You can select multiple projects for batch removal using the spacebar and confirm with enter.
 
 ### Remote Interactive Multi-Select
 
-When run with `--remote` but **no project argument** (`devbox rm --remote`), the command enters an interactive flow for bulk-deleting projects from a remote server:
+When run with `--remote` but **no project argument** (`skybox rm --remote`), the command enters an interactive flow for bulk-deleting projects from a remote server:
 
 1. **Remote selection** - If multiple remotes are configured, prompts you to select which remote to delete from
 2. **Project list** - Fetches all projects from the remote and displays them as a checkbox list (with branch names if available)
@@ -76,7 +76,7 @@ Projects without an ownership file (created before this feature) can be deleted 
 ### Data Safety
 
 - Without `--remote`, remote files are **never deleted**
-- You can always restore a locally-removed project with `devbox clone`
+- You can always restore a locally-removed project with `skybox clone`
 - Running containers are stopped before removal
 
 ### Session Handling
@@ -87,33 +87,33 @@ If a session exists for this project, it will be removed as part of the cleanup.
 
 ```bash
 # Remove a project (with confirmation)
-devbox rm my-project
+skybox rm my-project
 
 # Remove without confirmation
-devbox rm my-project --force
+skybox rm my-project --force
 
 # Remove locally and from remote (double confirmation)
-devbox rm my-project --remote
+skybox rm my-project --remote
 
 # Force remove locally and from remote (no prompts)
-devbox rm my-project --remote --force
+skybox rm my-project --remote --force
 
 # Interactive multi-select (no argument)
-devbox rm
+skybox rm
 # Shows checkbox list: select projects with spacebar, confirm with enter
 
 # Interactive remote multi-select (no argument, --remote)
-devbox rm --remote
+skybox rm --remote
 # Prompts for remote, shows checkbox list of remote projects, double confirms
 
 # Force delete all selected remote projects (no prompts)
-devbox rm --remote --force
+skybox rm --remote --force
 ```
 
 ### Interactive Session
 
 ```bash
-devbox rm my-project
+skybox rm my-project
 
 # Output:
 # ? Remove project 'my-project' locally? This will NOT delete remote files. (y/N) y
@@ -131,7 +131,7 @@ devbox rm my-project
 ### Remote Deletion Session
 
 ```bash
-devbox rm my-project --remote
+skybox rm my-project --remote
 
 # Output:
 # ? Remove project 'my-project' locally AND from the remote server? (y/N) y
@@ -153,7 +153,7 @@ devbox rm my-project --remote
 ### Remote Multi-Select Session
 
 ```bash
-devbox rm --remote
+skybox rm --remote
 
 # Output:
 # ? Select a remote: work
@@ -181,15 +181,15 @@ devbox rm --remote
 
 ```bash
 # Check disk usage of projects
-devbox status
+skybox status
 
 # Output shows my-old-project using 5GB
 
 # Remove it to free space
-devbox rm my-old-project
+skybox rm my-old-project
 
 # Later, if needed again
-devbox clone my-old-project
+skybox clone my-old-project
 ```
 
 ## Exit Codes
@@ -197,11 +197,11 @@ devbox clone my-old-project
 | Code | Meaning |
 |------|---------|
 | 0 | Success |
-| 1 | Error (DevBox not configured, project not found, removal failed) |
+| 1 | Error (SkyBox not configured, project not found, removal failed) |
 
 ## See Also
 
-- [devbox down](/reference/down) - Stop container (optionally with cleanup)
-- [devbox clone](/reference/clone) - Restore project from remote
-- [devbox list](/reference/list) - List local projects
-- [devbox status](/reference/status) - Check project disk usage
+- [skybox down](/reference/down) - Stop container (optionally with cleanup)
+- [skybox clone](/reference/clone) - Restore project from remote
+- [skybox list](/reference/list) - List local projects
+- [skybox status](/reference/status) - Check project disk usage

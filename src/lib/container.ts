@@ -231,8 +231,8 @@ export async function removeContainer(
 	}
 }
 
-// Get all devbox-related containers
-export async function listDevboxContainers(): Promise<ContainerInfo[]> {
+// Get all skybox-related containers
+export async function listSkyboxContainers(): Promise<ContainerInfo[]> {
 	try {
 		const output = await queryDockerContainers({
 			includeAll: true,
@@ -266,7 +266,7 @@ export async function openInEditor(
 		if (!containerId) {
 			return {
 				success: false,
-				error: "Container not running. Run 'devbox up' first.",
+				error: "Container not running. Run 'skybox up' first.",
 			};
 		}
 

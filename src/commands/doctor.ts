@@ -78,7 +78,7 @@ function checkMutagen(): DoctorCheckResult {
 				name,
 				status: "warn",
 				message: "Mutagen not installed (will be downloaded on first use)",
-				fix: "Run 'devbox init' to download Mutagen",
+				fix: "Run 'skybox init' to download Mutagen",
 			};
 		}
 
@@ -99,7 +99,7 @@ function checkMutagen(): DoctorCheckResult {
 			name,
 			status: "warn",
 			message: "Mutagen check failed",
-			fix: "Run 'devbox init' to reinstall Mutagen",
+			fix: "Run 'skybox init' to reinstall Mutagen",
 		};
 	}
 }
@@ -112,8 +112,8 @@ function checkConfig(): DoctorCheckResult {
 			return {
 				name,
 				status: "warn",
-				message: "DevBox not configured",
-				fix: "Run 'devbox init' to set up DevBox",
+				message: "SkyBox not configured",
+				fix: "Run 'skybox init' to set up SkyBox",
 			};
 		}
 
@@ -123,7 +123,7 @@ function checkConfig(): DoctorCheckResult {
 				name,
 				status: "fail",
 				message: "Config file exists but failed to load",
-				fix: "Check ~/.devbox/config.yaml for syntax errors",
+				fix: "Check ~/.skybox/config.yaml for syntax errors",
 			};
 		}
 
@@ -134,7 +134,7 @@ function checkConfig(): DoctorCheckResult {
 				name,
 				status: "warn",
 				message: "No remotes configured",
-				fix: "Run 'devbox init' or 'devbox remote add' to add a remote",
+				fix: "Run 'skybox init' or 'skybox remote add' to add a remote",
 			};
 		}
 
@@ -148,7 +148,7 @@ function checkConfig(): DoctorCheckResult {
 			name,
 			status: "fail",
 			message: `Config error: ${err instanceof Error ? err.message : "unknown"}`,
-			fix: "Check ~/.devbox/config.yaml for errors",
+			fix: "Check ~/.skybox/config.yaml for errors",
 		};
 	}
 }
@@ -246,7 +246,7 @@ function printResult(result: DoctorCheckResult): void {
 
 function printReport(report: DoctorReport): void {
 	console.log();
-	console.log(chalk.bold("DevBox Doctor"));
+	console.log(chalk.bold("SkyBox Doctor"));
 	console.log(chalk.dim("─".repeat(40)));
 	console.log();
 
@@ -273,11 +273,11 @@ function printReport(report: DoctorReport): void {
 	} else if (report.warned > 0) {
 		console.log(
 			chalk.yellow(
-				"  Some checks have warnings. DevBox should work but may have issues.",
+				"  Some checks have warnings. SkyBox should work but may have issues.",
 			),
 		);
 	} else {
-		console.log(chalk.green("  All checks passed. DevBox is ready to use!"));
+		console.log(chalk.green("  All checks passed. SkyBox is ready to use!"));
 	}
 	console.log();
 }

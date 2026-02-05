@@ -20,7 +20,7 @@ describe("new command", () => {
 	});
 
 	describe("config validation", () => {
-		test("requires devbox to be configured", () => {
+		test("requires skybox to be configured", () => {
 			// No config file exists
 			const configExists = false;
 			expect(configExists).toBe(false);
@@ -79,7 +79,7 @@ describe("new command", () => {
 	describe("git clone command construction", () => {
 		test("builds correct clone command with history", () => {
 			const templateUrl = "https://github.com/user/template";
-			const tempPath = "/tmp/devbox-template-123";
+			const tempPath = "/tmp/skybox-template-123";
 			const remotePath = "~/code/myproject";
 
 			const cloneCmd = `git clone ${templateUrl} ${tempPath} && mv ${tempPath} ${remotePath}`;
@@ -91,7 +91,7 @@ describe("new command", () => {
 
 		test("builds correct clone command without history", () => {
 			const templateUrl = "https://github.com/user/template";
-			const tempPath = "/tmp/devbox-template-123";
+			const tempPath = "/tmp/skybox-template-123";
 			const remotePath = "~/code/myproject";
 
 			const cloneCmd = `git clone ${templateUrl} ${tempPath} && rm -rf ${tempPath}/.git && git -C ${tempPath} init && mv ${tempPath} ${remotePath}`;

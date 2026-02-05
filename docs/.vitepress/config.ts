@@ -7,7 +7,7 @@ import { commands } from './commands'
 const env = loadEnv('', resolve(import.meta.dirname, '..'))
 
 const head: HeadConfig[] = [
-  ['link', { rel: 'icon', type: 'image/svg+xml', href: '/devbox-logo-grey.svg' }],
+  ['link', { rel: 'icon', type: 'image/svg+xml', href: '/skybox-logo-grey.svg' }],
 ]
 
 if (env.VITE_RYBBIT_SRC && env.VITE_RYBBIT_SITE_ID) {
@@ -22,12 +22,12 @@ if (env.VITE_RYBBIT_SRC && env.VITE_RYBBIT_SITE_ID) {
 }
 
 export default defineConfig({
-  title: 'DevBox',
+  title: 'SkyBox',
   description: 'Development environment management CLI',
   srcExclude: ['**/architecture/**'],
 
   sitemap: {
-    hostname: 'https://devbox.noorxlabs.com'
+    hostname: 'https://skybox.noorxlabs.com'
   },
 
   vite: {
@@ -37,7 +37,7 @@ export default defineConfig({
   head,
 
   themeConfig: {
-    logo: '/devbox-logo-grey.svg',
+    logo: '/skybox-logo-grey.svg',
 
     nav: [
       { text: 'Guide', link: '/guide/', activeMatch: '/guide/' },
@@ -109,7 +109,7 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/NoorXLabs/DevBox' },
+      { icon: 'github', link: 'https://github.com/NoorXLabs/SkyBox' },
     ],
 
     footer: {

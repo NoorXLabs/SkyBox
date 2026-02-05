@@ -3,35 +3,35 @@ import { describe, expect, test } from "bun:test";
 import { generateBashHook, generateZshHook } from "@commands/hook.ts";
 
 describe("generateBashHook", () => {
-	test("returns a string containing _devbox_hook function", () => {
+	test("returns a string containing _skybox_hook function", () => {
 		const hook = generateBashHook();
-		expect(hook).toContain("_devbox_hook()");
+		expect(hook).toContain("_skybox_hook()");
 	});
 
 	test("contains PROMPT_COMMAND setup", () => {
 		const hook = generateBashHook();
 		expect(hook).toContain("PROMPT_COMMAND");
 		// Verify it appends to existing PROMPT_COMMAND
-		expect(hook).toContain('PROMPT_COMMAND="_devbox_hook');
+		expect(hook).toContain('PROMPT_COMMAND="_skybox_hook');
 	});
 
-	test("contains devbox hook-check invocation", () => {
+	test("contains skybox hook-check invocation", () => {
 		const hook = generateBashHook();
-		expect(hook).toContain("devbox hook-check");
+		expect(hook).toContain("skybox hook-check");
 	});
 
-	test("contains _DEVBOX_PREV_DIR tracking", () => {
+	test("contains _SKYBOX_PREV_DIR tracking", () => {
 		const hook = generateBashHook();
-		expect(hook).toContain("_DEVBOX_PREV_DIR");
+		expect(hook).toContain("_SKYBOX_PREV_DIR");
 		// Verify both reading and setting the variable
 		// biome-ignore lint/suspicious/noTemplateCurlyInString: Testing shell variable syntax
-		expect(hook).toContain("${_DEVBOX_PREV_DIR:-}");
-		expect(hook).toContain('_DEVBOX_PREV_DIR="$cur_dir"');
+		expect(hook).toContain("${_SKYBOX_PREV_DIR:-}");
+		expect(hook).toContain('_SKYBOX_PREV_DIR="$cur_dir"');
 	});
 
 	test("runs hook-check in background with &", () => {
 		const hook = generateBashHook();
-		expect(hook).toContain("devbox hook-check 2>/dev/null &");
+		expect(hook).toContain("skybox hook-check 2>/dev/null &");
 	});
 
 	test("redirects stderr with 2>/dev/null", () => {
@@ -41,7 +41,7 @@ describe("generateBashHook", () => {
 
 	test("contains helpful comments", () => {
 		const hook = generateBashHook();
-		expect(hook).toContain("# DevBox shell hook for bash");
+		expect(hook).toContain("# SkyBox shell hook for bash");
 		expect(hook).toContain("# Add to ~/.bashrc");
 		expect(hook).toContain("# Only run if directory changed");
 		expect(hook).toContain("# Append to PROMPT_COMMAND");
@@ -50,8 +50,8 @@ describe("generateBashHook", () => {
 	test("output is valid shell syntax", () => {
 		const hook = generateBashHook();
 		// Check for balanced braces in function definition
-		expect(hook).toContain("_devbox_hook() {");
-		expect(hook).toMatch(/_devbox_hook\(\) \{[\s\S]*\}/);
+		expect(hook).toContain("_skybox_hook() {");
+		expect(hook).toMatch(/_skybox_hook\(\) \{[\s\S]*\}/);
 		// Check for proper if statement structure
 		expect(hook).toContain("if [[");
 		expect(hook).toContain("then");
@@ -60,35 +60,35 @@ describe("generateBashHook", () => {
 });
 
 describe("generateZshHook", () => {
-	test("returns a string containing _devbox_hook function", () => {
+	test("returns a string containing _skybox_hook function", () => {
 		const hook = generateZshHook();
-		expect(hook).toContain("_devbox_hook()");
+		expect(hook).toContain("_skybox_hook()");
 	});
 
 	test("contains add-zsh-hook precmd setup", () => {
 		const hook = generateZshHook();
-		expect(hook).toContain("add-zsh-hook precmd _devbox_hook");
+		expect(hook).toContain("add-zsh-hook precmd _skybox_hook");
 		// Verify autoload is called
 		expect(hook).toContain("autoload -Uz add-zsh-hook");
 	});
 
-	test("contains devbox hook-check invocation", () => {
+	test("contains skybox hook-check invocation", () => {
 		const hook = generateZshHook();
-		expect(hook).toContain("devbox hook-check");
+		expect(hook).toContain("skybox hook-check");
 	});
 
-	test("contains _DEVBOX_PREV_DIR tracking", () => {
+	test("contains _SKYBOX_PREV_DIR tracking", () => {
 		const hook = generateZshHook();
-		expect(hook).toContain("_DEVBOX_PREV_DIR");
+		expect(hook).toContain("_SKYBOX_PREV_DIR");
 		// Verify both reading and setting the variable
 		// biome-ignore lint/suspicious/noTemplateCurlyInString: Testing shell variable syntax
-		expect(hook).toContain("${_DEVBOX_PREV_DIR:-}");
-		expect(hook).toContain('_DEVBOX_PREV_DIR="$cur_dir"');
+		expect(hook).toContain("${_SKYBOX_PREV_DIR:-}");
+		expect(hook).toContain('_SKYBOX_PREV_DIR="$cur_dir"');
 	});
 
 	test("runs hook-check in background with &", () => {
 		const hook = generateZshHook();
-		expect(hook).toContain("devbox hook-check 2>/dev/null &");
+		expect(hook).toContain("skybox hook-check 2>/dev/null &");
 	});
 
 	test("redirects stderr with 2>/dev/null", () => {
@@ -98,7 +98,7 @@ describe("generateZshHook", () => {
 
 	test("contains helpful comments", () => {
 		const hook = generateZshHook();
-		expect(hook).toContain("# DevBox shell hook for zsh");
+		expect(hook).toContain("# SkyBox shell hook for zsh");
 		expect(hook).toContain("# Add to ~/.zshrc");
 		expect(hook).toContain("# Only run if directory changed");
 		expect(hook).toContain(
@@ -109,8 +109,8 @@ describe("generateZshHook", () => {
 	test("output is valid shell syntax", () => {
 		const hook = generateZshHook();
 		// Check for balanced braces in function definition
-		expect(hook).toContain("_devbox_hook() {");
-		expect(hook).toMatch(/_devbox_hook\(\) \{[\s\S]*\}/);
+		expect(hook).toContain("_skybox_hook() {");
+		expect(hook).toMatch(/_skybox_hook\(\) \{[\s\S]*\}/);
 		// Check for proper if statement structure
 		expect(hook).toContain("if [[");
 		expect(hook).toContain("then");
@@ -126,11 +126,11 @@ describe("bash and zsh hooks shared behavior", () => {
 		// Both should have the same function body structure
 		const coreLogic = [
 			// biome-ignore lint/suspicious/noTemplateCurlyInString: Testing shell variable syntax
-			'local prev_dir="${_DEVBOX_PREV_DIR:-}"',
+			'local prev_dir="${_SKYBOX_PREV_DIR:-}"',
 			'local cur_dir="$PWD"',
 			'if [[ "$prev_dir" != "$cur_dir" ]]',
-			'_DEVBOX_PREV_DIR="$cur_dir"',
-			"devbox hook-check 2>/dev/null &",
+			'_SKYBOX_PREV_DIR="$cur_dir"',
+			"skybox hook-check 2>/dev/null &",
 		];
 
 		for (const line of coreLogic) {

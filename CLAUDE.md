@@ -1,8 +1,8 @@
-# CLAUDE.md - AI Assistant Guide for DevBox
+# CLAUDE.md - AI Assistant Guide for SkyBox
 
 ## Project Overview
 
-DevBox is a CLI tool for managing local-first development containers with remote synchronization. It solves disk bloat, latency, and multi-machine workflow complexity by running containers locally while syncing code bidirectionally with a remote server using Mutagen.
+SkyBox is a CLI tool for managing local-first development containers with remote synchronization. It solves disk bloat, latency, and multi-machine workflow complexity by running containers locally while syncing code bidirectionally with a remote server using Mutagen.
 
 **Version:** 0.7.7
 **Runtime:** Bun (TypeScript)
@@ -83,7 +83,7 @@ bun run src/index.ts <command>
 - **Imports:** Use path aliases with `.ts` extension — never relative paths:
   - `@commands/*` → `src/commands/*` (e.g., `import { upCommand } from "@commands/up.ts"`)
   - `@lib/*` → `src/lib/*` (e.g., `import { loadConfig } from "@lib/config.ts"`)
-  - `@typedefs/*` → `src/types/*` (e.g., `import type { DevboxConfigV2 } from "@typedefs/index.ts"`)
+  - `@typedefs/*` → `src/types/*` (e.g., `import type { SkyboxConfigV2 } from "@typedefs/index.ts"`)
   - `@tests/*` → `tests/*` (e.g., `import { ... } from "@tests/helpers/test-utils.ts"`) — test code only, never from `src/`
   - Exception: `../package.json` in `src/index.ts` (outside `src/`, no alias)
   - Note: `@typedefs` is used instead of `@types` to avoid TypeScript TS6137 conflict
@@ -160,21 +160,21 @@ describe("feature name", () => {
 
 	beforeEach(() => {
 		// Create isolated test directory
-		testDir = join(tmpdir(), `devbox-test-${Date.now()}`);
+		testDir = join(tmpdir(), `skybox-test-${Date.now()}`);
 		mkdirSync(testDir, { recursive: true });
 
-		// Mock DEVBOX_HOME
-		originalEnv = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
+		// Mock SKYBOX_HOME
+		originalEnv = process.env.SKYBOX_HOME;
+		process.env.SKYBOX_HOME = testDir;
 	});
 
 	afterEach(() => {
 		// Cleanup
 		rmSync(testDir, { recursive: true, force: true });
 		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
+			process.env.SKYBOX_HOME = originalEnv;
 		} else {
-			delete process.env.DEVBOX_HOME;
+			delete process.env.SKYBOX_HOME;
 		}
 	});
 
@@ -190,7 +190,7 @@ describe("feature name", () => {
 ### Unit Test Conventions
 
 - Each test uses isolated temp directory with unique timestamp
-- Mock `DEVBOX_HOME` via `process.env` for config isolation
+- Mock `SKYBOX_HOME` via `process.env` for config isolation
 - Clean up all created files in `afterEach`
 - Use real filesystem operations (no mocking fs module)
 - Test both success and error cases
@@ -199,7 +199,7 @@ describe("feature name", () => {
 
 - Tests skip gracefully if Docker isn't running: `describe.skipIf(!await isDockerAvailable())`
 - Each test uses isolated temp directory and unique container names
-- Containers are labeled with `devbox-test=true` for cleanup
+- Containers are labeled with `skybox-test=true` for cleanup
 - Import helpers from `@tests/integration/helpers/docker-test-utils.ts`
 
 ### E2E Test Conventions
@@ -208,7 +208,7 @@ describe("feature name", () => {
 - Required environment variables:
   - `E2E_HOST`: Remote server hostname
   - `E2E_USER`: SSH username
-  - `E2E_PATH`: Base path for test data (optional, defaults to `~/devbox-e2e-tests`)
+  - `E2E_PATH`: Base path for test data (optional, defaults to `~/skybox-e2e-tests`)
   - `E2E_SSH_KEY_PATH`: Path to SSH key (optional)
 - Use `withRetry()` wrapper for flaky network operations
 - Import helpers from `@tests/e2e/helpers/`
@@ -280,7 +280,7 @@ registerNameCommand(program);
 
 ### Modifying Configuration
 
-Config file location: `~/.devbox/config.yaml`
+Config file location: `~/.skybox/config.yaml`
 
 Config structure (V2 - multi-remote):
 ```yaml
@@ -314,9 +314,9 @@ Use `src/lib/config.ts` functions:
 ### Session System
 
 Local session files detect multi-machine conflicts:
-- Session file stored locally: `<project>/.devbox/session.lock`
+- Session file stored locally: `<project>/.skybox/session.lock`
 - Contains: machine name, user, timestamp, PID, expires (24h TTL)
-- Written by `devbox up`, deleted by `devbox down`
+- Written by `skybox up`, deleted by `skybox down`
 - Uses atomic write (temp file + rename) to prevent corruption
 - Sessions expire after 24 hours (`SESSION_TTL_MS` in constants.ts) — expired sessions ignored
 - See `src/lib/session.ts` for implementation
@@ -324,7 +324,7 @@ Local session files detect multi-machine conflicts:
 ### Sync System
 
 Bidirectional file sync via Mutagen:
-- Mutagen binary auto-downloaded during `devbox init`
+- Mutagen binary auto-downloaded during `skybox init`
 - Sessions managed in `src/lib/mutagen.ts`
 - Default ignore patterns in `src/lib/constants.ts` as `DEFAULT_IGNORE`
 
@@ -333,7 +333,7 @@ Bidirectional file sync via Mutagen:
 Uses Docker with devcontainer spec:
 - Container operations in `src/lib/container.ts`
 - Devcontainer templates in `src/lib/templates.ts`
-- Container naming: `devbox-<project-name>`
+- Container naming: `skybox-<project-name>`
 
 ## Key Files Reference
 
@@ -351,7 +351,7 @@ Uses Docker with devcontainer spec:
 | `src/lib/validation.ts` | Path traversal prevention, input validation |
 | `src/lib/shell.ts` | Shell escaping: `escapeShellArg()`, `buildShellCommand()` |
 | `src/lib/hooks.ts` | Hook runner for pre/post lifecycle events |
-| `src/lib/audit.ts` | Audit logging (JSON Lines to `~/.devbox/audit.log`) |
+| `src/lib/audit.ts` | Audit logging (JSON Lines to `~/.skybox/audit.log`) |
 | `src/lib/gpg.ts` | GPG signature verification for Mutagen downloads |
 | `src/lib/shutdown.ts` | Graceful shutdown and signal handling |
 | `src/commands/dashboard.tsx` | Ink/React TUI dashboard |
@@ -420,23 +420,23 @@ Note: `bun run check` is enforced automatically by a native Stop hook — no man
 
 - **`@tests/*` alias is test-only**: The `@tests/*` path alias must NEVER be imported from production code in `src/`. It exists solely for test-to-test imports. Biome cannot enforce this, so treat it as a convention.
 
-- **Ownership uses local OS username**: The `.devbox-owner` system uses `userInfo().username` (local OS username), not the SSH remote user. This means ownership is consistent for a user across machines but could conflict if different people share the same local username. This is a deliberate trade-off for simplicity.
+- **Ownership uses local OS username**: The `.skybox-owner` system uses `userInfo().username` (local OS username), not the SSH remote user. This means ownership is consistent for a user across machines but could conflict if different people share the same local username. This is a deliberate trade-off for simplicity.
 
 ## Environment Variables
 
-DevBox respects the following environment variables:
+SkyBox respects the following environment variables:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DEVBOX_HOME` | `~/.devbox` | Override DevBox data directory location |
-| `DEVBOX_AUDIT` | `0` | Set to `1` to enable audit logging to `~/.devbox/audit.log` |
-| `DEVBOX_SKIP_GPG` | `0` | Set to `1` to skip GPG signature verification for Mutagen downloads |
-| `DEVBOX_HOOK_WARNINGS` | `1` | Set to `0` to suppress one-time hook security warning |
+| `SKYBOX_HOME` | `~/.skybox` | Override SkyBox data directory location |
+| `SKYBOX_AUDIT` | `0` | Set to `1` to enable audit logging to `~/.skybox/audit.log` |
+| `SKYBOX_SKIP_GPG` | `0` | Set to `1` to skip GPG signature verification for Mutagen downloads |
+| `SKYBOX_HOOK_WARNINGS` | `1` | Set to `0` to suppress one-time hook security warning |
 | `DEBUG` | unset | Set to any value to enable debug output in list command |
 
 ### Audit Logging
 
-When `DEVBOX_AUDIT=1`, security-relevant operations are logged to `~/.devbox/audit.log` in JSON Lines format:
+When `SKYBOX_AUDIT=1`, security-relevant operations are logged to `~/.skybox/audit.log` in JSON Lines format:
 
 ```json
 {"timestamp":"2026-02-04T12:00:00Z","action":"push:success","user":"john","machine":"macbook","details":{"project":"myapp"}}
@@ -446,5 +446,5 @@ Logged actions: `clone:start`, `clone:success`, `clone:fail`, `push:start`, `pus
 
 **Log rotation:** The audit log grows unbounded. For long-running deployments, rotate manually with:
 ```bash
-mv ~/.devbox/audit.log ~/.devbox/audit.log.$(date +%Y%m%d)
+mv ~/.skybox/audit.log ~/.skybox/audit.log.$(date +%Y%m%d)
 ```

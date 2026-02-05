@@ -43,7 +43,7 @@ export type ContainerState = "running" | "exited" | null;
 export interface DockerTestContext {
 	/** Unique project name for this test */
 	projectName: string;
-	/** Temporary test directory set as DEVBOX_HOME */
+	/** Temporary test directory set as SKYBOX_HOME */
 	testDir: string;
 	/** Project directory under testDir/Projects */
 	projectDir: string;
@@ -72,14 +72,14 @@ function generateTestProjectName(name: string): string {
  */
 export function createDockerTestContext(name: string): DockerTestContext {
 	const projectName = generateTestProjectName(name);
-	const testDir = join(tmpdir(), `devbox-integration-${projectName}`);
+	const testDir = join(tmpdir(), `skybox-integration-${projectName}`);
 	const projectDir = join(testDir, "Projects", projectName);
 
-	const originalEnv = process.env.DEVBOX_HOME;
+	const originalEnv = process.env.SKYBOX_HOME;
 
 	// Create directory structure
 	mkdirSync(projectDir, { recursive: true });
-	process.env.DEVBOX_HOME = testDir;
+	process.env.SKYBOX_HOME = testDir;
 
 	// Normalize path for container label matching (macOS symlinks like /var -> /private/var)
 	const normalizedProjectDir = realpathSync(projectDir);
@@ -101,11 +101,11 @@ export function createDockerTestContext(name: string): DockerTestContext {
 			rmSync(testDir, { recursive: true, force: true });
 		}
 
-		// Restore original DEVBOX_HOME
+		// Restore original SKYBOX_HOME
 		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
+			process.env.SKYBOX_HOME = originalEnv;
 		} else {
-			delete process.env.DEVBOX_HOME;
+			delete process.env.SKYBOX_HOME;
 		}
 	};
 
@@ -226,7 +226,7 @@ export async function getContainerStatus(
 }
 
 /**
- * Removes all Docker containers with the devbox-test=true label.
+ * Removes all Docker containers with the skybox-test=true label.
  * Used for cleanup after test runs.
  *
  * @returns Number of containers removed
@@ -260,7 +260,7 @@ export async function cleanupTestContainers(): Promise<number> {
 }
 
 /**
- * Prunes Docker volumes with the devbox-test=true label.
+ * Prunes Docker volumes with the skybox-test=true label.
  * Used for cleanup after test runs.
  *
  * @returns Number of volumes removed

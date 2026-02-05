@@ -1,8 +1,8 @@
 /**
  * Shell hook commands for auto-starting containers on directory enter.
  *
- * - `devbox hook <shell>` - Output shell hook code for bash/zsh
- * - `devbox hook-check` - Hidden: check and auto-start (called by hook)
+ * - `skybox hook <shell>` - Output shell hook code for bash/zsh
+ * - `skybox hook-check` - Hidden: check and auto-start (called by hook)
  */
 
 import { spawn } from "node:child_process";
@@ -19,23 +19,23 @@ import { ContainerStatus } from "@typedefs/index.ts";
  * Uses PROMPT_COMMAND to trigger on directory changes.
  */
 export function generateBashHook(): string {
-	return `# DevBox shell hook for bash
-# Add to ~/.bashrc: eval "$(devbox hook bash)"
+	return `# SkyBox shell hook for bash
+# Add to ~/.bashrc: eval "$(skybox hook bash)"
 
-_devbox_hook() {
-  local prev_dir="\${_DEVBOX_PREV_DIR:-}"
+_skybox_hook() {
+  local prev_dir="\${_SKYBOX_PREV_DIR:-}"
   local cur_dir="$PWD"
 
   # Only run if directory changed
   if [[ "$prev_dir" != "$cur_dir" ]]; then
-    _DEVBOX_PREV_DIR="$cur_dir"
-    devbox hook-check 2>/dev/null &
+    _SKYBOX_PREV_DIR="$cur_dir"
+    skybox hook-check 2>/dev/null &
   fi
 }
 
 # Append to PROMPT_COMMAND if not already present
-if [[ ! "$PROMPT_COMMAND" =~ _devbox_hook ]]; then
-  PROMPT_COMMAND="_devbox_hook\${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
+if [[ ! "$PROMPT_COMMAND" =~ _skybox_hook ]]; then
+  PROMPT_COMMAND="_skybox_hook\${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
 fi
 `;
 }
@@ -45,24 +45,24 @@ fi
  * Uses precmd hook via add-zsh-hook.
  */
 export function generateZshHook(): string {
-	return `# DevBox shell hook for zsh
-# Add to ~/.zshrc: eval "$(devbox hook zsh)"
+	return `# SkyBox shell hook for zsh
+# Add to ~/.zshrc: eval "$(skybox hook zsh)"
 
-_devbox_hook() {
-  local prev_dir="\${_DEVBOX_PREV_DIR:-}"
+_skybox_hook() {
+  local prev_dir="\${_SKYBOX_PREV_DIR:-}"
   local cur_dir="$PWD"
 
   # Only run if directory changed
   if [[ "$prev_dir" != "$cur_dir" ]]; then
-    _DEVBOX_PREV_DIR="$cur_dir"
-    devbox hook-check 2>/dev/null &
+    _SKYBOX_PREV_DIR="$cur_dir"
+    skybox hook-check 2>/dev/null &
   fi
 }
 
 # Register with zsh hook system (if not already registered)
 autoload -Uz add-zsh-hook
-if [[ \${precmd_functions[(Ie)_devbox_hook]} -eq 0 ]]; then
-  add-zsh-hook precmd _devbox_hook
+if [[ \${precmd_functions[(Ie)_skybox_hook]} -eq 0 ]]; then
+  add-zsh-hook precmd _skybox_hook
 fi
 `;
 }
@@ -85,12 +85,12 @@ function logAutoUp(message: string): void {
 }
 
 /**
- * Command handler for `devbox hook <shell>`.
+ * Command handler for `skybox hook <shell>`.
  * Outputs shell hook code to stdout.
  */
 export async function hookCommand(shell: string | undefined): Promise<void> {
 	if (!shell) {
-		error("Usage: devbox hook <bash|zsh>");
+		error("Usage: skybox hook <bash|zsh>");
 		process.exit(1);
 	}
 
@@ -108,7 +108,7 @@ export async function hookCommand(shell: string | undefined): Promise<void> {
 }
 
 /**
- * Command handler for `devbox hook-check`.
+ * Command handler for `skybox hook-check`.
  * Hidden subcommand called by shell hooks.
  * Always exits 0 to never break the shell.
  */
@@ -122,7 +122,7 @@ export async function hookCheckCommand(): Promise<void> {
 		// Resolve project from current working directory
 		const project = resolveProjectFromCwd();
 		if (!project) {
-			// Not in a DevBox project directory, exit silently
+			// Not in a SkyBox project directory, exit silently
 			process.exit(0);
 		}
 
@@ -158,7 +158,7 @@ export async function hookCheckCommand(): Promise<void> {
 			process.exit(0);
 		}
 
-		// Container not running, spawn devbox up in background
+		// Container not running, spawn skybox up in background
 		logAutoUp(`[${project}] Auto-starting container...`);
 
 		const logPath = getAutoUpLogPath();
@@ -167,8 +167,8 @@ export async function hookCheckCommand(): Promise<void> {
 			mkdirSync(logsDir, { recursive: true });
 		}
 
-		// Spawn devbox up with output redirected to log file
-		const child = spawn("devbox", ["up", project, "--no-prompt"], {
+		// Spawn skybox up with output redirected to log file
+		const child = spawn("skybox", ["up", project, "--no-prompt"], {
 			detached: true,
 			stdio: ["ignore", "pipe", "pipe"],
 		});

@@ -1,8 +1,8 @@
 /** Config format migration from V1 (single remote) to V2 (multi-remote). */
 import type {
-	DevboxConfig,
-	DevboxConfigV2,
 	RemoteEntry,
+	SkyboxConfig,
+	SkyboxConfigV2,
 } from "@typedefs/index.ts";
 
 /**
@@ -18,7 +18,7 @@ export function needsMigration(config: unknown): boolean {
 /**
  * Migrate old single-remote config to new multi-remote format
  */
-export function migrateConfig(oldConfig: DevboxConfig): DevboxConfigV2 {
+export function migrateConfig(oldConfig: SkyboxConfig): SkyboxConfigV2 {
 	const remoteName = oldConfig.remote.host;
 
 	const newRemote: RemoteEntry = {

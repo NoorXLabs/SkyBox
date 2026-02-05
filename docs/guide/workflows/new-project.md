@@ -1,38 +1,38 @@
 # Creating a New Project
 
-This guide walks through creating projects with DevBox, whether starting from scratch or bringing an existing codebase.
+This guide walks through creating projects with SkyBox, whether starting from scratch or bringing an existing codebase.
 
 ## Prerequisites
 
-Before creating projects, ensure DevBox is configured:
+Before creating projects, ensure SkyBox is configured:
 
 ```bash
-devbox init
+skybox init
 ```
 
 This sets up your remote server connection and preferred editor.
 
 ## Option 1: Push an Existing Project
 
-The most common workflow is pushing a local project to DevBox for containerized development.
+The most common workflow is pushing a local project to SkyBox for containerized development.
 
 ### Step 1: Push Your Project
 
 ```bash
-devbox push ./my-project
+skybox push ./my-project
 ```
 
 Or specify a custom name:
 
 ```bash
-devbox push ./my-project my-app
+skybox push ./my-project my-app
 ```
 
 ### Step 2: What Happens
 
-1. **Git Check** - DevBox verifies the project is a git repository (offers to initialize if not)
+1. **Git Check** - SkyBox verifies the project is a git repository (offers to initialize if not)
 2. **Remote Creation** - Creates the project directory on your remote server
-3. **Local Copy** - Copies files to `~/.devbox/Projects/<project-name>`
+3. **Local Copy** - Copies files to `~/.skybox/Projects/<project-name>`
 4. **Sync Setup** - Establishes two-way sync with Mutagen
 5. **Initial Sync** - Waits for all files to sync to remote
 
@@ -41,7 +41,7 @@ devbox push ./my-project my-app
 After push completes, start the container:
 
 ```bash
-devbox up my-project
+skybox up my-project
 ```
 
 ## Option 2: Clone from Remote
@@ -51,7 +51,7 @@ If a project already exists on your remote server (perhaps pushed from another m
 ### Step 1: Browse Available Projects
 
 ```bash
-devbox browse
+skybox browse
 ```
 
 This shows all projects in your remote code directory:
@@ -69,26 +69,26 @@ Remote projects (myserver:~/code):
 ### Step 2: Clone the Project
 
 ```bash
-devbox clone backend-api
+skybox clone backend-api
 ```
 
 ### Step 3: What Happens
 
 1. **Remote Check** - Verifies the project exists on remote
-2. **Local Directory** - Creates `~/.devbox/Projects/backend-api`
+2. **Local Directory** - Creates `~/.skybox/Projects/backend-api`
 3. **Sync Session** - Creates Mutagen sync session
 4. **Initial Sync** - Downloads all files from remote
 5. **Optional Start** - Prompts to start the dev container
 
-## Option 3: Create a New Project with `devbox new`
+## Option 3: Create a New Project with `skybox new`
 
-The `devbox new` command creates a project on the remote server from scratch, with full template selection:
+The `skybox new` command creates a project on the remote server from scratch, with full template selection:
 
 ```bash
-devbox new my-app
+skybox new my-app
 ```
 
-DevBox walks you through the full setup:
+SkyBox walks you through the full setup:
 
 1. **Creates the project** on the remote server
 2. **Prompts for template selection** (see below)
@@ -99,7 +99,7 @@ This is the recommended way to start a brand new project.
 
 ## Option 4: Start from a Template (Existing Directory)
 
-When pushing a project that has no `devcontainer.json`, DevBox automatically offers template selection during `devbox up`.
+When pushing a project that has no `devcontainer.json`, SkyBox automatically offers template selection during `skybox up`.
 
 ### Step 1: Create Project Directory
 
@@ -109,19 +109,19 @@ cd ~/code/new-app
 git init
 ```
 
-### Step 2: Push to DevBox
+### Step 2: Push to SkyBox
 
 ```bash
-devbox push .
+skybox push .
 ```
 
 ### Step 3: Start and Select Template
 
 ```bash
-devbox up new-app
+skybox up new-app
 ```
 
-DevBox detects no `devcontainer.json` and offers templates:
+SkyBox detects no `devcontainer.json` and offers templates:
 
 ```
 No devcontainer.json found
@@ -167,7 +167,7 @@ All built-in templates include:
 
 ### Step 4: Template Creates Configuration
 
-DevBox creates `.devcontainer/devcontainer.json`:
+SkyBox creates `.devcontainer/devcontainer.json`:
 
 ```json
 {
@@ -191,7 +191,7 @@ This configuration is automatically committed to git.
 
 ## Customizing devcontainer.json
 
-After DevBox creates the initial configuration, you can customize it:
+After SkyBox creates the initial configuration, you can customize it:
 
 ### Add More Extensions
 
@@ -255,7 +255,7 @@ Update `devcontainer.json`:
 After creating a project, your file structure looks like:
 
 ```
-~/.devbox/
+~/.skybox/
   projects/
     my-project/           # Local synced copy
       .devcontainer/
@@ -278,7 +278,7 @@ Remote (your-server:~/code/):
 Check your project status:
 
 ```bash
-devbox status my-project
+skybox status my-project
 ```
 
 Output shows:
@@ -294,7 +294,7 @@ Container
 
 Sync
   Status:     syncing
-  Session:    devbox-my-project
+  Session:    skybox-my-project
   Pending:    0 files
 
 Git

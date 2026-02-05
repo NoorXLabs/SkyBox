@@ -2,7 +2,7 @@
 /**
  * @file container-lifecycle.test.ts
  * @description Integration test for container lifecycle operations.
- * Tests devcontainer CLI operations (the underlying mechanism used by devbox up/down).
+ * Tests devcontainer CLI operations (the underlying mechanism used by skybox up/down).
  */
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
@@ -47,7 +47,7 @@ describe.skipIf(!dockerAvailable || !devcontainerAvailable)(
 		});
 
 		test("devcontainer up starts container and it can be stopped", async () => {
-			// Start container using devcontainer CLI (same underlying operation as devbox up)
+			// Start container using devcontainer CLI (same underlying operation as skybox up)
 			await execa("devcontainer", ["up", "--workspace-folder", ctx.projectDir]);
 
 			// Wait for container to be running (find by project path label)

@@ -58,7 +58,7 @@ mock.module("@lib/container.ts", () => ({
 	startContainer: mock(() => Promise.resolve({ success: true })),
 	stopContainer: mock(() => Promise.resolve({ success: true })),
 	removeContainer: mock(() => Promise.resolve({ success: true })),
-	listDevboxContainers: mock(() => Promise.resolve([])),
+	listSkyboxContainers: mock(() => Promise.resolve([])),
 	openInEditor: mock(() => Promise.resolve()),
 	attachToShell: mock(() => Promise.resolve()),
 	hasLocalDevcontainerConfig: mock(() => false),
@@ -97,7 +97,7 @@ describe("shell command docker exec", () => {
 		writeFileSync(
 			join(ctx.testDir, "config.yaml"),
 			`remote:
-  host: devbox-server
+  host: skybox-server
   base_path: ~/code
 editor: cursor
 defaults:
@@ -119,7 +119,7 @@ projects: {}
 		);
 
 		// Create a real session file so shell command doesn't warn about missing session
-		const sessionDir = join(ctx.testDir, "Projects", "myapp", ".devbox");
+		const sessionDir = join(ctx.testDir, "Projects", "myapp", ".skybox");
 		mkdirSync(sessionDir, { recursive: true });
 		writeFileSync(
 			join(ctx.testDir, "Projects", "myapp", SESSION_FILE),

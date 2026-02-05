@@ -30,7 +30,7 @@ describe("encryption", () => {
 	let testDir: string;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-enc-test-${Date.now()}`);
+		testDir = join(tmpdir(), `skybox-enc-test-${Date.now()}`);
 		mkdirSync(testDir, { recursive: true });
 	});
 
@@ -148,8 +148,8 @@ export interface EncryptionConfig {
 	salt?: string;
 }
 
-// Add to DevboxConfigV2:
-export interface DevboxConfigV2 {
+// Add to SkyboxConfigV2:
+export interface SkyboxConfigV2 {
 	editor: string;
 	defaults: SyncDefaults;
 	remotes: Record<string, RemoteEntry>;
@@ -189,7 +189,7 @@ case "encryption": {
 	} else if (arg1 === "disable") {
 		await disableEncryption();
 	} else {
-		info("Usage: devbox config encryption <enable|disable>");
+		info("Usage: skybox config encryption <enable|disable>");
 	}
 	break;
 }
@@ -263,5 +263,5 @@ Expected: All pass
 ## Future Follow-Up Plans
 
 - **Sync encryption**: Encrypt files before Mutagen sync (requires Mutagen hooks or wrapper)
-- **Per-project encryption toggle**: `devbox config encryption enable --project <name>`
+- **Per-project encryption toggle**: `skybox config encryption enable --project <name>`
 - **Keychain integration**: Store passphrase in macOS Keychain / Linux secret-service

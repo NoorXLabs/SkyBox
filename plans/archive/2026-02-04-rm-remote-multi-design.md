@@ -1,12 +1,12 @@
-# Design: `devbox rm --remote` Multi-Select
+# Design: `skybox rm --remote` Multi-Select
 
 ## Summary
 
-Add interactive multi-select deletion of remote projects via `devbox rm --remote` (no project argument). Mirrors the existing local multi-select behavior but targets remote projects.
+Add interactive multi-select deletion of remote projects via `skybox rm --remote` (no project argument). Mirrors the existing local multi-select behavior but targets remote projects.
 
 ## User Flow
 
-1. User runs `devbox rm --remote` (no project argument).
+1. User runs `skybox rm --remote` (no project argument).
 2. If multiple remotes configured, prompt to select one. Single remote auto-selects.
 3. Fetch project list from selected remote (reuses `getRemoteProjects()` from `browse.ts`).
 4. Display interactive checkbox list of remote projects.

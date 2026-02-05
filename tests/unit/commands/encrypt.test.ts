@@ -8,18 +8,18 @@ describe("encrypt command", () => {
 	let originalEnv: string | undefined;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-encrypt-test-${Date.now()}`);
+		testDir = join(tmpdir(), `skybox-encrypt-test-${Date.now()}`);
 		mkdirSync(testDir, { recursive: true });
-		originalEnv = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
+		originalEnv = process.env.SKYBOX_HOME;
+		process.env.SKYBOX_HOME = testDir;
 	});
 
 	afterEach(() => {
 		rmSync(testDir, { recursive: true, force: true });
 		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
+			process.env.SKYBOX_HOME = originalEnv;
 		} else {
-			delete process.env.DEVBOX_HOME;
+			delete process.env.SKYBOX_HOME;
 		}
 	});
 

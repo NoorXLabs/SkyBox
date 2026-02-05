@@ -54,9 +54,9 @@ describe("sanitizeDockerError", () => {
 	});
 
 	test("preserves /tmp paths", () => {
-		const input = "Created temp file at /tmp/devbox-12345/file";
+		const input = "Created temp file at /tmp/skybox-12345/file";
 		const sanitized = sanitizeDockerError(input);
-		expect(sanitized).toContain("/tmp/devbox-12345/file");
+		expect(sanitized).toContain("/tmp/skybox-12345/file");
 	});
 
 	test("preserves Docker socket paths", () => {

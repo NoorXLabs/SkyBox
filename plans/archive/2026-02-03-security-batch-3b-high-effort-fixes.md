@@ -4,7 +4,7 @@
 
 **Goal:** Implement resource ownership verification (finding 7) and GPG signature verification for Mutagen downloads (finding 17).
 
-**Architecture:** Finding 7 introduces a lightweight `.devbox-owner` metadata file system to track project ownership on shared remotes. Finding 17 adds GPG signature verification to the Mutagen download process, requiring the GPG public key for the Mutagen project.
+**Architecture:** Finding 7 introduces a lightweight `.skybox-owner` metadata file system to track project ownership on shared remotes. Finding 17 adds GPG signature verification to the Mutagen download process, requiring the GPG public key for the Mutagen project.
 
 **Tech Stack:** TypeScript, Bun test runner, Node.js crypto module, GPG verification via child_process
 
@@ -30,7 +30,7 @@ This batch addresses two HIGH-EFFORT MEDIUM-TERM findings:
 
 ### Step 1: Define the ownership file format
 
-Each project on the remote will have a `.devbox-owner` file:
+Each project on the remote will have a `.skybox-owner` file:
 
 ```json
 {
@@ -40,7 +40,7 @@ Each project on the remote will have a `.devbox-owner` file:
 }
 ```
 
-Location: `<remote.path>/<project>/.devbox-owner`
+Location: `<remote.path>/<project>/.skybox-owner`
 
 ### Step 2: Define authorization rules
 
@@ -66,7 +66,7 @@ Location: `<remote.path>/<project>/.devbox-owner`
 Add after the `LockInfo` interface:
 
 ```typescript
-/** Project ownership metadata stored in .devbox-owner */
+/** Project ownership metadata stored in .skybox-owner */
 export interface OwnershipInfo {
 	owner: string; // SSH username who created the project
 	created: string; // ISO 8601 timestamp
@@ -256,7 +256,7 @@ export async function getOwnershipStatus(
 
 /**
  * Set ownership for a project on the remote.
- * Creates the .devbox-owner file with current user's info.
+ * Creates the .skybox-owner file with current user's info.
  */
 export async function setOwnership(
 	host: string,
@@ -310,7 +310,7 @@ Edit `src/lib/constants.ts` — add near other file constants:
 
 ```typescript
 /** Ownership metadata file name */
-export const OWNERSHIP_FILE_NAME = ".devbox-owner";
+export const OWNERSHIP_FILE_NAME = ".skybox-owner";
 ```
 
 ### Step 6: Run test to verify ownership functions pass
@@ -325,7 +325,7 @@ git add src/lib/ownership.ts src/lib/__tests__/ownership.test.ts src/lib/constan
 git commit -m "$(cat <<'EOF'
 feat(security): add resource ownership verification system
 
-Introduce .devbox-owner metadata file for tracking project ownership:
+Introduce .skybox-owner metadata file for tracking project ownership:
 - parseOwnershipInfo: Parse ownership JSON
 - createOwnershipInfo: Create info for current user
 - isOwner: Check if current user owns the project
@@ -421,7 +421,7 @@ git commit -m "$(cat <<'EOF'
 fix(security): add ownership check to push command
 
 Push now verifies authorization before overwriting:
-- Check .devbox-owner file on remote
+- Check .skybox-owner file on remote
 - Block if different user owns the project
 - Set ownership after successful push
 
@@ -472,7 +472,7 @@ git commit -m "$(cat <<'EOF'
 fix(security): add ownership check to rm --remote
 
 Remote deletion now verifies authorization before deleting:
-- Check .devbox-owner file on remote
+- Check .skybox-owner file on remote
 - Block if different user owns the project
 
 Fixes finding #7 (part 2) from security audit.
@@ -603,7 +603,7 @@ export async function verifyGpgSignature(
 	}
 
 	// Create a temporary directory for GPG operations
-	const tempDir = mkdtempSync(join(tmpdir(), "devbox-gpg-"));
+	const tempDir = mkdtempSync(join(tmpdir(), "skybox-gpg-"));
 
 	try {
 		const dataPath = join(tempDir, "data");
@@ -698,7 +698,7 @@ import {
 **Add constant for GPG enforcement:**
 ```typescript
 /** Whether to require GPG verification (can be disabled via env) */
-const REQUIRE_GPG_VERIFICATION = process.env.DEVBOX_SKIP_GPG !== "1";
+const REQUIRE_GPG_VERIFICATION = process.env.SKYBOX_SKIP_GPG !== "1";
 ```
 
 **Modify `downloadMutagen` to add GPG verification after checksum fetch:**
@@ -770,7 +770,7 @@ Add optional GPG signature verification for Mutagen downloads:
 - verifyGpgSignature: Verify detached signature
 - Integration into downloadMutagen flow
 - Graceful fallback when GPG unavailable
-- DEVBOX_SKIP_GPG=1 env var to disable
+- SKYBOX_SKIP_GPG=1 env var to disable
 
 Fixes finding #17 from security audit.
 EOF
@@ -818,7 +818,7 @@ Expected files changed:
 This plan addresses two HIGH-EFFORT MEDIUM-TERM security findings:
 
 1. **Resource ownership verification (Finding 7)**
-   - New `.devbox-owner` metadata file system
+   - New `.skybox-owner` metadata file system
    - Authorization checks in `push` and `rm --remote` commands
    - Backward compatible with legacy projects
 

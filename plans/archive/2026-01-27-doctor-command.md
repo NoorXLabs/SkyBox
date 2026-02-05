@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Add `devbox doctor` command that diagnoses common issues with DevBox setup, dependencies, and configuration.
+**Goal:** Add `skybox doctor` command that diagnoses common issues with SkyBox setup, dependencies, and configuration.
 
 **Architecture:** The doctor command runs a series of health checks (Docker, SSH, Mutagen, config, remotes) and reports issues with suggested fixes. Each check is independent and reports pass/warn/fail status.
 
@@ -134,7 +134,7 @@ function printResult(result: DoctorCheckResult): void {
 
 function printReport(report: DoctorReport): void {
 	console.log();
-	console.log(chalk.bold("DevBox Doctor"));
+	console.log(chalk.bold("SkyBox Doctor"));
 	console.log(chalk.dim("─".repeat(40)));
 	console.log();
 
@@ -159,10 +159,10 @@ function printReport(report: DoctorReport): void {
 		);
 	} else if (report.warned > 0) {
 		console.log(
-			chalk.yellow("  Some checks have warnings. DevBox should work but may have issues."),
+			chalk.yellow("  Some checks have warnings. SkyBox should work but may have issues."),
 		);
 	} else {
-		console.log(chalk.green("  All checks passed. DevBox is ready to use!"));
+		console.log(chalk.green("  All checks passed. SkyBox is ready to use!"));
 	}
 	console.log();
 }
@@ -229,7 +229,7 @@ function checkMutagen(): DoctorCheckResult {
 				name,
 				status: "warn",
 				message: "Mutagen not installed (will be downloaded on first use)",
-				fix: "Run 'devbox init' to download Mutagen",
+				fix: "Run 'skybox init' to download Mutagen",
 			};
 		}
 
@@ -250,7 +250,7 @@ function checkMutagen(): DoctorCheckResult {
 			name,
 			status: "warn",
 			message: "Mutagen check failed",
-			fix: "Run 'devbox init' to reinstall Mutagen",
+			fix: "Run 'skybox init' to reinstall Mutagen",
 		};
 	}
 }
@@ -281,7 +281,7 @@ git commit -m "feat(doctor): add Mutagen check"
 
 ---
 
-## Task 4: Add DevBox Config Check
+## Task 4: Add SkyBox Config Check
 
 **Files:**
 - Modify: `src/commands/doctor.ts`
@@ -301,8 +301,8 @@ function checkConfig(): DoctorCheckResult {
 			return {
 				name,
 				status: "warn",
-				message: "DevBox not configured",
-				fix: "Run 'devbox init' to set up DevBox",
+				message: "SkyBox not configured",
+				fix: "Run 'skybox init' to set up SkyBox",
 			};
 		}
 
@@ -312,7 +312,7 @@ function checkConfig(): DoctorCheckResult {
 				name,
 				status: "fail",
 				message: "Config file exists but failed to load",
-				fix: "Check ~/.devbox/config.yaml for syntax errors",
+				fix: "Check ~/.skybox/config.yaml for syntax errors",
 			};
 		}
 
@@ -323,7 +323,7 @@ function checkConfig(): DoctorCheckResult {
 				name,
 				status: "warn",
 				message: "No remotes configured",
-				fix: "Run 'devbox init' or 'devbox remote add' to add a remote",
+				fix: "Run 'skybox init' or 'skybox remote add' to add a remote",
 			};
 		}
 
@@ -337,7 +337,7 @@ function checkConfig(): DoctorCheckResult {
 			name,
 			status: "fail",
 			message: `Config error: ${err instanceof Error ? err.message : "unknown"}`,
-			fix: "Check ~/.devbox/config.yaml for errors",
+			fix: "Check ~/.skybox/config.yaml for errors",
 		};
 	}
 }
@@ -603,19 +603,19 @@ describe("doctor command", () => {
 	let originalEnv: string | undefined;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-doctor-test-${Date.now()}`);
+		testDir = join(tmpdir(), `skybox-doctor-test-${Date.now()}`);
 		mkdirSync(testDir, { recursive: true });
 
-		originalEnv = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
+		originalEnv = process.env.SKYBOX_HOME;
+		process.env.SKYBOX_HOME = testDir;
 	});
 
 	afterEach(() => {
 		rmSync(testDir, { recursive: true, force: true });
 		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
+			process.env.SKYBOX_HOME = originalEnv;
 		} else {
-			delete process.env.DEVBOX_HOME;
+			delete process.env.SKYBOX_HOME;
 		}
 	});
 
@@ -686,13 +686,13 @@ git commit -m "test(doctor): add tests for doctor command"
 In the Future Features > High Priority section, change:
 
 ```markdown
-- [ ] **Health Check Command:** `devbox doctor` to diagnose common issues
+- [ ] **Health Check Command:** `skybox doctor` to diagnose common issues
 ```
 
 To:
 
 ```markdown
-- [x] **Health Check Command:** `devbox doctor` to diagnose common issues
+- [x] **Health Check Command:** `skybox doctor` to diagnose common issues
   - Checks: Docker, Mutagen, Config, SSH connectivity, Devcontainer CLI
   - Commit: `<commit-hash>`
 ```
@@ -733,7 +733,7 @@ git commit -m "docs: mark doctor command as complete"
 ## Example Output
 
 ```
-DevBox Doctor
+SkyBox Doctor
 ────────────────────────────────────────
 
   ✓ Docker: Docker 24.0 is running

@@ -54,14 +54,14 @@ import { sessionName } from "../mutagen.ts";
 describe("selective sync session naming", () => {
 	test("sessionName produces valid name for project", () => {
 		const name = sessionName("my-project");
-		expect(name).toBe("devbox-my-project");
+		expect(name).toBe("skybox-my-project");
 	});
 
 	test("selective session name includes subpath", () => {
 		// We'll add a helper: selectiveSessionName(project, subpath)
 		const { selectiveSessionName } = require("../mutagen.ts");
 		const name = selectiveSessionName("my-project", "packages/frontend");
-		expect(name).toBe("devbox-my-project-packages-frontend");
+		expect(name).toBe("skybox-my-project-packages-frontend");
 	});
 });
 ```
@@ -79,7 +79,7 @@ In `src/lib/mutagen.ts`, add:
 export function selectiveSessionName(project: string, subpath: string): string {
 	const sanitizedProject = project.replace(/[^a-z0-9-_]/gi, "-").toLowerCase();
 	const sanitizedPath = subpath.replace(/[^a-z0-9-_]/gi, "-").toLowerCase();
-	return `devbox-${sanitizedProject}-${sanitizedPath}`;
+	return `skybox-${sanitizedProject}-${sanitizedPath}`;
 }
 ```
 
@@ -215,7 +215,7 @@ git commit -m "feat(up): use selective sync when sync_paths configured"
 case "sync-paths": {
 	const project = arg1;
 	if (!project) {
-		error("Usage: devbox config sync-paths <project> [path1,path2,...]");
+		error("Usage: skybox config sync-paths <project> [path1,path2,...]");
 		return;
 	}
 	const config = loadConfig();

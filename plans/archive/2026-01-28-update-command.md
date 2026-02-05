@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Add `devbox update` to check for and install updates to the Mutagen binary and (optionally) the DevBox CLI itself.
+**Goal:** Add `skybox update` to check for and install updates to the Mutagen binary and (optionally) the SkyBox CLI itself.
 
 **Architecture:** New command that checks the current installed Mutagen version against the latest GitHub release. If newer, downloads and replaces the binary using the existing `downloadMutagen()` flow. For CLI self-update, check npm registry (future — defer to v1.0).
 

@@ -1,12 +1,12 @@
-# devbox dashboard
+# skybox dashboard
 
 Full-screen status dashboard for all projects.
 
 ## Usage
 
 ```bash
-devbox dashboard [options]
-devbox dash [options]
+skybox dashboard [options]
+skybox dash [options]
 ```
 
 ## Options
@@ -61,13 +61,13 @@ The dashboard automatically refreshes project data every 10 seconds.
 
 ```bash
 # Open the dashboard
-devbox dashboard
+skybox dashboard
 
 # Use the alias
-devbox dash
+skybox dash
 
 # Start in detailed view
-devbox dash --detailed
+skybox dash --detailed
 ```
 
 ## Exit Codes
@@ -78,5 +78,5 @@ devbox dash --detailed
 
 ## See Also
 
-- [devbox status](/reference/status) - Non-interactive project status
-- [devbox list](/reference/list) - Simple list of local projects
+- [skybox status](/reference/status) - Non-interactive project status
+- [skybox list](/reference/list) - Simple list of local projects

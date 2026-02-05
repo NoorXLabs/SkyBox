@@ -22,7 +22,7 @@ export async function openCommand(
 ): Promise<void> {
 	// Step 1: Check config exists
 	if (!configExists()) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -44,7 +44,7 @@ export async function openCommand(
 
 		if (projects.length === 0) {
 			error(
-				"No local projects found. Run 'devbox clone' or 'devbox push' first.",
+				"No local projects found. Run 'skybox clone' or 'skybox push' first.",
 			);
 			process.exit(1);
 		}
@@ -67,7 +67,7 @@ export async function openCommand(
 
 	if (!projectExists(project ?? "")) {
 		error(
-			`Project '${project}' not found locally. Run 'devbox clone ${project}' first.`,
+			`Project '${project}' not found locally. Run 'skybox clone ${project}' first.`,
 		);
 		process.exit(1);
 	}
@@ -84,7 +84,7 @@ export async function openCommand(
 
 	if (containerStatus !== ContainerStatus.Running) {
 		error(`Container for '${project}' is not running.`);
-		info("Run 'devbox up' to start the container first.");
+		info("Run 'skybox up' to start the container first.");
 		process.exit(1);
 	}
 

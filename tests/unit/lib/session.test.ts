@@ -29,7 +29,7 @@ describe("session", () => {
 
 	beforeEach(() => {
 		// Create isolated test directory
-		testDir = join(tmpdir(), `devbox-session-test-${Date.now()}`);
+		testDir = join(tmpdir(), `skybox-session-test-${Date.now()}`);
 		mkdirSync(testDir, { recursive: true });
 
 		// Create a mock project directory
@@ -55,21 +55,21 @@ describe("session", () => {
 			expect(sessionPath).toBe(join(projectPath, SESSION_FILE));
 		});
 
-		test("includes .devbox directory in path", () => {
+		test("includes .skybox directory in path", () => {
 			const sessionPath = getSessionFilePath(projectPath);
-			expect(sessionPath).toContain(".devbox");
+			expect(sessionPath).toContain(".skybox");
 			expect(sessionPath).toContain("session.lock");
 		});
 	});
 
 	describe("writeSession", () => {
-		test("creates .devbox directory if it does not exist", () => {
-			const devboxDir = join(projectPath, ".devbox");
-			expect(existsSync(devboxDir)).toBe(false);
+		test("creates .skybox directory if it does not exist", () => {
+			const skyboxDir = join(projectPath, ".skybox");
+			expect(existsSync(skyboxDir)).toBe(false);
 
 			writeSession(projectPath);
 
-			expect(existsSync(devboxDir)).toBe(true);
+			expect(existsSync(skyboxDir)).toBe(true);
 		});
 
 		test("creates session file with correct content", () => {
@@ -131,8 +131,8 @@ describe("session", () => {
 
 		test("returns null when session file contains invalid JSON", () => {
 			const sessionPath = getSessionFilePath(projectPath);
-			const devboxDir = join(projectPath, ".devbox");
-			mkdirSync(devboxDir, { recursive: true });
+			const skyboxDir = join(projectPath, ".skybox");
+			mkdirSync(skyboxDir, { recursive: true });
 			writeFileSync(sessionPath, "not valid json", "utf-8");
 
 			const session = readSession(projectPath);
@@ -141,8 +141,8 @@ describe("session", () => {
 
 		test("returns null when session is missing required fields", () => {
 			const sessionPath = getSessionFilePath(projectPath);
-			const devboxDir = join(projectPath, ".devbox");
-			mkdirSync(devboxDir, { recursive: true });
+			const skyboxDir = join(projectPath, ".skybox");
+			mkdirSync(skyboxDir, { recursive: true });
 
 			// Missing 'machine' field
 			const incompleteSession = {
@@ -159,8 +159,8 @@ describe("session", () => {
 
 		test("returns null when session has expired", () => {
 			const sessionPath = getSessionFilePath(projectPath);
-			const devboxDir = join(projectPath, ".devbox");
-			mkdirSync(devboxDir, { recursive: true });
+			const skyboxDir = join(projectPath, ".skybox");
+			mkdirSync(skyboxDir, { recursive: true });
 
 			const expiredSession: SessionInfo = {
 				machine: hostname(),
@@ -188,8 +188,8 @@ describe("session", () => {
 
 		test("returns session from a different machine if not expired", () => {
 			const sessionPath = getSessionFilePath(projectPath);
-			const devboxDir = join(projectPath, ".devbox");
-			mkdirSync(devboxDir, { recursive: true });
+			const skyboxDir = join(projectPath, ".skybox");
+			mkdirSync(skyboxDir, { recursive: true });
 
 			const otherMachineSession: SessionInfo = {
 				machine: "other-machine",
@@ -229,15 +229,15 @@ describe("session", () => {
 			expect(existsSync(sessionPath)).toBe(false);
 		});
 
-		test("does not remove .devbox directory", () => {
+		test("does not remove .skybox directory", () => {
 			writeSession(projectPath);
-			const devboxDir = join(projectPath, ".devbox");
-			expect(existsSync(devboxDir)).toBe(true);
+			const skyboxDir = join(projectPath, ".skybox");
+			expect(existsSync(skyboxDir)).toBe(true);
 
 			deleteSession(projectPath);
 
-			// .devbox directory should still exist
-			expect(existsSync(devboxDir)).toBe(true);
+			// .skybox directory should still exist
+			expect(existsSync(skyboxDir)).toBe(true);
 		});
 	});
 
@@ -260,8 +260,8 @@ describe("session", () => {
 
 		test("returns conflict when session is from different machine", () => {
 			const sessionPath = getSessionFilePath(projectPath);
-			const devboxDir = join(projectPath, ".devbox");
-			mkdirSync(devboxDir, { recursive: true });
+			const skyboxDir = join(projectPath, ".skybox");
+			mkdirSync(skyboxDir, { recursive: true });
 
 			const otherMachineSession: SessionInfo = {
 				machine: "other-machine",
@@ -282,8 +282,8 @@ describe("session", () => {
 
 		test("returns no conflict when session from different machine has expired", () => {
 			const sessionPath = getSessionFilePath(projectPath);
-			const devboxDir = join(projectPath, ".devbox");
-			mkdirSync(devboxDir, { recursive: true });
+			const skyboxDir = join(projectPath, ".skybox");
+			mkdirSync(skyboxDir, { recursive: true });
 
 			const expiredSession: SessionInfo = {
 				machine: "other-machine",

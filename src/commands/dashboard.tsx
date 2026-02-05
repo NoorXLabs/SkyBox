@@ -69,7 +69,7 @@ async function gatherProjectData(): Promise<DashboardProject[]> {
 		let sync = "none";
 		if (syncStatus.exists) sync = syncStatus.paused ? "paused" : "syncing";
 
-		// Determine session status from local .devbox/session.lock
+		// Determine session status from local .skybox/session.lock
 		let sessionStatus = "none";
 		const session = readSession(projectPath);
 		if (session) {
@@ -291,7 +291,7 @@ function Dashboard({
 		<Box flexDirection="column">
 			<Box justifyContent="center" paddingY={1}>
 				<Text bold color="blue">
-					DevBox Dashboard
+					SkyBox Dashboard
 				</Text>
 				{detailed && <Text dimColor> (detailed)</Text>}
 			</Box>
@@ -303,7 +303,7 @@ function Dashboard({
 			) : projects.length === 0 ? (
 				<Box paddingX={2}>
 					<Text>
-						No projects found. Use &apos;devbox clone&apos; to get started.
+						No projects found. Use &apos;skybox clone&apos; to get started.
 					</Text>
 				</Box>
 			) : (

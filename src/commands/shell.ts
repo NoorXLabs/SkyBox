@@ -21,7 +21,7 @@ export async function shellCommand(
 ): Promise<void> {
 	// Step 1: Check config exists
 	if (!configExists()) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -34,7 +34,7 @@ export async function shellCommand(
 	// Step 2: Verify project exists locally
 	if (!projectExists(project)) {
 		error(
-			`Project '${project}' not found. Run 'devbox clone ${project}' first.`,
+			`Project '${project}' not found. Run 'skybox clone ${project}' first.`,
 		);
 		process.exit(1);
 	}
@@ -67,7 +67,7 @@ export async function shellCommand(
 		const currentSession = readSession(projectPath);
 		if (!currentSession) {
 			warn(
-				"No active session. Consider running 'devbox up' first to prevent sync conflicts across machines.",
+				"No active session. Consider running 'skybox up' first to prevent sync conflicts across machines.",
 			);
 		}
 	}
@@ -86,18 +86,18 @@ export async function shellCommand(
 		]);
 
 		if (!startContainer) {
-			info("Exiting. Run 'devbox up' to start the container first.");
+			info("Exiting. Run 'skybox up' to start the container first.");
 			return;
 		}
 
-		// Start the container using devbox up
+		// Start the container using skybox up
 		await upCommand(project, { noPrompt: true });
 	}
 
 	// Step 5: Get container ID
 	const containerId = await getContainerId(projectPath);
 	if (!containerId) {
-		error("Failed to find container. Try running 'devbox up' first.");
+		error("Failed to find container. Try running 'skybox up' first.");
 		process.exit(1);
 	}
 

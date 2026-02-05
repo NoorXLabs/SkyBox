@@ -68,7 +68,7 @@ describe("validation", () => {
 
 		test("accepts tilde paths", () => {
 			expect(validateRemotePath("~/code").valid).toBe(true);
-			expect(validateRemotePath("~/projects/devbox").valid).toBe(true);
+			expect(validateRemotePath("~/projects/skybox").valid).toBe(true);
 		});
 
 		test("rejects command substitution with $()", () => {

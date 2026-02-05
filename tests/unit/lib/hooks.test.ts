@@ -9,7 +9,7 @@ describe("hooks", () => {
 	let testDir: string;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-hooks-test-${Date.now()}`);
+		testDir = join(tmpdir(), `skybox-hooks-test-${Date.now()}`);
 		mkdirSync(testDir, { recursive: true });
 	});
 

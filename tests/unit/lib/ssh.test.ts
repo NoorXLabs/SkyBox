@@ -11,7 +11,7 @@ describe("ssh", () => {
 		let originalHome: string | undefined;
 
 		beforeEach(() => {
-			testDir = join(tmpdir(), `devbox-ssh-test-${Date.now()}`);
+			testDir = join(tmpdir(), `skybox-ssh-test-${Date.now()}`);
 			mkdirSync(join(testDir, ".ssh"), { recursive: true });
 			originalHome = process.env.HOME;
 			process.env.HOME = testDir;

@@ -47,7 +47,7 @@ describe("config error paths", () => {
 	});
 
 	test("saveConfig creates parent directories if missing", () => {
-		// DEVBOX_HOME already points to ctx.testDir which exists
+		// SKYBOX_HOME already points to ctx.testDir which exists
 		// config.yaml should be created successfully
 		const config = createTestConfig({
 			remotes: { test: { host: "h", path: "/p" } },
@@ -237,18 +237,18 @@ git commit -m "test: add edge case tests for shell escaping"
 
 **Step 1: Check existing tests, then add edge cases**
 
-Read the existing paths test file first. Add tests for when `DEVBOX_HOME` is unset:
+Read the existing paths test file first. Add tests for when `SKYBOX_HOME` is unset:
 
 ```typescript
-test("getDevboxHome falls back to ~/.devbox when DEVBOX_HOME unset", () => {
-	const original = process.env.DEVBOX_HOME;
-	delete process.env.DEVBOX_HOME;
+test("getSkyboxHome falls back to ~/.skybox when SKYBOX_HOME unset", () => {
+	const original = process.env.SKYBOX_HOME;
+	delete process.env.SKYBOX_HOME;
 	try {
-		const result = getDevboxHome();
-		expect(result).toContain(".devbox");
+		const result = getSkyboxHome();
+		expect(result).toContain(".skybox");
 		expect(result).not.toBe("");
 	} finally {
-		if (original) process.env.DEVBOX_HOME = original;
+		if (original) process.env.SKYBOX_HOME = original;
 	}
 });
 ```

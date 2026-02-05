@@ -1,11 +1,11 @@
-# devbox remote
+# skybox remote
 
 Manage remote server configurations.
 
 ## Usage
 
 ```bash
-devbox remote <subcommand> [options]
+skybox remote <subcommand> [options]
 ```
 
 ## Subcommands
@@ -19,7 +19,7 @@ devbox remote <subcommand> [options]
 
 ## Description
 
-The `remote` command manages connections to remote servers where your projects are stored and synced. DevBox supports multiple remote servers, allowing you to organize projects across different machines (e.g., work server, personal server, client servers).
+The `remote` command manages connections to remote servers where your projects are stored and synced. SkyBox supports multiple remote servers, allowing you to organize projects across different machines (e.g., work server, personal server, client servers).
 
 ### Multi-Remote Support
 
@@ -27,13 +27,13 @@ Each project is associated with exactly one remote. When you have multiple remot
 
 ## Subcommand Details
 
-### `devbox remote add`
+### `skybox remote add`
 
 Add a new remote server configuration.
 
 **Interactive mode:**
 ```bash
-devbox remote add
+skybox remote add
 ```
 
 Walks you through:
@@ -47,19 +47,19 @@ Walks you through:
 
 **Direct mode:**
 ```bash
-devbox remote add <name> <user@host:path> [--key <path>]
+skybox remote add <name> <user@host:path> [--key <path>]
 ```
 
 | Option | Description |
 |--------|-------------|
 | `-k, --key <path>` | Path to SSH private key |
 
-### `devbox remote list`
+### `skybox remote list`
 
 Display all configured remotes.
 
 ```bash
-devbox remote list
+skybox remote list
 ```
 
 Output:
@@ -68,12 +68,12 @@ Output:
   personal    noor@home-server:~/projects
 ```
 
-### `devbox remote remove`
+### `skybox remote remove`
 
 Remove a remote configuration.
 
 ```bash
-devbox remote remove <name>
+skybox remote remove <name>
 ```
 
 If projects are associated with the remote, you'll be warned:
@@ -85,12 +85,12 @@ The following projects use this remote:
 Remove remote anyway? (projects will need to be reassigned) (y/N)
 ```
 
-### `devbox remote rename`
+### `skybox remote rename`
 
 Rename a remote and update all project references.
 
 ```bash
-devbox remote rename <old-name> <new-name>
+skybox remote rename <old-name> <new-name>
 ```
 
 This automatically updates all projects that reference the old name.
@@ -99,39 +99,39 @@ This automatically updates all projects that reference the old name.
 
 ```bash
 # Interactive wizard to add a remote
-devbox remote add
+skybox remote add
 
 # Add remote directly
-devbox remote add myserver root@192.168.1.100:~/code
+skybox remote add myserver root@192.168.1.100:~/code
 
 # Add remote with specific SSH key
-devbox remote add myserver root@host:~/code --key ~/.ssh/id_ed25519
+skybox remote add myserver root@host:~/code --key ~/.ssh/id_ed25519
 
 # List all remotes
-devbox remote list
+skybox remote list
 
 # Remove a remote
-devbox remote remove myserver
+skybox remote remove myserver
 
 # Rename a remote
-devbox remote rename myserver production
+skybox remote rename myserver production
 ```
 
 ### Typical Multi-Remote Setup
 
 ```bash
 # Add work server
-devbox remote add work deploy@work.example.com:~/projects
+skybox remote add work deploy@work.example.com:~/projects
 
 # Add personal server
-devbox remote add personal me@home-server:~/code
+skybox remote add personal me@home-server:~/code
 
 # Push project to specific remote
-devbox push ./my-project
+skybox push ./my-project
 # ? Select remote: work
 
 # Clone from specific remote
-devbox clone my-project
+skybox clone my-project
 # ? Select remote: personal
 ```
 
@@ -146,7 +146,7 @@ Each remote is stored in the configuration with these fields:
 | `path` | Base directory for projects on the remote |
 | `key` | Path to SSH private key (or null to use SSH config default) |
 
-Example in `~/.devbox/config.yaml`:
+Example in `~/.skybox/config.yaml`:
 
 ```yaml
 remotes:
@@ -183,6 +183,6 @@ This runs `ssh-copy-id` to install your public key on the server.
 
 ## See Also
 
-- [devbox init](/reference/init) - Initial setup (creates first remote)
-- [devbox config](/reference/config) - View/modify configuration
+- [skybox init](/reference/init) - Initial setup (creates first remote)
+- [skybox config](/reference/config) - View/modify configuration
 - [Configuration Reference](/reference/configuration) - Full config file format

@@ -79,8 +79,8 @@ git add src/lib/audit.ts src/lib/__tests__/audit.test.ts
 git commit -m "$(cat <<'EOF'
 feat(security): add audit logging module
 
-Security-sensitive operations can now be logged to ~/.devbox/audit.log.
-Enable with DEVBOX_AUDIT=1 environment variable.
+Security-sensitive operations can now be logged to ~/.skybox/audit.log.
+Enable with SKYBOX_AUDIT=1 environment variable.
 
 Features:
 - JSON Lines format for easy parsing
@@ -241,7 +241,7 @@ git add src/commands/clone.ts
 git commit -m "$(cat <<'EOF'
 feat(security): add audit logging to clone command
 
-Log clone:start, clone:success, and clone:fail events when DEVBOX_AUDIT=1.
+Log clone:start, clone:success, and clone:fail events when SKYBOX_AUDIT=1.
 Includes project name, remote name, and error details on failure.
 EOF
 )"
@@ -293,7 +293,7 @@ git add src/commands/push.ts
 git commit -m "$(cat <<'EOF'
 feat(security): add audit logging to push command
 
-Log push:start, push:success, and push:fail events when DEVBOX_AUDIT=1.
+Log push:start, push:success, and push:fail events when SKYBOX_AUDIT=1.
 EOF
 )"
 ```
@@ -336,7 +336,7 @@ git add src/commands/rm.ts
 git commit -m "$(cat <<'EOF'
 feat(security): add audit logging to rm command
 
-Log rm:local and rm:remote events when DEVBOX_AUDIT=1.
+Log rm:local and rm:remote events when SKYBOX_AUDIT=1.
 EOF
 )"
 ```
@@ -387,7 +387,7 @@ git add src/commands/up.ts src/commands/down.ts
 git commit -m "$(cat <<'EOF'
 feat(security): add audit logging to up/down commands
 
-Log up:start, up:success, and down events when DEVBOX_AUDIT=1.
+Log up:start, up:success, and down events when SKYBOX_AUDIT=1.
 EOF
 )"
 ```
@@ -442,9 +442,9 @@ Expected: No errors
 ### Step 4: Test audit logging manually
 
 ```bash
-export DEVBOX_AUDIT=1
-devbox clone some-project  # Should create ~/.devbox/audit.log
-cat ~/.devbox/audit.log    # Should show JSON lines
+export SKYBOX_AUDIT=1
+skybox clone some-project  # Should create ~/.skybox/audit.log
+cat ~/.skybox/audit.log    # Should show JSON lines
 ```
 
 ### Step 5: Review all changes

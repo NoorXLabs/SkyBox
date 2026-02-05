@@ -29,7 +29,7 @@ Add these interfaces after line 33:
 interface UpContext {
 	project: string;
 	projectPath: string;
-	config: DevboxConfigV2;
+	config: SkyboxConfigV2;
 	options: UpOptions;
 	remoteInfo: LockRemoteInfo | null;
 }
@@ -89,7 +89,7 @@ async function resolveProject(
 
 		if (projects.length === 0) {
 			error(
-				"No local projects found. Run 'devbox clone' or 'devbox push' first.",
+				"No local projects found. Run 'skybox clone' or 'skybox push' first.",
 			);
 			return null;
 		}
@@ -112,7 +112,7 @@ async function resolveProject(
 
 	if (!projectExists(project ?? "")) {
 		error(
-			`Project '${project}' not found locally. Run 'devbox clone ${project}' first.`,
+			`Project '${project}' not found locally. Run 'skybox clone ${project}' first.`,
 		);
 		return null;
 	}
@@ -187,7 +187,7 @@ Insert after `resolveProject()`:
  */
 async function handleLockAcquisition(
 	project: string,
-	config: DevboxConfigV2,
+	config: SkyboxConfigV2,
 	options: UpOptions,
 ): Promise<{ success: boolean; remoteInfo: LockRemoteInfo | null }> {
 	const projectRemote = getProjectRemote(project, config);
@@ -304,7 +304,7 @@ async function checkAndResumeSync(project: string): Promise<void> {
 
 	if (!syncStatus.exists) {
 		syncSpin.warn("No sync session found - remote backup not active");
-		info("Run 'devbox push' to set up remote sync.");
+		info("Run 'skybox push' to set up remote sync.");
 		return;
 	}
 
@@ -566,7 +566,7 @@ type PostStartAction = "editor" | "shell" | "both" | "none";
  * Determine what post-start action to take based on options or user prompt.
  */
 async function determinePostStartAction(
-	config: DevboxConfigV2,
+	config: SkyboxConfigV2,
 	options: UpOptions,
 ): Promise<{ action: PostStartAction; editor: string | undefined }> {
 	// Handle flags for non-interactive mode
@@ -671,7 +671,7 @@ async function executePostStartAction(
 	editor: string | undefined,
 ): Promise<void> {
 	if (action === "none") {
-		success("Container ready. Run 'devbox up' again to open editor or attach.");
+		success("Container ready. Run 'skybox up' again to open editor or attach.");
 		return;
 	}
 
@@ -729,7 +729,7 @@ Replace the entire `handlePostStart()` function with:
 ```typescript
 async function handlePostStart(
 	projectPath: string,
-	config: DevboxConfigV2,
+	config: SkyboxConfigV2,
 	options: UpOptions,
 ): Promise<void> {
 	const { action, editor } = await determinePostStartAction(config, options);
@@ -797,7 +797,7 @@ export async function upCommand(
 ): Promise<void> {
 	// Step 1: Check config exists
 	if (!configExists()) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 

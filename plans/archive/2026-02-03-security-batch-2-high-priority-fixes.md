@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Fix the HIGH priority security findings #5, #6, #9, and #10 from the security audit to harden DevBox before production use.
+**Goal:** Fix the HIGH priority security findings #5, #6, #9, and #10 from the security audit to harden SkyBox before production use.
 
 **Architecture:** Direct fixes to existing files. Temp file security uses `mkdtempSync()` for unpredictable paths. Argon2 parameters updated in constants. Validation standardized across all project name inputs. Remote path validation added during configuration.
 
@@ -54,18 +54,18 @@ describe("secure temp file creation", () => {
 
 	test("mkdtempSync creates unpredictable directory names", () => {
 		// Create two temp directories and verify they differ
-		const dir1 = mkdtempSync(join(tmpdir(), "devbox-"));
-		const dir2 = mkdtempSync(join(tmpdir(), "devbox-"));
+		const dir1 = mkdtempSync(join(tmpdir(), "skybox-"));
+		const dir2 = mkdtempSync(join(tmpdir(), "skybox-"));
 		tempDirs.push(dir1, dir2);
 
 		expect(dir1).not.toBe(dir2);
-		expect(dir1).toMatch(/devbox-[a-zA-Z0-9]+$/);
-		expect(dir2).toMatch(/devbox-[a-zA-Z0-9]+$/);
+		expect(dir1).toMatch(/skybox-[a-zA-Z0-9]+$/);
+		expect(dir2).toMatch(/skybox-[a-zA-Z0-9]+$/);
 	});
 
 	test("mkdtempSync directories are not guessable from timestamp", () => {
 		const timestamp = Date.now();
-		const dir = mkdtempSync(join(tmpdir(), "devbox-"));
+		const dir = mkdtempSync(join(tmpdir(), "skybox-"));
 		tempDirs.push(dir);
 
 		// Directory name should NOT contain the timestamp
@@ -99,11 +99,11 @@ Replace lines 200-215 in `disableEncryption` function. Find:
 				const timestamp = Date.now();
 				const localEncPath = join(
 					tmpdir(),
-					`devbox-${project}-${timestamp}.tar.enc`,
+					`skybox-${project}-${timestamp}.tar.enc`,
 				);
 				const localTarPath = join(
 					tmpdir(),
-					`devbox-${project}-${timestamp}.tar`,
+					`skybox-${project}-${timestamp}.tar`,
 				);
 ```
 
@@ -117,7 +117,7 @@ Replace with:
 
 				const key = await deriveKey(passphrase, projectConfig.encryption.salt);
 				// Use mkdtempSync for unpredictable temp directory (prevents symlink attacks)
-				const tempDir = mkdtempSync(join(tmpdir(), "devbox-"));
+				const tempDir = mkdtempSync(join(tmpdir(), "skybox-"));
 				const localEncPath = join(tempDir, "archive.tar.enc");
 				const localTarPath = join(tempDir, "archive.tar");
 ```
@@ -182,8 +182,8 @@ The vulnerable code is in the `decryptProjectArchive` function around lines 385-
 
 ```typescript
 	const timestamp = Date.now();
-	const localEncPath = join(tmpdir(), `devbox-${project}-${timestamp}.tar.enc`);
-	const localTarPath = join(tmpdir(), `devbox-${project}-${timestamp}.tar`);
+	const localEncPath = join(tmpdir(), `skybox-${project}-${timestamp}.tar.enc`);
+	const localTarPath = join(tmpdir(), `skybox-${project}-${timestamp}.tar`);
 ```
 
 ### Step 2: Update up.ts to use secure temp directories
@@ -206,8 +206,8 @@ Find the decryptProjectArchive function (around line 360) and locate:
 	const { execa } = await import("execa");
 
 	const timestamp = Date.now();
-	const localEncPath = join(tmpdir(), `devbox-${project}-${timestamp}.tar.enc`);
-	const localTarPath = join(tmpdir(), `devbox-${project}-${timestamp}.tar`);
+	const localEncPath = join(tmpdir(), `skybox-${project}-${timestamp}.tar.enc`);
+	const localTarPath = join(tmpdir(), `skybox-${project}-${timestamp}.tar`);
 ```
 
 Replace with:
@@ -219,7 +219,7 @@ Replace with:
 	const { execa } = await import("execa");
 
 	// Use mkdtempSync for unpredictable temp directory (prevents symlink attacks)
-	const tempDir = mkdtempSync(join(tmpdir(), "devbox-"));
+	const tempDir = mkdtempSync(join(tmpdir(), "skybox-"));
 	const localEncPath = join(tempDir, "archive.tar.enc");
 	const localTarPath = join(tempDir, "archive.tar");
 ```
@@ -479,7 +479,7 @@ describe("validateRemotePath", () => {
 
 	test("accepts tilde paths", () => {
 		expect(validateRemotePath("~/code").valid).toBe(true);
-		expect(validateRemotePath("~/projects/devbox").valid).toBe(true);
+		expect(validateRemotePath("~/projects/skybox").valid).toBe(true);
 	});
 
 	test("rejects command substitution with $()", () => {
@@ -654,7 +654,7 @@ Add validateRemotePath() function that blocks:
 - Command chaining: ; | &
 - Line breaks: \n \r
 
-Integrate validation into 'devbox remote add' path prompt to prevent
+Integrate validation into 'skybox remote add' path prompt to prevent
 malicious paths from being stored in config.
 
 Note: escapeShellArg() in remote commands provides defense-in-depth,

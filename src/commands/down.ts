@@ -41,8 +41,8 @@ import {
 } from "@lib/ui.ts";
 import {
 	ContainerStatus,
-	type DevboxConfigV2,
 	type DownOptions,
+	type SkyboxConfigV2,
 } from "@typedefs/index.ts";
 import inquirer from "inquirer";
 
@@ -52,7 +52,7 @@ import inquirer from "inquirer";
  */
 async function handleEncryption(
 	project: string,
-	config: DevboxConfigV2,
+	config: SkyboxConfigV2,
 ): Promise<boolean> {
 	const projectConfig = config.projects[project];
 	if (!projectConfig?.encryption?.enabled) {
@@ -72,7 +72,7 @@ async function handleEncryption(
 	const salt = projectConfig.encryption.salt;
 	if (!salt) {
 		error(
-			"Encryption enabled but no salt in config. Run 'devbox encrypt disable' then re-enable.",
+			"Encryption enabled but no salt in config. Run 'skybox encrypt disable' then re-enable.",
 		);
 		return false;
 	}
@@ -97,10 +97,10 @@ async function handleEncryption(
 
 			const key = await deriveKey(passphrase, salt);
 			const timestamp = Date.now();
-			const localTarPath = join(tmpdir(), `devbox-${project}-${timestamp}.tar`);
+			const localTarPath = join(tmpdir(), `skybox-${project}-${timestamp}.tar`);
 			const localEncPath = join(
 				tmpdir(),
-				`devbox-${project}-${timestamp}.tar.enc`,
+				`skybox-${project}-${timestamp}.tar.enc`,
 			);
 
 			try {
@@ -193,7 +193,7 @@ export async function downCommand(
 
 	// Check config exists
 	if (!configExists()) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -405,7 +405,7 @@ export async function downCommand(
 				);
 				info(`Remote copy preserved at ${host}:${remotePath}`);
 			}
-			info(`Run 'devbox clone ${project}' to restore locally.`);
+			info(`Run 'skybox clone ${project}' to restore locally.`);
 		} catch (err: unknown) {
 			rmSpin.fail("Failed to remove local files");
 			error(getErrorMessage(err));

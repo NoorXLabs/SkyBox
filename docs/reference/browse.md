@@ -1,11 +1,11 @@
-# devbox browse
+# skybox browse
 
 List projects available on the remote server.
 
 ## Usage
 
 ```bash
-devbox browse
+skybox browse
 ```
 
 ## Arguments
@@ -27,7 +27,7 @@ This is useful for discovering what projects are available to clone.
 
 ### Remote Connection
 
-The command uses SSH to connect to the remote server configured during `devbox init`. It runs a script on the remote to enumerate directories and their git status.
+The command uses SSH to connect to the remote server configured during `skybox init`. It runs a script on the remote to enumerate directories and their git status.
 
 ### Output Format
 
@@ -41,31 +41,31 @@ Remote projects (my-server:~/code):
   frontend-app   feature/new-ui
   data-service   develop
 
-Run 'devbox clone <project>' to clone a project locally.
+Run 'skybox clone <project>' to clone a project locally.
 ```
 
 If no projects exist on the remote:
 
 ```
 No projects found on remote.
-Run 'devbox push ./my-project' to push your first project.
+Run 'skybox push ./my-project' to push your first project.
 ```
 
 ## Examples
 
 ```bash
 # List all remote projects
-devbox browse
+skybox browse
 
 # Then clone one
-devbox clone my-api
+skybox clone my-api
 ```
 
 ### Workflow Example
 
 ```bash
 # Check what's available on remote
-devbox browse
+skybox browse
 
 # Output:
 # Remote projects (my-server:~/code):
@@ -75,10 +75,10 @@ devbox browse
 #   another-project   feature/cool-stuff
 
 # Clone a project to work on it
-devbox clone awesome-project
+skybox clone awesome-project
 
 # Start the container (creates session)
-devbox up awesome-project
+skybox up awesome-project
 ```
 
 ## Exit Codes
@@ -90,7 +90,7 @@ devbox up awesome-project
 
 ## See Also
 
-- [devbox clone](/reference/clone) - Clone a project from remote
-- [devbox push](/reference/push) - Push a local project to remote
-- [devbox list](/reference/list) - List local projects
-- [devbox init](/reference/init) - Configure remote server
+- [skybox clone](/reference/clone) - Clone a project from remote
+- [skybox push](/reference/push) - Push a local project to remote
+- [skybox list](/reference/list) - List local projects
+- [skybox init](/reference/init) - Configure remote server

@@ -15,18 +15,18 @@ describe("mutagen-extract", () => {
 	let originalEnv: string | undefined;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-test-mutagen-${Date.now()}`);
+		testDir = join(tmpdir(), `skybox-test-mutagen-${Date.now()}`);
 		mkdirSync(testDir, { recursive: true });
-		originalEnv = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
+		originalEnv = process.env.SKYBOX_HOME;
+		process.env.SKYBOX_HOME = testDir;
 	});
 
 	afterEach(() => {
 		rmSync(testDir, { recursive: true, force: true });
 		if (originalEnv !== undefined) {
-			process.env.DEVBOX_HOME = originalEnv;
+			process.env.SKYBOX_HOME = originalEnv;
 		} else {
-			delete process.env.DEVBOX_HOME;
+			delete process.env.SKYBOX_HOME;
 		}
 	});
 

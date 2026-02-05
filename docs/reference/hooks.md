@@ -4,11 +4,11 @@ Run custom shell commands before and after lifecycle operations.
 
 ## Overview
 
-Hooks let you define shell commands that run automatically at key points during `devbox up` and `devbox down`. Hooks are configured per-project in your DevBox config file.
+Hooks let you define shell commands that run automatically at key points during `skybox up` and `skybox down`. Hooks are configured per-project in your SkyBox config file.
 
 ## Configuration
 
-Add a `hooks` section to a project in `~/.devbox/config.yaml`:
+Add a `hooks` section to a project in `~/.skybox/config.yaml`:
 
 ```yaml
 projects:
@@ -25,10 +25,10 @@ projects:
 
 | Event | When it runs |
 |-------|-------------|
-| `pre-up` | Before the container starts during `devbox up` |
-| `post-up` | After the container starts during `devbox up` |
-| `pre-down` | Before the container stops during `devbox down` |
-| `post-down` | After the container stops during `devbox down` |
+| `pre-up` | Before the container starts during `skybox up` |
+| `post-up` | After the container starts during `skybox up` |
+| `pre-down` | Before the container stops during `skybox down` |
+| `post-down` | After the container stops during `skybox down` |
 
 ## Syntax
 
@@ -68,11 +68,11 @@ Each entry supports:
 - A one-time security warning is shown the first time hooks execute in a session
 
 ::: tip Suppress Warning
-Set `DEVBOX_HOOK_WARNINGS=0` to disable the one-time hook security warning.
+Set `SKYBOX_HOOK_WARNINGS=0` to disable the one-time hook security warning.
 :::
 
 ::: warning Security
-Hook commands execute with full shell access on your host machine. Only define hooks in trusted configuration files. Review hooks before running `devbox up` or `devbox down` on shared configs.
+Hook commands execute with full shell access on your host machine. Only define hooks in trusted configuration files. Review hooks before running `skybox up` or `skybox down` on shared configs.
 :::
 
 ## Examples
@@ -83,10 +83,10 @@ projects:
     remote: work
     hooks:
       # Run database migrations after starting
-      post-up: "docker exec devbox-my-api npm run migrate"
+      post-up: "docker exec skybox-my-api npm run migrate"
 
       # Back up database before stopping
-      pre-down: "docker exec devbox-my-api npm run db:backup"
+      pre-down: "docker exec skybox-my-api npm run db:backup"
 
   frontend:
     remote: work
@@ -99,6 +99,6 @@ projects:
 
 ## See Also
 
-- [devbox up](/reference/up) - Start a development container
-- [devbox down](/reference/down) - Stop a development container
-- [Configuration](/reference/configuration) - DevBox config reference
+- [skybox up](/reference/up) - Start a development container
+- [skybox down](/reference/down) - Stop a development container
+- [Configuration](/reference/configuration) - SkyBox config reference

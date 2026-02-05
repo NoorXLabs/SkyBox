@@ -1,12 +1,12 @@
-# Interactive `devbox clone` Design
+# Interactive `skybox clone` Design
 
 ## Summary
 
-When `devbox clone` is run without arguments, it fetches remote projects, presents a multi-select checkbox, clones selected projects sequentially, then offers to start one via the full `devbox up` flow.
+When `skybox clone` is run without arguments, it fetches remote projects, presents a multi-select checkbox, clones selected projects sequentially, then offers to start one via the full `skybox up` flow.
 
 ## Detailed Flow
 
-### Argument-less `devbox clone`
+### Argument-less `skybox clone`
 
 1. Select remote (`selectRemote()`)
 2. Fetch remote projects (reuse `getRemoteProjects()` from browse.ts)
@@ -22,7 +22,7 @@ When `devbox clone` is run without arguments, it fetches remote projects, presen
 3. If project selected → call `upCommand(project, {})` for full startup flow
 4. After completion (or "None"), print reminder:
    ```
-   Run 'devbox up <name>' to start your other cloned projects:
+   Run 'skybox up <name>' to start your other cloned projects:
      - bar
      - baz
    ```

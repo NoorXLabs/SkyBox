@@ -27,13 +27,13 @@ import chalk from "chalk";
  */
 async function enableEncryption(project?: string): Promise<void> {
 	if (!configExists()) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
 	const config = loadConfig();
 	if (!config) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -97,7 +97,7 @@ async function enableEncryption(project?: string): Promise<void> {
 			"  - There is NO way to recover your data without the passphrase",
 		),
 	);
-	console.log(chalk.yellow("  - DevBox cannot reset or bypass encryption"));
+	console.log(chalk.yellow("  - SkyBox cannot reset or bypass encryption"));
 	console.log(
 		chalk.yellow(
 			"  - You are solely responsible for storing your passphrase safely",
@@ -141,13 +141,13 @@ async function enableEncryption(project?: string): Promise<void> {
  */
 async function disableEncryption(project?: string): Promise<void> {
 	if (!configExists()) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
 	const config = loadConfig();
 	if (!config) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -213,7 +213,7 @@ async function disableEncryption(project?: string): Promise<void> {
 
 				const key = await deriveKey(passphrase, projectConfig.encryption.salt);
 				// Use mkdtempSync for unpredictable temp directory (prevents symlink attacks)
-				const tempDir = mkdtempSync(join(tmpdir(), "devbox-"));
+				const tempDir = mkdtempSync(join(tmpdir(), "skybox-"));
 				const localEncPath = join(tempDir, "archive.tar.enc");
 				const localTarPath = join(tempDir, "archive.tar");
 
@@ -294,11 +294,11 @@ export async function encryptCommand(
 
 	if (!subcommand) {
 		error(
-			"Missing subcommand. Usage: devbox encrypt <enable|disable> [project]",
+			"Missing subcommand. Usage: skybox encrypt <enable|disable> [project]",
 		);
 		console.log();
 		console.log(
-			`${chalk.bold("Usage:")} devbox encrypt <subcommand> [project]`,
+			`${chalk.bold("Usage:")} skybox encrypt <subcommand> [project]`,
 		);
 		console.log();
 		console.log(chalk.bold("Subcommands:"));

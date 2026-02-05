@@ -11,18 +11,18 @@ describe("init directory permissions", () => {
 	let originalEnv: string | undefined;
 
 	beforeEach(() => {
-		// Point DEVBOX_HOME to a non-existent directory so saveConfig creates it fresh
-		testDir = join(tmpdir(), `devbox-init-perms-test-${Date.now()}`);
-		originalEnv = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
+		// Point SKYBOX_HOME to a non-existent directory so saveConfig creates it fresh
+		testDir = join(tmpdir(), `skybox-init-perms-test-${Date.now()}`);
+		originalEnv = process.env.SKYBOX_HOME;
+		process.env.SKYBOX_HOME = testDir;
 	});
 
 	afterEach(() => {
 		rmSync(testDir, { recursive: true, force: true });
 		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
+			process.env.SKYBOX_HOME = originalEnv;
 		} else {
-			delete process.env.DEVBOX_HOME;
+			delete process.env.SKYBOX_HOME;
 		}
 	});
 

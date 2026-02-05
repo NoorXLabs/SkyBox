@@ -13,9 +13,9 @@ import { validateConfig } from "@lib/config-schema.ts";
 import { migrateConfig, needsMigration } from "@lib/migration.ts";
 import { getConfigPath } from "@lib/paths.ts";
 import type {
-	DevboxConfig,
-	DevboxConfigV2,
 	RemoteEntry,
+	SkyboxConfig,
+	SkyboxConfigV2,
 } from "@typedefs/index.ts";
 import { parse, stringify } from "yaml";
 
@@ -35,7 +35,7 @@ export function configExists(): boolean {
 	return existsSync(getConfigPath());
 }
 
-export function loadConfig(): DevboxConfigV2 | null {
+export function loadConfig(): SkyboxConfigV2 | null {
 	const configPath = getConfigPath();
 	if (!existsSync(configPath)) {
 		return null;
@@ -55,10 +55,10 @@ export function loadConfig(): DevboxConfigV2 | null {
 
 	// Auto-migrate old format
 	if (needsMigration(rawConfig)) {
-		const migrated = migrateConfig(rawConfig as DevboxConfig);
+		const migrated = migrateConfig(rawConfig as SkyboxConfig);
 		saveConfig(migrated);
 		console.error(
-			"\x1b[33m[devbox]\x1b[0m Config auto-migrated from V1 to V2 format.",
+			"\x1b[33m[skybox]\x1b[0m Config auto-migrated from V1 to V2 format.",
 		);
 		return migrated;
 	}
@@ -69,7 +69,7 @@ export function loadConfig(): DevboxConfigV2 | null {
 	return rawConfig;
 }
 
-export function saveConfig(config: DevboxConfigV2): void {
+export function saveConfig(config: SkyboxConfigV2): void {
 	const configPath = getConfigPath();
 	const dir = dirname(configPath);
 
@@ -135,7 +135,7 @@ export function listRemotes(): Array<{ name: string } & RemoteEntry> {
  */
 export function isAutoUpEnabled(
 	projectName: string,
-	config: DevboxConfigV2,
+	config: SkyboxConfigV2,
 ): boolean {
 	// Check per-project setting first
 	const projectConfig = config.projects[projectName];

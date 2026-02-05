@@ -1,14 +1,14 @@
 import { describe, expect, test } from "bun:test";
 import { isAutoUpEnabled } from "@lib/config.ts";
-import type { DevboxConfigV2 } from "@typedefs/index.ts";
+import type { SkyboxConfigV2 } from "@typedefs/index.ts";
 
 /**
- * Helper to create a minimal valid DevboxConfigV2 for testing.
+ * Helper to create a minimal valid SkyboxConfigV2 for testing.
  * All fields are empty/default unless overridden.
  */
 function createTestConfig(
-	overrides: Partial<DevboxConfigV2> = {},
-): DevboxConfigV2 {
+	overrides: Partial<SkyboxConfigV2> = {},
+): SkyboxConfigV2 {
 	return {
 		editor: "code",
 		defaults: {

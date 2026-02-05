@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Add `devbox config` and `devbox remote` commands to support multiple remote servers with per-project associations.
+**Goal:** Add `skybox config` and `skybox remote` commands to support multiple remote servers with per-project associations.
 
 **Architecture:** Extend the existing config system with a new `remotes` map. Each remote stores host, user, path, and key. Projects reference remotes by name. Migrate existing single-remote configs automatically. Commands follow existing patterns (Commander.js CLI, inquirer prompts, chalk output).
 
@@ -29,7 +29,7 @@ export interface RemoteEntry {
 }
 
 // Updated config with remotes map
-export interface DevboxConfigV2 {
+export interface SkyboxConfigV2 {
 	editor: string;
 	defaults: SyncDefaults;
 	remotes: Record<string, RemoteEntry>;  // name -> remote
@@ -47,7 +47,7 @@ export interface ProjectConfigV2 {
 
 **Step 2: Run type check to verify no errors**
 
-Run: `bun run --cwd /Users/noorchasib/Documents/Code/DevBox/.worktrees/config-command check`
+Run: `bun run --cwd /Users/noorchasib/Documents/Code/SkyBox/.worktrees/config-command check`
 
 If no `check` script, run: `bunx tsc --noEmit`
 
@@ -76,7 +76,7 @@ Create `src/lib/__tests__/migration.test.ts`:
 // src/lib/__tests__/migration.test.ts
 import { describe, expect, test } from "bun:test";
 import { migrateConfig, needsMigration } from "../migration.ts";
-import type { DevboxConfig } from "../../types/index.ts";
+import type { SkyboxConfig } from "../../types/index.ts";
 
 describe("config migration", () => {
 	describe("needsMigration", () => {
@@ -103,7 +103,7 @@ describe("config migration", () => {
 
 	describe("migrateConfig", () => {
 		test("migrates old config to new format", () => {
-			const oldConfig: DevboxConfig = {
+			const oldConfig: SkyboxConfig = {
 				remote: { host: "my-server", base_path: "~/code" },
 				editor: "cursor",
 				defaults: { sync_mode: "two-way-resolved", ignore: [] },
@@ -124,7 +124,7 @@ describe("config migration", () => {
 		});
 
 		test("preserves existing project settings during migration", () => {
-			const oldConfig: DevboxConfig = {
+			const oldConfig: SkyboxConfig = {
 				remote: { host: "my-server", base_path: "~/code" },
 				editor: "code",
 				defaults: { sync_mode: "two-way-resolved", ignore: [] },
@@ -153,7 +153,7 @@ Create `src/lib/migration.ts`:
 
 ```typescript
 // src/lib/migration.ts
-import type { DevboxConfig, DevboxConfigV2, RemoteEntry } from "../types/index.ts";
+import type { SkyboxConfig, SkyboxConfigV2, RemoteEntry } from "../types/index.ts";
 
 /**
  * Check if config needs migration from old single-remote format
@@ -168,7 +168,7 @@ export function needsMigration(config: unknown): boolean {
 /**
  * Migrate old single-remote config to new multi-remote format
  */
-export function migrateConfig(oldConfig: DevboxConfig): DevboxConfigV2 {
+export function migrateConfig(oldConfig: SkyboxConfig): SkyboxConfigV2 {
 	const remoteName = oldConfig.remote.host;
 
 	const newRemote: RemoteEntry = {
@@ -234,10 +234,10 @@ describe("loadConfig with migration", () => {
 	let originalEnv: string | undefined;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-config-test-${Date.now()}`);
+		testDir = join(tmpdir(), `skybox-config-test-${Date.now()}`);
 		mkdirSync(testDir, { recursive: true });
-		originalEnv = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
+		originalEnv = process.env.SKYBOX_HOME;
+		process.env.SKYBOX_HOME = testDir;
 	});
 
 	afterEach(() => {
@@ -245,9 +245,9 @@ describe("loadConfig with migration", () => {
 			rmSync(testDir, { recursive: true });
 		}
 		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
+			process.env.SKYBOX_HOME = originalEnv;
 		} else {
-			delete process.env.DEVBOX_HOME;
+			delete process.env.SKYBOX_HOME;
 		}
 	});
 
@@ -292,13 +292,13 @@ Modify `src/lib/config.ts`:
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { parse, stringify } from "yaml";
-import type { DevboxConfig, DevboxConfigV2 } from "../types/index.ts";
+import type { SkyboxConfig, SkyboxConfigV2 } from "../types/index.ts";
 import { migrateConfig, needsMigration } from "./migration.ts";
 import { info } from "./ui.ts";
 
 function getConfigPath(): string {
 	const home =
-		process.env.DEVBOX_HOME || `${require("node:os").homedir()}/.devbox`;
+		process.env.SKYBOX_HOME || `${require("node:os").homedir()}/.skybox`;
 	return `${home}/config.yaml`;
 }
 
@@ -306,7 +306,7 @@ export function configExists(): boolean {
 	return existsSync(getConfigPath());
 }
 
-export function loadConfig(): DevboxConfigV2 | null {
+export function loadConfig(): SkyboxConfigV2 | null {
 	const configPath = getConfigPath();
 	if (!existsSync(configPath)) {
 		return null;
@@ -317,16 +317,16 @@ export function loadConfig(): DevboxConfigV2 | null {
 
 	// Auto-migrate old format
 	if (needsMigration(rawConfig)) {
-		const migrated = migrateConfig(rawConfig as DevboxConfig);
+		const migrated = migrateConfig(rawConfig as SkyboxConfig);
 		saveConfig(migrated);
 		info("Migrated config to support multiple remotes. Your existing setup is preserved.");
 		return migrated;
 	}
 
-	return rawConfig as DevboxConfigV2;
+	return rawConfig as SkyboxConfigV2;
 }
 
-export function saveConfig(config: DevboxConfigV2): void {
+export function saveConfig(config: SkyboxConfigV2): void {
 	const configPath = getConfigPath();
 	const dir = dirname(configPath);
 
@@ -383,7 +383,7 @@ git commit -m "feat: auto-migrate config on load, add remote helpers"
 
 ---
 
-## Task 4: Implement `devbox remote add` Command
+## Task 4: Implement `skybox remote add` Command
 
 **Files:**
 - Create: `src/commands/remote.ts`
@@ -406,10 +406,10 @@ describe("remote command", () => {
 	let originalEnv: string | undefined;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-remote-test-${Date.now()}`);
+		testDir = join(tmpdir(), `skybox-remote-test-${Date.now()}`);
 		mkdirSync(testDir, { recursive: true });
-		originalEnv = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
+		originalEnv = process.env.SKYBOX_HOME;
+		process.env.SKYBOX_HOME = testDir;
 
 		// Create minimal config
 		writeFileSync(
@@ -429,9 +429,9 @@ projects: {}
 			rmSync(testDir, { recursive: true });
 		}
 		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
+			process.env.SKYBOX_HOME = originalEnv;
 		} else {
-			delete process.env.DEVBOX_HOME;
+			delete process.env.SKYBOX_HOME;
 		}
 	});
 
@@ -532,11 +532,11 @@ export async function addRemoteDirect(
 ): Promise<void> {
 	const config = loadConfig();
 	if (!config) {
-		throw new Error("devbox not configured. Run 'devbox init' first.");
+		throw new Error("skybox not configured. Run 'skybox init' first.");
 	}
 
 	if (config.remotes[name]) {
-		throw new Error(`Remote '${name}' already exists. Use 'devbox remote remove ${name}' first.`);
+		throw new Error(`Remote '${name}' already exists. Use 'skybox remote remove ${name}' first.`);
 	}
 
 	config.remotes[name] = {
@@ -555,7 +555,7 @@ export async function addRemoteDirect(
 export async function addRemoteInteractive(): Promise<void> {
 	const config = loadConfig();
 	if (!config) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -678,14 +678,14 @@ export async function addRemoteInteractive(): Promise<void> {
 export async function listRemotes(): Promise<void> {
 	const config = loadConfig();
 	if (!config) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
 	const remotes = Object.entries(config.remotes);
 	if (remotes.length === 0) {
 		console.log();
-		info("No remotes configured. Run 'devbox remote add' to add one.");
+		info("No remotes configured. Run 'skybox remote add' to add one.");
 		return;
 	}
 
@@ -704,7 +704,7 @@ export async function listRemotes(): Promise<void> {
 export async function removeRemote(name: string): Promise<void> {
 	const config = loadConfig();
 	if (!config) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -748,7 +748,7 @@ export async function removeRemote(name: string): Promise<void> {
 export async function renameRemote(oldName: string, newName: string): Promise<void> {
 	const config = loadConfig();
 	if (!config) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -789,7 +789,7 @@ export async function remoteCommand(
 	if (!subcommand) {
 		// Show help
 		console.log(`
-Usage: devbox remote <command>
+Usage: skybox remote <command>
 
 Commands:
   add [name] [user@host:path]  Add a new remote
@@ -803,7 +803,7 @@ Commands:
 	switch (subcommand) {
 		case "add":
 			if (arg1 && arg2) {
-				// Direct mode: devbox remote add <name> <user@host:path>
+				// Direct mode: skybox remote add <name> <user@host:path>
 				const parsed = parseRemoteString(arg2);
 				if (!parsed) {
 					error("Invalid format. Use: user@host:path");
@@ -821,14 +821,14 @@ Commands:
 			break;
 		case "remove":
 			if (!arg1) {
-				error("Usage: devbox remote remove <name>");
+				error("Usage: skybox remote remove <name>");
 				process.exit(1);
 			}
 			await removeRemote(arg1);
 			break;
 		case "rename":
 			if (!arg1 || !arg2) {
-				error("Usage: devbox remote rename <old> <new>");
+				error("Usage: skybox remote rename <old> <new>");
 				process.exit(1);
 			}
 			await renameRemote(arg1, arg2);
@@ -850,12 +850,12 @@ Expected: PASS
 
 ```bash
 git add src/commands/remote.ts src/commands/__tests__/remote.test.ts
-git commit -m "feat: implement devbox remote command (add, list, remove, rename)"
+git commit -m "feat: implement skybox remote command (add, list, remove, rename)"
 ```
 
 ---
 
-## Task 5: Implement `devbox config` Command
+## Task 5: Implement `skybox config` Command
 
 **Files:**
 - Create: `src/commands/config.ts`
@@ -879,10 +879,10 @@ describe("config command", () => {
 	let originalLog: typeof console.log;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-config-cmd-test-${Date.now()}`);
+		testDir = join(tmpdir(), `skybox-config-cmd-test-${Date.now()}`);
 		mkdirSync(testDir, { recursive: true });
-		originalEnv = process.env.DEVBOX_HOME;
-		process.env.DEVBOX_HOME = testDir;
+		originalEnv = process.env.SKYBOX_HOME;
+		process.env.SKYBOX_HOME = testDir;
 
 		// Capture console output
 		logs = [];
@@ -912,9 +912,9 @@ projects: {}
 			rmSync(testDir, { recursive: true });
 		}
 		if (originalEnv) {
-			process.env.DEVBOX_HOME = originalEnv;
+			process.env.SKYBOX_HOME = originalEnv;
 		} else {
-			delete process.env.DEVBOX_HOME;
+			delete process.env.SKYBOX_HOME;
 		}
 	});
 
@@ -956,7 +956,7 @@ interface ConfigOptions {
 async function showConfig(): Promise<void> {
 	const config = loadConfig();
 	if (!config) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -986,7 +986,7 @@ async function showConfig(): Promise<void> {
 async function validateConfig(): Promise<void> {
 	const config = loadConfig();
 	if (!config) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -1037,7 +1037,7 @@ async function validateConfig(): Promise<void> {
 async function setConfigValue(key: string, value: string): Promise<void> {
 	const config = loadConfig();
 	if (!config) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -1065,10 +1065,10 @@ export async function configCommand(options: ConfigOptions, key?: string, value?
 	}
 
 	if (key === "set" && value) {
-		// devbox config set <key> <value>
+		// skybox config set <key> <value>
 		const [setKey, setValue] = [value, process.argv[process.argv.indexOf(value) + 1]];
 		if (!setKey || !setValue) {
-			error("Usage: devbox config set <key> <value>");
+			error("Usage: skybox config set <key> <value>");
 			process.exit(1);
 		}
 		await setConfigValue(setKey, setValue);
@@ -1089,7 +1089,7 @@ Expected: PASS
 
 ```bash
 git add src/commands/config.ts src/commands/__tests__/config-cmd.test.ts
-git commit -m "feat: implement devbox config command (show, validate)"
+git commit -m "feat: implement skybox config command (show, validate)"
 ```
 
 ---
@@ -1125,7 +1125,7 @@ program
 
 **Step 2: Run CLI to verify commands are registered**
 
-Run: `bun run --cwd /Users/noorchasib/Documents/Code/DevBox/.worktrees/config-command src/index.ts --help`
+Run: `bun run --cwd /Users/noorchasib/Documents/Code/SkyBox/.worktrees/config-command src/index.ts --help`
 
 Expected: Should show `remote` and `config` commands in help output
 
@@ -1162,13 +1162,13 @@ Add to `src/commands/remote.ts`:
 export async function selectRemote(): Promise<string> {
 	const config = loadConfig();
 	if (!config) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
 	const remotes = Object.keys(config.remotes);
 	if (remotes.length === 0) {
-		error("No remotes configured. Run 'devbox remote add' first.");
+		error("No remotes configured. Run 'skybox remote add' first.");
 		process.exit(1);
 	}
 
@@ -1281,12 +1281,12 @@ git commit -m "feat: update init to use multi-remote config format"
 **Step 1: Update README with new commands**
 
 Add documentation for:
-- `devbox remote add`
-- `devbox remote list`
-- `devbox remote remove`
-- `devbox remote rename`
-- `devbox config`
-- `devbox config --validate`
+- `skybox remote add`
+- `skybox remote list`
+- `skybox remote remove`
+- `skybox remote rename`
+- `skybox config`
+- `skybox config --validate`
 
 **Step 2: Commit**
 
@@ -1312,10 +1312,10 @@ Run: `bun run lint` or `bunx biome check --write`
 **Step 3: Manual testing**
 
 Test the full flow:
-1. `devbox remote add` (interactive)
-2. `devbox remote list`
-3. `devbox config`
-4. `devbox config --validate`
+1. `skybox remote add` (interactive)
+2. `skybox remote list`
+3. `skybox config`
+4. `skybox config --validate`
 
 **Step 4: Final commit**
 

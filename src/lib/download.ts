@@ -22,7 +22,7 @@ import { extract } from "tar";
 
 /** Whether GPG verification is preferred (evaluated at call time, not module load). */
 function isGpgPreferred(): boolean {
-	return process.env.DEVBOX_SKIP_GPG !== "1";
+	return process.env.SKYBOX_SKIP_GPG !== "1";
 }
 
 export function getMutagenDownloadUrl(

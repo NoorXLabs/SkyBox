@@ -51,8 +51,8 @@ export async function runHooks(
 	info(`Running ${event} hooks...`);
 
 	// Show one-time security warning (can be disabled with env var)
-	if (!hookState.warningShown && process.env.DEVBOX_HOOK_WARNINGS !== "0") {
-		warn("Executing user-defined hooks (see devbox docs for security info)");
+	if (!hookState.warningShown && process.env.SKYBOX_HOOK_WARNINGS !== "0") {
+		warn("Executing user-defined hooks (see skybox docs for security info)");
 		hookState.warningShown = true;
 	}
 

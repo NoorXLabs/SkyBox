@@ -34,5 +34,5 @@ jobs:
       - name: Cleanup test containers
         if: always()
         run: |
-          docker ps -aq --filter "label=devbox-test=true" | xargs -r docker rm -f || true
-          docker volume ls -q --filter "label=devbox-test=true" | xargs -r docker volume rm -f || true
+          docker ps -aq --filter "label=skybox-test=true" | xargs -r docker rm -f || true
+          docker volume ls -q --filter "label=skybox-test=true" | xargs -r docker volume rm -f || true

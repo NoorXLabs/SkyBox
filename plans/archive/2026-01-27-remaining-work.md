@@ -1,8 +1,8 @@
-# DevBox Remaining Work Implementation Plan
+# SkyBox Remaining Work Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Complete all remaining work items from PROJECT.md to prepare DevBox for production release.
+**Goal:** Complete all remaining work items from PROJECT.md to prepare SkyBox for production release.
 
 **Architecture:** This plan covers code improvements (lock checking in shell, template cleanup), documentation updates (CHANGELOG, troubleshooting), and repository cleanup (removing obsolete files, archiving plans).
 
@@ -98,7 +98,7 @@ export async function shellCommand(
 ): Promise<void> {
 	// Step 1: Check config exists
 	if (!configExists()) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -111,7 +111,7 @@ export async function shellCommand(
 	// Step 2: Verify project exists locally
 	if (!projectExists(project)) {
 		error(
-			`Project '${project}' not found. Run 'devbox clone ${project}' first.`,
+			`Project '${project}' not found. Run 'skybox clone ${project}' first.`,
 		);
 		process.exit(1);
 	}
@@ -135,7 +135,7 @@ export async function shellCommand(
 
 			if (!lockStatus.locked) {
 				warning(
-					"No lock held. Run 'devbox up' first to acquire lock for safe editing.",
+					"No lock held. Run 'skybox up' first to acquire lock for safe editing.",
 				);
 			}
 		}
@@ -203,27 +203,27 @@ import { loadConfig } from "./config.ts";
 // Built-in project templates
 // Note: These templates require creating actual repos at these URLs,
 // or users should define their own templates via config.
-// See: devbox config templates.mytemplate https://github.com/user/template
+// See: skybox config templates.mytemplate https://github.com/user/template
 export const BUILT_IN_TEMPLATES: BuiltInTemplate[] = [
 	{
 		id: "node",
 		name: "Node.js",
-		url: "https://github.com/devbox-templates/node-starter",
+		url: "https://github.com/skybox-templates/node-starter",
 	},
 	{
 		id: "bun",
 		name: "Bun",
-		url: "https://github.com/devbox-templates/bun-starter",
+		url: "https://github.com/skybox-templates/bun-starter",
 	},
 	{
 		id: "python",
 		name: "Python",
-		url: "https://github.com/devbox-templates/python-starter",
+		url: "https://github.com/skybox-templates/python-starter",
 	},
 	{
 		id: "go",
 		name: "Go",
-		url: "https://github.com/devbox-templates/go-starter",
+		url: "https://github.com/skybox-templates/go-starter",
 	},
 ];
 ```
@@ -241,7 +241,7 @@ git commit -m "$(cat <<'EOF'
 docs(templates): clarify template URLs are placeholders
 
 Templates require creating actual repos or users should define
-their own via devbox config
+their own via skybox config
 EOF
 )"
 ```
@@ -275,13 +275,13 @@ Add after the header and before [0.4.0]:
 
 ### Added
 
-- **Remote Command** (`devbox remote`): Manage multiple remote servers
-  - `devbox remote add <name> <url>` - Add a remote
-  - `devbox remote list` - List configured remotes
-  - `devbox remote remove <name>` - Remove a remote
-  - `devbox remote rename <old> <new>` - Rename a remote
+- **Remote Command** (`skybox remote`): Manage multiple remote servers
+  - `skybox remote add <name> <url>` - Add a remote
+  - `skybox remote list` - List configured remotes
+  - `skybox remote remove <name>` - Remove a remote
+  - `skybox remote rename <old> <new>` - Rename a remote
 - **Multi-Remote Support**: Configure multiple SSH remotes per config file
-- **Config Command Enhancements** (`devbox config`):
+- **Config Command Enhancements** (`skybox config`):
   - `--validate` flag to test connection to all remotes
   - View and modify configuration values
 
@@ -296,8 +296,8 @@ Add after the header and before [0.4.0]:
 Add links:
 
 ```markdown
-[0.5.1-beta]: https://github.com/owner/devbox/compare/v0.5.0...v0.5.1-beta
-[0.5.0]: https://github.com/owner/devbox/compare/v0.4.0...v0.5.0
+[0.5.1-beta]: https://github.com/owner/skybox/compare/v0.5.0...v0.5.1-beta
+[0.5.0]: https://github.com/owner/skybox/compare/v0.4.0...v0.5.0
 ```
 
 **Step 3: Commit**
@@ -328,15 +328,15 @@ Create `docs/guide/troubleshooting.md`:
 ```markdown
 # Troubleshooting
 
-Common issues and solutions for DevBox.
+Common issues and solutions for SkyBox.
 
 ## Connection Issues
 
 ### SSH Connection Failed
 
 **Symptoms:**
-- `devbox init` fails to connect
-- `devbox browse` times out
+- `skybox init` fails to connect
+- `skybox browse` times out
 
 **Solutions:**
 
@@ -373,9 +373,9 @@ Common issues and solutions for DevBox.
    ssh-add ~/.ssh/id_rsa
    ```
 
-2. **Specify key in devbox config:**
+2. **Specify key in skybox config:**
    ```bash
-   devbox remote add myserver user@host --key ~/.ssh/specific_key
+   skybox remote add myserver user@host --key ~/.ssh/specific_key
    ```
 
 ## Container Issues
@@ -383,7 +383,7 @@ Common issues and solutions for DevBox.
 ### Container Won't Start
 
 **Symptoms:**
-- `devbox up` hangs or fails
+- `skybox up` hangs or fails
 - Container status shows "error"
 
 **Solutions:**
@@ -395,29 +395,29 @@ Common issues and solutions for DevBox.
 
 2. **Rebuild container:**
    ```bash
-   devbox up myproject --rebuild
+   skybox up myproject --rebuild
    ```
 
 3. **Check devcontainer.json:**
    ```bash
-   cat ~/.devbox/Projects/myproject/.devcontainer/devcontainer.json
+   cat ~/.skybox/Projects/myproject/.devcontainer/devcontainer.json
    ```
 
 ### Container Not Found
 
 **Symptoms:**
-- `devbox shell` says container not found
+- `skybox shell` says container not found
 
 **Solutions:**
 
 1. **Start the container first:**
    ```bash
-   devbox up myproject
+   skybox up myproject
    ```
 
 2. **Check container status:**
    ```bash
-   devbox status myproject
+   skybox status myproject
    ```
 
 ## Sync Issues
@@ -426,23 +426,23 @@ Common issues and solutions for DevBox.
 
 **Symptoms:**
 - Files not appearing on remote
-- `devbox status` shows sync errors
+- `skybox status` shows sync errors
 
 **Solutions:**
 
 1. **Check Mutagen status:**
    ```bash
-   ~/.devbox/bin/mutagen sync list
+   ~/.skybox/bin/mutagen sync list
    ```
 
 2. **Restart sync session:**
    ```bash
-   devbox down myproject
-   devbox up myproject
+   skybox down myproject
+   skybox up myproject
    ```
 
 3. **Check ignored files:**
-   Review `defaults.ignore` in `~/.devbox/config.yaml`
+   Review `defaults.ignore` in `~/.skybox/config.yaml`
 
 ### Sync Conflicts
 
@@ -453,7 +453,7 @@ Common issues and solutions for DevBox.
 
 1. **Check Mutagen conflicts:**
    ```bash
-   ~/.devbox/bin/mutagen sync list --long
+   ~/.skybox/bin/mutagen sync list --long
    ```
 
 2. **Resolve manually:**
@@ -464,19 +464,19 @@ Common issues and solutions for DevBox.
 ### Project Locked by Another Machine
 
 **Symptoms:**
-- `devbox up` fails with lock error
+- `skybox up` fails with lock error
 - Message: "Project is locked by [machine]"
 
 **Solutions:**
 
 1. **Proper handoff:** On the other machine:
    ```bash
-   devbox down myproject
+   skybox down myproject
    ```
 
 2. **Force takeover (use with caution):**
    ```bash
-   devbox up myproject --force
+   skybox up myproject --force
    ```
 
 ### Stale Lock
@@ -489,7 +489,7 @@ Common issues and solutions for DevBox.
 
 1. **Force acquire lock:**
    ```bash
-   devbox up myproject --force
+   skybox up myproject --force
    ```
 
 ## Configuration Issues
@@ -504,13 +504,13 @@ Common issues and solutions for DevBox.
 
 1. **Validate config:**
    ```bash
-   devbox config --validate
+   skybox config --validate
    ```
 
 2. **Reset config:**
    ```bash
-   rm ~/.devbox/config.yaml
-   devbox init
+   rm ~/.skybox/config.yaml
+   skybox init
    ```
 
 ### Missing Remote
@@ -522,12 +522,12 @@ Common issues and solutions for DevBox.
 
 1. **List remotes:**
    ```bash
-   devbox remote list
+   skybox remote list
    ```
 
 2. **Add missing remote:**
    ```bash
-   devbox remote add myremote user@host
+   skybox remote add myremote user@host
    ```
 
 ## Getting Help
@@ -536,16 +536,16 @@ If these solutions don't help:
 
 1. **Check logs:**
    ```bash
-   devbox status myproject --detailed
+   skybox status myproject --detailed
    ```
 
 2. **Run with verbose:**
    ```bash
-   DEVBOX_DEBUG=1 devbox up myproject
+   SKYBOX_DEBUG=1 skybox up myproject
    ```
 
 3. **Report an issue:**
-   [GitHub Issues](https://github.com/owner/devbox/issues)
+   [GitHub Issues](https://github.com/owner/skybox/issues)
 ```
 
 **Step 2: Run docs build to verify**
@@ -699,12 +699,12 @@ Add to package.json:
 {
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/NoorChasib/DevBox.git"
+    "url": "git+https://github.com/NoorChasib/SkyBox.git"
   },
   "bugs": {
-    "url": "https://github.com/NoorChasib/DevBox/issues"
+    "url": "https://github.com/NoorChasib/SkyBox/issues"
   },
-  "homepage": "https://github.com/NoorChasib/DevBox#readme"
+  "homepage": "https://github.com/NoorChasib/SkyBox#readme"
 }
 ```
 

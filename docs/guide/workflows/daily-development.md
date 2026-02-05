@@ -1,6 +1,6 @@
 # Daily Development Workflow
 
-This guide covers the day-to-day patterns for working with DevBox: starting your work, switching between projects, and shutting down cleanly.
+This guide covers the day-to-day patterns for working with SkyBox: starting your work, switching between projects, and shutting down cleanly.
 
 ## Starting Your Day
 
@@ -9,21 +9,21 @@ This guide covers the day-to-day patterns for working with DevBox: starting your
 If you know which project you want to work on:
 
 ```bash
-devbox up my-project
+skybox up my-project
 ```
 
 Or navigate to the project directory and run:
 
 ```bash
-cd ~/.devbox/Projects/my-project
-devbox up
+cd ~/.skybox/Projects/my-project
+skybox up
 ```
 
-DevBox auto-detects the project from your current directory.
+SkyBox auto-detects the project from your current directory.
 
 ### What Happens on Start
 
-1. **Session Check** - DevBox checks for an existing session and creates one for your machine
+1. **Session Check** - SkyBox checks for an existing session and creates one for your machine
 2. **Sync Resume** - If sync was paused, it resumes automatically
 3. **Container Start** - Starts or creates the dev container
 4. **Post-Start** - Prompts for editor/shell options
@@ -63,16 +63,16 @@ For scripting or quick access:
 
 ```bash
 # Just start, no prompts
-devbox up my-project --no-prompt
+skybox up my-project --no-prompt
 
 # Start and open editor
-devbox up my-project --editor
+skybox up my-project --editor
 
 # Start and attach shell
-devbox up my-project --attach
+skybox up my-project --attach
 
 # Start, open editor, and attach shell
-devbox up my-project --editor --attach
+skybox up my-project --editor --attach
 ```
 
 ## Checking Project Status
@@ -80,7 +80,7 @@ devbox up my-project --editor --attach
 ### Overview of All Projects
 
 ```bash
-devbox status
+skybox status
 ```
 
 Shows a table of all local projects:
@@ -97,7 +97,7 @@ Projects:
 ### Detailed Project Status
 
 ```bash
-devbox status my-project
+skybox status my-project
 ```
 
 Shows comprehensive information:
@@ -115,7 +115,7 @@ Container
 
 Sync
   Status:     syncing
-  Session:    devbox-my-project
+  Session:    skybox-my-project
   Pending:    0 files
   Last sync:  -
 
@@ -141,7 +141,7 @@ Disk Usage
 ### Stop Current Project
 
 ```bash
-devbox down backend-api
+skybox down backend-api
 ```
 
 This:
@@ -153,15 +153,15 @@ This:
 ### Start Another Project
 
 ```bash
-devbox up frontend-app
+skybox up frontend-app
 ```
 
 ### Quick Project Selection
 
-Without specifying a project, DevBox prompts you:
+Without specifying a project, SkyBox prompts you:
 
 ```bash
-devbox up
+skybox up
 ```
 
 ```
@@ -177,39 +177,39 @@ You can run multiple projects at once - each gets its own container:
 
 ```bash
 # Terminal 1
-devbox up backend-api --attach
+skybox up backend-api --attach
 
 # Terminal 2
-devbox up frontend-app --attach
+skybox up frontend-app --attach
 ```
 
-Note: Each project has its own session, so DevBox will warn you if the same project is active on another machine.
+Note: Each project has its own session, so SkyBox will warn you if the same project is active on another machine.
 
 ## Working with Running Containers
 
-### Quick Access with `devbox open`
+### Quick Access with `skybox open`
 
-For running containers, use `devbox open` for quick access without the full startup flow:
+For running containers, use `skybox open` for quick access without the full startup flow:
 
 ```bash
 # Open action menu (editor/shell/both)
-devbox open my-project
+skybox open my-project
 
 # Open editor directly
-devbox open my-project --editor
+skybox open my-project --editor
 
 # Attach to shell directly
-devbox open my-project --shell
+skybox open my-project --shell
 ```
 
-This is faster than `devbox up` because it skips session checks and sync checks.
+This is faster than `skybox up` because it skips session checks and sync checks.
 
-### Using `devbox up` with Running Containers
+### Using `skybox up` with Running Containers
 
 If a container is already running:
 
 ```bash
-devbox up my-project
+skybox up my-project
 ```
 
 ```
@@ -226,7 +226,7 @@ devbox up my-project
 ### Open Editor for Running Project
 
 ```bash
-devbox editor my-project
+skybox editor my-project
 ```
 
 Opens your configured editor pointing to the running container.
@@ -237,19 +237,19 @@ Open additional shells for a running container:
 
 ```bash
 # Terminal 1: Main work
-devbox up my-project --attach
+skybox up my-project --attach
 
 # Terminal 2: Run tests
-devbox open my-project --shell
+skybox open my-project --shell
 
 # Terminal 3: Watch logs
-devbox open my-project --shell
+skybox open my-project --shell
 ```
 
 ### List Local Projects
 
 ```bash
-devbox list
+skybox list
 ```
 
 ```
@@ -257,11 +257,11 @@ Local projects:
 
   backend-api
     Branch: main
-    Path: /Users/john/.devbox/Projects/backend-api
+    Path: /Users/john/.skybox/Projects/backend-api
 
   frontend-app
     Branch: develop
-    Path: /Users/john/.devbox/Projects/frontend-app
+    Path: /Users/john/.skybox/Projects/frontend-app
 ```
 
 ## Ending Your Day
@@ -269,7 +269,7 @@ Local projects:
 ### Clean Shutdown
 
 ```bash
-devbox down my-project
+skybox down my-project
 ```
 
 Interactive prompts:
@@ -286,7 +286,7 @@ Session ended
 ### Quick Shutdown
 
 ```bash
-devbox down my-project --no-prompt
+skybox down my-project --no-prompt
 ```
 
 Stops container and ends session without prompts.
@@ -294,7 +294,7 @@ Stops container and ends session without prompts.
 ### Shutdown with Cleanup
 
 ```bash
-devbox down my-project --cleanup
+skybox down my-project --cleanup
 ```
 
 Removes the container entirely (not just stops it). Useful for freeing disk space.
@@ -304,7 +304,7 @@ Removes the container entirely (not just stops it). Useful for freeing disk spac
 Stop all running containers at once using the `--all` flag:
 
 ```bash
-devbox down --all
+skybox down --all
 ```
 
 This stops all running containers and ends all sessions. If some projects fail to shut down, the command continues with the remaining projects and reports failures at the end.
@@ -320,7 +320,7 @@ This stops all running containers and ends all sessions. If some projects fail t
 ### Check Sync Status
 
 ```bash
-devbox status my-project
+skybox status my-project
 ```
 
 Look at the Sync section:
@@ -330,19 +330,19 @@ Look at the Sync section:
 
 ### Pause Sync Manually
 
-During `devbox down`, you can choose to pause sync. This saves resources when you are not actively working.
+During `skybox down`, you can choose to pause sync. This saves resources when you are not actively working.
 
 ### Resume Paused Sync
 
-Running `devbox up` automatically resumes paused sync sessions.
+Running `skybox up` automatically resumes paused sync sessions.
 
 ## Session Management
 
 ### Understanding Sessions
 
-Sessions track which machine is actively working on a project. When you run `devbox up`:
+Sessions track which machine is actively working on a project. When you run `skybox up`:
 
-1. DevBox checks for an existing session file in the project
+1. SkyBox checks for an existing session file in the project
 2. If no session exists, creates one for your machine
 3. If a session exists from the same machine, updates the timestamp
 4. If a session exists from a different machine, warns and asks to continue
@@ -362,7 +362,7 @@ Continuing anyway:
 ### Viewing Session Status
 
 ```bash
-devbox status my-project
+skybox status my-project
 ```
 
 Session section shows:
@@ -376,13 +376,13 @@ Session section shows:
 View container logs for a running project:
 
 ```bash
-devbox logs my-project
+skybox logs my-project
 ```
 
 Follow logs in real time (useful for debugging server processes):
 
 ```bash
-devbox logs my-project -f
+skybox logs my-project -f
 ```
 
 This streams container output continuously until you press `Ctrl+C`.
@@ -392,7 +392,7 @@ This streams container output continuously until you press `Ctrl+C`.
 If something is not working as expected, run the built-in diagnostic tool:
 
 ```bash
-devbox doctor
+skybox doctor
 ```
 
 This checks Docker, Mutagen, SSH connectivity, and configuration in one command and suggests fixes for any problems found. Run this before diving into manual troubleshooting.
@@ -403,10 +403,10 @@ For multi-project workflows, use the `--all` flag to operate on all projects at 
 
 ```bash
 # Start all projects
-devbox up --all
+skybox up --all
 
 # Stop all projects
-devbox down --all
+skybox down --all
 ```
 
 If individual projects fail during batch operations, the command continues with the remaining projects and reports failures at the end.
@@ -417,7 +417,7 @@ If individual projects fail during batch operations, the command continues with 
 
 ```bash
 # Try rebuilding
-devbox up my-project --rebuild
+skybox up my-project --rebuild
 ```
 
 ### Sync Stuck
@@ -425,7 +425,7 @@ devbox up my-project --rebuild
 Check Mutagen status directly:
 
 ```bash
-~/.devbox/bin/mutagen sync list
+~/.skybox/bin/mutagen sync list
 ```
 
 ### Stale Session After Crash
@@ -433,7 +433,7 @@ Check Mutagen status directly:
 If your machine crashed without ending the session, the session automatically expires after 24 hours. You can also start the project immediately:
 
 ```bash
-devbox up my-project
+skybox up my-project
 # Choose "Continue anyway" if warned about the stale session
 ```
 
@@ -442,12 +442,12 @@ devbox up my-project
 Remove old containers:
 
 ```bash
-devbox down my-project --cleanup
+skybox down my-project --cleanup
 ```
 
 Remove project entirely (keeps remote):
 
 ```bash
-devbox rm my-project
+skybox rm my-project
 ```
 

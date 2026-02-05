@@ -1,11 +1,11 @@
-# devbox config
+# skybox config
 
-View and modify DevBox configuration.
+View and modify SkyBox configuration.
 
 ## Usage
 
 ```bash
-devbox config [subcommand] [options]
+skybox config [subcommand] [options]
 ```
 
 ## Subcommands
@@ -26,11 +26,11 @@ devbox config [subcommand] [options]
 
 ## Description
 
-The `config` command provides ways to view and modify your DevBox configuration. It shows your configured remotes and global settings, manages selective sync paths and provides devcontainer configuration management.
+The `config` command provides ways to view and modify your SkyBox configuration. It shows your configured remotes and global settings, manages selective sync paths and provides devcontainer configuration management.
 
 ### Display Configuration
 
-Running `devbox config` without arguments shows:
+Running `skybox config` without arguments shows:
 
 ```
 ─── Remotes: ───
@@ -46,7 +46,7 @@ Running `devbox config` without arguments shows:
 ### Set Configuration Values
 
 ```bash
-devbox config set <key> <value>
+skybox config set <key> <value>
 ```
 
 Currently supported configuration keys:
@@ -60,7 +60,7 @@ Currently supported configuration keys:
 The `--validate` flag tests SSH connections to all remotes and shows project counts:
 
 ```bash
-devbox config --validate
+skybox config --validate
 ```
 
 Output:
@@ -83,17 +83,17 @@ Some remotes failed to connect.
 
 ### Selective Sync Paths
 
-View or set which paths to sync for a project. By default, DevBox syncs the entire project directory. Setting sync paths limits synchronization to only the specified subdirectories.
+View or set which paths to sync for a project. By default, SkyBox syncs the entire project directory. Setting sync paths limits synchronization to only the specified subdirectories.
 
 ```bash
 # View current sync paths
-devbox config sync-paths my-project
+skybox config sync-paths my-project
 
 # Set sync paths (comma-separated)
-devbox config sync-paths my-project src,docs,package.json
+skybox config sync-paths my-project src,docs,package.json
 
 # Clear sync paths (sync entire project)
-devbox config sync-paths my-project ""
+skybox config sync-paths my-project ""
 ```
 
 Paths are validated before saving. When no sync paths are configured, the entire project is synced.
@@ -103,69 +103,69 @@ Paths are validated before saving. When no sync paths are configured, the entire
 Open the project's `devcontainer.json` in your configured editor. After saving and closing the editor, the updated file is automatically pushed to the remote server.
 
 ```bash
-devbox config devcontainer edit <project>
+skybox config devcontainer edit <project>
 ```
 
 If no `devcontainer.json` exists for the project, you will be prompted to create one using `devcontainer reset`.
 
 ### Devcontainer Reset
 
-Replace the project's `devcontainer.json` with a fresh copy from the unified template selector. You can choose from built-in templates, your custom local templates in `~/.devbox/templates/`, or enter a git URL. After selection, the new file is pushed to the remote server. See [Custom Templates](/reference/custom-templates) for details.
+Replace the project's `devcontainer.json` with a fresh copy from the unified template selector. You can choose from built-in templates, your custom local templates in `~/.skybox/templates/`, or enter a git URL. After selection, the new file is pushed to the remote server. See [Custom Templates](/reference/custom-templates) for details.
 
 ```bash
-devbox config devcontainer reset <project>
+skybox config devcontainer reset <project>
 ```
 
 ## Examples
 
 ```bash
 # Show current configuration
-devbox config
+skybox config
 
 # Test all remote connections
-devbox config --validate
+skybox config --validate
 
 # Change default editor to VS Code
-devbox config set editor code
+skybox config set editor code
 
 # Change default editor to Vim
-devbox config set editor vim
+skybox config set editor vim
 
 # View sync paths for a project
-devbox config sync-paths my-app
+skybox config sync-paths my-app
 
 # Set selective sync paths
-devbox config sync-paths my-app src,tests,package.json
+skybox config sync-paths my-app src,tests,package.json
 
 # Edit devcontainer.json for a project
-devbox config devcontainer edit my-app
+skybox config devcontainer edit my-app
 
 # Reset devcontainer.json from template
-devbox config devcontainer reset my-app
+skybox config devcontainer reset my-app
 ```
 
 ### Workflow Example
 
 ```bash
 # Check current setup
-devbox config
+skybox config
 
 # Verify all remotes are accessible
-devbox config --validate
+skybox config --validate
 
 # Switch editor preference
-devbox config set editor code
+skybox config set editor code
 
 # Limit sync to only source files for a large project
-devbox config sync-paths my-app src,package.json
+skybox config sync-paths my-app src,package.json
 
 # Customize the devcontainer configuration
-devbox config devcontainer edit my-app
+skybox config devcontainer edit my-app
 ```
 
 ## Configuration File
 
-The configuration is stored in `~/.devbox/config.yaml`. While `devbox config set` handles common changes, you can also edit the file directly for advanced configuration.
+The configuration is stored in `~/.skybox/config.yaml`. While `skybox config set` handles common changes, you can also edit the file directly for advanced configuration.
 
 For full configuration file documentation, see [Configuration Reference](/reference/configuration).
 
@@ -179,6 +179,6 @@ For full configuration file documentation, see [Configuration Reference](/refere
 ## See Also
 
 - [Configuration Reference](/reference/configuration) - Full config file format
-- [devbox remote](/reference/remote) - Manage remote servers
-- [devbox editor](/reference/editor) - Interactive editor selection
-- [devbox init](/reference/init) - Initial setup wizard
+- [skybox remote](/reference/remote) - Manage remote servers
+- [skybox editor](/reference/editor) - Interactive editor selection
+- [skybox init](/reference/init) - Initial setup wizard

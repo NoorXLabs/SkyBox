@@ -34,17 +34,17 @@ jobs:
 
       - name: Build all platforms
         run: |
-          bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.DEVBOX_INSTALL_METHOD='github-release'" --target=bun-darwin-arm64 --outfile=devbox-darwin-arm64
-          bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.DEVBOX_INSTALL_METHOD='github-release'" --target=bun-darwin-x64 --outfile=devbox-darwin-x64
-          bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.DEVBOX_INSTALL_METHOD='github-release'" --target=bun-linux-x64 --outfile=devbox-linux-x64
-          bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.DEVBOX_INSTALL_METHOD='github-release'" --target=bun-linux-arm64 --outfile=devbox-linux-arm64
+          bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.SKYBOX_INSTALL_METHOD='github-release'" --target=bun-darwin-arm64 --outfile=skybox-darwin-arm64
+          bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.SKYBOX_INSTALL_METHOD='github-release'" --target=bun-darwin-x64 --outfile=skybox-darwin-x64
+          bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.SKYBOX_INSTALL_METHOD='github-release'" --target=bun-linux-x64 --outfile=skybox-linux-x64
+          bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.SKYBOX_INSTALL_METHOD='github-release'" --target=bun-linux-arm64 --outfile=skybox-linux-arm64
 
       - name: Create tarballs
         run: |
-          tar -czvf devbox-darwin-arm64.tar.gz devbox-darwin-arm64
-          tar -czvf devbox-darwin-x64.tar.gz devbox-darwin-x64
-          tar -czvf devbox-linux-x64.tar.gz devbox-linux-x64
-          tar -czvf devbox-linux-arm64.tar.gz devbox-linux-arm64
+          tar -czvf skybox-darwin-arm64.tar.gz skybox-darwin-arm64
+          tar -czvf skybox-darwin-x64.tar.gz skybox-darwin-x64
+          tar -czvf skybox-linux-x64.tar.gz skybox-linux-x64
+          tar -czvf skybox-linux-arm64.tar.gz skybox-linux-arm64
 
       - name: Get version
         id: version
@@ -63,14 +63,14 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            devbox-darwin-arm64
-            devbox-darwin-x64
-            devbox-linux-x64
-            devbox-linux-arm64
-            devbox-darwin-arm64.tar.gz
-            devbox-darwin-x64.tar.gz
-            devbox-linux-x64.tar.gz
-            devbox-linux-arm64.tar.gz
+            skybox-darwin-arm64
+            skybox-darwin-x64
+            skybox-linux-x64
+            skybox-linux-arm64
+            skybox-darwin-arm64.tar.gz
+            skybox-darwin-x64.tar.gz
+            skybox-linux-x64.tar.gz
+            skybox-linux-arm64.tar.gz
             checksums.txt
           body_path: release-notes.md
 
@@ -78,13 +78,13 @@ jobs:
         id: sha
         run: |
           # Generate checksums.txt for users (both raw binaries and tarballs)
-          shasum -a 256 devbox-darwin-arm64 devbox-darwin-x64 devbox-linux-x64 devbox-linux-arm64 \
-            devbox-darwin-arm64.tar.gz devbox-darwin-x64.tar.gz devbox-linux-x64.tar.gz devbox-linux-arm64.tar.gz > checksums.txt
+          shasum -a 256 skybox-darwin-arm64 skybox-darwin-x64 skybox-linux-x64 skybox-linux-arm64 \
+            skybox-darwin-arm64.tar.gz skybox-darwin-x64.tar.gz skybox-linux-x64.tar.gz skybox-linux-arm64.tar.gz > checksums.txt
           # Output tarball hashes for Homebrew formula
-          echo "darwin_arm64=$(shasum -a 256 devbox-darwin-arm64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
-          echo "darwin_x64=$(shasum -a 256 devbox-darwin-x64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
-          echo "linux_x64=$(shasum -a 256 devbox-linux-x64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
-          echo "linux_arm64=$(shasum -a 256 devbox-linux-arm64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "darwin_arm64=$(shasum -a 256 skybox-darwin-arm64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "darwin_x64=$(shasum -a 256 skybox-darwin-x64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "linux_x64=$(shasum -a 256 skybox-linux-x64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "linux_arm64=$(shasum -a 256 skybox-linux-arm64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
 
       - name: Update Homebrew formula
         if: ${{ !contains(github.ref, '-') }}
@@ -108,81 +108,81 @@ jobs:
           git clone https://github.com/NoorXLabs/homebrew-tap.git
           cd homebrew-tap
 
-          cat > Formula/devbox.rb << 'FORMULA'
-          class Devbox < Formula
+          cat > Formula/skybox.rb << 'FORMULA'
+          class Skybox < Formula
             desc "Local-first development container manager"
-            homepage "https://github.com/NoorXLabs/DevBox"
+            homepage "https://github.com/NoorXLabs/SkyBox"
             version "VERSION_PLACEHOLDER"
             license "Apache-2.0"
 
             on_macos do
               on_arm do
-                url "https://github.com/NoorXLabs/DevBox/releases/download/vVERSION_PLACEHOLDER/devbox-darwin-arm64.tar.gz"
+                url "https://github.com/NoorXLabs/SkyBox/releases/download/vVERSION_PLACEHOLDER/skybox-darwin-arm64.tar.gz"
                 sha256 "SHA_DARWIN_ARM64_PLACEHOLDER"
               end
 
               on_intel do
-                url "https://github.com/NoorXLabs/DevBox/releases/download/vVERSION_PLACEHOLDER/devbox-darwin-x64.tar.gz"
+                url "https://github.com/NoorXLabs/SkyBox/releases/download/vVERSION_PLACEHOLDER/skybox-darwin-x64.tar.gz"
                 sha256 "SHA_DARWIN_X64_PLACEHOLDER"
               end
             end
 
             on_linux do
               on_intel do
-                url "https://github.com/NoorXLabs/DevBox/releases/download/vVERSION_PLACEHOLDER/devbox-linux-x64.tar.gz"
+                url "https://github.com/NoorXLabs/SkyBox/releases/download/vVERSION_PLACEHOLDER/skybox-linux-x64.tar.gz"
                 sha256 "SHA_LINUX_X64_PLACEHOLDER"
               end
 
               on_arm do
-                url "https://github.com/NoorXLabs/DevBox/releases/download/vVERSION_PLACEHOLDER/devbox-linux-arm64.tar.gz"
+                url "https://github.com/NoorXLabs/SkyBox/releases/download/vVERSION_PLACEHOLDER/skybox-linux-arm64.tar.gz"
                 sha256 "SHA_LINUX_ARM64_PLACEHOLDER"
               end
             end
 
             def install
               if OS.mac? && Hardware::CPU.arm?
-                bin.install "devbox-darwin-arm64" => "devbox"
+                bin.install "skybox-darwin-arm64" => "skybox"
               elsif OS.mac? && Hardware::CPU.intel?
-                bin.install "devbox-darwin-x64" => "devbox"
+                bin.install "skybox-darwin-x64" => "skybox"
               elsif OS.linux? && Hardware::CPU.intel?
-                bin.install "devbox-linux-x64" => "devbox"
+                bin.install "skybox-linux-x64" => "skybox"
               elsif OS.linux? && Hardware::CPU.arm?
-                bin.install "devbox-linux-arm64" => "devbox"
+                bin.install "skybox-linux-arm64" => "skybox"
               end
             end
 
             def caveats
               <<~EOS
-                DevBox requires Docker Desktop to be running.
-                Start Docker Desktop before using devbox commands.
+                SkyBox requires Docker Desktop to be running.
+                Start Docker Desktop before using skybox commands.
 
                 Get started:
-                  devbox init
+                  skybox init
               EOS
             end
 
             test do
-              assert_match version.to_s, shell_output("#{bin}/devbox --version")
+              assert_match version.to_s, shell_output("#{bin}/skybox --version")
             end
           end
           FORMULA
 
-          sed -i'' -e "s/VERSION_PLACEHOLDER/${VERSION}/g" Formula/devbox.rb
-          sed -i'' -e "s/SHA_DARWIN_ARM64_PLACEHOLDER/${SHA_DARWIN_ARM64}/g" Formula/devbox.rb
-          sed -i'' -e "s/SHA_DARWIN_X64_PLACEHOLDER/${SHA_DARWIN_X64}/g" Formula/devbox.rb
-          sed -i'' -e "s/SHA_LINUX_X64_PLACEHOLDER/${SHA_LINUX_X64}/g" Formula/devbox.rb
-          sed -i'' -e "s/SHA_LINUX_ARM64_PLACEHOLDER/${SHA_LINUX_ARM64}/g" Formula/devbox.rb
+          sed -i'' -e "s/VERSION_PLACEHOLDER/${VERSION}/g" Formula/skybox.rb
+          sed -i'' -e "s/SHA_DARWIN_ARM64_PLACEHOLDER/${SHA_DARWIN_ARM64}/g" Formula/skybox.rb
+          sed -i'' -e "s/SHA_DARWIN_X64_PLACEHOLDER/${SHA_DARWIN_X64}/g" Formula/skybox.rb
+          sed -i'' -e "s/SHA_LINUX_X64_PLACEHOLDER/${SHA_LINUX_X64}/g" Formula/skybox.rb
+          sed -i'' -e "s/SHA_LINUX_ARM64_PLACEHOLDER/${SHA_LINUX_ARM64}/g" Formula/skybox.rb
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Formula/devbox.rb
-          git commit -m "Update devbox to v${VERSION}"
+          git add Formula/skybox.rb
+          git commit -m "Update skybox to v${VERSION}"
           git push
 
       - name: Cleanup
         if: always()
         run: |
-          rm -rf devbox-* homebrew-tap
+          rm -rf skybox-* homebrew-tap
           rm -rf ${{ runner.temp }}/homebrew-tap
           rm -f ~/.git-credentials
           git config --global --unset credential.helper || true

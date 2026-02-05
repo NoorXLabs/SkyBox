@@ -12,7 +12,7 @@
 
 ## Task 1: Fix Template Repository URLs
 
-Replace the four broken `devbox-templates/*-starter` URLs in `BUILT_IN_TEMPLATES` with working GitHub repositories that contain devcontainer configs.
+Replace the four broken `skybox-templates/*-starter` URLs in `BUILT_IN_TEMPLATES` with working GitHub repositories that contain devcontainer configs.
 
 **Files:**
 - Modify: `src/lib/constants.ts:289-310`
@@ -29,8 +29,8 @@ describe("built-in templates", () => {
 	test("all template URLs should point to valid GitHub repos", () => {
 		for (const template of BUILT_IN_TEMPLATES) {
 			expect(template.url).toMatch(/^https:\/\/github\.com\/.+\/.+/);
-			// Should NOT reference the non-existent devbox-templates org
-			expect(template.url).not.toContain("devbox-templates");
+			// Should NOT reference the non-existent skybox-templates org
+			expect(template.url).not.toContain("skybox-templates");
 		}
 	});
 
@@ -47,7 +47,7 @@ describe("built-in templates", () => {
 **Step 2: Run test to verify it fails**
 
 Run: `bun test src/lib/__tests__/projectTemplates.test.ts`
-Expected: FAIL — URLs still contain `devbox-templates`
+Expected: FAIL — URLs still contain `skybox-templates`
 
 **Step 3: Update template URLs to working repos**
 
@@ -122,7 +122,7 @@ describe("hooks", () => {
 	let testDir: string;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `devbox-hooks-test-${Date.now()}`);
+		testDir = join(tmpdir(), `skybox-hooks-test-${Date.now()}`);
 		mkdirSync(testDir, { recursive: true });
 	});
 
@@ -537,7 +537,7 @@ async function gatherProjectData(): Promise<DashboardProject[]> {
 }
 
 function formatTable(projects: DashboardProject[]): string {
-	if (projects.length === 0) return "  No projects found. Use 'devbox clone' to get started.";
+	if (projects.length === 0) return "  No projects found. Use 'skybox clone' to get started.";
 
 	const header = "  NAME                    CONTAINER   SYNC       BRANCH";
 	const separator = "  " + "─".repeat(60);
@@ -554,7 +554,7 @@ function formatTable(projects: DashboardProject[]): string {
 export async function dashboardCommand(): Promise<void> {
 	const screen = blessed.screen({
 		smartCSR: true,
-		title: "DevBox Dashboard",
+		title: "SkyBox Dashboard",
 	});
 
 	const titleBox = blessed.box({
@@ -562,7 +562,7 @@ export async function dashboardCommand(): Promise<void> {
 		left: 0,
 		width: "100%",
 		height: 3,
-		content: "{center}{bold}DevBox Dashboard{/bold}{/center}",
+		content: "{center}{bold}SkyBox Dashboard{/bold}{/center}",
 		tags: true,
 		style: { fg: "white", bg: "blue" },
 	});
@@ -682,7 +682,7 @@ Mark the three tasks as completed with `[x]` and note the commit hashes.
 
 **Step 2: Check if VitePress docs need updates**
 
-Run the `devbox-update-docs` skill to check if any docs pages in `docs/` need creating or updating for:
+Run the `skybox-update-docs` skill to check if any docs pages in `docs/` need creating or updating for:
 - Template URLs change (may affect getting-started guide)
 - Hooks system (needs new docs page: `docs/reference/hooks.md`)
 - Dashboard command (needs entry in `docs/reference/commands.md`)

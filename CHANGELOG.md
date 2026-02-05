@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to DevBox will be documented in this file.
+All notable changes to SkyBox will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -21,10 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **TUI Dashboard** (`devbox dashboard`): Full-screen terminal UI with real-time container/sync status, keyboard navigation, and detailed view toggle (Ink/React)
+- **TUI Dashboard** (`skybox dashboard`): Full-screen terminal UI with real-time container/sync status, keyboard navigation, and detailed view toggle (Ink/React)
 - **Hooks System**: Pre/post lifecycle hooks for `up` and `down` commands with shell command execution
-- **Multi-Select Up**: Checkbox multi-select when `devbox up` is run without arguments, with sequential start and post-start editor prompt
-- **Interactive Clone**: Checkbox multi-select when `devbox clone` is run without arguments, filtering already-cloned projects
+- **Multi-Select Up**: Checkbox multi-select when `skybox up` is run without arguments, with sequential start and post-start editor prompt
+- **Interactive Clone**: Checkbox multi-select when `skybox clone` is run without arguments, filtering already-cloned projects
 - GitHub Release notes now populated from CHANGELOG.md entries
 
 ### Fixed
@@ -34,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Renamed internal command files from noor to devbox
+- Renamed internal command files from noor to skybox
 - Renamed SKILL.md files to command files
 - Task display uses numbered tables with free-text selection
 
@@ -54,7 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Linux ARM64 (`devbox-linux-arm64`) release binary for AWS Graviton, Raspberry Pi, and other ARM servers
+- Linux ARM64 (`skybox-linux-arm64`) release binary for AWS Graviton, Raspberry Pi, and other ARM servers
 - Build optimizations: `--minify`, `--sourcemap`, and `--bytecode` flags for smaller, faster binaries
 
 ### Changed
@@ -86,10 +86,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Version Update Notification**: One-line footer after commands when a newer DevBox version is available on GitHub Releases. Checks once per day (cached to `~/.devbox/.update-check.json`). Channel-aware: stable users see stable releases only, beta users see all releases.
+- **Version Update Notification**: One-line footer after commands when a newer SkyBox version is available on GitHub Releases. Checks once per day (cached to `~/.skybox/.update-check.json`). Channel-aware: stable users see stable releases only, beta users see all releases.
 - **Install Method Detection**: `INSTALL_METHOD` constant embedded at build time (`homebrew`, `github-release`, `npm`, `source`). Used by update notification to show the correct upgrade command.
-- **Bundled Mutagen**: Platform-specific Mutagen binary is now embedded inside the compiled DevBox binary. Extracted to `~/.devbox/bin/mutagen` on first run or after version mismatch. Removes the need for `devbox update` end-user flow.
-- **Custom Local Templates**: Store reusable `devcontainer.json` files in `~/.devbox/templates/`. Filename becomes display name (e.g., `bun.json` → "bun"). Unified `selectTemplate()` component replaces fragmented template logic. CLI flow to scaffold new templates with required fields, editor options, and validation.
+- **Bundled Mutagen**: Platform-specific Mutagen binary is now embedded inside the compiled SkyBox binary. Extracted to `~/.skybox/bin/mutagen` on first run or after version mismatch. Removes the need for `skybox update` end-user flow.
+- **Custom Local Templates**: Store reusable `devcontainer.json` files in `~/.skybox/templates/`. Filename becomes display name (e.g., `bun.json` → "bun"). Unified `selectTemplate()` component replaces fragmented template logic. CLI flow to scaffold new templates with required fields, editor options, and validation.
 
 ### Changed
 
@@ -104,16 +104,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **New Commands**:
-  - `devbox logs` — Show container or sync logs with follow mode and filtering
-  - `devbox update` — Update Mutagen binary to latest bundled version
-  - `devbox doctor` — Diagnose common issues (Docker, Mutagen, SSH, config)
-  - `devbox open` — Open editor/shell for a running container
+  - `skybox logs` — Show container or sync logs with follow mode and filtering
+  - `skybox update` — Update Mutagen binary to latest bundled version
+  - `skybox doctor` — Diagnose common issues (Docker, Mutagen, SSH, config)
+  - `skybox open` — Open editor/shell for a running container
 - **Batch Operations**: `up --all` and `down --all` to start/stop all projects at once
-- **Interactive rm**: Multi-select checkbox UI when `devbox rm` is called without arguments
+- **Interactive rm**: Multi-select checkbox UI when `skybox rm` is called without arguments
 - **Remote Delete**: `rm --remote` flag with double confirmation to delete project from remote server
 - **Selective Sync**: `config sync-paths` for per-project directory-level sync control
 - **Encryption**: `config encryption enable/disable` for AES-256-GCM config file encryption
-- **Project Encryption at Rest**: `devbox encrypt enable/disable` for per-project archive encryption using Argon2id + AES-256-GCM, integrated into `up`/`down`/`clone`/`new`/`init` flows
+- **Project Encryption at Rest**: `skybox encrypt enable/disable` for per-project archive encryption using Argon2id + AES-256-GCM, integrated into `up`/`down`/`clone`/`new`/`init` flows
 - **Devcontainer Repair**: `config devcontainer edit/reset` for editing or regenerating devcontainer.json
 - **Non-interactive Mode**: `--no-prompt` flag on `up`, `down`, and `open` commands
 - **Verbose Mode**: `up --verbose` for detailed error output during container startup
@@ -157,13 +157,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Remote Command** (`devbox remote`): Manage multiple remote servers
-  - `devbox remote add <name> <url>` - Add a remote
-  - `devbox remote list` - List configured remotes
-  - `devbox remote remove <name>` - Remove a remote
-  - `devbox remote rename <old> <new>` - Rename a remote
+- **Remote Command** (`skybox remote`): Manage multiple remote servers
+  - `skybox remote add <name> <url>` - Add a remote
+  - `skybox remote list` - List configured remotes
+  - `skybox remote remove <name>` - Remove a remote
+  - `skybox remote rename <old> <new>` - Rename a remote
 - **Multi-Remote Support**: Configure multiple SSH remotes per config file
-- **Config Command Enhancements** (`devbox config`):
+- **Config Command Enhancements** (`skybox config`):
   - `--validate` flag to test connection to all remotes
   - View and modify configuration values
 
@@ -176,12 +176,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **New Command** (`devbox new`): Create new projects on remote server from templates
+- **New Command** (`skybox new`): Create new projects on remote server from templates
   - Interactive project type selection (empty directory vs template)
   - Template browser with built-in and user templates
   - Project name validation
   - Template cloning to remote server
-- **Shell Command** (`devbox shell`): Enter an interactive shell in a running container
+- **Shell Command** (`skybox shell`): Enter an interactive shell in a running container
 - **VitePress Documentation Site**: Comprehensive documentation with:
   - Getting started guide
   - Command reference for all 10 commands
@@ -197,12 +197,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Status Command** (`devbox status`): Display detailed project status
+- **Status Command** (`skybox status`): Display detailed project status
   - Overview table with colored output
   - Git info, disk usage, and last active helpers
   - Detailed view with all sections
   - Real lock status display
-- **Remove Command** (`devbox rm`): Remove local project directories
+- **Remove Command** (`skybox rm`): Remove local project directories
 - **Lock System**: Multi-machine coordination for shared remotes
   - Lock acquisition on container start (`up`)
   - Lock release and sync flush on container stop (`down`)
@@ -224,7 +224,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Up Command** (`devbox up`): Start development container
+- **Up Command** (`skybox up`): Start development container
   - Container status detection
   - Container start/stop functions
   - Editor opening support
@@ -232,13 +232,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Devcontainer config detection
   - Devcontainer templates
   - Project resolution helpers
-- **Down Command** (`devbox down`): Stop development container
-- **Editor Command** (`devbox editor`): Open project in configured editor
-- **Clone Command** (`devbox clone`): Clone remote project to local machine
+- **Down Command** (`skybox down`): Stop development container
+- **Editor Command** (`skybox editor`): Open project in configured editor
+- **Clone Command** (`skybox clone`): Clone remote project to local machine
   - Mutagen module for sync operations
-- **Push Command** (`devbox push`): Push local changes to remote
-- **Browse Command** (`devbox browse`): Browse remote projects
-- **List Command** (`devbox list`): List local projects
+- **Push Command** (`skybox push`): Push local changes to remote
+- **Browse Command** (`skybox browse`): Browse remote projects
+- **List Command** (`skybox list`): List local projects
 
 ### Fixed
 
@@ -251,14 +251,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Initial Release**
-- **Init Command** (`devbox init`): Initialize DevBox configuration
+- **Init Command** (`skybox init`): Initialize SkyBox configuration
   - Interactive setup wizard
   - SSH config parsing and connection testing
   - Mutagen binary download and management
   - Configuration file read/write
 - Core infrastructure:
   - TypeScript types for config and SSH
-  - Paths module for DevBox directory constants
+  - Paths module for SkyBox directory constants
   - UI module for terminal output helpers
   - Commander CLI setup
 - Project documentation:
@@ -266,18 +266,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Design documents for commands
   - Implementation plans
 
-[0.7.7]: https://github.com/NoorXLabs/DevBox/compare/v0.7.6...v0.7.7
-[0.7.6]: https://github.com/NoorXLabs/DevBox/compare/v0.7.5...v0.7.6
-[0.7.5]: https://github.com/NoorXLabs/DevBox/compare/v0.7.4...v0.7.5
-[0.7.4]: https://github.com/NoorXLabs/DevBox/compare/v0.7.3...v0.7.4
-[0.7.3]: https://github.com/NoorXLabs/DevBox/compare/v0.7.2...v0.7.3
-[0.7.2]: https://github.com/NoorXLabs/DevBox/compare/v0.7.1...v0.7.2
-[0.7.1]: https://github.com/NoorXLabs/DevBox/compare/v0.7.0...v0.7.1
-[0.7.0]: https://github.com/NoorXLabs/DevBox/compare/v0.6.0-beta...v0.7.0
-[0.6.0-beta]: https://github.com/NoorXLabs/DevBox/compare/v0.5.1-beta...v0.6.0-beta
-[0.5.1-beta]: https://github.com/NoorXLabs/DevBox/compare/v0.5.0...v0.5.1-beta
-[0.5.0]: https://github.com/NoorXLabs/DevBox/compare/v0.4.0...v0.5.0
-[0.4.0]: https://github.com/NoorXLabs/DevBox/compare/v0.3.0...v0.4.0
-[0.3.0]: https://github.com/NoorXLabs/DevBox/compare/v0.2.0...v0.3.0
-[0.2.0]: https://github.com/NoorXLabs/DevBox/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/NoorXLabs/DevBox/releases/tag/v0.1.0
+[0.7.7]: https://github.com/NoorXLabs/SkyBox/compare/v0.7.6...v0.7.7
+[0.7.6]: https://github.com/NoorXLabs/SkyBox/compare/v0.7.5...v0.7.6
+[0.7.5]: https://github.com/NoorXLabs/SkyBox/compare/v0.7.4...v0.7.5
+[0.7.4]: https://github.com/NoorXLabs/SkyBox/compare/v0.7.3...v0.7.4
+[0.7.3]: https://github.com/NoorXLabs/SkyBox/compare/v0.7.2...v0.7.3
+[0.7.2]: https://github.com/NoorXLabs/SkyBox/compare/v0.7.1...v0.7.2
+[0.7.1]: https://github.com/NoorXLabs/SkyBox/compare/v0.7.0...v0.7.1
+[0.7.0]: https://github.com/NoorXLabs/SkyBox/compare/v0.6.0-beta...v0.7.0
+[0.6.0-beta]: https://github.com/NoorXLabs/SkyBox/compare/v0.5.1-beta...v0.6.0-beta
+[0.5.1-beta]: https://github.com/NoorXLabs/SkyBox/compare/v0.5.0...v0.5.1-beta
+[0.5.0]: https://github.com/NoorXLabs/SkyBox/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/NoorXLabs/SkyBox/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/NoorXLabs/SkyBox/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/NoorXLabs/SkyBox/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/NoorXLabs/SkyBox/releases/tag/v0.1.0

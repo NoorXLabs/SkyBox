@@ -37,7 +37,7 @@
 | 21 | Configuration reference page missing `encryption`, `sync_paths`, per-project `editor` fields | Medium |
 | 22 | `shell` reference page missing `--force` lock bypass and lock check behavior | Medium |
 | 23 | Troubleshooting page may not cover new features (encryption, selective sync, batch ops) | Low |
-| 24 | `DEVBOX_HOME` environment variable not documented in user docs | Low |
+| 24 | `SKYBOX_HOME` environment variable not documented in user docs | Low |
 
 ---
 
@@ -46,23 +46,23 @@
 **Files:**
 - Modify: `docs/guide/installation.md`
 
-**Step 1: Update the Install DevBox section**
+**Step 1: Update the Install SkyBox section**
 
-Replace the "Install DevBox" section with two methods—Homebrew (recommended) and source:
+Replace the "Install SkyBox" section with two methods—Homebrew (recommended) and source:
 
 ```markdown
-## Install DevBox
+## Install SkyBox
 
 ::: code-group
 
 ```bash [Homebrew (macOS)]
 brew tap NoorXLabs/homebrew-tap
-brew install devbox
+brew install skybox
 ```
 
 ```bash [From Source (macOS/Linux)]
-git clone https://github.com/NoorXLabs/DevBox.git
-cd DevBox
+git clone https://github.com/NoorXLabs/SkyBox.git
+cd SkyBox
 bun install
 bun link
 ```
@@ -139,8 +139,8 @@ git commit -m "docs: add update command reference page"
 Add these rows to the commands overview table:
 
 ```markdown
-| [`devbox logs`](/reference/logs) | Show container or sync logs |
-| [`devbox update`](/reference/update) | Update Mutagen binary |
+| [`skybox logs`](/reference/logs) | Show container or sync logs |
+| [`skybox update`](/reference/update) | Update Mutagen binary |
 ```
 
 **Step 2: Add "Diagnostics & Maintenance" quick reference section**
@@ -150,16 +150,16 @@ Add these rows to the commands overview table:
 
 ```bash
 # Show container logs
-devbox logs my-project -f
+skybox logs my-project -f
 
 # Show sync logs
-devbox logs my-project --sync
+skybox logs my-project --sync
 
 # Diagnose common issues
-devbox doctor
+skybox doctor
 
 # Update Mutagen binary
-devbox update
+skybox update
 ```
 ```
 
@@ -170,13 +170,13 @@ devbox update
 
 ```bash
 # Start all projects
-devbox up --all
+skybox up --all
 
 # Stop all projects
-devbox down --all
+skybox down --all
 
 # Remove multiple projects (interactive multi-select)
-devbox rm
+skybox rm
 ```
 ```
 
@@ -196,13 +196,13 @@ git commit -m "docs: add logs, update, batch operations to reference index"
 
 **Step 1: Add missing sidebar entries to `/reference/` items array**
 
-After the `devbox remote` entry, add:
+After the `skybox remote` entry, add:
 
 ```typescript
-{ text: 'devbox doctor', link: '/reference/doctor' },
-{ text: 'devbox open', link: '/reference/open' },
-{ text: 'devbox logs', link: '/reference/logs' },
-{ text: 'devbox update', link: '/reference/update' },
+{ text: 'skybox doctor', link: '/reference/doctor' },
+{ text: 'skybox open', link: '/reference/open' },
+{ text: 'skybox logs', link: '/reference/logs' },
+{ text: 'skybox update', link: '/reference/update' },
 ```
 
 **Step 2: Commit**
@@ -241,19 +241,19 @@ The config page must document ALL of these subcommands:
 
 ```markdown
 # View selective sync paths
-devbox config sync-paths my-project
+skybox config sync-paths my-project
 
 # Set selective sync paths (comma-separated)
-devbox config sync-paths my-project src,build,config
+skybox config sync-paths my-project src,build,config
 
 # Enable encryption
-devbox config encryption enable
+skybox config encryption enable
 
 # Edit devcontainer configuration
-devbox config devcontainer edit my-project
+skybox config devcontainer edit my-project
 
 # Reset devcontainer to template
-devbox config devcontainer reset my-project
+skybox config devcontainer reset my-project
 ```
 
 **Step 4: Commit**
@@ -286,13 +286,13 @@ Add:
 
 ```markdown
 # Interactive multi-select (no args)
-devbox rm
+skybox rm
 
 # Remove with remote deletion
-devbox rm my-project --remote
+skybox rm my-project --remote
 
 # Force remove without confirmation
-devbox rm my-project --force
+skybox rm my-project --force
 ```
 
 **Step 4: Commit**
@@ -477,7 +477,7 @@ git commit -m "docs: add encryption, sync_paths, per-project editor to configura
 
 **Step 2: Add or update sections for:**
 
-- **Selective Sync**: What it is, when to use it, how `sync_paths` creates per-path Mutagen sessions, configuration via `devbox config sync-paths`
+- **Selective Sync**: What it is, when to use it, how `sync_paths` creates per-path Mutagen sessions, configuration via `skybox config sync-paths`
 - **Encryption**: AES-256-GCM with PBKDF2 key derivation, what it protects (config.yaml), how to enable/disable, passphrase recovery warning
 - **Templates**: Built-in templates (Node.js, Python, Go, Generic), what each includes (image, features, post-create commands), custom git repo templates
 - **Lock System**: Expand existing lock docs with takeover behavior, force bypass, multi-machine coordination details
@@ -541,7 +541,7 @@ Ensure these are covered:
 - **Selective Sync**: Sync path not syncing (check path format, no leading slash, no `..`)
 - **Lock Issues**: Lock takeover failed, stale locks, force bypass
 - **Batch Operations**: Partial failures in `--all` mode
-- **Doctor Command**: Reference `devbox doctor` as first diagnostic step throughout
+- **Doctor Command**: Reference `skybox doctor` as first diagnostic step throughout
 - **Update Command**: Mutagen download failures, version mismatches
 - **Devcontainer Repair**: Container won't start → use `config devcontainer reset`
 
@@ -565,8 +565,8 @@ git commit -m "docs: add encryption, selective sync, lock troubleshooting sectio
 
 **Step 2: Update each guide to reflect current features**
 
-- **New Project**: Mention template selection (built-in + custom git), `devbox new` full workflow
-- **Daily Development**: Add `devbox open` as quick-access alternative to `up`, mention `devbox logs -f` for debugging, batch `--all` for multi-project workflows
+- **New Project**: Mention template selection (built-in + custom git), `skybox new` full workflow
+- **Daily Development**: Add `skybox open` as quick-access alternative to `up`, mention `skybox logs -f` for debugging, batch `--all` for multi-project workflows
 - **Team Sharing**: Mention multi-remote support, selective sync for large repos, encryption for sensitive configs
 
 **Step 3: Commit**
@@ -618,9 +618,9 @@ git commit -m "docs: update architecture docs with new modules and design decisi
 **Step 1: Add an Environment Variables section**
 
 Document:
-- `DEVBOX_HOME` — override default `~/.devbox` base directory
+- `SKYBOX_HOME` — override default `~/.skybox` base directory
 - `HOME` — used for `~` expansion in paths
-- `EDITOR` — fallback editor if not configured in DevBox
+- `EDITOR` — fallback editor if not configured in SkyBox
 
 **Step 2: Commit**
 
@@ -660,7 +660,7 @@ git commit -m "docs: update CLAUDE.md version and directory structure"
 
 **Step 1: Identify canonical GitHub URL**
 
-`package.json` uses `NoorChasib/DevBox`, VitePress config uses `NoorXLabs/DevBox`. Determine which is correct by checking which org the Homebrew tap references (`NoorXLabs/homebrew-tap`).
+`package.json` uses `NoorChasib/SkyBox`, VitePress config uses `NoorXLabs/SkyBox`. Determine which is correct by checking which org the Homebrew tap references (`NoorXLabs/homebrew-tap`).
 
 **Step 2: Normalize all URLs to the canonical org**
 
@@ -691,10 +691,10 @@ git log --oneline v0.5.1-beta..HEAD
 **Step 2: Add 0.6.0-beta entry**
 
 Document all new features:
-- `devbox logs` command
-- `devbox update` command
-- `devbox doctor` command
-- `devbox open` command
+- `skybox logs` command
+- `skybox update` command
+- `skybox doctor` command
+- `skybox open` command
 - Batch operations (`up --all`, `down --all`)
 - Interactive multi-select in `rm`
 - Remote delete (`rm --remote`)

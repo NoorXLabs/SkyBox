@@ -114,10 +114,10 @@ import { describe, expect, test } from "bun:test";
 describe("global --dry-run option", () => {
 	test("--dry-run flag is accepted by CLI", async () => {
 		const { execSync } = await import("node:child_process");
-		// Run `devbox --help` and check that --dry-run appears
+		// Run `skybox --help` and check that --dry-run appears
 		const output = execSync("bun run src/index.ts --help", {
 			encoding: "utf-8",
-			cwd: "/Users/noorchasib/conductor/workspaces/DevBox/dhaka-v1",
+			cwd: "/Users/noorchasib/conductor/workspaces/SkyBox/dhaka-v1",
 		});
 		expect(output).toContain("--dry-run");
 	});
@@ -135,7 +135,7 @@ In `src/index.ts`, add the global option right after the `.version()` line. Chan
 
 ```typescript
 program
-	.name("devbox")
+	.name("skybox")
 	.description("Local-first dev containers with remote sync")
 	.version(pkg.version, "-v, --version");
 ```
@@ -144,7 +144,7 @@ to:
 
 ```typescript
 program
-	.name("devbox")
+	.name("skybox")
 	.description("Local-first dev containers with remote sync")
 	.version(pkg.version, "-v, --version")
 	.option("--dry-run", "Preview commands without executing them");
@@ -241,7 +241,7 @@ test("up --dry-run shows preview without side effects", async () => {
 	try {
 		execSync("bun run src/index.ts up test-project --dry-run --no-prompt 2>&1", {
 			encoding: "utf-8",
-			cwd: "/Users/noorchasib/conductor/workspaces/DevBox/dhaka-v1",
+			cwd: "/Users/noorchasib/conductor/workspaces/SkyBox/dhaka-v1",
 		});
 	} catch (err: any) {
 		// Should fail for "not configured" or "not found" reasons,
@@ -272,7 +272,7 @@ Then modify `startSingleProject()` (around line 542). Add a dry-run early return
 async function startSingleProject(
 	project: string,
 	projectPath: string,
-	config: DevboxConfigV2,
+	config: SkyboxConfigV2,
 	options: UpOptions,
 ): Promise<void> {
 	header(`Starting '${project}'...`);
@@ -299,7 +299,7 @@ Also guard `handlePostStart` — add at the top of the function:
 ```typescript
 async function handlePostStart(
 	projectPath: string,
-	config: DevboxConfigV2,
+	config: SkyboxConfigV2,
 	options: UpOptions,
 ): Promise<void> {
 	if (isDryRun()) {
@@ -550,7 +550,7 @@ In `initCommand()`, after the reconfiguration check and before `checkDependencie
 		dryRun("Would download/install Mutagen binary");
 		dryRun("Would configure remote server via SSH");
 		dryRun("Would configure editor preference");
-		dryRun(`Would create directories: ${getDevboxHome()}`);
+		dryRun(`Would create directories: ${getSkyboxHome()}`);
 		dryRun("Would save config.yaml");
 		return;
 	}

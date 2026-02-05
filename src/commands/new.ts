@@ -29,9 +29,9 @@ import {
 	warn,
 } from "@lib/ui.ts";
 import type {
-	DevboxConfigV2,
 	DevcontainerConfig,
 	RemoteEntry,
+	SkyboxConfigV2,
 } from "@typedefs/index.ts";
 import inquirer from "inquirer";
 
@@ -49,7 +49,7 @@ function withWorkspaceSettings(
 export async function newCommand(): Promise<void> {
 	// Check config exists
 	if (!configExists()) {
-		error("devbox not configured. Run 'devbox init' first.");
+		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 
@@ -249,7 +249,7 @@ async function cloneGitToRemote(
 
 	const cloneSpin = spinner("Cloning template to remote...");
 
-	const tempPath = `/tmp/devbox-template-${Date.now()}`;
+	const tempPath = `/tmp/skybox-template-${Date.now()}`;
 
 	let cloneCmd: string;
 	if (keepHistory) {
@@ -311,7 +311,7 @@ async function cloneGitToRemote(
 async function offerClone(
 	projectName: string,
 	remoteName: string,
-	config: DevboxConfigV2,
+	config: SkyboxConfigV2,
 	devcontainerConfig?: DevcontainerConfig,
 ): Promise<void> {
 	console.log();
@@ -326,7 +326,7 @@ async function offerClone(
 
 	if (!shouldClone) {
 		success(`Project '${projectName}' created on remote`);
-		info(`Run 'devbox clone ${projectName}' to clone locally.`);
+		info(`Run 'skybox clone ${projectName}' to clone locally.`);
 		return;
 	}
 
@@ -368,6 +368,6 @@ async function offerClone(
 	if (startContainer) {
 		await upCommand(projectName, {});
 	} else {
-		info(`Run 'devbox up ${projectName}' when ready to start working.`);
+		info(`Run 'skybox up ${projectName}' when ready to start working.`);
 	}
 }

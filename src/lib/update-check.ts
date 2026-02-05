@@ -71,11 +71,11 @@ export function isNewerVersion(latest: string, current: string): boolean {
 export function getUpgradeCommand(method: InstallMethod): string {
 	switch (method) {
 		case "homebrew":
-			return "brew upgrade devbox";
+			return "brew upgrade skybox";
 		case "npm":
-			return "npm update -g devbox";
+			return "npm update -g skybox";
 		case "github-release":
-			return "https://github.com/NoorChasib/DevBox/releases/latest";
+			return "https://github.com/NoorXLabs/SkyBox/releases/latest";
 		case "source":
 			return "git pull && bun install";
 	}
@@ -93,7 +93,7 @@ export async function fetchLatestVersions(): Promise<{
 		const response = await fetch(GITHUB_API_URL, {
 			headers: {
 				Accept: "application/vnd.github.v3+json",
-				"User-Agent": "DevBox-CLI",
+				"User-Agent": "SkyBox-CLI",
 			},
 			signal: AbortSignal.timeout(5000),
 		});

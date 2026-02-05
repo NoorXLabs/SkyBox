@@ -32,12 +32,12 @@ import { upCommand } from "./up.ts";
 ```typescript
 if (startContainer) {
     info(
-        "Container startup not yet implemented. Run 'devbox up " +
+        "Container startup not yet implemented. Run 'skybox up " +
             projectName +
             "' when ready.",
     );
 } else {
-    info(`Run 'devbox up ${projectName}' when ready to start working.`);
+    info(`Run 'skybox up ${projectName}' when ready to start working.`);
 }
 ```
 
@@ -47,7 +47,7 @@ if (startContainer) {
     await upCommand(projectName, {});
 } else {
     info(`Project saved to ${localPath}`);
-    info(`Run 'devbox up ${projectName}' when ready to start working.`);
+    info(`Run 'skybox up ${projectName}' when ready to start working.`);
 }
 ```
 
@@ -70,7 +70,7 @@ After push completes and user chooses to start the container:
 
 ? Start dev container now? Yes
 
-─── Starting 'DevBox'... ───────────────────────
+─── Starting 'SkyBox'... ───────────────────────
 ℹ Lock acquired
 ✔ Sync is active
 ...

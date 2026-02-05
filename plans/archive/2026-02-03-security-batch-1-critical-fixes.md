@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Fix the 4 CRITICAL security findings from the security audit to make DevBox safe for production use.
+**Goal:** Fix the 4 CRITICAL security findings from the security audit to make SkyBox safe for production use.
 
 **Architecture:** Direct fixes to existing files. All changes follow existing patterns (escapeShellArg for shell commands, explicit file modes for fs operations). Tests validate both the fix and prevent regression.
 
@@ -19,7 +19,7 @@ This batch addresses the 4 CRITICAL findings that must be fixed before any produ
 | 1 | Config file created with world-readable permissions | `src/lib/config.ts` | Credential exposure |
 | 2 | Shell injection via unescaped remote paths | Multiple files | Remote code execution |
 | 3 | Missing integrity verification for Mutagen downloads | `src/lib/download.ts` | Malicious binary execution |
-| 4 | DevBox home directory world-accessible | `src/commands/init.ts` | Data tampering |
+| 4 | SkyBox home directory world-accessible | `src/commands/init.ts` | Data tampering |
 
 ---
 
@@ -90,7 +90,7 @@ Expected: FAIL (mode will be 0o755 or 0o644 instead of 0o700/0o600)
 Edit `src/lib/config.ts` - replace the `saveConfig` function:
 
 ```typescript
-export function saveConfig(config: DevboxConfigV2): void {
+export function saveConfig(config: SkyboxConfigV2): void {
 	const configPath = getConfigPath();
 	const dir = dirname(configPath);
 
@@ -525,7 +525,7 @@ EOF
 
 ---
 
-## Task 4: Fix DevBox Home Directory Permissions
+## Task 4: Fix SkyBox Home Directory Permissions
 
 **Files:**
 - Modify: `src/commands/init.ts:458-459`
@@ -588,7 +588,7 @@ Edit `src/commands/init.ts` lines 457-459:
 **Before:**
 ```typescript
 // Create directories
-header("Setting up devbox...");
+header("Setting up skybox...");
 try {
 	mkdirSync(getProjectsDir(), { recursive: true });
 	mkdirSync(getBinDir(), { recursive: true });
@@ -597,7 +597,7 @@ try {
 **After:**
 ```typescript
 // Create directories with secure permissions
-header("Setting up devbox...");
+header("Setting up skybox...");
 try {
 	mkdirSync(getProjectsDir(), { recursive: true, mode: 0o700 });
 	mkdirSync(getBinDir(), { recursive: true, mode: 0o700 });
@@ -613,9 +613,9 @@ Expected: All tests pass
 ```bash
 git add src/commands/init.ts src/commands/__tests__/init-permissions.test.ts
 git commit -m "$(cat <<'EOF'
-fix(security): create devbox directories with 0o700 permissions
+fix(security): create skybox directories with 0o700 permissions
 
-Projects and bin directories under ~/.devbox are now created with
+Projects and bin directories under ~/.skybox are now created with
 owner-only access (0o700) instead of default world-readable permissions.
 
 Fixes CRITICAL finding #4 from security audit.
@@ -667,6 +667,6 @@ This plan addresses all 4 CRITICAL security findings:
 1. **Config file permissions** - Now 0o600 for file, 0o700 for directory
 2. **Shell injection** - All remote paths now use `escapeShellArg()`
 3. **Binary integrity** - Mutagen downloads verified against SHA256 checksums
-4. **Directory permissions** - DevBox home directories now 0o700
+4. **Directory permissions** - SkyBox home directories now 0o700
 
 After completing this batch, proceed to the SHORT-TERM findings (5, 6, 9, 10) in batch 2.

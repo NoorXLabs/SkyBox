@@ -2,19 +2,19 @@
 layout: home
 
 hero:
-  name: DevBox
+  name: SkyBox
   text: Local-first dev containers
   tagline: Develop locally. Sync remotely. Stay consistent.
   image:
-    src: /devbox-logo-grey.svg
-    alt: DevBox
+    src: /skybox-logo-grey.svg
+    alt: SkyBox
   actions:
     - theme: brand
       text: Get Started
       link: /guide/
     - theme: alt
       text: GitHub
-      link: https://github.com/NoorXLabs/DevBox
+      link: https://github.com/NoorXLabs/SkyBox
 
 features:
   - icon: 💻

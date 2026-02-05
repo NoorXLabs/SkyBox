@@ -1,16 +1,16 @@
 # Codebase Guide
 
-This guide helps contributors understand the DevBox codebase structure, key files, and how to add new features.
+This guide helps contributors understand the SkyBox codebase structure, key files, and how to add new features.
 
 ## Directory Structure
 
 ```
-devbox/
+skybox/
 ├── package.json           # Dependencies and scripts
 ├── tsconfig.json          # TypeScript configuration
 ├── biome.json             # Linting/formatting config
 ├── bin/
-│   └── devbox             # Shebang wrapper (#!/usr/bin/env bun)
+│   └── skybox             # Shebang wrapper (#!/usr/bin/env bun)
 ├── src/
 │   ├── index.ts           # CLI entry point, commander setup
 │   ├── commands/          # One file per CLI command
@@ -72,7 +72,7 @@ The CLI entry point uses Commander.js to register all commands:
 import { program } from "commander";
 
 program
-  .name("devbox")
+  .name("skybox")
   .description("Local-first dev containers with remote sync")
   .version(pkg.version);
 
@@ -88,17 +88,17 @@ program.parse();
 
 ### Configuration: `src/lib/config.ts`
 
-Handles reading and writing `~/.devbox/config.yaml`:
+Handles reading and writing `~/.skybox/config.yaml`:
 
 ```typescript
 // Check if config exists
 export function configExists(): boolean
 
 // Load config (returns null if missing)
-export function loadConfig(): DevboxConfig | null
+export function loadConfig(): SkyboxConfig | null
 
 // Save config (creates directory if needed)
-export function saveConfig(config: DevboxConfig): void
+export function saveConfig(config: SkyboxConfig): void
 ```
 
 ### Path Constants: `src/lib/paths.ts`
@@ -106,10 +106,10 @@ export function saveConfig(config: DevboxConfig): void
 Centralized path definitions:
 
 ```typescript
-export const DEVBOX_HOME = process.env.DEVBOX_HOME || "~/.devbox"
-export const CONFIG_PATH = join(DEVBOX_HOME, "config.yaml")
-export const PROJECTS_DIR = join(DEVBOX_HOME, "projects")
-export const BIN_DIR = join(DEVBOX_HOME, "bin")
+export const SKYBOX_HOME = process.env.SKYBOX_HOME || "~/.skybox"
+export const CONFIG_PATH = join(SKYBOX_HOME, "config.yaml")
+export const PROJECTS_DIR = join(SKYBOX_HOME, "projects")
+export const BIN_DIR = join(SKYBOX_HOME, "bin")
 export const MUTAGEN_PATH = join(BIN_DIR, "mutagen")
 ```
 
@@ -119,7 +119,7 @@ All TypeScript interfaces in one place:
 
 ```typescript
 // Configuration types
-interface DevboxConfigV2 { ... }  // Multi-remote config format
+interface SkyboxConfigV2 { ... }  // Multi-remote config format
 interface RemoteEntry { ... }     // Remote server definition
 interface ProjectConfigV2 { ... } // Project with remote reference
 
@@ -155,7 +155,7 @@ import { error, success, spinner } from "../lib/ui.ts";
 export async function myCommand(arg: string, options: MyOptions): Promise<void> {
   // 1. Check config exists
   if (!configExists()) {
-    error("devbox not configured. Run 'devbox init' first.");
+    error("skybox not configured. Run 'skybox init' first.");
     process.exit(1);
   }
 
@@ -432,7 +432,7 @@ Most commands follow this pattern:
 export async function myCommand(): Promise<void> {
   // 1. Check config
   if (!configExists()) {
-    error("Run 'devbox init' first.");
+    error("Run 'skybox init' first.");
     process.exit(1);
   }
 

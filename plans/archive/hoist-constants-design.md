@@ -30,7 +30,7 @@ Large structured data (TEMPLATES, BUILT_IN_TEMPLATES, SUPPORTED_EDITORS, etc.) g
 
 ### Paths & Directories (existing + 9 new)
 - `CONFIG_FILENAME`, `LOCKS_DIR_NAME` — already in constants.ts
-- `DEVBOX_HOME_DIR` = `".devbox"` — extract from `paths.ts`
+- `SKYBOX_HOME_DIR` = `".skybox"` — extract from `paths.ts`
 - `PROJECTS_DIR_NAME` = `"Projects"` — extract from `paths.ts`
 - `BIN_DIR_NAME` = `"bin"` — extract from `paths.ts`
 - `LOGS_DIR_NAME` = `"logs"` — extract from `paths.ts`

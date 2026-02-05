@@ -14,7 +14,7 @@ import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import { selectTemplate, writeDevcontainerConfig } from "@lib/templates.ts";
 import { dryRun, error, info, isDryRun, spinner, success } from "@lib/ui.ts";
-import type { DevboxConfigV2 } from "@typedefs/index.ts";
+import type { SkyboxConfigV2 } from "@typedefs/index.ts";
 import { execa } from "execa";
 
 function getDevcontainerPath(projectPath: string): string {
@@ -33,7 +33,7 @@ export async function devcontainerEditCommand(project: string): Promise<void> {
 	if (!existsSync(configPath)) {
 		error(`No devcontainer.json found for "${project}".`);
 		info(
-			'Use "devbox config devcontainer reset" to create one from a template.',
+			'Use "skybox config devcontainer reset" to create one from a template.',
 		);
 		return;
 	}
@@ -85,7 +85,7 @@ export async function devcontainerResetCommand(project: string): Promise<void> {
 
 	if (selection.source === "git") {
 		error("Git URL templates are not supported for devcontainer reset.");
-		info("Use 'devbox new' to create a project from a git template.");
+		info("Use 'skybox new' to create a project from a git template.");
 		return;
 	}
 
@@ -106,7 +106,7 @@ export async function devcontainerResetCommand(project: string): Promise<void> {
 async function pushDevcontainerToRemote(
 	project: string,
 	projectPath: string,
-	config: DevboxConfigV2 | null,
+	config: SkyboxConfigV2 | null,
 ): Promise<void> {
 	if (!config) {
 		info("No config found. Skipped pushing to remote.");

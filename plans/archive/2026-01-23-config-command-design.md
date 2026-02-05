@@ -5,7 +5,7 @@
 
 ## Overview
 
-Add `devbox config` and `devbox remote` commands to support multiple remote servers with per-project associations.
+Add `skybox config` and `skybox remote` commands to support multiple remote servers with per-project associations.
 
 ## Goals
 
@@ -19,28 +19,28 @@ Add `devbox config` and `devbox remote` commands to support multiple remote serv
 ### Remote Management
 
 ```
-devbox remote add                              # Interactive wizard
-devbox remote add <name> <user>@<host>:<path>  # Direct mode
-devbox remote add <name> ... --key=<path>      # With specific SSH key
-devbox remote list
-devbox remote remove <name>
-devbox remote rename <old> <new>
+skybox remote add                              # Interactive wizard
+skybox remote add <name> <user>@<host>:<path>  # Direct mode
+skybox remote add <name> ... --key=<path>      # With specific SSH key
+skybox remote list
+skybox remote remove <name>
+skybox remote rename <old> <new>
 ```
 
 ### Config Commands
 
 ```
-devbox config                    # Show all settings including remotes
-devbox config --validate         # Test SSH connection to all remotes
-devbox config set <key> <value>  # Change global settings (not remotes)
+skybox config                    # Show all settings including remotes
+skybox config --validate         # Test SSH connection to all remotes
+skybox config set <key> <value>  # Change global settings (not remotes)
 ```
 
 ## Interactive Flow
 
-When running `devbox remote add` without arguments:
+When running `skybox remote add` without arguments:
 
 ```
-$ devbox remote add
+$ skybox remote add
 
 ? Remote name: work-nas
 ? SSH host: 192.168.1.50
@@ -68,7 +68,7 @@ Key selection behavior:
 
 ## Data Model
 
-### Config File (`~/.devbox/config.yaml`)
+### Config File (`~/.skybox/config.yaml`)
 
 ```yaml
 # Global settings
@@ -91,7 +91,7 @@ remotes:
     key: ~/.ssh/id_ed25519
 ```
 
-### Project Metadata (`.devbox/project.yaml`)
+### Project Metadata (`.skybox/project.yaml`)
 
 ```yaml
 name: my-app
@@ -105,10 +105,10 @@ createdAt: 2024-01-15
 ### First-time Setup
 
 ```
-$ devbox init
+$ skybox init
 # Interactive wizard: deps check, Mutagen install, add first remote, editor choice
 
-$ devbox clone my-project
+$ skybox clone my-project
 ? Select remote:
   > work-nas
 Cloning from work-nas... ✓
@@ -117,10 +117,10 @@ Cloning from work-nas... ✓
 ### Adding Additional Remotes
 
 ```
-$ devbox remote add home noor@home.local:/data/Projects
+$ skybox remote add home noor@home.local:/data/Projects
 Remote 'home' added successfully.
 
-$ devbox push new-project
+$ skybox push new-project
 ? Select remote:
   > work-nas
     home
@@ -130,10 +130,10 @@ $ devbox push new-project
 
 ```
 $ cd my-project
-$ devbox up
+$ skybox up
 # No prompt - already knows it's on 'work-nas'
 
-$ devbox status
+$ skybox status
 Project: my-project
 Remote:  work-nas (noor@192.168.1.50)
 Status:  running
@@ -143,7 +143,7 @@ Sync:    ✓ up to date
 ### Checking Setup
 
 ```
-$ devbox config
+$ skybox config
 Remotes:
   work-nas  noor@192.168.1.50:/srv/Projects/noor
   home      noor@home.local:/data/Projects
@@ -151,7 +151,7 @@ Remotes:
 Settings:
   editor: cursor
 
-$ devbox config --validate
+$ skybox config --validate
 Testing remotes...
   ✓ work-nas - connected (3 projects)
   ✓ home - connected (1 project)
@@ -159,15 +159,15 @@ Testing remotes...
 
 ## Command Separation
 
-- `devbox init` - First-time setup (deps, Mutagen, first remote, editor)
-- `devbox remote add` - Add additional remotes later
+- `skybox init` - First-time setup (deps, Mutagen, first remote, editor)
+- `skybox remote add` - Add additional remotes later
 
 ## Push Without devcontainer.json
 
 When pushing a project that lacks a devcontainer.json:
 
 ```
-$ devbox push my-existing-app
+$ skybox push my-existing-app
 ? Select remote:
   > work-nas
 
@@ -185,7 +185,7 @@ No devcontainer.json found.
 ### Missing Remote Reference
 
 ```
-$ devbox up
+$ skybox up
 
 Error: Remote 'old-server' not found.
 This project was configured to use 'old-server', but that remote no longer exists.
@@ -193,23 +193,23 @@ This project was configured to use 'old-server', but that remote no longer exist
 Available remotes:
   work-nas  noor@192.168.1.50:/srv/Projects/noor
 
-Fix with: devbox remote add old-server <user>@<host>:<path>
-Or update this project: devbox config set-remote <remote-name>
+Fix with: skybox remote add old-server <user>@<host>:<path>
+Or update this project: skybox config set-remote <remote-name>
 ```
 
 ### No Remotes Configured
 
 ```
-$ devbox clone my-app
+$ skybox clone my-app
 
 Error: No remotes configured.
-Run 'devbox init' to set up your first remote, or 'devbox remote add' to add one.
+Run 'skybox init' to set up your first remote, or 'skybox remote add' to add one.
 ```
 
 ### SSH Connection Failure
 
 ```
-$ devbox remote add bad-server noor@192.168.1.999:/path
+$ skybox remote add bad-server noor@192.168.1.999:/path
 
 Testing connection... ✗ Failed
 
@@ -255,7 +255,7 @@ Message shown: "Migrated config to support multiple remotes. Your existing setup
 ## Multi-User Support
 
 Multiple people sharing a remote server:
-- Each person has their own `~/.devbox/` config (isolated by OS user)
+- Each person has their own `~/.skybox/` config (isolated by OS user)
 - Each defines the same server with their own credentials/paths
 - Example: Person A uses `noor@server:/srv/Projects/noor`, Person B uses `alex@server:/srv/Projects/alex`
 - Both work simultaneously without conflict
