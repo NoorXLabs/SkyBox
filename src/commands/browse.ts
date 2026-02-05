@@ -88,7 +88,7 @@ export async function browseCommand(): Promise<void> {
 	const spin = spinner(`Fetching projects from ${remoteName}...`);
 
 	try {
-		const projects = await getRemoteProjects(host, remote.path);
+		const projects = await getRemoteProjects(host, remote.path, remote.key);
 		spin.stop();
 
 		if (projects.length === 0) {

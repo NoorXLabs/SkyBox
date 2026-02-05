@@ -163,7 +163,7 @@ devbox rm --remote
 # ? 'old-api' also exists locally. Remove local copy too? (y/N) n
 #   Deleted 'prototype' from remote
 #
-#   Done. 2 project(s) processed from work.
+#   Done. 2 of 2 project(s) deleted from work.
 ```
 
 ### Workflow Example

@@ -38,6 +38,7 @@ import {
 	ContainerStatus,
 	type DevboxConfigV2,
 	type RemoteEntry,
+	type RemoteProject,
 	type RmOptions,
 } from "@typedefs/index.ts";
 import inquirer from "inquirer";
@@ -77,7 +78,6 @@ async function cleanupLocalProject(
 			if (!stopResult.success) {
 				stopSpin.fail("Failed to stop container");
 				const msg = stopResult.error || "Unknown error";
-				error(msg);
 				if (!force) {
 					throw new Error(`Failed to stop container: ${msg}`);
 				}
@@ -96,7 +96,6 @@ async function cleanupLocalProject(
 		} else {
 			removeSpin.warn("Failed to remove container");
 			const msg = removeResult.error || "Unknown error";
-			error(msg);
 			if (!force) {
 				throw new Error(`Failed to remove container: ${msg}`);
 			}
@@ -124,7 +123,6 @@ async function cleanupLocalProject(
 	} catch (err: unknown) {
 		rmSpin.fail("Failed to remove local files");
 		const msg = getErrorMessage(err);
-		error(msg);
 		throw new Error(`Failed to remove local files: ${msg}`);
 	}
 }
@@ -177,7 +175,7 @@ async function rmRemoteInteractive(
 
 	// Fetch remote project list
 	const fetchSpin = spinner(`Fetching projects from ${remoteName}...`);
-	let projects: { name: string; branch: string }[];
+	let projects: RemoteProject[];
 	try {
 		projects = await getRemoteProjects(host, remote.path, remote.key);
 		fetchSpin.stop();
@@ -259,7 +257,7 @@ async function rmRemoteInteractive(
 				if (removeLocal) {
 					header(`Removing '${projectName}' locally...`);
 					try {
-						await cleanupLocalProject(projectName, !!options.force);
+						await cleanupLocalProject(projectName, false);
 					} catch (err: unknown) {
 						error(
 							`Failed to clean up local project '${projectName}': ${getErrorMessage(err)}`,
