@@ -179,7 +179,7 @@ async function rmRemoteInteractive(
 	const fetchSpin = spinner(`Fetching projects from ${remoteName}...`);
 	let projects: { name: string; branch: string }[];
 	try {
-		projects = await getRemoteProjects(host, remote.path);
+		projects = await getRemoteProjects(host, remote.path, remote.key);
 		fetchSpin.stop();
 	} catch (err: unknown) {
 		fetchSpin.fail("Failed to connect to remote");
@@ -227,6 +227,7 @@ async function rmRemoteInteractive(
 	}
 
 	// Delete each selected project from remote
+	let deletedCount = 0;
 	for (const projectName of selected) {
 		const deleted = await deleteProjectFromRemote(projectName, host, remote);
 
@@ -234,6 +235,8 @@ async function rmRemoteInteractive(
 			// Log error but continue with remaining projects
 			continue;
 		}
+
+		deletedCount++;
 
 		// Remove project from config
 		if (config.projects?.[projectName]) {
@@ -268,7 +271,9 @@ async function rmRemoteInteractive(
 		}
 	}
 
-	success(`Done. ${selected.length} project(s) processed from ${remoteName}.`);
+	success(
+		`Done. ${deletedCount} of ${selected.length} project(s) deleted from ${remoteName}.`,
+	);
 }
 
 export async function rmCommand(

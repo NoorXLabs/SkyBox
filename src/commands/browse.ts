@@ -11,6 +11,7 @@ import chalk from "chalk";
 export async function getRemoteProjects(
 	host: string,
 	basePath: string,
+	key?: string,
 ): Promise<RemoteProject[]> {
 	const script = `for d in "${basePath}"/*/; do
     [ -d "$d" ] || continue
@@ -19,7 +20,7 @@ export async function getRemoteProjects(
     echo "$name|$branch"
   done`;
 
-	const result = await runRemoteCommand(host, script);
+	const result = await runRemoteCommand(host, script, key);
 
 	if (!result.success || !result.stdout?.trim()) {
 		return [];
