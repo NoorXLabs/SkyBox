@@ -38,8 +38,8 @@ projects: {}
 	});
 
 	test("should detect project from cwd when in project directory", async () => {
-		// Create a project directory
-		const projectsDir = join(ctx.testDir, "projects");
+		// Create a project directory (capital "Projects" matches PROJECTS_DIR_NAME)
+		const projectsDir = join(ctx.testDir, "Projects");
 		mkdirSync(projectsDir, { recursive: true });
 		const projectPath = join(projectsDir, "myproject");
 		mkdirSync(projectPath, { recursive: true });

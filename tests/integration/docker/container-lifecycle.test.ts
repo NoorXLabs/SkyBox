@@ -15,6 +15,7 @@ import {
 	createDockerTestContext,
 	createMinimalDevcontainer,
 	type DockerTestContext,
+	getContainerIdByProjectPath,
 	getContainerStatus,
 	isDevcontainerCliAvailable,
 	isDockerAvailable,
@@ -56,9 +57,6 @@ describe.skipIf(!dockerAvailable || !devcontainerAvailable)(
 			expect(runningStatus).toBe("running");
 
 			// Stop the container (find container ID first)
-			const { getContainerIdByProjectPath } = await import(
-				"@tests/integration/helpers/docker-test-utils.ts"
-			);
 			const containerId = await getContainerIdByProjectPath(
 				ctx.normalizedProjectDir,
 			);

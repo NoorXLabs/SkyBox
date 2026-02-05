@@ -1,9 +1,9 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { hostname } from "node:os";
-import { escapeShellArg } from "@lib/shell.ts";
 import {
 	createE2ETestContext,
 	type E2ETestContext,
+	escapeShellPath,
 	runTestRemoteCommand,
 } from "@tests/e2e/helpers/e2e-test-utils.ts";
 import { isE2EConfigured } from "@tests/e2e/helpers/test-config.ts";
@@ -34,29 +34,33 @@ describe.skipIf(!e2eConfigured)("lock system", () => {
 
 		// Create lock using base64 encoding to avoid shell injection issues
 		const encodedContent = Buffer.from(lockContent).toString("base64");
-		await runTestRemoteCommand(
+		const createResult = await runTestRemoteCommand(
 			ctx.testRemote,
-			`mkdir -p ~/.devbox-locks && echo "${encodedContent}" | base64 -d > ${escapeShellArg(lockPath)}`,
+			`mkdir -p ~/.devbox-locks && echo "${encodedContent}" | base64 -d > ${escapeShellPath(lockPath)}`,
 		);
+		expect(createResult.success).toBe(true);
 
 		// Verify lock exists
-		const { stdout: lockExists } = await runTestRemoteCommand(
+		const verifyResult = await runTestRemoteCommand(
 			ctx.testRemote,
-			`test -f ${escapeShellArg(lockPath)} && echo "exists" || echo "missing"`,
+			`test -f ${escapeShellPath(lockPath)} && echo "exists" || echo "missing"`,
 		);
-		expect(lockExists?.trim()).toBe("exists");
+		expect(verifyResult.success).toBe(true);
+		expect(verifyResult.stdout?.trim()).toBe("exists");
 
 		// Remove lock
-		await runTestRemoteCommand(
+		const removeResult = await runTestRemoteCommand(
 			ctx.testRemote,
-			`rm -f ${escapeShellArg(lockPath)}`,
+			`rm -f ${escapeShellPath(lockPath)}`,
 		);
+		expect(removeResult.success).toBe(true);
 
 		// Verify lock removed
-		const { stdout: lockRemoved } = await runTestRemoteCommand(
+		const verifyRemovedResult = await runTestRemoteCommand(
 			ctx.testRemote,
-			`test -f ${escapeShellArg(lockPath)} && echo "exists" || echo "missing"`,
+			`test -f ${escapeShellPath(lockPath)} && echo "exists" || echo "missing"`,
 		);
-		expect(lockRemoved?.trim()).toBe("missing");
+		expect(verifyRemovedResult.success).toBe(true);
+		expect(verifyRemovedResult.stdout?.trim()).toBe("missing");
 	}, 30000);
 });

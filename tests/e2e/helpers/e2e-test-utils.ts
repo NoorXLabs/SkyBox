@@ -11,6 +11,23 @@ import { runRemoteCommand } from "@lib/ssh.ts";
 import { getTestRemoteConfig } from "@tests/e2e/helpers/test-config.ts";
 import type { RemoteEntry } from "@typedefs/index.ts";
 
+/**
+ * Escapes a shell argument, handling tilde-prefixed paths correctly.
+ * Standard escapeShellArg wraps in single quotes, which prevents bash
+ * tilde expansion. This helper splits off the leading ~/ and uses $HOME
+ * expansion instead, keeping the rest properly escaped.
+ *
+ * @param arg - The argument to escape
+ * @returns Shell-safe string with tilde resolved to "$HOME"
+ */
+export function escapeShellPath(arg: string): string {
+	if (arg.startsWith("~/")) {
+		// Use "$HOME" (double-quoted to handle spaces) + escaped remainder
+		return `"$HOME"/${escapeShellArg(arg.slice(2))}`;
+	}
+	return escapeShellArg(arg);
+}
+
 /** Options for the retry wrapper */
 export interface RetryOptions {
 	/** Maximum number of attempts (default: 3) */
@@ -106,7 +123,7 @@ export function createE2ETestContext(name: string): E2ETestContext {
 
 			const result = await runRemoteCommand(
 				host,
-				`mkdir -p ${escapeShellArg(remotePath)}`,
+				`mkdir -p ${escapeShellPath(remotePath)}`,
 				testRemote.key,
 			);
 
@@ -116,14 +133,24 @@ export function createE2ETestContext(name: string): E2ETestContext {
 		},
 
 		async cleanup(): Promise<void> {
-			// Clean up remote test directory
-			await cleanupRemoteTestDir(runId, testRemote);
+			// Each step is independent — a failure in one should not skip the rest
+			try {
+				await cleanupRemoteTestDir(runId, testRemote);
+			} catch {
+				// SSH failure during remote dir cleanup — continue with remaining steps
+			}
 
-			// Clean up stale test locks
-			await cleanupStaleLocks(testRemote);
+			try {
+				await cleanupStaleLocks(testRemote);
+			} catch {
+				// SSH failure during lock cleanup — continue
+			}
 
-			// Clean up local test directory
-			rmSync(testDir, { recursive: true, force: true });
+			try {
+				rmSync(testDir, { recursive: true, force: true });
+			} catch {
+				// Local cleanup failure — continue
+			}
 
 			// Restore original DEVBOX_HOME
 			if (originalDevboxHome) {
@@ -184,7 +211,7 @@ export async function cleanupRemoteTestDir(
 
 	await runRemoteCommand(
 		host,
-		`rm -rf ${escapeShellArg(remotePath)}`,
+		`rm -rf ${escapeShellPath(remotePath)}`,
 		remote.key,
 	);
 }

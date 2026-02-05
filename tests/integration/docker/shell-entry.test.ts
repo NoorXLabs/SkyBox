@@ -1,10 +1,18 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import {
+	afterAll,
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	test,
+} from "bun:test";
 import {
 	createTestConfig,
 	createTestRemote,
 	writeTestConfig,
 } from "@tests/helpers/test-utils.ts";
 import {
+	cleanupTestContainers,
 	createDockerTestContext,
 	createMinimalDevcontainer,
 	type DockerTestContext,
@@ -21,6 +29,11 @@ describe.skipIf(!dockerAvailable || !devcontainerAvailable)(
 	"shell entry",
 	() => {
 		let ctx: DockerTestContext;
+
+		// Global cleanup after all shell entry tests
+		afterAll(async () => {
+			await cleanupTestContainers();
+		});
 
 		beforeEach(async () => {
 			ctx = createDockerTestContext("shell");

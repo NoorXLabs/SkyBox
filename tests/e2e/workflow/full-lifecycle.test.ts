@@ -50,19 +50,21 @@ describe.skipIf(!e2eConfigured)("full lifecycle workflow", () => {
 		);
 
 		// Step 3: Verify files on remote
-		const { stdout: remoteFiles } = await runTestRemoteCommand(
+		const listResult = await runTestRemoteCommand(
 			ctx.testRemote,
 			`ls -1 ${escapeShellArg(`${ctx.remotePath}/${ctx.projectName}`)}`,
 		);
-		const files = remoteFiles?.trim().split("\n") ?? [];
+		expect(listResult.success).toBe(true);
+		const files = listResult.stdout?.trim().split("\n") ?? [];
 		expect(files).toContain("README.md");
 		expect(files).toContain("index.ts");
 
 		// Step 4: Verify content matches
-		const { stdout: content } = await runTestRemoteCommand(
+		const contentResult = await runTestRemoteCommand(
 			ctx.testRemote,
 			`cat ${escapeShellArg(`${ctx.remotePath}/${ctx.projectName}/index.ts`)}`,
 		);
-		expect(content?.trim()).toBe("console.log('hello');");
+		expect(contentResult.success).toBe(true);
+		expect(contentResult.stdout?.trim()).toBe("console.log('hello');");
 	}, 60000);
 });

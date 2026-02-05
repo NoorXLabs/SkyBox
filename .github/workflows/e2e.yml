@@ -12,7 +12,9 @@ on:
 jobs:
   e2e:
     runs-on: self-hosted
-    # Prevent untrusted code from running on self-hosted runner
+    # Prevent untrusted code from running on self-hosted runner.
+    # Preemptive guard: workflow doesn't currently trigger on PRs, but this
+    # protects the self-hosted runner if PR triggers are added later.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     env:
       E2E_HOST: ${{ secrets.E2E_HOST }}

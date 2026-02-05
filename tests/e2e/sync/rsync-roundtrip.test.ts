@@ -42,17 +42,19 @@ describe.skipIf(!e2eConfigured)("file synchronization", () => {
 		);
 
 		// Verify on remote
-		const { stdout } = await runTestRemoteCommand(
+		const verifyResult = await runTestRemoteCommand(
 			ctx.testRemote,
 			`cat ${escapeShellArg(`${ctx.remotePath}/sync-test/sync-marker.txt`)}`,
 		);
-		expect(stdout?.trim()).toBe("synced-content");
+		expect(verifyResult.success).toBe(true);
+		expect(verifyResult.stdout?.trim()).toBe("synced-content");
 
 		// Modify on remote
-		await runTestRemoteCommand(
+		const modifyResult = await runTestRemoteCommand(
 			ctx.testRemote,
 			`echo "modified-on-remote" > ${escapeShellArg(`${ctx.remotePath}/sync-test/sync-marker.txt`)}`,
 		);
+		expect(modifyResult.success).toBe(true);
 
 		// Sync back
 		const pullDir = join(ctx.testDir, "sync-pulled");

@@ -4,7 +4,7 @@
 
 DevBox is a CLI tool for managing local-first development containers with remote synchronization. It solves disk bloat, latency, and multi-machine workflow complexity by running containers locally while syncing code bidirectionally with a remote server using Mutagen.
 
-**Version:** 0.6.0-beta
+**Version:** 0.7.7
 **Runtime:** Bun (TypeScript)
 **License:** Apache 2.0
 
@@ -63,7 +63,10 @@ bun run src/index.ts <command>
 |--------|---------|
 | `bun run dev` | Run CLI in development mode |
 | `bun run build` | Compile to standalone binary |
-| `bun run test` | Run all tests |
+| `bun run test` | Run unit tests |
+| `bun run test:integration` | Docker integration tests |
+| `bun run test:e2e` | Remote server E2E tests |
+| `bun run test:all` | Run all test tiers |
 | `bun run typecheck` | TypeScript type checking |
 | `bun run check` | Biome lint + format (with fixes) |
 | `bun run check:ci` | Biome check (no writes, for CI) |

@@ -124,8 +124,8 @@ describe("bash and zsh hooks shared behavior", () => {
 		const zshHook = generateZshHook();
 
 		// Both should have the same function body structure
-		// biome-ignore lint/suspicious/noTemplateCurlyInString: Testing shell variable syntax
 		const coreLogic = [
+			// biome-ignore lint/suspicious/noTemplateCurlyInString: Testing shell variable syntax
 			'local prev_dir="${_DEVBOX_PREV_DIR:-}"',
 			'local cur_dir="$PWD"',
 			'if [[ "$prev_dir" != "$cur_dir" ]]',

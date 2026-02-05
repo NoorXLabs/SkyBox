@@ -27,7 +27,7 @@
     "test": "bun test --preload ./tests/helpers/test-utils.ts tests/unit",
     "test:integration": "bun test tests/integration",
     "test:e2e": "bun test tests/e2e",
-    "test:all": "bun test tests",
+    "test:all": "bun test --preload ./tests/helpers/test-utils.ts tests",
     "typecheck": "tsc --noEmit",
     "format": "biome format --write ./src ./tests",
     "lint": "biome lint --write ./src ./tests",

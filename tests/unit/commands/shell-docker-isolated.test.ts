@@ -12,9 +12,9 @@ import { join } from "node:path";
 import {
 	DEVCONTAINER_CONFIG_NAME,
 	DEVCONTAINER_DIR_NAME,
+	SESSION_FILE,
 	SESSION_TTL_MS,
 } from "@lib/constants.ts";
-import type { SessionConflictResult, SessionInfo } from "@lib/session.ts";
 import {
 	createTestContext,
 	type TestContext,
@@ -23,24 +23,6 @@ import {
 // Mock execa first - this will persist globally for this file
 const mockExeca = mock(() => Promise.resolve({ exitCode: 0 }));
 mock.module("execa", () => ({ execa: mockExeca }));
-
-// Import original session module BEFORE mocking to preserve real implementations
-import * as originalSession from "@lib/session.ts";
-
-// Mock the session module - spread original exports, only override checkSessionConflict and readSession
-const mockCheckSessionConflict = mock(
-	(_projectPath: string): SessionConflictResult => ({ hasConflict: false }),
-);
-
-const mockReadSession = mock(
-	(_projectPath: string): SessionInfo | null => null,
-);
-
-mock.module("@lib/session.ts", () => ({
-	...originalSession,
-	checkSessionConflict: mockCheckSessionConflict,
-	readSession: mockReadSession,
-}));
 
 // Mock inquirer
 const mockPrompt = mock(
@@ -136,6 +118,20 @@ projects: {}
 			JSON.stringify({ workspaceFolder: "/workspaces/myapp" }),
 		);
 
+		// Create a real session file so shell command doesn't warn about missing session
+		const sessionDir = join(ctx.testDir, "Projects", "myapp", ".devbox");
+		mkdirSync(sessionDir, { recursive: true });
+		writeFileSync(
+			join(ctx.testDir, "Projects", "myapp", SESSION_FILE),
+			JSON.stringify({
+				machine: hostname(),
+				user: userInfo().username,
+				timestamp: new Date().toISOString(),
+				pid: process.pid,
+				expires: new Date(Date.now() + SESSION_TTL_MS).toISOString(),
+			}),
+		);
+
 		exitCode = undefined;
 		originalExit = process.exit;
 		process.exit = ((code?: number) => {
@@ -145,8 +141,6 @@ projects: {}
 
 		// Reset all mocks
 		mockExeca.mockReset();
-		mockCheckSessionConflict.mockReset();
-		mockReadSession.mockReset();
 		mockPrompt.mockReset();
 		mockGetContainerStatus.mockReset();
 		mockGetContainerId.mockReset();
@@ -155,14 +149,6 @@ projects: {}
 
 		// Set default mock returns
 		mockExeca.mockResolvedValue({ exitCode: 0 });
-		mockCheckSessionConflict.mockReturnValue({ hasConflict: false });
-		mockReadSession.mockReturnValue({
-			machine: hostname(),
-			user: userInfo().username,
-			timestamp: new Date().toISOString(),
-			pid: process.pid,
-			expires: new Date(Date.now() + SESSION_TTL_MS).toISOString(),
-		});
 		mockPrompt.mockResolvedValue({ startContainer: true });
 		mockGetContainerStatus.mockResolvedValue("running");
 		mockGetContainerId.mockResolvedValue("container-abc123");
@@ -179,17 +165,7 @@ projects: {}
 
 	describe("successful execution", () => {
 		test("proceeds when session is from current machine", async () => {
-			const sessionInfo: SessionInfo = {
-				machine: hostname(),
-				user: userInfo().username,
-				timestamp: new Date().toISOString(),
-				pid: process.pid,
-				expires: new Date(Date.now() + SESSION_TTL_MS).toISOString(),
-			};
-
-			mockCheckSessionConflict.mockReturnValueOnce({ hasConflict: false });
-			mockReadSession.mockReturnValueOnce(sessionInfo);
-
+			// beforeEach already creates a session file from the current machine
 			const { shellCommand } = await import("@commands/shell.ts");
 			await shellCommand("myapp", {});
 
@@ -198,8 +174,9 @@ projects: {}
 		});
 
 		test("proceeds when no session exists", async () => {
-			mockCheckSessionConflict.mockReturnValueOnce({ hasConflict: false });
-			mockReadSession.mockReturnValueOnce(null);
+			// Remove the session file created by beforeEach
+			const { unlinkSync } = await import("node:fs");
+			unlinkSync(join(ctx.testDir, "Projects", "myapp", SESSION_FILE));
 
 			const { shellCommand } = await import("@commands/shell.ts");
 			await shellCommand("myapp", {});
