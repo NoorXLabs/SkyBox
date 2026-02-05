@@ -38,7 +38,7 @@ import inquirer from "inquirer";
  * Clone a single project from remote. This is the core clone logic
  * used by both direct invocation and interactive multi-clone.
  */
-async function cloneSingleProject(
+export async function cloneSingleProject(
 	project: string,
 	remoteName: string,
 	config: ReturnType<typeof loadConfig>,

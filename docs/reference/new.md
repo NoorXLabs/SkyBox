@@ -114,8 +114,16 @@ After creating a project, you're prompted to clone it locally:
 ? Clone this project locally now? (Y/n)
 ```
 
-- **Yes** - Runs `devbox clone <project>` to sync locally
+- **Yes** - Syncs the project locally, then offers to start the dev container
 - **No** - Project exists only on remote; clone later with `devbox clone`
+
+If you choose to clone, DevBox also prompts:
+
+```
+? Start dev container now? (Y/n)
+```
+
+This lets you go from `devbox new` to a running container in a single flow.
 
 ## Exit Codes
 

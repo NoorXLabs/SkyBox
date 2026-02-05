@@ -1,6 +1,8 @@
 // src/commands/new.ts
 
+import { cloneSingleProject } from "@commands/clone.ts";
 import { getRemoteHost, selectRemote } from "@commands/remote.ts";
+import { upCommand } from "@commands/up.ts";
 import { select } from "@inquirer/prompts";
 import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
 import {
@@ -9,13 +11,31 @@ import {
 	MAX_NAME_ATTEMPTS,
 	WORKSPACE_PATH_PREFIX,
 } from "@lib/constants.ts";
+import { hasLocalDevcontainerConfig } from "@lib/container.ts";
+import { getErrorMessage } from "@lib/errors.ts";
+import { getProjectPath } from "@lib/project.ts";
 import { validateProjectName } from "@lib/projectTemplates.ts";
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
-import { selectTemplate } from "@lib/templates.ts";
+import { selectTemplate, writeDevcontainerConfig } from "@lib/templates.ts";
 import { error, header, info, spinner, success, warn } from "@lib/ui.ts";
-import type { DevcontainerConfig, RemoteEntry } from "@typedefs/index.ts";
+import type {
+	DevboxConfigV2,
+	DevcontainerConfig,
+	RemoteEntry,
+} from "@typedefs/index.ts";
 import inquirer from "inquirer";
+
+function withWorkspaceSettings(
+	config: DevcontainerConfig,
+	projectName: string,
+): DevcontainerConfig {
+	return {
+		...config,
+		workspaceFolder: `${WORKSPACE_PATH_PREFIX}/${projectName}`,
+		workspaceMount: `source=\${localWorkspaceFolder},target=${WORKSPACE_PATH_PREFIX}/${projectName},type=bind,consistency=cached`,
+	};
+}
 
 export async function newCommand(): Promise<void> {
 	// Check config exists
@@ -141,7 +161,11 @@ export async function newCommand(): Promise<void> {
 		}
 	}
 
-	await offerClone(projectName);
+	// For built-in/user templates, pass the config so we can ensure
+	// devcontainer.json exists locally after clone (avoids duplicate prompt)
+	const devcontainerConfig =
+		selection.source !== "git" ? selection.config : undefined;
+	await offerClone(projectName, remoteName, config, devcontainerConfig);
 }
 
 async function createProjectWithConfig(
@@ -155,11 +179,7 @@ async function createProjectWithConfig(
 	const createSpin = spinner("Creating project on remote...");
 
 	// Add workspace settings to the config
-	const config = {
-		...devcontainerConfig,
-		workspaceFolder: `${WORKSPACE_PATH_PREFIX}/${projectName}`,
-		workspaceMount: `source=\${localWorkspaceFolder},target=${WORKSPACE_PATH_PREFIX}/${projectName},type=bind,consistency=cached`,
-	};
+	const config = withWorkspaceSettings(devcontainerConfig, projectName);
 
 	const devcontainerJson = JSON.stringify(config, null, 2);
 	const encoded = Buffer.from(devcontainerJson).toString("base64");
@@ -266,7 +286,12 @@ async function cloneGitToRemote(
 	}
 }
 
-async function offerClone(projectName: string): Promise<void> {
+async function offerClone(
+	projectName: string,
+	remoteName: string,
+	config: DevboxConfigV2,
+	devcontainerConfig?: DevcontainerConfig,
+): Promise<void> {
 	console.log();
 	const { shouldClone } = await inquirer.prompt([
 		{
@@ -277,11 +302,50 @@ async function offerClone(projectName: string): Promise<void> {
 		},
 	]);
 
-	if (shouldClone) {
-		const { cloneCommand } = await import("./clone.ts");
-		await cloneCommand(projectName);
-	} else {
+	if (!shouldClone) {
 		success(`Project '${projectName}' created on remote`);
 		info(`Run 'devbox clone ${projectName}' to clone locally.`);
+		return;
+	}
+
+	const cloned = await cloneSingleProject(projectName, remoteName, config);
+	if (!cloned) {
+		return;
+	}
+
+	// Ensure devcontainer.json exists locally after sync.
+	// The file was created on the remote but Mutagen may not have synced it yet.
+	if (devcontainerConfig) {
+		const projectPath = getProjectPath(projectName);
+		if (!hasLocalDevcontainerConfig(projectPath)) {
+			try {
+				const fullConfig = withWorkspaceSettings(
+					devcontainerConfig,
+					projectName,
+				);
+				writeDevcontainerConfig(projectPath, fullConfig);
+			} catch (err) {
+				warn(
+					`Clone succeeded but failed to write local devcontainer.json: ${getErrorMessage(err)}`,
+				);
+				info("The file should sync from remote shortly.");
+			}
+		}
+	}
+
+	console.log();
+	const { startContainer } = await inquirer.prompt([
+		{
+			type: "confirm",
+			name: "startContainer",
+			message: "Start dev container now?",
+			default: true,
+		},
+	]);
+
+	if (startContainer) {
+		await upCommand(projectName, {});
+	} else {
+		info(`Run 'devbox up ${projectName}' when ready to start working.`);
 	}
 }
