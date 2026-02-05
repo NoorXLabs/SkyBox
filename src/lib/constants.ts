@@ -54,6 +54,9 @@ export const SESSION_FILE = ".devbox/session.lock";
 /** Session TTL in milliseconds (24 hours). */
 export const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
 
+/** Ownership metadata file name. */
+export const OWNERSHIP_FILE_NAME = ".devbox-owner";
+
 /** Default DevBox home directory name. */
 export const DEVBOX_HOME_DIR = ".devbox";
 

@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import {
 	createTestContext,
 	type TestContext,
-} from "@lib/__tests__/test-utils.ts";
+} from "@tests/helpers/test-utils.ts";
 
 // Mock runRemoteCommand for ownership tests
 const mockRunRemoteCommand = mock(
@@ -23,7 +23,7 @@ const mockRunRemoteCommand = mock(
 // Import original ssh module to spread its exports
 import * as originalSsh from "@lib/ssh.ts";
 
-mock.module("../ssh.ts", () => ({
+mock.module("@lib/ssh.ts", () => ({
 	...originalSsh,
 	runRemoteCommand: mockRunRemoteCommand,
 }));

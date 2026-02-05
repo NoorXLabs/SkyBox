@@ -2,15 +2,15 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import {
-	createTestContext,
-	type TestContext,
-} from "@lib/__tests__/test-utils.ts";
-import {
 	fetchMutagenPublicKey,
 	fetchMutagenSignature,
 	isGpgAvailable,
 	verifyGpgSignature,
 } from "@lib/gpg.ts";
+import {
+	createTestContext,
+	type TestContext,
+} from "@tests/helpers/test-utils.ts";
 
 describe("GPG verification", () => {
 	let ctx: TestContext;

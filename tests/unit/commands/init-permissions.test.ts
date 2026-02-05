@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdirSync, statSync } from "node:fs";
+import { getBinDir, getProjectsDir } from "@lib/paths.ts";
 import {
 	createTestContext,
 	type TestContext,
-} from "@lib/__tests__/test-utils.ts";
-import { getBinDir, getProjectsDir } from "@lib/paths.ts";
+} from "@tests/helpers/test-utils.ts";
 
 describe("init directory permissions", () => {
 	let ctx: TestContext;
