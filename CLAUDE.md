@@ -21,51 +21,27 @@ DevBox is a CLI tool for managing local-first development containers with remote
 ## Directory Structure
 
 ```
-src/
+src/                        # production code ONLY
 ├── index.ts              # CLI entry point (Commander.js setup)
 ├── commands/             # Command implementations
-│   ├── init.ts           # Interactive setup wizard
-│   ├── clone.ts          # Download project from remote
-│   ├── push.ts           # Upload project to remote
-│   ├── browse.ts         # List remote projects
-│   ├── list.ts           # List local projects
-│   ├── up.ts             # Start container + acquire lock
-│   ├── down.ts           # Stop container + release lock
-│   ├── status.ts         # Show project status
-│   ├── shell.ts          # Enter container shell
-│   ├── editor.ts         # Configure default editor
-│   ├── rm.ts             # Remove local project
-│   ├── config.ts         # View/edit configuration
-│   ├── new.ts            # Create new project on remote
-│   ├── logs.ts            # Show container/sync logs
-│   ├── update.ts          # Update Mutagen binary
-│   ├── config-devcontainer.ts # Edit/reset devcontainer.json
-│   ├── dashboard.tsx      # TUI dashboard (Ink/React)
-│   ├── remote.ts          # Remote helper (host/path resolution)
-│   └── __tests__/        # Command unit tests
 ├── lib/                  # Shared libraries
-│   ├── config.ts         # YAML config operations
-│   ├── constants.ts      # Shared constants (Docker labels, etc.)
-│   ├── container.ts      # Docker/devcontainer operations
-│   ├── encryption.ts      # AES-256-GCM encryption primitives
-│   ├── validation.ts      # Path safety and input validation
-│   ├── mutagen.ts        # Sync session management
-│   ├── ssh.ts            # SSH operations and host parsing
-│   ├── session.ts        # Local session management (multi-machine conflict detection)
-│   ├── remote.ts         # Remote project operations
-│   ├── project.ts        # Project path resolution
-│   ├── download.ts       # Binary downloads (Mutagen)
-│   ├── templates.ts      # Devcontainer templates
-│   ├── migration.ts      # Config format migration
-│   ├── paths.ts          # Path constants
-│   ├── errors.ts         # Error handling utilities
-│   ├── shell.ts          # Shell escaping utilities
-│   ├── ui.ts             # Terminal UI (colors, spinners)
-│   ├── startup.ts        # Dependency checks
-│   ├── hooks.ts           # Hook runner (pre/post lifecycle events)
-│   └── __tests__/        # Library unit tests
 └── types/
     └── index.ts          # TypeScript interfaces
+
+tests/                      # all test code
+├── helpers/              # shared test utilities (all tiers import)
+│   └── test-utils.ts
+├── unit/
+│   ├── lib/              # mirrors src/lib/
+│   └── commands/         # mirrors src/commands/
+├── integration/
+│   ├── helpers/
+│   └── docker/
+└── e2e/
+    ├── helpers/
+    ├── remote/
+    ├── sync/
+    └── workflow/
 ```
 
 ## Development Setup
@@ -105,6 +81,7 @@ bun run src/index.ts <command>
   - `@commands/*` → `src/commands/*` (e.g., `import { upCommand } from "@commands/up.ts"`)
   - `@lib/*` → `src/lib/*` (e.g., `import { loadConfig } from "@lib/config.ts"`)
   - `@typedefs/*` → `src/types/*` (e.g., `import type { DevboxConfigV2 } from "@typedefs/index.ts"`)
+  - `@tests/*` → `tests/*` (e.g., `import { ... } from "@tests/helpers/test-utils.ts"`) — test code only, never from `src/`
   - Exception: `../package.json` in `src/index.ts` (outside `src/`, no alias)
   - Note: `@typedefs` is used instead of `@types` to avoid TypeScript TS6137 conflict
 - **Unused imports:** Error (auto-removed)
@@ -134,7 +111,7 @@ bun run src/index.ts <command>
 
 - One command per file in `src/commands/`
 - Shared logic in `src/lib/` with single responsibility
-- Tests co-located in `__tests__/` directories
+- Tests in top-level `tests/` directory mirroring `src/` structure
 
 ## Testing Guidelines
 
@@ -159,10 +136,11 @@ bun test:all          # Run all test tiers
 
 | Location | Type |
 |----------|------|
-| `src/lib/__tests__/` | Unit tests for libraries |
-| `src/commands/__tests__/` | Unit tests for commands |
-| `src/__integration__/` | Docker integration tests |
-| `src/__e2e__/` | Remote server E2E tests |
+| `tests/unit/lib/` | Unit tests for libraries |
+| `tests/unit/commands/` | Unit tests for commands |
+| `tests/integration/` | Docker integration tests |
+| `tests/e2e/` | Remote server E2E tests |
+| `tests/helpers/` | Shared test utilities |
 
 ### Test Structure Pattern
 
@@ -171,6 +149,7 @@ import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+// Note: test-utils is auto-loaded via --preload, no import needed
 
 describe("feature name", () => {
 	let testDir: string;
@@ -218,7 +197,7 @@ describe("feature name", () => {
 - Tests skip gracefully if Docker isn't running: `describe.skipIf(!await isDockerAvailable())`
 - Each test uses isolated temp directory and unique container names
 - Containers are labeled with `devbox-test=true` for cleanup
-- Import helpers from `src/__integration__/helpers/docker-test-utils.ts`
+- Import helpers from `@tests/integration/helpers/docker-test-utils.ts`
 
 ### E2E Test Conventions
 
@@ -229,7 +208,7 @@ describe("feature name", () => {
   - `E2E_PATH`: Base path for test data (optional, defaults to `~/devbox-e2e-tests`)
   - `E2E_SSH_KEY_PATH`: Path to SSH key (optional)
 - Use `withRetry()` wrapper for flaky network operations
-- Import helpers from `src/__e2e__/helpers/`
+- Import helpers from `@tests/e2e/helpers/`
 
 ## Git Workflow
 
@@ -285,7 +264,7 @@ import { registerNameCommand } from "./commands/name.ts";
 registerNameCommand(program);
 ```
 
-3. Add tests in `src/commands/__tests__/name.test.ts`
+3. Add tests in `tests/unit/commands/name.test.ts`
 
 4. Add to `docs/.vitepress/commands.ts` for sidebar and command overview
 
@@ -293,7 +272,7 @@ registerNameCommand(program);
 
 1. Add function to appropriate file in `src/lib/`
 2. Export from the file
-3. Add tests in `src/lib/__tests__/<file>.test.ts`
+3. Add tests in `tests/unit/lib/<file>.test.ts`
 4. If new types needed, add to `src/types/index.ts`
 
 ### Modifying Configuration
@@ -431,3 +410,5 @@ Note: `bun run check` is enforced automatically by a native Stop hook — no man
 - **Biome lint for shell variable strings**: When testing shell scripts containing `${VAR}` syntax, biome reports `noTemplateCurlyInString`. Add `// biome-ignore lint/suspicious/noTemplateCurlyInString: <reason>` before the string literal.
 
 - **Background process spawning**: For detached background processes, use `spawn("cmd", args, { detached: true, stdio: [...] })` followed by `child.unref()` to allow parent to exit. See `src/commands/hook.ts` for example.
+
+- **`@tests/*` alias is test-only**: The `@tests/*` path alias must NEVER be imported from production code in `src/`. It exists solely for test-to-test imports. Biome cannot enforce this, so treat it as a convention.
