@@ -1,6 +1,6 @@
 // tests/unit/lib/config.test.ts
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { writeFileSync } from "node:fs";
+import { statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
 	configExists,
@@ -9,6 +9,7 @@ import {
 	loadConfig,
 	saveConfig,
 } from "@lib/config.ts";
+import { ConfigValidationError, validateConfig } from "@lib/config-schema.ts";
 import {
 	createTestContext,
 	type TestContext,
@@ -221,11 +222,10 @@ describe("config error paths", () => {
 		expect(() => loadConfig()).toThrow(/Failed to parse config file/);
 	});
 
-	test("loadConfig on empty config file returns null-ish", () => {
+	test("loadConfig on empty config file throws validation error", () => {
 		writeFileSync(join(ctx.testDir, "config.yaml"), "");
-		// Empty YAML parses to null/undefined, returned as-is
-		const result = loadConfig();
-		expect(result).toBeFalsy();
+		// Empty YAML parses to null, which fails validation
+		expect(() => loadConfig()).toThrow(/Invalid config/);
 	});
 
 	test("saveConfig creates parent directories if missing", () => {
@@ -256,5 +256,144 @@ describe("config error paths", () => {
 		saveConfig(config);
 
 		expect(getRemote("nonexistent")).toBeNull();
+	});
+});
+
+describe("config file permissions", () => {
+	let ctx: TestContext;
+	let originalEnv: string | undefined;
+
+	beforeEach(() => {
+		ctx = createTestContext("config-permissions");
+		originalEnv = process.env.DEVBOX_HOME;
+	});
+
+	afterEach(() => {
+		// Restore env before cleanup since cleanup also restores it
+		if (originalEnv) {
+			process.env.DEVBOX_HOME = originalEnv;
+		}
+		ctx.cleanup();
+	});
+
+	test("saveConfig creates directory with mode 0o700", () => {
+		// Point DEVBOX_HOME to a non-existent subdirectory so saveConfig creates it
+		const newDir = join(ctx.testDir, "new-devbox-home");
+		process.env.DEVBOX_HOME = newDir;
+
+		const config = {
+			editor: "cursor",
+			defaults: { sync_mode: "two-way-resolved", ignore: [] },
+			remotes: {},
+			projects: {},
+		};
+
+		saveConfig(config);
+
+		const stats = statSync(newDir);
+		const mode = stats.mode & 0o777;
+		expect(mode).toBe(0o700);
+	});
+
+	test("saveConfig creates config file with mode 0o600", () => {
+		const config = {
+			editor: "cursor",
+			defaults: { sync_mode: "two-way-resolved", ignore: [] },
+			remotes: {},
+			projects: {},
+		};
+
+		saveConfig(config);
+
+		const configPath = join(ctx.testDir, "config.yaml");
+		const stats = statSync(configPath);
+		const mode = stats.mode & 0o777;
+		expect(mode).toBe(0o600);
+	});
+});
+
+describe("config schema validation edge cases", () => {
+	test("rejects config with non-string editor", () => {
+		const invalidConfig = {
+			editor: 123,
+			remotes: {},
+			projects: {},
+		};
+
+		expect(() => validateConfig(invalidConfig)).toThrow(ConfigValidationError);
+		expect(() => validateConfig(invalidConfig)).toThrow("editor");
+	});
+
+	test("rejects config with invalid remote structure (not an object)", () => {
+		const invalidConfig = {
+			editor: "cursor",
+			remotes: { work: "not-an-object" },
+			projects: {},
+		};
+
+		expect(() => validateConfig(invalidConfig)).toThrow(ConfigValidationError);
+		expect(() => validateConfig(invalidConfig)).toThrow("remotes.work");
+	});
+
+	test("rejects config with remote missing host", () => {
+		const invalidConfig = {
+			editor: "cursor",
+			remotes: { work: { user: "deploy", path: "~/code" } },
+			projects: {},
+		};
+
+		expect(() => validateConfig(invalidConfig)).toThrow(ConfigValidationError);
+		expect(() => validateConfig(invalidConfig)).toThrow("valid host");
+	});
+
+	test("rejects config with invalid sync_mode", () => {
+		const invalidConfig = {
+			editor: "cursor",
+			defaults: { sync_mode: "invalid-mode" },
+			remotes: {},
+			projects: {},
+		};
+
+		expect(() => validateConfig(invalidConfig)).toThrow(ConfigValidationError);
+		expect(() => validateConfig(invalidConfig)).toThrow("sync_mode");
+	});
+
+	test("rejects config with non-array ignore", () => {
+		const invalidConfig = {
+			editor: "cursor",
+			defaults: { ignore: "should-be-array" },
+			remotes: {},
+			projects: {},
+		};
+
+		expect(() => validateConfig(invalidConfig)).toThrow(ConfigValidationError);
+		expect(() => validateConfig(invalidConfig)).toThrow("ignore");
+	});
+
+	test("accepts valid minimal config", () => {
+		const validConfig = {
+			remotes: {},
+			projects: {},
+		};
+
+		expect(() => validateConfig(validConfig)).not.toThrow();
+	});
+
+	test("accepts valid complete config", () => {
+		const validConfig = {
+			editor: "cursor",
+			defaults: {
+				sync_mode: "two-way-resolved",
+				ignore: [".git", "node_modules"],
+			},
+			remotes: {
+				work: { host: "server.example.com", path: "~/code" },
+			},
+			projects: {
+				myapp: { remote: "work" },
+			},
+		};
+
+		expect(() => validateConfig(validConfig)).not.toThrow();
 	});
 });

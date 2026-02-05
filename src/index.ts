@@ -22,11 +22,15 @@ import { statusCommand } from "@commands/status.ts";
 import { upCommand } from "@commands/up.ts";
 import { updateCommand } from "@commands/update.ts";
 import { INSTALL_METHOD } from "@lib/constants.ts";
+import { installShutdownHandlers } from "@lib/shutdown.ts";
 import { runStartupChecks } from "@lib/startup.ts";
 import { checkForUpdate, getUpgradeCommand } from "@lib/update-check.ts";
 import chalk from "chalk";
 import { program } from "commander";
 import pkg from "../package.json";
+
+// Install graceful shutdown handlers early
+installShutdownHandlers();
 
 // Run Docker check on bare `devbox` (no args) or `devbox init`
 const args = process.argv.slice(2);

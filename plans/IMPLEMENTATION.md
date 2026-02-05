@@ -98,6 +98,13 @@ Global `--verbose` flag for debugging output across all commands.
 - **Files:** `src/index.ts` (global option), all command files
 - **Notes:** Use environment variable or global flag; conditionally log debug info
 
+- [ ] ### Dry Run Mode
+
+`--dry-run` flag to preview commands without executing them.
+
+- **Files:** `src/index.ts` (global option), command files
+- **Notes:** Print commands that would be executed; useful for debugging
+
 - [ ] ### JSON Output
 
 `--json` flag for scriptable/machine-readable output.
@@ -143,7 +150,7 @@ bash/zsh/fish completion scripts for all commands and options.
 - [ ] Test with large project (1GB+)
 - [ ] Git operations: commit, branch, checkout
 - [ ] Work offline for 30 min, reconnect
-- [ ] Test session conflict between two computers
+- [ ] Test lock takeover between two computers
 - [ ] Multiple projects running simultaneously
 - [ ] macOS (Intel and ARM)
 - [ ] Linux (Ubuntu, Debian)
@@ -184,4 +191,4 @@ One-line description of what this feature does and why.
 
 ---
 
-*Last updated: 2026-02-04*
+*Last updated: 2026-02-05*

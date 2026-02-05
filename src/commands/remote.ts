@@ -1,6 +1,7 @@
 // src/commands/remote.ts
 
 import { loadConfig, saveConfig } from "@lib/config.ts";
+import { escapeShellArg } from "@lib/shell.ts";
 import {
 	copyKey,
 	findSSHKeys,
@@ -17,6 +18,7 @@ import {
 	success,
 	warn,
 } from "@lib/ui.ts";
+import { validateRemotePath } from "@lib/validation.ts";
 import type { DevboxConfigV2, RemoteEntry } from "@typedefs/index.ts";
 import chalk from "chalk";
 import inquirer from "inquirer";
@@ -126,6 +128,15 @@ export async function addRemoteDirect(
 		};
 	}
 
+	// Validate remote path for shell safety
+	const pathValidation = validateRemotePath(parsed.path);
+	if (!pathValidation.valid) {
+		return {
+			success: false,
+			error: pathValidation.error,
+		};
+	}
+
 	let config = loadConfig();
 	if (!config) {
 		// Create default config if none exists
@@ -218,6 +229,10 @@ export async function addRemoteInteractive(): Promise<void> {
 			name: "path",
 			message: "Remote projects directory:",
 			default: "~/code",
+			validate: (input: string) => {
+				const result = validateRemotePath(input);
+				return result.valid ? true : result.error;
+			},
 		},
 	]);
 
@@ -311,7 +326,7 @@ export async function addRemoteInteractive(): Promise<void> {
 	const checkSpin = spinner("Checking remote directory...");
 	const checkResult = await runRemoteCommand(
 		sshConnectString,
-		`ls -d "${path}" 2>/dev/null || echo "__NOT_FOUND__"`,
+		`ls -d ${escapeShellArg(path)} 2>/dev/null || echo "__NOT_FOUND__"`,
 		identityFile,
 	);
 
@@ -329,7 +344,7 @@ export async function addRemoteInteractive(): Promise<void> {
 		if (createDir) {
 			const mkdirResult = await runRemoteCommand(
 				sshConnectString,
-				`mkdir -p "${path}"`,
+				`mkdir -p ${escapeShellArg(path)}`,
 				identityFile,
 			);
 			if (mkdirResult.success) {

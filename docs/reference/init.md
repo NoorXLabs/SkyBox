@@ -33,6 +33,15 @@ If DevBox is already configured, you'll be asked whether to reconfigure.
 - **Docker** - Required for running containers
 - **Node.js** - Required for the DevBox CLI and devcontainer-cli
 
+### Mutagen Download Verification
+
+When Mutagen is downloaded, DevBox verifies the binary's integrity:
+
+1. **SHA256 checksum** — The download is verified against the official `SHA256SUMS` file before writing to disk
+2. **GPG signature** — If `gpg` is available on your system, the `SHA256SUMS` file itself is verified against Mutagen's GPG signature
+
+If GPG is not installed, DevBox falls back to checksum-only verification. To skip GPG verification entirely (e.g., in air-gapped environments), set `DEVBOX_SKIP_GPG=1`.
+
 ### Remote Configuration
 
 The wizard configures your first remote server. You can add more remotes later with `devbox remote add`.

@@ -54,6 +54,9 @@ export const SESSION_FILE = ".devbox/session.lock";
 /** Session TTL in milliseconds (24 hours). */
 export const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
 
+/** Ownership metadata file name. */
+export const OWNERSHIP_FILE_NAME = ".devbox-owner";
+
 /** Default DevBox home directory name. */
 export const DEVBOX_HOME_DIR = ".devbox";
 
@@ -133,6 +136,13 @@ export const MUTAGEN_REPO = "mutagen-io/mutagen";
 /** Default sync mode for Mutagen sessions. */
 export const DEFAULT_SYNC_MODE = "two-way-resolved";
 
+/** Valid sync mode values for configuration validation. */
+export const VALID_SYNC_MODES = [
+	"two-way-resolved",
+	"two-way-safe",
+	"one-way-replica",
+];
+
 /** Default file ignore patterns for sync. */
 export const DEFAULT_IGNORE = [
 	".git/index.lock",
@@ -168,11 +178,17 @@ export const ENCRYPTION_TAG_LENGTH = 16;
 /** Argon2 memory cost in KiB (64 MiB). */
 export const ARGON2_MEMORY_COST = 65536;
 
-/** Argon2 time cost (iterations). */
-export const ARGON2_TIME_COST = 2;
+/** Argon2 time cost (iterations). OWASP minimum: 3. */
+export const ARGON2_TIME_COST = 3;
 
-/** Argon2 parallelism factor. */
-export const ARGON2_PARALLELISM = 1;
+/** Argon2 parallelism factor. OWASP minimum: 4. */
+export const ARGON2_PARALLELISM = 4;
+
+/** Legacy Argon2 time cost (pre-v0.7.7, before OWASP hardening). */
+export const ARGON2_LEGACY_TIME_COST = 2;
+
+/** Legacy Argon2 parallelism (pre-v0.7.7, before OWASP hardening). */
+export const ARGON2_LEGACY_PARALLELISM = 1;
 
 /** Filename for the encryption verification marker inside archives. */
 export const ENCRYPTION_CHECK_FILENAME = ".devbox-enc-check";
@@ -206,6 +222,19 @@ export const SSH_SYMLINK_COMMAND = `[ ! -L $HOME/.ssh ] && rm -rf $HOME/.ssh && 
 export const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 // ── Templates (large structured data) ──
+
+/**
+ * SECURITY: Container images are pinned by SHA256 digest to prevent supply chain attacks.
+ *
+ * To update image digests:
+ * 1. Pull the new image: docker pull mcr.microsoft.com/devcontainers/javascript-node:20
+ * 2. Get the digest: docker inspect --format='{{index .RepoDigests 0}}' <image>
+ * 3. Update the digest in the TEMPLATES array below
+ * 4. Test the new image works correctly
+ * 5. Document the update in CHANGELOG.md
+ *
+ * Check for updates periodically at: https://mcr.microsoft.com/en-us/catalog?search=devcontainers
+ */
 
 /** Common devcontainer features for all templates. */
 export const COMMON_FEATURES = {

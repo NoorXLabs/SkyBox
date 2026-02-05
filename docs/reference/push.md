@@ -27,12 +27,14 @@ The `push` command uploads a local project to your configured remote server and 
 2. **Remote Selection** - If multiple remotes are configured, prompts you to select which remote to push to
 3. **Git Check** - Verifies project is a git repository (offers to initialize if not)
 4. **Remote Check** - Checks if project already exists on remote (prompts to overwrite)
-5. **Remote Setup** - Creates the project directory on the remote server
-6. **Local Copy** - Copies project to DevBox projects directory
-7. **Sync Setup** - Creates a Mutagen sync session for bidirectional synchronization (uses selective sync if project has `sync_paths` configured)
-8. **Initial Sync** - Uploads all files to the remote
-9. **Registration** - Registers the project in DevBox configuration
-10. **Container Prompt** - Offers to start the development container immediately
+5. **Ownership Check** - If the project exists on remote, verifies you are the owner before allowing overwrite
+6. **Remote Setup** - Creates the project directory on the remote server
+7. **Local Copy** - Copies project to DevBox projects directory
+8. **Sync Setup** - Creates a Mutagen sync session for bidirectional synchronization (uses selective sync if project has `sync_paths` configured)
+9. **Initial Sync** - Uploads all files to the remote
+10. **Set Ownership** - Records you as the project owner on the remote
+11. **Registration** - Registers the project in DevBox configuration
+12. **Container Prompt** - Offers to start the development container immediately
 
 ### Git Repository
 
@@ -101,6 +103,19 @@ devbox push .
 # ✔ Sync is active
 # ...
 ```
+
+### Project Ownership
+
+When you push a project, DevBox automatically records you as the owner on the remote server (via a `.devbox-owner` file). This prevents other users from accidentally overwriting or deleting your projects.
+
+If someone else owns the project, the push is blocked:
+
+```
+Cannot overwrite: Project owned by 'alice' (created on alice-macbook)
+Contact the project owner to transfer ownership or use a different project name.
+```
+
+Projects without an ownership file (e.g., those created before this feature) can be pushed to by anyone, and ownership will be set on the next successful push.
 
 ### Overwrite Behavior
 

@@ -10,10 +10,10 @@
 
 ## Completed Work
 
-### Commands (20/20 Complete)
+### Commands (22/22 Complete)
 
 - [x] `devbox init` - Interactive setup wizard
-- [x] `devbox browse` - List projects on remote server
+- [x] `devbox browse` - List projects on remote server (with lock status)
 - [x] `devbox list` - List local projects
 - [x] `devbox clone` - Clone remote project locally
 - [x] `devbox push` - Push local project to remote
@@ -31,6 +31,8 @@
 - [x] `devbox update` - Update Mutagen binary
 - [x] `devbox encrypt` - Enable/disable project encryption
 - [x] `devbox dashboard` - TUI dashboard with real-time status
+- [x] `devbox locks` - Cross-project lock overview
+- [x] `devbox hook` - Generate shell integration hooks
 
 ### Core Features
 
@@ -318,34 +320,97 @@
 
 ---
 
-## Post-v0.7.7 Features
+## Recent Features (2026-02-01 to 2026-02-03)
 
-- [x] **Lock TTL** — Locks auto-expire after 24 hours; stale locks treated as unlocked — `9b51100`
-- [x] **Browse Lock Column** — `devbox browse` shows lock status per project — `9b51100`
+### Lock System Enhancements (PR #32)
+
+- [x] **Lock TTL** — Locks expire after 24 hours, stale locks treated as unlocked — `9b51100`
+  - Added `expires` field to `LockInfo` interface
+  - Added `LOCK_TTL_MS` constant (24 hours)
+  - `getLockStatus()` checks expiry before returning locked status
+- [x] **Browse Lock Column** — `devbox browse` shows lock status for each project — `9b51100`
 - [x] **Locks Command** — `devbox locks` for cross-project lock overview — `9b51100`
-- [x] **Auto-Up Shell Hooks** — `devbox hook bash/zsh` for auto-starting containers on directory enter — `afb693b`
-- [x] **Devcontainer Template Unification** — Refactored templates to feature-based architecture — `a4e634d`
-- [x] **Session Reframe** — Replaced team-collaboration lock system with multi-machine session system; local session files, no SSH polling
-- [x] **Layered Integration & E2E Test Suites** — Docker integration tests, remote E2E tests, test helpers with retry logic, security-hardened test utilities — `6c38f8f`
+  - `getAllLockStatuses()` fetches all locks in single SSH call
 
-### Archived Plans
+### Shell Integration (PR #31)
 
-- `plans/archive/2026-02-01-lock-ttl-browse-locks.md` — Lock TTL, browse lock column, locks command
-- `plans/archive/2026-02-01-team-sharing-audit-design.md` — Team sharing audit findings and fixes
-- `plans/archive/2026-02-02-auto-up-shell-hook-design.md` — Auto-up shell hook design
-- `plans/archive/2026-02-04-session-reframe-design.md` — Reframe locks as multi-machine sessions
-- `plans/archive/2026-02-03-layered-integration-tests-design.md` — Layered integration and E2E test suites design
+- [x] **Auto-Up Shell Hooks** — Container auto-starts when entering project directory — `afb693b`
+  - `devbox hook bash` — Generates bash shell hook
+  - `devbox hook zsh` — Generates zsh shell hook
+  - `devbox hook-check` — Hidden command for hook execution
+  - Configuration via `auto_up` in project or defaults config
 
 ---
 
-## Dry Run Mode
+## Interactive Multi-Select Remote Deletion (PR #39)
 
-- [x] **Dry Run Mode** — Global `--dry-run` flag to preview commands without executing side effects — `28d0eca`, `9c58398`, `8a5329c`, `87106fb`, `4a12005`, `a0217f1`, `a3d646a`
-
-### Archived Plans
-
-- `plans/archive/2026-02-04-dry-run-mode.md` — Dry run mode implementation plan
+- [x] **`devbox rm --remote` Multi-Select** — Interactive checkbox deletion of remote projects with double confirmation — `22e6b82`
 
 ---
 
-*Archived: 2026-02-04*
+## Security Audit (2026-02-03 to 2026-02-05)
+
+Comprehensive security remediation across 5 batches (CRITICAL → LOW), plus code review fixes.
+
+### Batch 1: Critical Fixes
+
+- [x] **Config file permissions** — Set 0o600 on config, 0o700 on directories — `09a6315`
+- [x] **Shell injection prevention** — Escape all remote command args via `escapeShellArg()` — `e403e61`
+- [x] **Mutagen checksum verification** — SHA256 integrity check before execution — `5e1edb9`
+- [x] **DevBox directory permissions** — Create directories with 0o700 — `d3e1a23`
+
+### Batch 2: High Priority Fixes
+
+- [x] **Unpredictable temp files** — Replace predictable paths with `mkdtempSync()` — `9632cd4`, `fab8eb7`
+- [x] **Argon2 parameter hardening** — Strengthen to OWASP minimums (time_cost 3, parallelism 4) — `d3ca22d`
+- [x] **Project name validation** — Standardize validation in rm.ts — `3cbfa65`
+- [x] **Remote path validation** — Reject shell metacharacters in remote paths — `7443d54`
+
+### Batch 3a: Medium Fixes (Quick)
+
+- [x] **Replace curl|bash in bun template** — Use npm install instead — `b07999e`
+
+### Batch 3b: Medium Fixes (High Effort)
+
+- [x] **Resource ownership system** — `.devbox-owner` metadata for project access control
+- [x] **GPG signature verification** — Verify Mutagen downloads with GPG when available — `f27cb57`
+
+### Batch 4: Information Disclosure Fixes
+
+- [x] **Config file handling & error sanitization** — Reduce info exposure in errors — `6bc2835`
+- [x] **Runtime config schema validation** — YAML schema validation on load — `e55a688`
+
+### Batch 5: Low Priority & Monitoring
+
+- [x] **Audit logging (clone)** — JSON Lines audit trail for clone operations — `97155c2`
+- [x] **Audit logging (up/down)** — Audit trail for container lifecycle — `12a4a01`
+
+### Security Code Review Fixes
+
+- [x] **Code review recommendations** — SIGHUP handler, GPG warnings, env var docs, test coverage — `9c2c9e9`, `5a5b2d8`
+- [x] **Address additional review findings** — Error sanitization, config handling improvements — `a3086d5`
+- [x] **Configuration docs update** — Document security environment variables — `fee17d9`
+- [x] **Post-rebase compatibility** — Resolve merge conflicts from rebase onto main — `c12a1e1`
+
+### Modules Created During Security Audit
+
+- `src/lib/config-schema.ts` — Runtime YAML schema validation
+- `src/lib/audit.ts` — JSON Lines audit logging
+- `src/lib/ownership.ts` — Remote project ownership tracking
+- `src/lib/shutdown.ts` — Graceful shutdown with signal handlers
+
+### Archived Plans
+
+- `plans/archive/2026-02-03-security-batch-1-critical-fixes.md`
+- `plans/archive/2026-02-03-security-batch-2-high-priority-fixes.md`
+- `plans/archive/2026-02-03-security-batch-3a-medium-fixes.md`
+- `plans/archive/2026-02-03-security-batch-3b-high-effort-fixes.md`
+- `plans/archive/2026-02-03-security-batch-4-info-disclosure-fixes.md`
+- `plans/archive/2026-02-03-security-batch-5-low-priority-monitoring.md`
+- `plans/archive/2026-02-04-security-remaining-tasks.md`
+- `plans/archive/2026-02-04-security-review-fixes.md`
+- `plans/archive/2026-02-04-rm-remote-multi-design.md`
+
+---
+
+*Archived: 2026-02-05*

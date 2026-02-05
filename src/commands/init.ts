@@ -7,6 +7,7 @@ import { DEFAULT_IGNORE } from "@lib/constants.ts";
 import { downloadMutagen, isMutagenInstalled } from "@lib/download.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { getBinDir, getDevboxHome, getProjectsDir } from "@lib/paths.ts";
+import { escapeShellArg } from "@lib/shell.ts";
 import {
 	copyKey,
 	findSSHKeys,
@@ -291,7 +292,7 @@ Host ${friendlyName}
 	const checkSpin = spinner("Checking remote directory...");
 	const checkResult = await runRemoteCommand(
 		sshConnectString,
-		`ls -d "${basePath}" 2>/dev/null || echo "__NOT_FOUND__"`,
+		`ls -d ${escapeShellArg(basePath)} 2>/dev/null || echo "__NOT_FOUND__"`,
 		identityFile ?? undefined,
 	);
 
@@ -309,7 +310,7 @@ Host ${friendlyName}
 		if (createDir) {
 			const mkdirResult = await runRemoteCommand(
 				sshConnectString,
-				`mkdir -p "${basePath}"`,
+				`mkdir -p ${escapeShellArg(basePath)}`,
 				identityFile ?? undefined,
 			);
 			if (mkdirResult.success) {
@@ -327,7 +328,7 @@ Host ${friendlyName}
 		// List existing projects
 		const lsResult = await runRemoteCommand(
 			sshConnectString,
-			`ls -1 "${basePath}" 2>/dev/null | head -10`,
+			`ls -1 ${escapeShellArg(basePath)} 2>/dev/null | head -10`,
 			identityFile ?? undefined,
 		);
 		if (lsResult.stdout?.trim()) {
@@ -464,11 +465,11 @@ export async function initCommand(): Promise<void> {
 		default: false,
 	});
 
-	// Create directories
+	// Create directories with secure permissions (owner-only access)
 	header("Setting up devbox...");
 	try {
-		mkdirSync(getProjectsDir(), { recursive: true });
-		mkdirSync(getBinDir(), { recursive: true });
+		mkdirSync(getProjectsDir(), { recursive: true, mode: 0o700 });
+		mkdirSync(getBinDir(), { recursive: true, mode: 0o700 });
 	} catch (err) {
 		error(`Failed to create devbox directories: ${getErrorMessage(err)}`);
 		process.exit(1);

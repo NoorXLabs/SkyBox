@@ -1,6 +1,15 @@
 /** YAML config file operations: load, save, query remotes and projects. */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+	existsSync,
+	mkdirSync,
+	readFileSync,
+	renameSync,
+	unlinkSync,
+	writeFileSync,
+} from "node:fs";
+import { homedir } from "node:os";
 import { dirname } from "node:path";
+import { validateConfig } from "@lib/config-schema.ts";
 import { migrateConfig, needsMigration } from "@lib/migration.ts";
 import { getConfigPath } from "@lib/paths.ts";
 import type {
@@ -9,6 +18,18 @@ import type {
 	RemoteEntry,
 } from "@typedefs/index.ts";
 import { parse, stringify } from "yaml";
+
+/**
+ * Sanitize a path for error messages.
+ * Replaces home directory with ~ for privacy.
+ */
+function sanitizePath(filePath: string): string {
+	const home = homedir();
+	if (filePath.startsWith(home)) {
+		return `~${filePath.slice(home.length)}`;
+	}
+	return filePath;
+}
 
 export function configExists(): boolean {
 	return existsSync(getConfigPath());
@@ -27,7 +48,9 @@ export function loadConfig(): DevboxConfigV2 | null {
 		rawConfig = parse(content);
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
-		throw new Error(`Failed to parse config file at ${configPath}: ${message}`);
+		throw new Error(
+			`Failed to parse config file at ${sanitizePath(configPath)}: ${message}`,
+		);
 	}
 
 	// Auto-migrate old format
@@ -40,19 +63,42 @@ export function loadConfig(): DevboxConfigV2 | null {
 		return migrated;
 	}
 
-	return rawConfig as DevboxConfigV2;
+	// Validate config schema at runtime
+	validateConfig(rawConfig);
+
+	return rawConfig;
 }
 
 export function saveConfig(config: DevboxConfigV2): void {
 	const configPath = getConfigPath();
 	const dir = dirname(configPath);
 
+	// Create directory with secure permissions
 	if (!existsSync(dir)) {
-		mkdirSync(dir, { recursive: true });
+		mkdirSync(dir, { recursive: true, mode: 0o700 });
 	}
 
 	const content = stringify(config);
-	writeFileSync(configPath, content, "utf-8");
+
+	// Atomic write: create temp file with secure permissions, then rename
+	// This eliminates the race condition window where config could be readable
+	const tempPath = `${configPath}.tmp.${process.pid}`;
+
+	try {
+		// Write to temp file with secure permissions from the start
+		writeFileSync(tempPath, content, { encoding: "utf-8", mode: 0o600 });
+
+		// Atomic rename to final location (rename is atomic on POSIX systems)
+		renameSync(tempPath, configPath);
+	} catch (err) {
+		// Clean up temp file on error
+		try {
+			unlinkSync(tempPath);
+		} catch {
+			// Ignore cleanup errors
+		}
+		throw err;
+	}
 }
 
 /**

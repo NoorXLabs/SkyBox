@@ -7,6 +7,7 @@ import {
 	getRemotePath,
 } from "@commands/remote.ts";
 import { password } from "@inquirer/prompts";
+import { AuditActions, logAuditEvent } from "@lib/audit.ts";
 import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
 import { MAX_PASSPHRASE_ATTEMPTS } from "@lib/constants.ts";
 import {
@@ -433,5 +434,6 @@ export async function downCommand(
 		}
 	}
 
+	logAuditEvent(AuditActions.DOWN, { project });
 	success(`'${project}' stopped.`);
 }

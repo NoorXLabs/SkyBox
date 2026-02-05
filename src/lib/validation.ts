@@ -20,3 +20,40 @@ export function validatePath(
 	}
 	return { valid: true };
 }
+
+/**
+ * Validate a remote path for shell safety.
+ * Allows absolute paths (/...) and tilde paths (~/...).
+ * Blocks shell metacharacters that could enable command injection.
+ */
+export function validateRemotePath(
+	path: string,
+): { valid: true } | { valid: false; error: string } {
+	if (!path || path.trim() === "") {
+		return { valid: false, error: "Remote path cannot be empty" };
+	}
+
+	// Check for command substitution: $(...), ${...}, or `...`
+	if (/\$[({]/.test(path) || /`/.test(path)) {
+		return {
+			valid: false,
+			error:
+				// biome-ignore lint/suspicious/noTemplateCurlyInString: literal error message describing ${} syntax
+				"Remote path cannot contain command substitution ($(), ${}, or backticks)",
+		};
+	}
+
+	// Check for shell metacharacters that enable command chaining
+	// ; | & are command separators/chaining
+	// \n \r can break out of commands
+	const dangerousChars = /[;|&\n\r]/;
+	if (dangerousChars.test(path)) {
+		return {
+			valid: false,
+			error:
+				"Remote path cannot contain shell metacharacters (;|&) or line breaks",
+		};
+	}
+
+	return { valid: true };
+}

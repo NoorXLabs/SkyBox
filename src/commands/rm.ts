@@ -8,6 +8,7 @@ import {
 	selectRemote,
 } from "@commands/remote.ts";
 import { checkbox } from "@inquirer/prompts";
+import { AuditActions, logAuditEvent } from "@lib/audit.ts";
 import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
 import {
 	getContainerStatus,
@@ -16,11 +17,13 @@ import {
 } from "@lib/container.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { terminateSession } from "@lib/mutagen.ts";
+import { checkWriteAuthorization } from "@lib/ownership.ts";
 import {
 	getLocalProjects,
 	getProjectPath,
 	projectExists,
 } from "@lib/project.ts";
+import { validateProjectName } from "@lib/projectTemplates.ts";
 import { deleteSession, readSession } from "@lib/session.ts";
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
@@ -35,7 +38,6 @@ import {
 	success,
 	warn,
 } from "@lib/ui.ts";
-import { validatePath } from "@lib/validation.ts";
 import {
 	ContainerStatus,
 	type DevboxConfigV2,
@@ -324,11 +326,11 @@ export async function rmCommand(
 		return;
 	}
 
-	// Validate project name
-	const pathCheck = validatePath(project);
-	if (!pathCheck.valid) {
-		error(`Invalid project name: ${pathCheck.error}`);
-		return;
+	// Validate project name (consistent with clone.ts, new.ts, push.ts)
+	const validation = validateProjectName(project);
+	if (!validation.valid) {
+		error(`Invalid project name: ${validation.error}`);
+		process.exit(1);
 	}
 
 	// Check config exists
@@ -414,6 +416,7 @@ export async function rmCommand(
 	if (options.remote) {
 		await deleteFromRemote(project, config, options);
 	} else {
+		logAuditEvent(AuditActions.RM_LOCAL, { project });
 		success(`Project '${project}' removed locally. Remote copy preserved.`);
 	}
 }
@@ -435,6 +438,24 @@ async function deleteFromRemote(
 	const { remote } = projectRemote;
 	const remotePath = `${remote.path}/${project}`;
 	const host = getRemoteHost(remote);
+
+	// Check authorization before remote deletion
+	const authCheckSpin = spinner("Checking authorization...");
+	const authResult = await checkWriteAuthorization(host, remotePath);
+
+	if (!authResult.authorized) {
+		authCheckSpin.fail("Not authorized");
+		error(`Cannot delete: ${authResult.error}`);
+		info("Only the project owner can delete remote projects.");
+		logAuditEvent(AuditActions.AUTH_DENIED, {
+			project,
+			remote: projectRemote.name,
+			operation: "rm",
+			error: authResult.error,
+		});
+		process.exit(1);
+	}
+	authCheckSpin.succeed("Authorization verified");
 
 	// Double confirmation for remote deletion unless --force
 	if (!options.force) {
@@ -460,5 +481,11 @@ async function deleteFromRemote(
 		saveConfig(config);
 	}
 
+	logAuditEvent(AuditActions.RM_REMOTE, {
+		project,
+		remote: projectRemote.name,
+		host,
+		path: remotePath,
+	});
 	success(`Project '${project}' removed locally and from remote.`);
 }

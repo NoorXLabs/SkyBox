@@ -268,6 +268,25 @@ export interface OpenOptions {
 	noPrompt?: boolean;
 }
 
+// Ownership types
+/** Project ownership metadata stored in .devbox-owner */
+export interface OwnershipInfo {
+	owner: string; // Local OS username who created the project
+	created: string; // ISO 8601 timestamp
+	machine: string; // Hostname where project was created
+}
+
+/** Result of ownership check */
+export type OwnershipStatus =
+	| { hasOwner: false }
+	| { hasOwner: true; isOwner: boolean; info: OwnershipInfo };
+
+/** Result of setting ownership */
+export interface SetOwnershipResult {
+	success: boolean;
+	error?: string;
+}
+
 // Doctor command types
 export type DoctorCheckStatus = "pass" | "warn" | "fail";
 

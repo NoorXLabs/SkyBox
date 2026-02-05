@@ -29,6 +29,9 @@ jobs:
       - name: Download Mutagen binaries for bundling
         run: bash scripts/download-mutagen.sh
 
+      - name: Verify lockfile integrity
+        run: bun run src/lib/verify-lockfile.ts
+
       - name: Build all platforms
         run: |
           bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.DEVBOX_INSTALL_METHOD='github-release'" --target=bun-darwin-arm64 --outfile=devbox-darwin-arm64
@@ -93,7 +96,16 @@ jobs:
           SHA_LINUX_X64: ${{ steps.sha.outputs.linux_x64 }}
           SHA_LINUX_ARM64: ${{ steps.sha.outputs.linux_arm64 }}
         run: |
-          git clone https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/NoorXLabs/homebrew-tap.git
+          # Mask the token to prevent exposure in logs on error
+          echo "::add-mask::${HOMEBREW_TAP_TOKEN}"
+
+          # Configure git to use token via credential helper (not in URL)
+          cd ${{ runner.temp }}
+          git config --global credential.helper store
+          echo "https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com" > ~/.git-credentials
+          chmod 600 ~/.git-credentials
+
+          git clone https://github.com/NoorXLabs/homebrew-tap.git
           cd homebrew-tap
 
           cat > Formula/devbox.rb << 'FORMULA'
@@ -169,4 +181,8 @@ jobs:
 
       - name: Cleanup
         if: always()
-        run: rm -rf devbox-* homebrew-tap
+        run: |
+          rm -rf devbox-* homebrew-tap
+          rm -rf ${{ runner.temp }}/homebrew-tap
+          rm -f ~/.git-credentials
+          git config --global --unset credential.helper || true

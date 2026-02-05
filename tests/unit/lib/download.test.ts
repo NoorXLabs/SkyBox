@@ -1,9 +1,11 @@
 // tests/unit/lib/download.test.ts
 import { describe, expect, test } from "bun:test";
+import { createHash } from "node:crypto";
 import {
 	getMutagenChecksumUrl,
 	getMutagenDownloadUrl,
 	parseSHA256Sums,
+	verifyChecksum,
 } from "@lib/download.ts";
 
 describe("download", () => {
@@ -71,6 +73,43 @@ describe("download", () => {
 			const content = "abc123  other_file.tar.gz";
 			const result = parseSHA256Sums(content, "nonexistent.tar.gz");
 			expect(result).toBeNull();
+		});
+	});
+
+	describe("checksum verification", () => {
+		test("verifyChecksum returns true for matching hash", () => {
+			const content = Buffer.from("test content");
+			const expectedHash = createHash("sha256").update(content).digest("hex");
+
+			const result = verifyChecksum(content, expectedHash);
+			expect(result).toBe(true);
+		});
+
+		test("verifyChecksum returns false for mismatched hash", () => {
+			const content = Buffer.from("test content");
+			const wrongHash = "0".repeat(64);
+
+			const result = verifyChecksum(content, wrongHash);
+			expect(result).toBe(false);
+		});
+
+		test("verifyChecksum handles empty buffer", () => {
+			const content = Buffer.from("");
+			const expectedHash = createHash("sha256").update(content).digest("hex");
+
+			const result = verifyChecksum(content, expectedHash);
+			expect(result).toBe(true);
+		});
+
+		test("verifyChecksum is case-insensitive for hash comparison", () => {
+			const content = Buffer.from("test content");
+			const expectedHash = createHash("sha256")
+				.update(content)
+				.digest("hex")
+				.toUpperCase();
+
+			const result = verifyChecksum(content, expectedHash);
+			expect(result).toBe(true);
 		});
 	});
 });

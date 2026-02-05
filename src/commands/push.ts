@@ -8,6 +8,7 @@ import {
 	selectRemote,
 } from "@commands/remote.ts";
 import { upCommand } from "@commands/up.ts";
+import { AuditActions, logAuditEvent } from "@lib/audit.ts";
 import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import {
@@ -15,9 +16,11 @@ import {
 	createSyncSession,
 	waitForSync,
 } from "@lib/mutagen.ts";
+import { checkWriteAuthorization, setOwnership } from "@lib/ownership.ts";
 import { getProjectsDir } from "@lib/paths.ts";
 import { validateProjectName } from "@lib/projectTemplates.ts";
 import { checkRemoteProjectExists } from "@lib/remote.ts";
+import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import {
 	confirmDestructiveAction,
@@ -28,6 +31,7 @@ import {
 	isDryRun,
 	spinner,
 	success,
+	warn,
 } from "@lib/ui.ts";
 import { execa } from "execa";
 import inquirer from "inquirer";
@@ -85,6 +89,12 @@ export async function pushCommand(
 	const host = getRemoteHost(remote);
 	const remotePath = getRemotePath(remote, projectName);
 
+	logAuditEvent(AuditActions.PUSH_START, {
+		project: projectName,
+		remote: remoteName,
+		sourcePath: absolutePath,
+	});
+
 	header(`Pushing '${projectName}' to ${host}:${remotePath}...`);
 
 	if (isDryRun()) {
@@ -121,6 +131,11 @@ export async function pushCommand(
 			} catch (err: unknown) {
 				gitSpin.fail("Failed to initialize git");
 				error(getErrorMessage(err));
+				logAuditEvent(AuditActions.PUSH_FAIL, {
+					project: projectName,
+					remote: remoteName,
+					error: "Failed to initialize git",
+				});
 				process.exit(1);
 			}
 		}
@@ -135,7 +150,24 @@ export async function pushCommand(
 	);
 
 	if (remoteExists) {
-		checkSpin.warn("Project already exists on remote");
+		checkSpin.text = "Checking authorization...";
+		const authResult = await checkWriteAuthorization(host, remotePath);
+
+		if (!authResult.authorized) {
+			checkSpin.fail("Not authorized");
+			error(`Cannot overwrite: ${authResult.error}`);
+			info(
+				"Contact the project owner to transfer ownership or use a different project name.",
+			);
+			logAuditEvent(AuditActions.AUTH_DENIED, {
+				project: projectName,
+				remote: remoteName,
+				operation: "push",
+				error: authResult.error,
+			});
+			process.exit(1);
+		}
+		checkSpin.warn("Project already exists on remote (you have permission)");
 
 		const confirmed = await confirmDestructiveAction({
 			firstPrompt: "Project already exists on remote. Overwrite?",
@@ -148,18 +180,26 @@ export async function pushCommand(
 		}
 
 		// Remove remote directory
-		await runRemoteCommand(host, `rm -rf "${remotePath}"`);
+		await runRemoteCommand(host, `rm -rf ${escapeShellArg(remotePath)}`);
 	} else {
 		checkSpin.succeed("Remote path available");
 	}
 
 	// Create remote directory
 	const mkdirSpin = spinner("Creating remote directory...");
-	const mkdirResult = await runRemoteCommand(host, `mkdir -p "${remotePath}"`);
+	const mkdirResult = await runRemoteCommand(
+		host,
+		`mkdir -p ${escapeShellArg(remotePath)}`,
+	);
 
 	if (!mkdirResult.success) {
 		mkdirSpin.fail("Failed to create remote directory");
 		error(mkdirResult.error || "Unknown error");
+		logAuditEvent(AuditActions.PUSH_FAIL, {
+			project: projectName,
+			remote: remoteName,
+			error: mkdirResult.error || "Failed to create remote directory",
+		});
 		process.exit(1);
 	}
 	mkdirSpin.succeed("Created remote directory");
@@ -203,6 +243,11 @@ export async function pushCommand(
 	if (!createResult.success) {
 		syncSpin.fail("Failed to create sync session");
 		error(createResult.error || "Unknown error");
+		logAuditEvent(AuditActions.PUSH_FAIL, {
+			project: projectName,
+			remote: remoteName,
+			error: createResult.error || "Failed to create sync session",
+		});
 		process.exit(1);
 	}
 
@@ -215,14 +260,30 @@ export async function pushCommand(
 	if (!syncResult.success) {
 		syncSpin.fail("Sync failed");
 		error(syncResult.error || "Unknown error");
+		logAuditEvent(AuditActions.PUSH_FAIL, {
+			project: projectName,
+			remote: remoteName,
+			error: syncResult.error || "Sync failed",
+		});
 		process.exit(1);
 	}
 
 	syncSpin.succeed("Initial sync complete");
 
+	// Set ownership for new projects
+	const ownerResult = await setOwnership(host, remotePath);
+	if (!ownerResult.success) {
+		warn(`Could not set ownership: ${ownerResult.error}`);
+	}
+
 	// Register in config with remote reference
 	config.projects[projectName] = { remote: remoteName };
 	saveConfig(config);
+
+	logAuditEvent(AuditActions.PUSH_SUCCESS, {
+		project: projectName,
+		remote: remoteName,
+	});
 
 	// Offer to start container
 	console.log();

@@ -6,6 +6,7 @@ import {
 	getRemotePath,
 } from "@commands/remote.ts";
 import { checkbox, password, select } from "@inquirer/prompts";
+import { AuditActions, logAuditEvent } from "@lib/audit.ts";
 import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
 import {
 	DEVCONTAINER_CONFIG_NAME,
@@ -62,6 +63,34 @@ import inquirer from "inquirer";
 interface ResolvedProject {
 	project: string;
 	projectPath: string;
+}
+
+/**
+ * Sanitize Docker error output for display.
+ * Removes potentially sensitive information while preserving useful details.
+ * @internal Exported for testing
+ */
+export function sanitizeDockerError(errorStr: string): string {
+	let sanitized = errorStr;
+
+	// Only redact paths that likely contain sensitive info
+	// Keep general paths for debugging, redact config/credential paths
+	const sensitivePathPatterns = [
+		/\/Users\/[^/]+\/(\.ssh|\.aws|\.config|\.gnupg|\.devbox)[^\s]*/g,
+		/\/home\/[^/]+\/(\.ssh|\.aws|\.config|\.gnupg|\.devbox)[^\s]*/g,
+		/\/Users\/[^/]+\/\.[^/\s]+/g, // Any dotfile in home
+		/\/home\/[^/]+\/\.[^/\s]+/g, // Any dotfile in home
+	];
+
+	for (const pattern of sensitivePathPatterns) {
+		sanitized = sanitized.replace(pattern, "[REDACTED_PATH]");
+	}
+
+	// Remove potential credential fragments
+	sanitized = sanitized.replace(/password[=:]\S+/gi, "password=[REDACTED]");
+	sanitized = sanitized.replace(/token[=:]\S+/gi, "token=[REDACTED]");
+
+	return sanitized;
 }
 
 /**
@@ -385,17 +414,18 @@ async function handleDecryption(
 
 	const { tmpdir } = await import("node:os");
 	const { join } = await import("node:path");
-	const { unlinkSync } = await import("node:fs");
+	const { mkdtempSync, rmSync } = await import("node:fs");
 	const { execa } = await import("execa");
 	const { decryptFile } = await import("../lib/encryption.ts");
 
-	const timestamp = Date.now();
-	const localEncPath = join(tmpdir(), `devbox-${project}-${timestamp}.tar.enc`);
-	const localTarPath = join(tmpdir(), `devbox-${project}-${timestamp}.tar`);
+	// Use mkdtempSync for unpredictable temp directory (prevents symlink attacks)
+	const tempDir = mkdtempSync(join(tmpdir(), "devbox-"));
+	const localEncPath = join(tempDir, "archive.tar.enc");
+	const localTarPath = join(tempDir, "archive.tar");
 
 	for (let attempt = 1; attempt <= MAX_PASSPHRASE_ATTEMPTS; attempt++) {
 		const passphrase = await password({
-			message: `Enter passphrase (attempt ${attempt}/${MAX_PASSPHRASE_ATTEMPTS}):`,
+			message: "Enter passphrase:",
 		});
 
 		if (!passphrase) {
@@ -437,21 +467,16 @@ async function handleDecryption(
 			decryptSpin.succeed("Project decrypted and extracted");
 			return true;
 		} catch {
-			decryptSpin.fail(
-				"Decryption failed — incorrect passphrase or corrupted archive",
-			);
 			if (attempt === MAX_PASSPHRASE_ATTEMPTS) {
-				error(
-					`Failed to decrypt after ${MAX_PASSPHRASE_ATTEMPTS} attempts. Run 'devbox up' to try again.`,
-				);
+				decryptSpin.fail("Decryption failed");
+				error("Too many failed attempts. Run 'devbox up' to try again.");
 				return false;
 			}
+			decryptSpin.fail("Wrong passphrase. Please try again.");
 		} finally {
+			// Clean up entire temp directory
 			try {
-				unlinkSync(localEncPath);
-			} catch {}
-			try {
-				unlinkSync(localTarPath);
+				rmSync(tempDir, { recursive: true, force: true });
 			} catch {}
 		}
 	}
@@ -554,6 +579,7 @@ async function startSingleProject(
 	config: DevboxConfigV2,
 	options: UpOptions,
 ): Promise<void> {
+	logAuditEvent(AuditActions.UP_START, { project });
 	header(`Starting '${project}'...`);
 
 	if (isDryRun()) {
@@ -610,6 +636,8 @@ async function startSingleProject(
 		}
 
 		await startContainerWithRetry(projectPath, options);
+
+		logAuditEvent(AuditActions.UP_SUCCESS, { project });
 
 		// Run post-up hooks
 		if (projectConfig?.hooks) {
@@ -774,7 +802,7 @@ async function startContainerWithRetry(
 			error(result.error || "Unknown error");
 			if (options.verbose) {
 				console.log("\nFull error output:");
-				console.log(result.error);
+				console.log(sanitizeDockerError(result.error || ""));
 			} else {
 				info("Run with --verbose for full logs.");
 			}

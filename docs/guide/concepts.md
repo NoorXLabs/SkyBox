@@ -221,7 +221,7 @@ For full details on creating, validating, and managing custom templates, see [Cu
 
 ## Encryption
 
-DevBox supports **per-project encryption at rest** using **AES-256-GCM** authenticated encryption with **Argon2id** key derivation (64 MiB memory, 2 passes).
+DevBox supports **per-project encryption at rest** using **AES-256-GCM** authenticated encryption with **Argon2id** key derivation (64 MiB memory, 3 iterations, parallelism 4).
 
 ### How It Works
 
@@ -327,6 +327,20 @@ Continuing is safe when:
 
 Sessions automatically expire after 24 hours. If a machine crashes without running `devbox down`, the session becomes stale and is treated as inactive. No manual intervention is needed.
 
+### Project Ownership
+
+DevBox tracks **project ownership** on the remote server to prevent accidental overwrites and deletions by other users. When you push a project, a `.devbox-owner` file is created on the remote recording your username and machine.
+
+Ownership is checked when:
+- **Pushing** to an existing remote project — only the owner can overwrite
+- **Deleting** a remote project with `devbox rm --remote` — only the owner can delete
+
+If you are not the owner, the operation is blocked with a message identifying the current owner. Projects without an ownership file (created before this feature) are accessible to anyone, and ownership is set on the next push.
+
+::: info
+Ownership uses your local OS username (`whoami`), not the SSH remote user. This means ownership is consistent for you across machines as long as your local username is the same.
+:::
+
 ### Force Bypass
 
 You can bypass the session check entirely when opening a shell:
@@ -385,9 +399,12 @@ projects:
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DEVBOX_HOME` | DevBox directory | `~/.devbox` |
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DEVBOX_HOME` | `~/.devbox` | Override the default DevBox home directory |
+| `DEVBOX_AUDIT` | `0` | Set to `1` to enable audit logging to `~/.devbox/audit.log` |
+| `DEVBOX_SKIP_GPG` | `0` | Set to `1` to skip GPG signature verification for Mutagen downloads |
+| `DEVBOX_HOOK_WARNINGS` | `1` | Set to `0` to suppress one-time hook security warnings |
 
 ## Architecture Summary
 
