@@ -28,6 +28,7 @@ Each project is shown as a card with:
 | Name | Project name |
 | Container | Running or stopped (color-coded) |
 | Sync | Syncing, paused, or none |
+| Session | Session status: "active here" (green), "active on \<machine\>" (yellow), or "none" (gray) |
 | Branch | Current git branch |
 
 ### Detailed View

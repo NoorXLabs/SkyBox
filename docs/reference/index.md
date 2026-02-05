@@ -28,6 +28,25 @@ All commands support these global options:
 --dry-run      Preview commands without executing them
 ```
 
+### Dry-Run Mode
+
+The `--dry-run` flag previews what a command would do without executing any side effects (no SSH, Docker, filesystem writes, or sync operations). Each skipped action is printed with a `[dry-run]` prefix.
+
+```bash
+# Preview starting a project
+skybox up my-project --dry-run
+
+# Preview removing a project and its remote copy
+skybox rm my-project --remote --dry-run
+
+# Preview cloning from remote
+skybox clone my-project --dry-run
+```
+
+Supported commands: `up`, `down`, `clone`, `push`, `rm`, `init`, `new`, `editor`, `config`, `config-devcontainer`, `remote`, `update`, `encrypt`, `open`, `shell`, `hook`.
+
+Read-only commands (`status`, `list`, `browse`, `logs`, `dashboard`, `doctor`) are unaffected since they have no side effects.
+
 ## Quick Reference
 
 ### Setup and Configuration
