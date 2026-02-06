@@ -13,6 +13,8 @@ import {
 } from "@tests/helpers/test-utils.ts";
 import { execa } from "execa";
 
+const execaMocked = await isExecaMocked();
+
 describe("list command", () => {
 	let ctx: TestContext;
 	let projectsDir: string;
@@ -43,10 +45,7 @@ describe("list command", () => {
 		expect(entries).toContain("myapp");
 	});
 
-	test("gets git branch from project", async () => {
-		// Skip if execa is mocked by another test file
-		if (await isExecaMocked()) return;
-
+	test.skipIf(execaMocked)("gets git branch from project", async () => {
 		// Create a fake project with git
 		const projectPath = join(projectsDir, "myapp");
 		mkdirSync(projectPath);

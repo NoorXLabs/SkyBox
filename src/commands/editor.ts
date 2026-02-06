@@ -1,21 +1,13 @@
 // src/commands/editor.ts
 
-import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
+import { requireLoadedConfigOrExit } from "@lib/command-guard.ts";
+import { saveConfig } from "@lib/config.ts";
 import { SUPPORTED_EDITORS } from "@lib/constants.ts";
-import { dryRun, error, header, info, isDryRun, success } from "@lib/ui.ts";
+import { dryRun, header, info, isDryRun, success } from "@lib/ui.ts";
 import inquirer from "inquirer";
 
 export async function editorCommand(): Promise<void> {
-	if (!configExists()) {
-		error("skybox not configured. Run 'skybox init' first.");
-		process.exit(1);
-	}
-
-	const config = loadConfig();
-	if (!config) {
-		error("Failed to load config.");
-		process.exit(1);
-	}
+	const config = requireLoadedConfigOrExit();
 
 	const currentEditor = config.editor || "not set";
 	header("Editor Configuration");

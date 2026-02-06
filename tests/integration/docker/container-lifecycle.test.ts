@@ -7,13 +7,7 @@
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
-	createTestConfig,
-	createTestRemote,
-	writeTestConfig,
-} from "@tests/helpers/test-utils.ts";
-import {
-	createDockerTestContext,
-	createMinimalDevcontainer,
+	createDockerProjectTestContext,
 	type DockerTestContext,
 	getContainerIdByProjectPath,
 	getContainerStatus,
@@ -31,15 +25,8 @@ describe.skipIf(!dockerAvailable || !devcontainerAvailable)(
 	() => {
 		let ctx: DockerTestContext;
 
-		beforeEach(async () => {
-			ctx = createDockerTestContext("lifecycle");
-			// Set up a test config with a mock remote
-			const config = createTestConfig({
-				remotes: { test: createTestRemote("test") },
-				projects: { [ctx.projectName]: { remote: "test" } },
-			});
-			writeTestConfig(ctx.testDir, config);
-			createMinimalDevcontainer(ctx.projectDir);
+		beforeEach(() => {
+			ctx = createDockerProjectTestContext("lifecycle");
 		});
 
 		afterEach(async () => {

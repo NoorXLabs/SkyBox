@@ -11,17 +11,14 @@ import { upCommand } from "@commands/up.ts";
 import { AuditActions, logAuditEvent } from "@lib/audit.ts";
 import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
 import { getErrorMessage } from "@lib/errors.ts";
-import {
-	createSelectiveSyncSessions,
-	createSyncSession,
-	waitForSync,
-} from "@lib/mutagen.ts";
+import { waitForSync } from "@lib/mutagen.ts";
 import { checkWriteAuthorization, setOwnership } from "@lib/ownership.ts";
 import { getProjectsDir } from "@lib/paths.ts";
 import { validateProjectName } from "@lib/projectTemplates.ts";
 import { checkRemoteProjectExists } from "@lib/remote.ts";
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
+import { createProjectSyncSession } from "@lib/sync-session.ts";
 import {
 	confirmDestructiveAction,
 	dryRun,
@@ -222,23 +219,14 @@ export async function pushCommand(
 
 	const projectConfig = config.projects[projectName];
 	const ignores = config.defaults.ignore;
-	const createResult =
-		projectConfig?.sync_paths && projectConfig.sync_paths.length > 0
-			? await createSelectiveSyncSessions(
-					projectName,
-					localPath,
-					host,
-					remotePath,
-					projectConfig.sync_paths,
-					ignores,
-				)
-			: await createSyncSession(
-					projectName,
-					localPath,
-					host,
-					remotePath,
-					ignores,
-				);
+	const createResult = await createProjectSyncSession({
+		project: projectName,
+		localPath,
+		remoteHost: host,
+		remotePath,
+		ignores,
+		syncPaths: projectConfig?.sync_paths,
+	});
 
 	if (!createResult.success) {
 		syncSpin.fail("Failed to create sync session");

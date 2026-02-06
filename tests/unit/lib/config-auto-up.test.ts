@@ -1,34 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import { isAutoUpEnabled } from "@lib/config.ts";
-import type { SkyboxConfigV2 } from "@typedefs/index.ts";
-
-/**
- * Helper to create a minimal valid SkyboxConfigV2 for testing.
- * All fields are empty/default unless overridden.
- */
-function createTestConfig(
-	overrides: Partial<SkyboxConfigV2> = {},
-): SkyboxConfigV2 {
-	return {
-		editor: "code",
-		defaults: {
-			sync_mode: "two-way-resolved",
-			ignore: [],
-			...overrides.defaults,
-		},
-		remotes: {},
-		projects: {},
-		...overrides,
-	};
-}
+import { createTestConfig } from "@tests/helpers/test-utils.ts";
 
 describe("isAutoUpEnabled", () => {
 	describe("project-level settings", () => {
 		test("returns true when project has auto_up: true (overrides global false)", () => {
 			const config = createTestConfig({
 				defaults: {
-					sync_mode: "two-way-resolved",
-					ignore: [],
 					auto_up: false,
 				},
 				projects: {
@@ -45,8 +23,6 @@ describe("isAutoUpEnabled", () => {
 		test("returns true when project has auto_up: true (overrides global true)", () => {
 			const config = createTestConfig({
 				defaults: {
-					sync_mode: "two-way-resolved",
-					ignore: [],
 					auto_up: true,
 				},
 				projects: {
@@ -63,8 +39,6 @@ describe("isAutoUpEnabled", () => {
 		test("returns false when project has auto_up: false (overrides global true)", () => {
 			const config = createTestConfig({
 				defaults: {
-					sync_mode: "two-way-resolved",
-					ignore: [],
 					auto_up: true,
 				},
 				projects: {
@@ -81,8 +55,6 @@ describe("isAutoUpEnabled", () => {
 		test("returns false when project has auto_up: false (overrides global false)", () => {
 			const config = createTestConfig({
 				defaults: {
-					sync_mode: "two-way-resolved",
-					ignore: [],
 					auto_up: false,
 				},
 				projects: {
@@ -101,8 +73,6 @@ describe("isAutoUpEnabled", () => {
 		test("returns true when project has no setting and global defaults.auto_up is true", () => {
 			const config = createTestConfig({
 				defaults: {
-					sync_mode: "two-way-resolved",
-					ignore: [],
 					auto_up: true,
 				},
 				projects: {
@@ -119,8 +89,6 @@ describe("isAutoUpEnabled", () => {
 		test("returns false when project has no setting and global defaults.auto_up is false", () => {
 			const config = createTestConfig({
 				defaults: {
-					sync_mode: "two-way-resolved",
-					ignore: [],
 					auto_up: false,
 				},
 				projects: {
@@ -138,11 +106,6 @@ describe("isAutoUpEnabled", () => {
 	describe("default behavior (no settings)", () => {
 		test("returns false when neither project nor global setting exists", () => {
 			const config = createTestConfig({
-				defaults: {
-					sync_mode: "two-way-resolved",
-					ignore: [],
-					// auto_up not set
-				},
 				projects: {
 					"my-project": {
 						remote: "default",
@@ -156,11 +119,6 @@ describe("isAutoUpEnabled", () => {
 
 		test("returns false when project does not exist in config and no global default", () => {
 			const config = createTestConfig({
-				defaults: {
-					sync_mode: "two-way-resolved",
-					ignore: [],
-					// auto_up not set
-				},
 				projects: {
 					"other-project": {
 						remote: "default",
@@ -174,8 +132,6 @@ describe("isAutoUpEnabled", () => {
 		test("falls back to global default when project does not exist in config", () => {
 			const config = createTestConfig({
 				defaults: {
-					sync_mode: "two-way-resolved",
-					ignore: [],
 					auto_up: true,
 				},
 				projects: {
@@ -191,11 +147,6 @@ describe("isAutoUpEnabled", () => {
 
 		test("returns false when projects object is empty", () => {
 			const config = createTestConfig({
-				defaults: {
-					sync_mode: "two-way-resolved",
-					ignore: [],
-					// auto_up not set
-				},
 				projects: {},
 			});
 

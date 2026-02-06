@@ -1,4 +1,5 @@
 import { realpathSync } from "node:fs";
+import { exitWithError } from "@lib/command-guard.ts";
 import { getContainerId } from "@lib/container.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { sessionName } from "@lib/mutagen.ts";
@@ -18,8 +19,7 @@ export async function logsCommand(
 	options: LogsOptions,
 ): Promise<void> {
 	if (!projectExists(project)) {
-		error(`Project "${project}" not found locally.`);
-		return;
+		exitWithError(`Project "${project}" not found locally.`);
 	}
 
 	if (options.sync) {

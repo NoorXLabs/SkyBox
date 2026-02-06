@@ -5,11 +5,12 @@ import { escapeShellArg } from "@lib/shell.ts";
 import {
 	createE2ETestContext,
 	type E2ETestContext,
+	expectRemoteCommandSuccess,
+	rsyncFromRemote,
+	rsyncToRemote,
 	runTestRemoteCommand,
-	withRetry,
 } from "@tests/e2e/helpers/e2e-test-utils.ts";
 import { isE2EConfigured } from "@tests/e2e/helpers/test-config.ts";
-import { execa } from "execa";
 
 const e2eConfigured = isE2EConfigured();
 
@@ -31,14 +32,11 @@ describe.skipIf(!e2eConfigured)("file synchronization", () => {
 		mkdirSync(localDir, { recursive: true });
 		writeFileSync(join(localDir, "sync-marker.txt"), "synced-content");
 
-		const rsyncSshArgs = ctx.testRemote.key
-			? ["-e", `ssh -i ${ctx.testRemote.key}`]
-			: [];
-
 		// Sync to remote using rsync
-		const remotePath = `${ctx.testRemote.user}@${ctx.testRemote.host}:${ctx.remotePath}/sync-test`;
-		await withRetry(() =>
-			execa("rsync", ["-az", ...rsyncSshArgs, `${localDir}/`, remotePath]),
+		await rsyncToRemote(
+			ctx.testRemote,
+			`${localDir}/`,
+			`${ctx.remotePath}/sync-test`,
 		);
 
 		// Verify on remote
@@ -46,21 +44,22 @@ describe.skipIf(!e2eConfigured)("file synchronization", () => {
 			ctx.testRemote,
 			`cat ${escapeShellArg(`${ctx.remotePath}/sync-test/sync-marker.txt`)}`,
 		);
-		expect(verifyResult.success).toBe(true);
-		expect(verifyResult.stdout?.trim()).toBe("synced-content");
+		expect(expectRemoteCommandSuccess(verifyResult)).toBe("synced-content");
 
 		// Modify on remote
 		const modifyResult = await runTestRemoteCommand(
 			ctx.testRemote,
 			`echo "modified-on-remote" > ${escapeShellArg(`${ctx.remotePath}/sync-test/sync-marker.txt`)}`,
 		);
-		expect(modifyResult.success).toBe(true);
+		expectRemoteCommandSuccess(modifyResult);
 
 		// Sync back
 		const pullDir = join(ctx.testDir, "sync-pulled");
 		mkdirSync(pullDir, { recursive: true });
-		await withRetry(() =>
-			execa("rsync", ["-az", ...rsyncSshArgs, `${remotePath}/`, pullDir]),
+		await rsyncFromRemote(
+			ctx.testRemote,
+			`${ctx.remotePath}/sync-test/`,
+			pullDir,
 		);
 
 		// Verify modification synced

@@ -13,6 +13,29 @@ function requireNonEmpty(
 	return null;
 }
 
+function validateCanonicalProjectName(name: string): ValidationResult {
+	const empty = requireNonEmpty(name, "Project name");
+	if (empty) return empty;
+
+	if (name.startsWith("-") || name.startsWith("_")) {
+		return {
+			valid: false,
+			error: "Project name cannot start with a hyphen or underscore",
+		};
+	}
+
+	const validPattern = /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/;
+	if (!validPattern.test(name)) {
+		return {
+			valid: false,
+			error:
+				"Project name must be alphanumeric and can only contain hyphens and underscores",
+		};
+	}
+
+	return { valid: true };
+}
+
 export function isPathTraversal(path: string): boolean {
 	const normalized = path.replace(/\\/g, "/");
 	const segments = normalized.split("/");
@@ -65,29 +88,16 @@ export function validateRemotePath(path: string): ValidationResult {
 	return { valid: true };
 }
 
+export function validateProjectName(name: string): ValidationResult {
+	return validateCanonicalProjectName(name);
+}
+
 /**
  * Validate that a project name is safe for use in remote path construction.
- * Rejects names that could escape the parent directory via traversal.
+ * Uses the same canonical rules as project-name validation elsewhere.
  */
 export function validateRemoteProjectPath(project: string): ValidationResult {
-	const empty = requireNonEmpty(project, "Project name");
-	if (empty) return empty;
-	if (project.includes("..")) {
-		return {
-			valid: false,
-			error: "Project name cannot contain path traversal sequences",
-		};
-	}
-	if (project.includes("/") || project.includes("\\")) {
-		return {
-			valid: false,
-			error: "Project name cannot contain path separators",
-		};
-	}
-	if (project.startsWith("-")) {
-		return { valid: false, error: "Project name cannot start with a dash" };
-	}
-	return { valid: true };
+	return validateCanonicalProjectName(project);
 }
 
 /**

@@ -5,15 +5,16 @@ import { escapeShellArg } from "@lib/shell.ts";
 import {
 	createE2ETestContext,
 	type E2ETestContext,
+	expectRemoteCommandSuccess,
+	rsyncFromRemote,
+	rsyncToRemote,
 	runTestRemoteCommand,
-	withRetry,
 } from "@tests/e2e/helpers/e2e-test-utils.ts";
 import { isE2EConfigured } from "@tests/e2e/helpers/test-config.ts";
 import {
 	createTestConfig,
 	writeTestConfig,
 } from "@tests/helpers/test-utils.ts";
-import { execa } from "execa";
 
 const e2eConfigured = isE2EConfigured();
 
@@ -51,38 +52,29 @@ describe.skipIf(!e2eConfigured)("rsync push and clone workflow", () => {
 		mkdirSync(localProjectDir, { recursive: true });
 		writeFileSync(join(localProjectDir, "marker.txt"), "test-content-from-e2e");
 
-		const rsyncSshArgs = ctx.testRemote.key
-			? ["-e", `ssh -i ${ctx.testRemote.key}`]
-			: [];
-
-		// Push to remote using rsync (what skybox push does internally)
-		await withRetry(async () => {
-			const remotePath = `${ctx.testRemote.user}@${ctx.testRemote.host}:${ctx.remotePath}/${ctx.projectName}`;
-			await execa("rsync", [
-				"-az",
-				...rsyncSshArgs,
-				"--delete",
-				`${localProjectDir}/`,
-				remotePath,
-			]);
-		});
+		await rsyncToRemote(
+			ctx.testRemote,
+			`${localProjectDir}/`,
+			`${ctx.remotePath}/${ctx.projectName}`,
+			{ delete: true },
+		);
 
 		// Verify file exists on remote
 		const result = await runTestRemoteCommand(
 			ctx.testRemote,
 			`cat ${escapeShellArg(`${ctx.remotePath}/${ctx.projectName}/marker.txt`)}`,
 		);
-		expect(result.success).toBe(true);
-		expect(result.stdout?.trim()).toBe("test-content-from-e2e");
+		expect(expectRemoteCommandSuccess(result)).toBe("test-content-from-e2e");
 
 		// Clone to different local path
 		const cloneDir = join(ctx.testDir, "cloned-project");
 		mkdirSync(cloneDir, { recursive: true });
 
-		await withRetry(async () => {
-			const remotePath = `${ctx.testRemote.user}@${ctx.testRemote.host}:${ctx.remotePath}/${ctx.projectName}/`;
-			await execa("rsync", ["-az", ...rsyncSshArgs, remotePath, cloneDir]);
-		});
+		await rsyncFromRemote(
+			ctx.testRemote,
+			`${ctx.remotePath}/${ctx.projectName}/`,
+			cloneDir,
+		);
 
 		// Verify clone succeeded
 		const clonedContent = readFileSync(join(cloneDir, "marker.txt"), "utf-8");

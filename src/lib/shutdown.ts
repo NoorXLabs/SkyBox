@@ -13,6 +13,10 @@ let installed = false;
 /** Timeout for async cleanup handlers (ms) */
 const CLEANUP_TIMEOUT_MS = 3000;
 
+function getCleanupHandlersInReverse(): CleanupHandler[] {
+	return [...cleanupHandlers].reverse();
+}
+
 /**
  * Register a cleanup handler to run on process exit.
  * Handlers run in reverse order (LIFO).
@@ -32,10 +36,8 @@ export async function runCleanupHandlers(): Promise<void> {
 	if (cleanupRan) return;
 	cleanupRan = true;
 
-	// Run in reverse order (most recent first)
-	for (let i = cleanupHandlers.length - 1; i >= 0; i--) {
+	for (const handler of getCleanupHandlersInReverse()) {
 		try {
-			const handler = cleanupHandlers[i];
 			const result = handler();
 			// If handler returns a promise, race with timeout
 			if (result instanceof Promise) {
@@ -78,9 +80,9 @@ export function installShutdownHandlers(): void {
 		// exit handler must be synchronous - best-effort only
 		if (!cleanupRan) {
 			cleanupRan = true;
-			for (let i = cleanupHandlers.length - 1; i >= 0; i--) {
+			for (const handler of getCleanupHandlersInReverse()) {
 				try {
-					cleanupHandlers[i]();
+					handler();
 				} catch {
 					// Continue running other handlers even if one fails
 				}

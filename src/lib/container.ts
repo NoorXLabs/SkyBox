@@ -23,6 +23,24 @@ function normalizePath(path: string): string {
 	}
 }
 
+function resolveDevcontainerConfigPath(projectPath: string): string | null {
+	const configPath = join(
+		projectPath,
+		DEVCONTAINER_DIR_NAME,
+		DEVCONTAINER_CONFIG_NAME,
+	);
+	const altConfigPath = join(projectPath, DEVCONTAINER_ALT_CONFIG_NAME);
+	if (existsSync(configPath)) return configPath;
+	if (existsSync(altConfigPath)) return altConfigPath;
+	return null;
+}
+
+function parseContainerStatus(rawStatus: string | undefined): ContainerStatus {
+	return rawStatus?.toLowerCase().startsWith("up")
+		? ContainerStatus.Running
+		: ContainerStatus.Stopped;
+}
+
 /** Validate a Docker container ID (short or full hex format). */
 function isValidContainerId(id: string): boolean {
 	return /^[a-f0-9]{12,64}$/.test(id);
@@ -56,7 +74,8 @@ async function queryDockerContainers(options: {
 
 	// Filter by label
 	if (projectPath) {
-		args.push("--filter", `label=${DOCKER_LABEL_KEY}=${projectPath}`);
+		const normalizedPath = normalizePath(projectPath);
+		args.push("--filter", `label=${DOCKER_LABEL_KEY}=${normalizedPath}`);
 	} else {
 		args.push("--filter", `label=${DOCKER_LABEL_KEY}`);
 	}
@@ -73,22 +92,11 @@ async function queryDockerContainers(options: {
 export function getDevcontainerConfig(
 	projectPath: string,
 ): DevcontainerWorkspaceConfig | null {
-	const configPath = join(
-		projectPath,
-		DEVCONTAINER_DIR_NAME,
-		DEVCONTAINER_CONFIG_NAME,
-	);
-	const altConfigPath = join(projectPath, DEVCONTAINER_ALT_CONFIG_NAME);
-
 	let content: string;
 	try {
-		if (existsSync(configPath)) {
-			content = readFileSync(configPath, "utf-8");
-		} else if (existsSync(altConfigPath)) {
-			content = readFileSync(altConfigPath, "utf-8");
-		} else {
-			return null;
-		}
+		const configPath = resolveDevcontainerConfigPath(projectPath);
+		if (!configPath) return null;
+		content = readFileSync(configPath, "utf-8");
 		return JSON.parse(content);
 	} catch {
 		return null;
@@ -115,10 +123,9 @@ export async function getContainerId(
 export async function getContainerStatus(
 	projectPath: string,
 ): Promise<ContainerStatus> {
-	const normalizedPath = normalizePath(projectPath);
 	try {
 		const status = await queryDockerContainers({
-			projectPath: normalizedPath,
+			projectPath,
 			includeAll: true,
 			format: "{{.Status}}",
 		});
@@ -126,10 +133,7 @@ export async function getContainerStatus(
 		if (!status) {
 			return ContainerStatus.NotFound;
 		}
-		if (status.toLowerCase().startsWith("up")) {
-			return ContainerStatus.Running;
-		}
-		return ContainerStatus.Stopped;
+		return parseContainerStatus(status);
 	} catch {
 		return ContainerStatus.Error;
 	}
@@ -139,10 +143,9 @@ export async function getContainerStatus(
 export async function getContainerInfo(
 	projectPath: string,
 ): Promise<ContainerInfo | null> {
-	const normalizedPath = normalizePath(projectPath);
 	try {
 		const line = await queryDockerContainers({
-			projectPath: normalizedPath,
+			projectPath,
 			includeAll: true,
 			format: "{{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Image}}",
 		});
@@ -151,9 +154,7 @@ export async function getContainerInfo(
 
 		const [id, name, rawStatus, image] = line.split("\t");
 		if (!isValidContainerId(id)) return null;
-		const status = rawStatus?.toLowerCase().startsWith("up")
-			? ContainerStatus.Running
-			: ContainerStatus.Stopped;
+		const status = parseContainerStatus(rawStatus);
 		return { id, name, status, rawStatus: rawStatus || "", image };
 	} catch {
 		return null;
@@ -186,10 +187,9 @@ export async function startContainer(
 export async function stopContainer(
 	projectPath: string,
 ): Promise<ContainerResult> {
-	const normalizedPath = normalizePath(projectPath);
 	try {
 		const containerId = await queryDockerContainers({
-			projectPath: normalizedPath,
+			projectPath,
 			idsOnly: true,
 		});
 
@@ -209,11 +209,10 @@ export async function removeContainer(
 	projectPath: string,
 	options?: { removeVolumes?: boolean },
 ): Promise<ContainerResult> {
-	const normalizedPath = normalizePath(projectPath);
 	try {
 		// Get container ID
 		const containerId = await queryDockerContainers({
-			projectPath: normalizedPath,
+			projectPath,
 			includeAll: true,
 			idsOnly: true,
 		});
@@ -250,9 +249,7 @@ export async function listSkyboxContainers(): Promise<ContainerInfo[]> {
 
 		return output.split("\n").map((line) => {
 			const [id, name, rawStatus, image] = line.split("\t");
-			const status = rawStatus?.toLowerCase().startsWith("up")
-				? ContainerStatus.Running
-				: ContainerStatus.Stopped;
+			const status = parseContainerStatus(rawStatus);
 			return { id, name, status, rawStatus: rawStatus || "", image };
 		});
 	} catch {
@@ -269,7 +266,7 @@ export async function openInEditor(
 	try {
 		// Get the container ID for this project
 		const containerId = await queryDockerContainers({
-			projectPath: normalizedPath,
+			projectPath,
 			idsOnly: true,
 		});
 
@@ -329,11 +326,5 @@ export async function attachToShell(
 
 // Check if devcontainer.json exists locally
 export function hasLocalDevcontainerConfig(projectPath: string): boolean {
-	const configPath = join(
-		projectPath,
-		DEVCONTAINER_DIR_NAME,
-		DEVCONTAINER_CONFIG_NAME,
-	);
-	const altConfigPath = join(projectPath, DEVCONTAINER_ALT_CONFIG_NAME);
-	return existsSync(configPath) || existsSync(altConfigPath);
+	return resolveDevcontainerConfigPath(projectPath) !== null;
 }

@@ -8,6 +8,7 @@ import { CARD_GAP, CARD_WIDTH } from "@lib/constants.ts";
 import { getContainerInfo, getContainerStatus } from "@lib/container.ts";
 import { getSyncStatus } from "@lib/mutagen.ts";
 import { getProjectsDir } from "@lib/paths.ts";
+import { formatRelativeTime } from "@lib/relative-time.ts";
 import { getMachineName, readSession } from "@lib/session.ts";
 import { ContainerStatus } from "@typedefs/index.ts";
 import { Box, render, Text, useApp, useInput, useStdout } from "ink";
@@ -91,7 +92,7 @@ async function gatherProjectData(): Promise<DashboardProject[]> {
 			ahead: gitInfo?.ahead ?? 0,
 			behind: gitInfo?.behind ?? 0,
 			diskUsage,
-			lastActive: lastActive ? formatRelativeTime(lastActive) : "-",
+			lastActive: formatRelativeTime(lastActive, "short"),
 			containerName: containerInfo?.name || "-",
 			uptime: containerInfo?.status || "-",
 			remote: projectConfig?.remote || "-",
@@ -101,17 +102,6 @@ async function gatherProjectData(): Promise<DashboardProject[]> {
 	}
 
 	return results;
-}
-
-function formatRelativeTime(date: Date): string {
-	const diffMs = Date.now() - date.getTime();
-	const diffMins = Math.floor(diffMs / 60_000);
-	if (diffMins < 1) return "just now";
-	if (diffMins < 60) return `${diffMins}m ago`;
-	const diffHours = Math.floor(diffMins / 60);
-	if (diffHours < 24) return `${diffHours}h ago`;
-	const diffDays = Math.floor(diffHours / 24);
-	return `${diffDays}d ago`;
 }
 
 interface CardField {

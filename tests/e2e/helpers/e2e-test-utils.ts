@@ -3,6 +3,7 @@
  * Provides test context creation, cleanup, and retry mechanisms.
  */
 
+import { expect } from "bun:test";
 import { mkdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -10,6 +11,7 @@ import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import { getTestRemoteConfig } from "@tests/e2e/helpers/test-config.ts";
 import type { RemoteEntry } from "@typedefs/index.ts";
+import { execa } from "execa";
 
 /**
  * Escapes a shell argument, handling tilde-prefixed paths correctly.
@@ -36,6 +38,12 @@ export interface RetryOptions {
 	delay?: number;
 	/** Called when a retry is about to happen */
 	onRetry?: (error: Error, attempt: number) => void;
+}
+
+export interface RemoteCommandResult {
+	success: boolean;
+	stdout?: string;
+	error?: string;
 }
 
 /** E2E test context with remote configuration and cleanup utilities */
@@ -83,6 +91,13 @@ function validateTestName(name: string): void {
 }
 
 /**
+ * Returns the SSH host string from a remote entry.
+ */
+function getRemoteHost(remote: RemoteEntry): string {
+	return remote.user ? `${remote.user}@${remote.host}` : remote.host;
+}
+
+/**
  * Creates an E2E test context with unique identifiers and cleanup utilities.
  * Sets SKYBOX_HOME to the test directory for proper config isolation.
  *
@@ -117,9 +132,7 @@ export function createE2ETestContext(name: string): E2ETestContext {
 			process.env.SKYBOX_HOME = testDir;
 
 			// Create remote test directory
-			const host = testRemote.user
-				? `${testRemote.user}@${testRemote.host}`
-				: testRemote.host;
+			const host = getRemoteHost(testRemote);
 
 			const result = await runRemoteCommand(
 				host,
@@ -197,6 +210,74 @@ export async function withRetry<T>(
 }
 
 /**
+ * Syncs files from local to remote over rsync with retry support.
+ *
+ * @param remote - Remote server configuration
+ * @param localSource - Local rsync source path
+ * @param remoteDestination - Remote destination path (without host prefix)
+ * @param options - Optional rsync flags and retry overrides
+ */
+export async function rsyncToRemote(
+	remote: RemoteEntry,
+	localSource: string,
+	remoteDestination: string,
+	options: { delete?: boolean; retry?: RetryOptions } = {},
+): Promise<void> {
+	const args = ["-az", ...getRsyncSshArgs(remote)];
+	if (options.delete) {
+		args.push("--delete");
+	}
+	args.push(localSource, `${getRemoteHost(remote)}:${remoteDestination}`);
+	await withRetry(() => execa("rsync", args), options.retry);
+}
+
+/**
+ * Syncs files from remote to local over rsync with retry support.
+ *
+ * @param remote - Remote server configuration
+ * @param remoteSource - Remote source path (without host prefix)
+ * @param localDestination - Local rsync destination path
+ * @param options - Optional retry overrides
+ */
+export async function rsyncFromRemote(
+	remote: RemoteEntry,
+	remoteSource: string,
+	localDestination: string,
+	options: { retry?: RetryOptions } = {},
+): Promise<void> {
+	await withRetry(
+		() =>
+			execa("rsync", [
+				"-az",
+				...getRsyncSshArgs(remote),
+				`${getRemoteHost(remote)}:${remoteSource}`,
+				localDestination,
+			]),
+		options.retry,
+	);
+}
+
+/**
+ * Asserts that a remote command succeeded and returns trimmed stdout.
+ *
+ * @param result - Result from runRemoteCommand/runTestRemoteCommand
+ * @returns Trimmed stdout text (empty string if undefined)
+ */
+export function expectRemoteCommandSuccess(
+	result: RemoteCommandResult,
+): string {
+	expect(result.success).toBe(true);
+	return result.stdout?.trim() ?? "";
+}
+
+/**
+ * Returns rsync SSH arguments for a remote config.
+ */
+function getRsyncSshArgs(remote: RemoteEntry): string[] {
+	return remote.key ? ["-e", `ssh -i ${remote.key}`] : [];
+}
+
+/**
  * Removes the test directory on the remote server.
  *
  * @param runId - The test run ID used to identify the directory
@@ -207,7 +288,7 @@ export async function cleanupRemoteTestDir(
 	remote: RemoteEntry,
 ): Promise<void> {
 	const remotePath = `~/skybox-e2e-tests/run-${runId}`;
-	const host = remote.user ? `${remote.user}@${remote.host}` : remote.host;
+	const host = getRemoteHost(remote);
 
 	await runRemoteCommand(
 		host,
@@ -223,7 +304,7 @@ export async function cleanupRemoteTestDir(
  * @param remote - Remote server configuration
  */
 export async function cleanupStaleLocks(remote: RemoteEntry): Promise<void> {
-	const host = remote.user ? `${remote.user}@${remote.host}` : remote.host;
+	const host = getRemoteHost(remote);
 
 	// Find and delete test-* locks
 	await runRemoteCommand(
@@ -244,7 +325,7 @@ export async function cleanupStaleLocks(remote: RemoteEntry): Promise<void> {
 export async function runTestRemoteCommand(
 	remote: RemoteEntry,
 	command: string,
-): Promise<{ success: boolean; stdout?: string; error?: string }> {
-	const host = remote.user ? `${remote.user}@${remote.host}` : remote.host;
+): Promise<RemoteCommandResult> {
+	const host = getRemoteHost(remote);
 	return runRemoteCommand(host, command, remote.key);
 }

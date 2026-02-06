@@ -4,6 +4,7 @@ import {
 	createE2ETestContext,
 	type E2ETestContext,
 	escapeShellPath,
+	expectRemoteCommandSuccess,
 	runTestRemoteCommand,
 } from "@tests/e2e/helpers/e2e-test-utils.ts";
 import { isE2EConfigured } from "@tests/e2e/helpers/test-config.ts";
@@ -38,29 +39,27 @@ describe.skipIf(!e2eConfigured)("lock system", () => {
 			ctx.testRemote,
 			`mkdir -p ~/.skybox-locks && echo "${encodedContent}" | base64 -d > ${escapeShellPath(lockPath)}`,
 		);
-		expect(createResult.success).toBe(true);
+		expectRemoteCommandSuccess(createResult);
 
 		// Verify lock exists
 		const verifyResult = await runTestRemoteCommand(
 			ctx.testRemote,
 			`test -f ${escapeShellPath(lockPath)} && echo "exists" || echo "missing"`,
 		);
-		expect(verifyResult.success).toBe(true);
-		expect(verifyResult.stdout?.trim()).toBe("exists");
+		expect(expectRemoteCommandSuccess(verifyResult)).toBe("exists");
 
 		// Remove lock
 		const removeResult = await runTestRemoteCommand(
 			ctx.testRemote,
 			`rm -f ${escapeShellPath(lockPath)}`,
 		);
-		expect(removeResult.success).toBe(true);
+		expectRemoteCommandSuccess(removeResult);
 
 		// Verify lock removed
 		const verifyRemovedResult = await runTestRemoteCommand(
 			ctx.testRemote,
 			`test -f ${escapeShellPath(lockPath)} && echo "exists" || echo "missing"`,
 		);
-		expect(verifyRemovedResult.success).toBe(true);
-		expect(verifyRemovedResult.stdout?.trim()).toBe("missing");
+		expect(expectRemoteCommandSuccess(verifyRemovedResult)).toBe("missing");
 	}, 30000);
 });

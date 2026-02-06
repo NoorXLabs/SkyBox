@@ -5,8 +5,10 @@ import { join } from "node:path";
 import { getProjectRemote, getRemoteHost } from "@commands/remote.ts";
 import { requireConfig } from "@lib/config.ts";
 import { getContainerInfo, getContainerStatus } from "@lib/container.ts";
+import { getGitInfo as getSharedGitInfo } from "@lib/git.ts";
 import { getSyncStatus, sessionName } from "@lib/mutagen.ts";
 import { getProjectsDir } from "@lib/paths.ts";
+import { formatRelativeTime as formatRelativeTimeShared } from "@lib/relative-time.ts";
 import {
 	checkSessionConflict,
 	getMachineName,
@@ -67,72 +69,7 @@ export async function getLastActive(projectPath: string): Promise<Date | null> {
 export async function getGitInfo(
 	projectPath: string,
 ): Promise<GitDetails | null> {
-	try {
-		// Check if it's a git repo
-		await execa("git", ["-C", projectPath, "rev-parse", "--git-dir"]);
-	} catch {
-		return null;
-	}
-
-	try {
-		// Get current branch
-		const branchResult = await execa("git", [
-			"-C",
-			projectPath,
-			"rev-parse",
-			"--abbrev-ref",
-			"HEAD",
-		]);
-		const branch = branchResult.stdout.trim() || "HEAD";
-
-		// Get dirty/clean status
-		const statusResult = await execa("git", [
-			"-C",
-			projectPath,
-			"status",
-			"--porcelain",
-		]);
-		const status = statusResult.stdout.trim() ? "dirty" : "clean";
-
-		// Get ahead/behind (may fail if no upstream)
-		let ahead = 0;
-		let behind = 0;
-		try {
-			const countResult = await execa("git", [
-				"-C",
-				projectPath,
-				"rev-list",
-				"--left-right",
-				"--count",
-				"@{upstream}...HEAD",
-			]);
-			const [behindStr, aheadStr] = countResult.stdout.trim().split(/\s+/);
-			behind = parseInt(behindStr, 10) || 0;
-			ahead = parseInt(aheadStr, 10) || 0;
-		} catch {
-			// No upstream configured, that's fine
-		}
-
-		return { branch, status: status as "clean" | "dirty", ahead, behind };
-	} catch {
-		return null;
-	}
-}
-
-function formatRelativeTime(date: Date | null): string {
-	if (!date) return "-";
-
-	const now = Date.now();
-	const diff = now - date.getTime();
-	const seconds = Math.floor(diff / 1000);
-	const minutes = Math.floor(seconds / 60);
-	const hours = Math.floor(minutes / 60);
-	const days = Math.floor(hours / 24);
-
-	if (days > 0) return `${days} day${days > 1 ? "s" : ""} ago`;
-	if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
-	if (minutes > 0) return `${minutes} min${minutes > 1 ? "s" : ""} ago`;
-	return "just now";
+	return getSharedGitInfo(projectPath);
 }
 
 function colorContainer(status: string): string {
@@ -336,7 +273,7 @@ function formatOverviewTable(summaries: ProjectSummary[]): void {
 				case 4:
 					return s.session;
 				case 5:
-					return formatRelativeTime(s.lastActive);
+					return formatRelativeTimeShared(s.lastActive, "long");
 				case 6:
 					return s.size;
 				default:
@@ -365,7 +302,7 @@ function formatOverviewTable(summaries: ProjectSummary[]): void {
 			colorSync(s.sync) + syncPad,
 			s.branch.padEnd(widths[3]),
 			chalk.dim(s.session) + sessionPad,
-			formatRelativeTime(s.lastActive).padEnd(widths[5]),
+			formatRelativeTimeShared(s.lastActive, "long").padEnd(widths[5]),
 			s.size.padEnd(widths[6]),
 		].join("  ");
 		console.log(`  ${row}`);

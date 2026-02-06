@@ -1,9 +1,6 @@
 // src/commands/encrypt.ts
 
 import { randomBytes } from "node:crypto";
-import { mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import {
 	getProjectRemote,
 	getRemoteHost,
@@ -11,9 +8,12 @@ import {
 } from "@commands/remote.ts";
 import { confirm, password, select } from "@inquirer/prompts";
 import { requireConfig, saveConfig } from "@lib/config.ts";
-import { decryptFile, deriveKey } from "@lib/encryption.ts";
-import { escapeShellArg } from "@lib/shell.ts";
-import { runRemoteCommand, secureScp } from "@lib/ssh.ts";
+import { deriveKey } from "@lib/encryption.ts";
+import {
+	createRemoteArchiveTarget,
+	decryptRemoteArchive,
+	remoteArchiveExists,
+} from "@lib/remote-encryption.ts";
 import {
 	dryRun,
 	error,
@@ -179,54 +179,28 @@ async function disableEncryption(project?: string): Promise<void> {
 	if (projectRemote && projectConfig.encryption.salt) {
 		const host = getRemoteHost(projectRemote.remote);
 		const remotePath = getRemotePath(projectRemote.remote, project);
-		const archiveName = `${project}.tar.enc`;
-		const remoteArchivePath = `${remotePath}/${archiveName}`;
+		const archiveTarget = createRemoteArchiveTarget(project, host, remotePath);
 
-		const checkResult = await runRemoteCommand(
-			host,
-			`test -f ${escapeShellArg(remoteArchivePath)} && echo "EXISTS" || echo "NOT_FOUND"`,
-		);
-
-		if (checkResult.success && checkResult.stdout?.includes("EXISTS")) {
+		if (await remoteArchiveExists(archiveTarget)) {
 			const decryptSpin = spinner("Decrypting remote archive...");
 
 			try {
 				const key = await deriveKey(passphrase, projectConfig.encryption.salt);
-				// Use mkdtempSync for unpredictable temp directory (prevents symlink attacks)
-				const tempDir = mkdtempSync(join(tmpdir(), "skybox-"));
-				const localEncPath = join(tempDir, "archive.tar.enc");
-				const localTarPath = join(tempDir, "archive.tar");
+				const decryptResult = await decryptRemoteArchive(
+					archiveTarget,
+					key,
+					(message) => {
+						decryptSpin.text = message;
+					},
+				);
 
-				try {
-					decryptSpin.text = "Downloading encrypted archive...";
-					await secureScp(`${host}:${remoteArchivePath}`, localEncPath);
-
-					decryptSpin.text = "Decrypting...";
-					decryptFile(localEncPath, localTarPath, key);
-
-					decryptSpin.text = "Uploading decrypted files...";
-					const remoteTarPath = `${remotePath}/${project}.tar`;
-					await secureScp(localTarPath, `${host}:${remoteTarPath}`);
-
-					decryptSpin.text = "Extracting...";
-					const extractResult = await runRemoteCommand(
-						host,
-						`cd ${escapeShellArg(remotePath)} && tar xf ${escapeShellArg(`${project}.tar`)} && rm -f ${escapeShellArg(`${project}.tar`)} ${escapeShellArg(archiveName)}`,
-					);
-
-					if (!extractResult.success) {
-						decryptSpin.fail("Failed to extract archive on remote");
-						error(extractResult.error || "Unknown error");
-						return;
-					}
-
-					decryptSpin.succeed("Remote archive decrypted");
-				} finally {
-					// Clean up entire temp directory
-					try {
-						rmSync(tempDir, { recursive: true, force: true });
-					} catch {}
+				if (!decryptResult.success) {
+					decryptSpin.fail("Failed to extract archive on remote");
+					error(decryptResult.error || "Unknown error");
+					return;
 				}
+
+				decryptSpin.succeed("Remote archive decrypted");
 			} catch {
 				decryptSpin.fail(
 					"Failed to decrypt remote archive — incorrect passphrase?",

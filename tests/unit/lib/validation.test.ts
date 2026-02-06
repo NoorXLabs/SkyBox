@@ -249,7 +249,7 @@ describe("validation", () => {
 			const result = validateRemoteProjectPath("../etc");
 			expect(result.valid).toBe(false);
 			if (!result.valid) {
-				expect(result.error).toContain("traversal");
+				expect(result.error).toContain("alphanumeric");
 			}
 		});
 
@@ -257,7 +257,7 @@ describe("validation", () => {
 			const result = validateRemoteProjectPath("..");
 			expect(result.valid).toBe(false);
 			if (!result.valid) {
-				expect(result.error).toContain("traversal");
+				expect(result.error).toContain("alphanumeric");
 			}
 		});
 
@@ -265,7 +265,7 @@ describe("validation", () => {
 			const result = validateRemoteProjectPath("foo/bar");
 			expect(result.valid).toBe(false);
 			if (!result.valid) {
-				expect(result.error).toContain("separator");
+				expect(result.error).toContain("alphanumeric");
 			}
 		});
 
@@ -273,7 +273,7 @@ describe("validation", () => {
 			const result = validateRemoteProjectPath("foo\\bar");
 			expect(result.valid).toBe(false);
 			if (!result.valid) {
-				expect(result.error).toContain("separator");
+				expect(result.error).toContain("alphanumeric");
 			}
 		});
 
@@ -281,7 +281,15 @@ describe("validation", () => {
 			const result = validateRemoteProjectPath("-rf");
 			expect(result.valid).toBe(false);
 			if (!result.valid) {
-				expect(result.error).toContain("dash");
+				expect(result.error).toContain("hyphen or underscore");
+			}
+		});
+
+		test("rejects leading underscore", () => {
+			const result = validateRemoteProjectPath("_tmp");
+			expect(result.valid).toBe(false);
+			if (!result.valid) {
+				expect(result.error).toContain("hyphen or underscore");
 			}
 		});
 	});

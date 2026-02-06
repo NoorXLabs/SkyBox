@@ -1,6 +1,6 @@
 /** Dependency checks run at CLI startup. */
-import { execSync } from "node:child_process";
 import chalk from "chalk";
+import { execaSync } from "execa";
 
 interface DockerStatus {
 	installed: boolean;
@@ -12,7 +12,7 @@ function checkDocker(): DockerStatus {
 
 	// Check if Docker is installed
 	try {
-		execSync("docker --version", { stdio: "pipe" });
+		execaSync("docker", ["--version"], { stdio: "pipe" });
 		status.installed = true;
 	} catch {
 		return status;
@@ -20,7 +20,7 @@ function checkDocker(): DockerStatus {
 
 	// Check if Docker daemon is running
 	try {
-		execSync("docker info", { stdio: "pipe" });
+		execaSync("docker", ["info"], { stdio: "pipe" });
 		status.running = true;
 	} catch {
 		return status;

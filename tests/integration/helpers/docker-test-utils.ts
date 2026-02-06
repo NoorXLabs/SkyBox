@@ -23,6 +23,11 @@ import {
 	DOCKER_TEST_LABEL,
 	TEMPLATES,
 } from "@lib/constants.ts";
+import {
+	createTestConfig,
+	createTestRemote,
+	writeTestConfig,
+} from "@tests/helpers/test-utils.ts";
 import type { DevcontainerConfig, Template } from "@typedefs/index.ts";
 import { execa } from "execa";
 
@@ -116,6 +121,39 @@ export function createDockerTestContext(name: string): DockerTestContext {
 		normalizedProjectDir,
 		cleanup,
 	};
+}
+
+/**
+ * Creates a Docker test context with standard test config and devcontainer setup.
+ *
+ * @param name - Base name for this test context
+ * @param templateId - Devcontainer template id (default: node)
+ * @returns Configured DockerTestContext
+ */
+export function createDockerProjectTestContext(
+	name: string,
+	templateId = "node",
+): DockerTestContext {
+	const ctx = createDockerTestContext(name);
+	const config = createTestConfig({
+		remotes: { test: createTestRemote("test") },
+		projects: { [ctx.projectName]: { remote: "test" } },
+	});
+	writeTestConfig(ctx.testDir, config);
+	createMinimalDevcontainer(ctx.projectDir, templateId);
+	return ctx;
+}
+
+/**
+ * Boots a configured test project container and waits for it to be running.
+ *
+ * @param ctx - Docker test context for the project
+ */
+export async function startDockerProjectContainer(
+	ctx: DockerTestContext,
+): Promise<void> {
+	await execa("devcontainer", ["up", "--workspace-folder", ctx.projectDir]);
+	await waitForContainer(ctx.normalizedProjectDir);
 }
 
 /**

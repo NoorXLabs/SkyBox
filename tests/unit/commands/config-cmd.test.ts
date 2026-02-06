@@ -1,45 +1,33 @@
 // tests/unit/commands/config-cmd.test.ts
-import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { configCommand, setConfigValue, showConfig } from "@commands/config.ts";
 import { loadConfig, saveConfig } from "@lib/config.ts";
 import {
-	createTestContext,
-	type TestContext,
+	createTestConfig,
+	createUnitTestContext,
+	type UnitTestContext,
 } from "@tests/helpers/test-utils.ts";
+import type { SkyboxConfigV2 } from "@typedefs/index.ts";
 
 describe("config command", () => {
-	let ctx: TestContext;
-	let consoleLogSpy: ReturnType<typeof spyOn>;
-	let logOutput: string[];
+	let ctx: UnitTestContext;
+
+	const saveCommandConfig = (overrides: Partial<SkyboxConfigV2> = {}): void => {
+		saveConfig(createTestConfig(overrides));
+	};
 
 	beforeEach(() => {
-		ctx = createTestContext("config");
-
-		// Capture console.log output
-		logOutput = [];
-		consoleLogSpy = spyOn(console, "log").mockImplementation(
-			(...args: unknown[]) => {
-				logOutput.push(
-					args.map((a) => (typeof a === "string" ? a : String(a))).join(" "),
-				);
-			},
-		);
+		ctx = createUnitTestContext("config");
 	});
 
 	afterEach(() => {
 		ctx.cleanup();
-		consoleLogSpy.mockRestore();
+		ctx.restoreConsole();
 	});
 
 	describe("showConfig", () => {
 		test("shows config with remotes", async () => {
-			// Create test config with remotes
-			saveConfig({
-				editor: "cursor",
-				defaults: {
-					sync_mode: "two-way-resolved",
-					ignore: [],
-				},
+			saveCommandConfig({
 				remotes: {
 					myserver: {
 						host: "192.168.1.100",
@@ -53,12 +41,11 @@ describe("config command", () => {
 						key: "~/.ssh/prod_key",
 					},
 				},
-				projects: {},
 			});
 
 			await showConfig();
 
-			const output = logOutput.join("\n");
+			const output = ctx.logOutput.join("\n");
 			expect(output).toContain("Remotes:");
 			expect(output).toContain("myserver");
 			expect(output).toContain("root@192.168.1.100:~/code");
@@ -69,45 +56,32 @@ describe("config command", () => {
 		});
 
 		test("shows message when no remotes configured", async () => {
-			// Create test config without remotes
-			saveConfig({
+			saveCommandConfig({
 				editor: "code",
-				defaults: {
-					sync_mode: "two-way-resolved",
-					ignore: [],
-				},
-				remotes: {},
-				projects: {},
 			});
 
 			await showConfig();
 
-			const output = logOutput.join("\n");
+			const output = ctx.logOutput.join("\n");
 			expect(output).toContain("Remotes:");
 			expect(output).toContain("No remotes configured");
 			expect(output).toContain("editor: code");
 		});
 
 		test("shows remote without user part when user is undefined", async () => {
-			// Create test config with remote that has no user (uses SSH config default)
-			saveConfig({
+			saveCommandConfig({
 				editor: "vim",
-				defaults: {
-					sync_mode: "two-way-resolved",
-					ignore: [],
-				},
 				remotes: {
 					sshconfig: {
 						host: "myhost",
 						path: "~/projects",
 					},
 				},
-				projects: {},
 			});
 
 			await showConfig();
 
-			const output = logOutput.join("\n");
+			const output = ctx.logOutput.join("\n");
 			expect(output).toContain("sshconfig");
 			expect(output).toContain("myhost:~/projects");
 			// Should NOT contain @ before host when user is undefined
@@ -117,16 +91,7 @@ describe("config command", () => {
 
 	describe("setConfigValue", () => {
 		test("sets editor value", async () => {
-			// Create initial config
-			saveConfig({
-				editor: "cursor",
-				defaults: {
-					sync_mode: "two-way-resolved",
-					ignore: [],
-				},
-				remotes: {},
-				projects: {},
-			});
+			saveCommandConfig();
 
 			await setConfigValue("editor", "vim");
 
@@ -135,20 +100,11 @@ describe("config command", () => {
 		});
 
 		test("rejects unknown config key", async () => {
-			// Create initial config
-			saveConfig({
-				editor: "cursor",
-				defaults: {
-					sync_mode: "two-way-resolved",
-					ignore: [],
-				},
-				remotes: {},
-				projects: {},
-			});
+			saveCommandConfig();
 
 			await setConfigValue("unknown_key", "value");
 
-			const output = logOutput.join("\n");
+			const output = ctx.logOutput.join("\n");
 			expect(output).toContain("Unknown config key");
 
 			// Config should remain unchanged
@@ -159,13 +115,8 @@ describe("config command", () => {
 
 	describe("configCommand", () => {
 		test("shows config when called without options", async () => {
-			// Create test config
-			saveConfig({
+			saveCommandConfig({
 				editor: "code",
-				defaults: {
-					sync_mode: "two-way-resolved",
-					ignore: [],
-				},
 				remotes: {
 					testremote: {
 						host: "test.host",
@@ -173,28 +124,18 @@ describe("config command", () => {
 						path: "~/test",
 					},
 				},
-				projects: {},
 			});
 
 			await configCommand({});
 
-			const output = logOutput.join("\n");
+			const output = ctx.logOutput.join("\n");
 			expect(output).toContain("Remotes:");
 			expect(output).toContain("testremote");
 			expect(output).toContain("editor: code");
 		});
 
 		test("handles set subcommand", async () => {
-			// Create initial config
-			saveConfig({
-				editor: "cursor",
-				defaults: {
-					sync_mode: "two-way-resolved",
-					ignore: [],
-				},
-				remotes: {},
-				projects: {},
-			});
+			saveCommandConfig();
 
 			await configCommand({}, "set", "editor", "nano");
 
@@ -203,36 +144,20 @@ describe("config command", () => {
 		});
 
 		test("shows error when set missing arguments", async () => {
-			saveConfig({
-				editor: "cursor",
-				defaults: {
-					sync_mode: "two-way-resolved",
-					ignore: [],
-				},
-				remotes: {},
-				projects: {},
-			});
+			saveCommandConfig();
 
 			await configCommand({}, "set", "editor");
 
-			const output = logOutput.join("\n");
+			const output = ctx.logOutput.join("\n");
 			expect(output).toContain("Missing arguments");
 		});
 
 		test("shows error for unknown subcommand", async () => {
-			saveConfig({
-				editor: "cursor",
-				defaults: {
-					sync_mode: "two-way-resolved",
-					ignore: [],
-				},
-				remotes: {},
-				projects: {},
-			});
+			saveCommandConfig();
 
 			await configCommand({}, "unknown");
 
-			const output = logOutput.join("\n");
+			const output = ctx.logOutput.join("\n");
 			expect(output).toContain("Unknown subcommand");
 		});
 	});

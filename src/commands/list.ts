@@ -4,27 +4,10 @@ import { existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { configExists } from "@lib/config.ts";
 import { getErrorMessage } from "@lib/errors.ts";
+import { getGitBranch } from "@lib/git.ts";
 import { getProjectsDir } from "@lib/paths.ts";
 import { error, header, info } from "@lib/ui.ts";
 import type { LocalProject } from "@typedefs/index.ts";
-import { execa } from "execa";
-
-async function getGitBranch(projectPath: string): Promise<string> {
-	try {
-		const result = await execa("git", [
-			"-C",
-			projectPath,
-			"branch",
-			"--show-current",
-		]);
-		return result.stdout.trim() || "-";
-	} catch (err) {
-		if (process.env.DEBUG) {
-			console.error("[debug] getGitBranch:", getErrorMessage(err));
-		}
-		return "-";
-	}
-}
 
 async function getLocalProjects(): Promise<LocalProject[]> {
 	const projectsDir = getProjectsDir();

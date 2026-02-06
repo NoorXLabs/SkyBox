@@ -2,6 +2,11 @@
 import { existsSync, readdirSync, realpathSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { getProjectsDir } from "@lib/paths.ts";
+import inquirer from "inquirer";
+
+export type SingleProjectResolution =
+	| { project: string }
+	| { reason: "no-projects" | "no-prompt" };
 
 export function resolveProjectFromCwd(): string | null {
 	const cwd = process.cwd();
@@ -48,4 +53,40 @@ export function getProjectPath(projectName: string): string {
 
 export function projectExists(projectName: string): boolean {
 	return existsSync(getProjectPath(projectName));
+}
+
+export async function resolveSingleProject(options: {
+	projectArg?: string;
+	noPrompt?: boolean;
+	promptMessage: string;
+}): Promise<SingleProjectResolution> {
+	let project = options.projectArg;
+
+	if (!project) {
+		project = resolveProjectFromCwd() ?? undefined;
+	}
+
+	if (project) {
+		return { project };
+	}
+
+	const projects = getLocalProjects();
+	if (projects.length === 0) {
+		return { reason: "no-projects" };
+	}
+
+	if (options.noPrompt) {
+		return { reason: "no-prompt" };
+	}
+
+	const { selectedProject } = await inquirer.prompt([
+		{
+			type: "rawlist",
+			name: "selectedProject",
+			message: options.promptMessage,
+			choices: projects,
+		},
+	]);
+
+	return { project: selectedProject };
 }

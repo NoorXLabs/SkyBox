@@ -52,12 +52,18 @@ describe("devcontainer repair", () => {
 		expect(() => readFileSync(configPath, "utf-8")).toThrow();
 	});
 
-	test("createDevcontainerConfig creates valid devcontainer.json", async () => {
+	test("build/write template config creates valid devcontainer.json", async () => {
 		const projectDir = join(projectsDir, "reset-project");
 		mkdirSync(projectDir, { recursive: true });
 
-		const { createDevcontainerConfig } = await import("@lib/templates.ts");
-		createDevcontainerConfig(projectDir, "node", "reset-project");
+		const { buildDevcontainerConfigFromTemplate, writeDevcontainerConfig } =
+			await import("@lib/templates.ts");
+		const config = buildDevcontainerConfigFromTemplate(
+			projectDir,
+			"node",
+			"reset-project",
+		);
+		writeDevcontainerConfig(projectDir, config);
 
 		const configPath = join(
 			projectDir,

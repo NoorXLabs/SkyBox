@@ -4,6 +4,7 @@
  * @description Shared utilities for test setup and teardown.
  */
 
+import { spyOn } from "bun:test";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -15,6 +16,15 @@ export interface TestContext {
 	testDir: string;
 	cleanup: () => void;
 }
+
+export interface UnitTestContext extends TestContext {
+	logOutput: string[];
+	restoreConsole: () => void;
+}
+
+type TestConfigOverrides = Omit<Partial<SkyboxConfigV2>, "defaults"> & {
+	defaults?: Partial<SkyboxConfigV2["defaults"]>;
+};
 
 /**
  * Creates an isolated test environment with SKYBOX_HOME set.
@@ -45,14 +55,44 @@ export function createTestContext(name: string): TestContext {
  * Creates a test config with sensible defaults.
  */
 export function createTestConfig(
-	overrides: Partial<SkyboxConfigV2> = {},
+	overrides: TestConfigOverrides = {},
 ): SkyboxConfigV2 {
+	const { defaults: defaultsOverride, ...restOverrides } = overrides;
+	const defaults: SkyboxConfigV2["defaults"] = {
+		sync_mode: "two-way-resolved",
+		ignore: [],
+		...defaultsOverride,
+	};
+
 	return {
 		editor: "cursor",
-		defaults: { sync_mode: "two-way-resolved", ignore: [] },
+		defaults,
 		remotes: {},
 		projects: {},
-		...overrides,
+		...restOverrides,
+	};
+}
+
+/**
+ * Creates a standard unit test context and captures console.log output.
+ */
+export function createUnitTestContext(name: string): UnitTestContext {
+	const testContext = createTestContext(name);
+	const logOutput: string[] = [];
+	const consoleLogSpy = spyOn(console, "log").mockImplementation(
+		(...args: unknown[]) => {
+			logOutput.push(
+				args.map((a) => (typeof a === "string" ? a : String(a))).join(" "),
+			);
+		},
+	);
+
+	return {
+		...testContext,
+		logOutput,
+		restoreConsole: () => {
+			consoleLogSpy.mockRestore();
+		},
 	};
 }
 

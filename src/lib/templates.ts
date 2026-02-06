@@ -21,34 +21,29 @@ import type {
 	DevcontainerConfig,
 	TemplateSelection,
 	UserLocalTemplate,
+	ValidationResult,
 } from "@typedefs/index.ts";
 import { execa } from "execa";
 
-export function createDevcontainerConfig(
+export function buildDevcontainerConfigFromTemplate(
 	projectPath: string,
 	templateId: string,
 	projectName?: string,
-): void {
+): DevcontainerConfig {
 	const template = TEMPLATES.find((t) => t.id === templateId);
 	if (!template) {
 		throw new Error(`Unknown template: ${templateId}`);
 	}
 
 	// Use provided name or extract from path
-	const name = projectName || projectPath.split("/").pop() || "workspace";
+	const name = projectName || basename(projectPath) || "workspace";
 
 	// Build config with workspace settings
-	const config = {
+	return {
 		...template.config,
 		workspaceFolder: `${WORKSPACE_PATH_PREFIX}/${name}`,
 		workspaceMount: `source=\${localWorkspaceFolder},target=${WORKSPACE_PATH_PREFIX}/${name},type=bind,consistency=cached`,
 	};
-
-	const devcontainerDir = join(projectPath, DEVCONTAINER_DIR_NAME);
-	mkdirSync(devcontainerDir, { recursive: true });
-
-	const configPath = join(devcontainerDir, DEVCONTAINER_CONFIG_NAME);
-	writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`);
 }
 
 /**
@@ -67,10 +62,7 @@ export function writeDevcontainerConfig(
 /**
  * Validate a parsed devcontainer config has required fields.
  */
-export function validateTemplate(config: unknown): {
-	valid: boolean;
-	error?: string;
-} {
+export function validateTemplate(config: unknown): ValidationResult {
 	if (typeof config !== "object" || config === null) {
 		return { valid: false, error: "not a JSON object" };
 	}
@@ -107,7 +99,7 @@ export function loadUserTemplates(): UserLocalTemplate[] {
 				name,
 				config: parsed,
 				valid: validation.valid,
-				error: validation.error,
+				error: validation.valid ? undefined : validation.error,
 			});
 		} catch {
 			templates.push({

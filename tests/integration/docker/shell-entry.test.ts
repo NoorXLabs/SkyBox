@@ -7,18 +7,12 @@ import {
 	test,
 } from "bun:test";
 import {
-	createTestConfig,
-	createTestRemote,
-	writeTestConfig,
-} from "@tests/helpers/test-utils.ts";
-import {
 	cleanupTestContainers,
-	createDockerTestContext,
-	createMinimalDevcontainer,
+	createDockerProjectTestContext,
 	type DockerTestContext,
 	isDevcontainerCliAvailable,
 	isDockerAvailable,
-	waitForContainer,
+	startDockerProjectContainer,
 } from "@tests/integration/helpers/docker-test-utils.ts";
 import { execa } from "execa";
 
@@ -36,17 +30,8 @@ describe.skipIf(!dockerAvailable || !devcontainerAvailable)(
 		});
 
 		beforeEach(async () => {
-			ctx = createDockerTestContext("shell");
-			const config = createTestConfig({
-				remotes: { test: createTestRemote("test") },
-				projects: { [ctx.projectName]: { remote: "test" } },
-			});
-			writeTestConfig(ctx.testDir, config);
-			createMinimalDevcontainer(ctx.projectDir);
-
-			// Start the container
-			await execa("devcontainer", ["up", "--workspace-folder", ctx.projectDir]);
-			await waitForContainer(ctx.normalizedProjectDir);
+			ctx = createDockerProjectTestContext("shell");
+			await startDockerProjectContainer(ctx);
 		});
 
 		afterEach(async () => {

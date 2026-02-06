@@ -1,8 +1,6 @@
 // src/commands/down.ts
 
-import { existsSync, rmSync, unlinkSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { existsSync, rmSync } from "node:fs";
 import {
 	getProjectRemote,
 	getRemoteHost,
@@ -18,7 +16,7 @@ import {
 	removeContainer,
 	stopContainer,
 } from "@lib/container.ts";
-import { deriveKey, encryptFile } from "@lib/encryption.ts";
+import { deriveKey } from "@lib/encryption.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { runHooks } from "@lib/hooks.ts";
 import { pauseSync, waitForSync } from "@lib/mutagen.ts";
@@ -26,11 +24,13 @@ import {
 	getLocalProjects,
 	getProjectPath,
 	projectExists,
-	resolveProjectFromCwd,
+	resolveSingleProject,
 } from "@lib/project.ts";
+import {
+	createRemoteArchiveTarget,
+	encryptRemoteArchive,
+} from "@lib/remote-encryption.ts";
 import { deleteSession } from "@lib/session.ts";
-import { escapeRemotePath, escapeShellArg } from "@lib/shell.ts";
-import { runRemoteCommand, secureScp } from "@lib/ssh.ts";
 import {
 	dryRun,
 	error,
@@ -68,8 +68,7 @@ async function handleEncryption(
 
 	const host = getRemoteHost(projectRemote.remote);
 	const remotePath = getRemotePath(projectRemote.remote, project);
-	const archiveName = `${project}.tar.enc`;
-	const remoteArchivePath = `${remotePath}/${archiveName}`;
+	const archiveTarget = createRemoteArchiveTarget(project, host, remotePath);
 
 	const salt = projectConfig.encryption.salt;
 	if (!salt) {
@@ -93,61 +92,26 @@ async function handleEncryption(
 
 		try {
 			const key = await deriveKey(passphrase, salt);
-			const timestamp = Date.now();
-			const localTarPath = join(tmpdir(), `skybox-${project}-${timestamp}.tar`);
-			const localEncPath = join(
-				tmpdir(),
-				`skybox-${project}-${timestamp}.tar.enc`,
+			const encryptResult = await encryptRemoteArchive(
+				archiveTarget,
+				key,
+				(message) => {
+					encryptSpin.text = message;
+				},
 			);
 
-			try {
-				// Tar project directory on remote (exclude the archive itself)
-				encryptSpin.text = "Creating archive on remote...";
-				const remoteTarPath = `${remotePath}/${project}.tar`;
-				const tarResult = await runRemoteCommand(
-					host,
-					`cd ${escapeRemotePath(remotePath)} && tar cf ${escapeShellArg(`${project}.tar`)} --exclude=${escapeShellArg(archiveName)} --exclude=${escapeShellArg(`${project}.tar`)} -C ${escapeRemotePath(remotePath)} .`,
-				);
-
-				if (!tarResult.success) {
-					encryptSpin.fail("Failed to create archive on remote");
-					error(tarResult.error || "Unknown error");
-					return false;
-				}
-
-				// Download tar from remote
-				encryptSpin.text = "Downloading archive...";
-				await secureScp(`${host}:${remoteTarPath}`, localTarPath);
-
-				// Encrypt locally
-				encryptSpin.text = "Encrypting...";
-				encryptFile(localTarPath, localEncPath, key);
-
-				// Upload encrypted archive to remote
-				encryptSpin.text = "Uploading encrypted archive...";
-				await secureScp(localEncPath, `${host}:${remoteArchivePath}`);
-
-				// Delete plaintext on remote (tar and project files, keep encrypted archive)
-				encryptSpin.text = "Cleaning up remote...";
-				const cleanResult = await runRemoteCommand(
-					host,
-					`rm -f ${escapeRemotePath(remoteTarPath)} && find ${escapeRemotePath(remotePath)} -mindepth 1 -not -name ${escapeShellArg(archiveName)} -depth -delete 2>/dev/null; true`,
-				);
-
-				if (!cleanResult.success) {
-					warn("Could not fully clean up plaintext on remote");
-				}
-
-				encryptSpin.succeed("Project encrypted and plaintext removed");
-				return true;
-			} finally {
-				try {
-					unlinkSync(localTarPath);
-				} catch {}
-				try {
-					unlinkSync(localEncPath);
-				} catch {}
+			if (!encryptResult.success) {
+				encryptSpin.fail("Failed to create archive on remote");
+				error(encryptResult.error || "Unknown error");
+				return false;
 			}
+
+			if (encryptResult.cleanupWarning) {
+				warn("Could not fully clean up plaintext on remote");
+			}
+
+			encryptSpin.succeed("Project encrypted and plaintext removed");
+			return true;
 		} catch {
 			encryptSpin.fail("Encryption failed");
 			if (attempt === MAX_PASSPHRASE_ATTEMPTS) {
@@ -190,44 +154,20 @@ export async function downCommand(
 
 	const config = requireConfig();
 
-	// Resolve project
-	let project = projectArg;
-
-	if (!project) {
-		// Try to detect from current directory
-		project = resolveProjectFromCwd() ?? undefined;
-	}
-
-	if (!project) {
-		// Prompt for project selection
-		const projects = getLocalProjects();
-
-		if (projects.length === 0) {
+	const resolution = await resolveSingleProject({
+		projectArg,
+		noPrompt: options.noPrompt,
+		promptMessage: "Select a project to stop:",
+	});
+	if ("reason" in resolution) {
+		if (resolution.reason === "no-projects") {
 			error("No local projects found.");
 			process.exit(1);
 		}
-
-		if (options.noPrompt) {
-			error("No project specified and --no-prompt is set.");
-			process.exit(1);
-		}
-
-		const { selectedProject } = await inquirer.prompt([
-			{
-				type: "rawlist",
-				name: "selectedProject",
-				message: "Select a project to stop:",
-				choices: projects,
-			},
-		]);
-		project = selectedProject;
-	}
-
-	// At this point project is always resolved — guard for TypeScript narrowing
-	if (!project) {
-		error("No project specified.");
+		error("No project specified and --no-prompt is set.");
 		process.exit(1);
 	}
+	const project = resolution.project;
 
 	// Verify project exists locally
 	if (!projectExists(project)) {

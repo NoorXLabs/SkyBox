@@ -5,19 +5,29 @@ import { getMutagenPath } from "@lib/paths.ts";
 import type { SyncStatus, SyncStatusValue } from "@typedefs/index.ts";
 import { execa } from "execa";
 
+function sanitizeMutagenSegment(value: string, fallback: string): string {
+	const sanitized = value
+		.toLowerCase()
+		.replace(/[^a-z0-9_-]/g, "-")
+		.replace(/-+/g, "-")
+		.replace(/^-|-$/g, "");
+	return sanitized || fallback;
+}
+
+function buildIgnoreArgs(ignores: string[]): string[] {
+	return ignores.flatMap((pattern) => ["--ignore", pattern]);
+}
+
+function toRemoteEndpoint(remoteHost: string, remotePath: string): string {
+	return `${remoteHost}:${remotePath}`;
+}
+
 /**
  * Generate a sanitized Mutagen session name from a project name.
  * Mutagen session names should contain only alphanumeric characters, hyphens, and underscores.
  */
 export function sessionName(project: string): string {
-	// Sanitize: lowercase, replace problematic characters with hyphens, collapse multiple hyphens
-	const sanitized = project
-		.toLowerCase()
-		.replace(/[^a-z0-9_-]/g, "-")
-		.replace(/-+/g, "-")
-		.replace(/^-|-$/g, ""); // Remove leading/trailing hyphens
-
-	return `skybox-${sanitized || "project"}`;
+	return `skybox-${sanitizeMutagenSegment(project, "project")}`;
 }
 
 /** Standard result type for Mutagen operations */
@@ -33,6 +43,27 @@ async function executeMutagenCommand(args: string[]): Promise<MutagenResult> {
 	}
 }
 
+async function createSyncSessionByName(options: {
+	name: string;
+	localPath: string;
+	remoteHost: string;
+	remotePath: string;
+	ignores: string[];
+}): Promise<MutagenResult> {
+	const { name, localPath, remoteHost, remotePath, ignores } = options;
+	return executeMutagenCommand([
+		"sync",
+		"create",
+		localPath,
+		toRemoteEndpoint(remoteHost, remotePath),
+		"--name",
+		name,
+		"--sync-mode",
+		"two-way-resolved",
+		...buildIgnoreArgs(ignores),
+	]);
+}
+
 export async function createSyncSession(
 	project: string,
 	localPath: string,
@@ -40,26 +71,13 @@ export async function createSyncSession(
 	remotePath: string,
 	ignores: string[],
 ): Promise<MutagenResult> {
-	const name = sessionName(project);
-	const beta = `${remoteHost}:${remotePath}`;
-
-	const args = [
-		"sync",
-		"create",
+	return createSyncSessionByName({
+		name: sessionName(project),
 		localPath,
-		beta,
-		"--name",
-		name,
-		"--sync-mode",
-		"two-way-resolved",
-	];
-
-	// Add ignore patterns
-	for (const pattern of ignores) {
-		args.push("--ignore", pattern);
-	}
-
-	return executeMutagenCommand(args);
+		remoteHost,
+		remotePath,
+		ignores,
+	});
 }
 
 export async function getSyncStatus(project: string): Promise<SyncStatus> {
@@ -125,17 +143,9 @@ export async function terminateSession(
  * Generate a sanitized Mutagen session name for a selective sync subpath.
  */
 export function selectiveSessionName(project: string, subpath: string): string {
-	const sanitizedProject = project
-		.toLowerCase()
-		.replace(/[^a-z0-9_-]/g, "-")
-		.replace(/-+/g, "-")
-		.replace(/^-|-$/g, "");
-	const sanitizedPath = subpath
-		.toLowerCase()
-		.replace(/[^a-z0-9_-]/g, "-")
-		.replace(/-+/g, "-")
-		.replace(/^-|-$/g, "");
-	return `skybox-${sanitizedProject || "project"}-${sanitizedPath || "path"}`;
+	const sanitizedProject = sanitizeMutagenSegment(project, "project");
+	const sanitizedPath = sanitizeMutagenSegment(subpath, "path");
+	return `skybox-${sanitizedProject}-${sanitizedPath}`;
 }
 
 /**
@@ -166,18 +176,13 @@ export async function createSelectiveSyncSessions(
 		const name = selectiveSessionName(project, subpath);
 		const localSubpath = join(localPath, subpath);
 		const remoteSubpath = `${remotePath}/${subpath}`;
-
-		const result = await executeMutagenCommand([
-			"sync",
-			"create",
-			localSubpath,
-			`${remoteHost}:${remoteSubpath}`,
-			"--name",
+		const result = await createSyncSessionByName({
 			name,
-			"--sync-mode",
-			"two-way-resolved",
-			...ignores.flatMap((i) => ["--ignore", i]),
-		]);
+			localPath: localSubpath,
+			remoteHost,
+			remotePath: remoteSubpath,
+			ignores,
+		});
 
 		if (!result.success) {
 			return result;

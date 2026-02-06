@@ -8,14 +8,8 @@ import {
 } from "bun:test";
 import { TEMPLATES } from "@lib/constants.ts";
 import {
-	createTestConfig,
-	createTestRemote,
-	writeTestConfig,
-} from "@tests/helpers/test-utils.ts";
-import {
 	cleanupTestContainers,
-	createDockerTestContext,
-	createMinimalDevcontainer,
+	createDockerProjectTestContext,
 	type DockerTestContext,
 	getContainerIdByProjectPath,
 	isDevcontainerCliAvailable,
@@ -41,13 +35,10 @@ describe.skipIf(!dockerAvailable || !devcontainerAvailable)(
 				let ctx: DockerTestContext;
 
 				beforeEach(() => {
-					ctx = createDockerTestContext(`template-${template.id}`);
-					const config = createTestConfig({
-						remotes: { test: createTestRemote("test") },
-						projects: { [ctx.projectName]: { remote: "test" } },
-					});
-					writeTestConfig(ctx.testDir, config);
-					createMinimalDevcontainer(ctx.projectDir, template.id);
+					ctx = createDockerProjectTestContext(
+						`template-${template.id}`,
+						template.id,
+					);
 				});
 
 				afterEach(async () => {

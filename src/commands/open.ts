@@ -4,15 +4,19 @@ import {
 	determinePostStartAction,
 	executePostStartAction,
 } from "@commands/up.ts";
-import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
+import {
+	exitWithError,
+	exitWithErrorAndInfo,
+	requireLoadedConfigOrExit,
+} from "@lib/command-guard.ts";
+import { saveConfig } from "@lib/config.ts";
 import { getContainerStatus } from "@lib/container.ts";
 import {
-	getLocalProjects,
 	getProjectPath,
 	projectExists,
-	resolveProjectFromCwd,
+	resolveSingleProject,
 } from "@lib/project.ts";
-import { dryRun, error, header, info, isDryRun, success } from "@lib/ui.ts";
+import { dryRun, header, isDryRun, success } from "@lib/ui.ts";
 import { ContainerStatus, type OpenOptions } from "@typedefs/index.ts";
 import inquirer from "inquirer";
 
@@ -20,59 +24,33 @@ export async function openCommand(
 	projectArg: string | undefined,
 	options: OpenOptions,
 ): Promise<void> {
-	// Step 1: Check config exists
-	if (!configExists()) {
-		error("skybox not configured. Run 'skybox init' first.");
-		process.exit(1);
-	}
-
-	const config = loadConfig();
-	if (!config) {
-		error("Failed to load config.");
-		process.exit(1);
-	}
+	const config = requireLoadedConfigOrExit();
 
 	// Step 2: Resolve project
-	let project = projectArg;
+	const resolution = await resolveSingleProject({
+		projectArg,
+		noPrompt: options.noPrompt,
+		promptMessage: "Select a project:",
+	});
 
-	if (!project) {
-		project = resolveProjectFromCwd() ?? undefined;
-	}
-
-	if (!project) {
-		const projects = getLocalProjects();
-
-		if (projects.length === 0) {
-			error(
+	if ("reason" in resolution) {
+		if (resolution.reason === "no-projects") {
+			exitWithError(
 				"No local projects found. Run 'skybox clone' or 'skybox push' first.",
 			);
-			process.exit(1);
 		}
-
-		if (options.noPrompt) {
-			error("No project specified and --no-prompt is set.");
-			process.exit(1);
-		}
-
-		const { selectedProject } = await inquirer.prompt([
-			{
-				type: "rawlist",
-				name: "selectedProject",
-				message: "Select a project:",
-				choices: projects,
-			},
-		]);
-		project = selectedProject;
+		exitWithError("No project specified and --no-prompt is set.");
 	}
 
-	if (!projectExists(project ?? "")) {
-		error(
+	const project = resolution.project;
+
+	if (!projectExists(project)) {
+		exitWithError(
 			`Project '${project}' not found locally. Run 'skybox clone ${project}' first.`,
 		);
-		process.exit(1);
 	}
 
-	const projectPath = getProjectPath(project ?? "");
+	const projectPath = getProjectPath(project);
 
 	if (isDryRun()) {
 		dryRun(`Would open editor/shell for '${project}'`);
@@ -83,9 +61,10 @@ export async function openCommand(
 	const containerStatus = await getContainerStatus(projectPath);
 
 	if (containerStatus !== ContainerStatus.Running) {
-		error(`Container for '${project}' is not running.`);
-		info("Run 'skybox up' to start the container first.");
-		process.exit(1);
+		exitWithErrorAndInfo(
+			`Container for '${project}' is not running.`,
+			"Run 'skybox up' to start the container first.",
+		);
 	}
 
 	header(`Opening '${project}'...`);

@@ -2,6 +2,7 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { exitWithError, exitWithErrorAndInfo } from "@lib/command-guard.ts";
 import { loadConfig } from "@lib/config.ts";
 import {
 	DEVCONTAINER_CONFIG_NAME,
@@ -23,19 +24,17 @@ function getDevcontainerPath(projectPath: string): string {
 
 export async function devcontainerEditCommand(project: string): Promise<void> {
 	if (!projectExists(project)) {
-		error(`Project "${project}" not found locally.`);
-		return;
+		exitWithError(`Project "${project}" not found locally.`);
 	}
 
 	const projectPath = getProjectPath(project);
 	const configPath = getDevcontainerPath(projectPath);
 
 	if (!existsSync(configPath)) {
-		error(`No devcontainer.json found for "${project}".`);
-		info(
+		exitWithErrorAndInfo(
+			`No devcontainer.json found for "${project}".`,
 			'Use "skybox config devcontainer reset" to create one from a template.',
 		);
-		return;
 	}
 
 	if (isDryRun()) {
@@ -66,8 +65,7 @@ export async function devcontainerEditCommand(project: string): Promise<void> {
 
 export async function devcontainerResetCommand(project: string): Promise<void> {
 	if (!projectExists(project)) {
-		error(`Project "${project}" not found locally.`);
-		return;
+		exitWithError(`Project "${project}" not found locally.`);
 	}
 
 	const projectPath = getProjectPath(project);

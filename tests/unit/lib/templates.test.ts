@@ -8,7 +8,7 @@ import {
 	TEMPLATES,
 } from "@lib/constants.ts";
 import {
-	createDevcontainerConfig,
+	buildDevcontainerConfigFromTemplate,
 	loadUserTemplates,
 	scaffoldTemplate,
 	validateTemplate,
@@ -38,8 +38,9 @@ describe("templates", () => {
 		expect(TEMPLATES.map((t) => t.id)).toContain("generic");
 	});
 
-	test("createDevcontainerConfig creates .devcontainer directory", () => {
-		createDevcontainerConfig(ctx.testDir, "node");
+	test("buildDevcontainerConfigFromTemplate + writeDevcontainerConfig creates .devcontainer directory", () => {
+		const config = buildDevcontainerConfigFromTemplate(ctx.testDir, "node");
+		writeDevcontainerConfig(ctx.testDir, config);
 		expect(existsSync(join(ctx.testDir, DEVCONTAINER_DIR_NAME))).toBe(true);
 		expect(
 			existsSync(
@@ -48,8 +49,9 @@ describe("templates", () => {
 		).toBe(true);
 	});
 
-	test("createDevcontainerConfig writes valid JSON", () => {
-		createDevcontainerConfig(ctx.testDir, "node");
+	test("buildDevcontainerConfigFromTemplate writes valid JSON", () => {
+		const config = buildDevcontainerConfigFromTemplate(ctx.testDir, "node");
+		writeDevcontainerConfig(ctx.testDir, config);
 		const content = readFileSync(
 			join(ctx.testDir, DEVCONTAINER_DIR_NAME, DEVCONTAINER_CONFIG_NAME),
 			"utf-8",
@@ -72,7 +74,9 @@ describe("templates", () => {
 				workspaceMount: "source=...,target=...,type=bind",
 			});
 			expect(result.valid).toBe(false);
-			expect(result.error).toContain("workspaceFolder");
+			if (!result.valid) {
+				expect(result.error).toContain("workspaceFolder");
+			}
 		});
 
 		test("missing workspaceMount", () => {
@@ -80,7 +84,9 @@ describe("templates", () => {
 				workspaceFolder: "/workspaces/test",
 			});
 			expect(result.valid).toBe(false);
-			expect(result.error).toContain("workspaceMount");
+			if (!result.valid) {
+				expect(result.error).toContain("workspaceMount");
+			}
 		});
 
 		test("non-object input", () => {

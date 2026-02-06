@@ -1,7 +1,11 @@
 // src/commands/shell.ts
 
 import { upCommand } from "@commands/up.ts";
-import { configExists, loadConfig } from "@lib/config.ts";
+import {
+	exitWithError,
+	exitWithErrorAndInfo,
+	requireLoadedConfigOrExit,
+} from "@lib/command-guard.ts";
 import { WORKSPACE_PATH_PREFIX } from "@lib/constants.ts";
 import {
 	getContainerId,
@@ -20,23 +24,13 @@ export async function shellCommand(
 	options: ShellOptions,
 ): Promise<void> {
 	// Step 1: Check config exists
-	if (!configExists()) {
-		error("skybox not configured. Run 'skybox init' first.");
-		process.exit(1);
-	}
-
-	const config = loadConfig();
-	if (!config) {
-		error("Failed to load config.");
-		process.exit(1);
-	}
+	requireLoadedConfigOrExit();
 
 	// Step 2: Verify project exists locally
 	if (!projectExists(project)) {
-		error(
-			`Project '${project}' not found. Run 'skybox clone ${project}' first.`,
+		exitWithError(
+			`Project '${project}' not found locally. Run 'skybox clone ${project}' first.`,
 		);
-		process.exit(1);
 	}
 
 	const projectPath = getProjectPath(project);
@@ -57,11 +51,10 @@ export async function shellCommand(
 		const sessionConflict = checkSessionConflict(projectPath);
 
 		if (sessionConflict.hasConflict && sessionConflict.existingSession) {
-			error(
+			exitWithErrorAndInfo(
 				`Project '${project}' has an active session on ${sessionConflict.existingSession.machine} (${sessionConflict.existingSession.user}).`,
+				"Use --force to bypass session check (use with caution).",
 			);
-			info("Use --force to bypass session check (use with caution).");
-			process.exit(1);
 		}
 
 		const currentSession = readSession(projectPath);
@@ -97,8 +90,7 @@ export async function shellCommand(
 	// Step 5: Get container ID
 	const containerId = await getContainerId(projectPath);
 	if (!containerId) {
-		error("Failed to find container. Try running 'skybox up' first.");
-		process.exit(1);
+		exitWithError("Failed to find container. Try running 'skybox up' first.");
 	}
 
 	// Step 6: Get workspace path from devcontainer.json
