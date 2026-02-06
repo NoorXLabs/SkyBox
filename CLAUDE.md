@@ -381,8 +381,9 @@ Uses Docker with devcontainer spec:
 
 Before ending a session where code was written or modified:
 
-1. **Update CLAUDE.md** — If you learned something useful (new gotchas, conventions, commands, architectural decisions), run `/claude-md-management:revise-claude-md`. Skip if the session was simple Q&A or trivial changes.
-2. **Update task tracker** — If you completed tasks from a plan, mark them done with `TaskUpdate` and update `plans/IMPLEMENTATION.md` with `[x]` and commit hashes in `plans/archive/ARCHIVED-IMPLEMENTATION.md`.
+1. **Update CHANGELOG.md** — Add entries to the `[Unreleased]` section for any user-facing changes (features, fixes, breaking changes, removals). Follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format with categories: Added, Changed, Fixed, Removed. Skip for docs-only or internal-only changes (CI tweaks, plan archiving, skill edits).
+2. **Update CLAUDE.md** — If you learned something useful (new gotchas, conventions, commands, architectural decisions), run `/claude-md-management:revise-claude-md`. Skip if the session was simple Q&A or trivial changes.
+3. **Update task tracker** — If you completed tasks from a plan, mark them done with `TaskUpdate` and update `plans/IMPLEMENTATION.md` with `[x]` and commit hashes in `plans/archive/ARCHIVED-IMPLEMENTATION.md`.
 
 Note: `bun run check` is enforced automatically by a native Stop hook — no manual step needed.
 

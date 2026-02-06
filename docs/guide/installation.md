@@ -181,7 +181,7 @@ If the SSH connection test fails:
 If Mutagen fails to install automatically:
 
 1. Check your internet connection
-2. Try manual installation: https://mutagen.io/documentation/introduction/installation
+2. Try manual installation: [Mutagen](https://mutagen.io/documentation/introduction/installation)
 3. Run `skybox init` again after installing manually
 
 ### Permission Denied Errors
