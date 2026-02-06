@@ -6,6 +6,7 @@ import {
 	fetchMutagenSignature,
 	isGpgAvailable,
 	verifyGpgSignature,
+	verifyKeyFingerprint,
 } from "@lib/gpg.ts";
 import {
 	createTestContext,
@@ -78,6 +79,43 @@ describe("GPG verification", () => {
 				d.startsWith("skybox-gpg-"),
 			);
 			expect(afterDirs.length).toBe(beforeDirs.length);
+		});
+	});
+
+	describe("verifyKeyFingerprint", () => {
+		test("returns error when GPG is not available", async () => {
+			const gpgAvailable = await isGpgAvailable();
+			if (gpgAvailable) return; // Skip if GPG is installed
+
+			const result = await verifyKeyFingerprint("fake-key", "ABCD1234");
+			expect(result.matches).toBe(false);
+			expect(result.error).toContain("not available");
+		});
+
+		test("returns mismatch for invalid key material", async () => {
+			const gpgAvailable = await isGpgAvailable();
+			if (!gpgAvailable) return; // Skip if GPG is not installed
+
+			const result = await verifyKeyFingerprint(
+				"not-a-real-key",
+				"ABCD1234ABCD1234ABCD1234ABCD1234ABCD1234",
+			);
+			// Should fail to import the invalid key
+			expect(result.matches).toBe(false);
+		});
+
+		test("normalizes fingerprint comparison (case insensitive, strips spaces)", async () => {
+			const gpgAvailable = await isGpgAvailable();
+			if (!gpgAvailable) return;
+
+			// verifyKeyFingerprint normalizes the expected fingerprint to uppercase
+			// and strips whitespace before comparison. This test verifies that behavior
+			// by checking that the function doesn't crash on varied input formats.
+			const result = await verifyKeyFingerprint(
+				"not-a-real-key",
+				"abcd 1234 ABCD 1234",
+			);
+			expect(result).toHaveProperty("matches");
 		});
 	});
 

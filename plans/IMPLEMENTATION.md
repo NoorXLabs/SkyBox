@@ -68,6 +68,14 @@ Share config between machines easily via encrypted export/import.
 - **Files:** New `src/commands/export.ts`, `src/commands/import.ts`
 - **Notes:** Export as encrypted JSON/YAML bundle; import with validation
 
+- [ ] ### Encryption Migration & Legacy Deprecation
+
+- [ ] Add `skybox encrypt migrate` subcommand to re-encrypt data with current Argon2 parameters
+- [ ] Deprecate legacy Argon2 fallback in v0.9.0
+
+- **Files:** New `src/commands/encrypt.ts`, `src/lib/encryption.ts`
+- **Notes:** Legacy Argon2 parameters (time=2, parallelism=1) were hardened in v0.7.7 (time=3, parallelism=4). Migration subcommand should re-derive keys with current OWASP-compliant parameters. Remove fallback path after deprecation period.
+
 ---
 
 ## Future Features — Lower Priority

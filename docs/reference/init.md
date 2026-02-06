@@ -55,6 +55,8 @@ The wizard allows you to:
 - Optionally copy your SSH key to the server using `ssh-copy-id`
 - Set the remote base path for storing projects (default: `~/code`)
 
+SSH fields are validated as you enter them. Hostnames, usernames, key paths, and remote paths are checked for invalid characters (such as newlines or shell metacharacters) and will prompt you to re-enter if invalid.
+
 ### Editor Options
 
 Built-in support for:

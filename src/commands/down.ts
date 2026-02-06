@@ -28,7 +28,7 @@ import {
 } from "@lib/project.ts";
 import { deleteSession } from "@lib/session.ts";
 import { escapeShellArg } from "@lib/shell.ts";
-import { runRemoteCommand } from "@lib/ssh.ts";
+import { runRemoteCommand, secureScp } from "@lib/ssh.ts";
 import {
 	dryRun,
 	error,
@@ -93,7 +93,6 @@ async function handleEncryption(
 			const { tmpdir } = await import("node:os");
 			const { join } = await import("node:path");
 			const { unlinkSync } = await import("node:fs");
-			const { execa } = await import("execa");
 
 			const key = await deriveKey(passphrase, salt);
 			const timestamp = Date.now();
@@ -120,7 +119,7 @@ async function handleEncryption(
 
 				// Download tar from remote
 				encryptSpin.text = "Downloading archive...";
-				await execa("scp", [`${host}:${remoteTarPath}`, localTarPath]);
+				await secureScp(`${host}:${remoteTarPath}`, localTarPath);
 
 				// Encrypt locally
 				encryptSpin.text = "Encrypting...";
@@ -128,7 +127,7 @@ async function handleEncryption(
 
 				// Upload encrypted archive to remote
 				encryptSpin.text = "Uploading encrypted archive...";
-				await execa("scp", [localEncPath, `${host}:${remoteArchivePath}`]);
+				await secureScp(localEncPath, `${host}:${remoteArchivePath}`);
 
 				// Delete plaintext on remote (tar and project files, keep encrypted archive)
 				encryptSpin.text = "Cleaning up remote...";

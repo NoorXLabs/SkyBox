@@ -1,7 +1,7 @@
 // src/commands/clone.ts
 
 import { existsSync, mkdirSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { getRemoteProjects } from "@commands/browse.ts";
 import {
 	getRemoteHost,
@@ -57,6 +57,19 @@ export async function cloneSingleProject(
 	header(`Cloning '${project}' from ${host}:${remotePath}...`);
 
 	const localPath = join(getProjectsDir(), project);
+
+	// Defense-in-depth: verify resolved path stays under projects directory
+	const normalizedLocal = resolve(localPath);
+	const normalizedProjectsDir = resolve(getProjectsDir());
+	if (!normalizedLocal.startsWith(`${normalizedProjectsDir}/`)) {
+		error("Invalid project path: would write outside projects directory");
+		logAuditEvent(AuditActions.CLONE_FAIL, {
+			project,
+			remote: remoteName,
+			error: "Path traversal detected",
+		});
+		return false;
+	}
 
 	if (isDryRun()) {
 		dryRun(`Would check if project exists on remote`);
@@ -250,7 +263,13 @@ export async function cloneCommand(project?: string): Promise<void> {
 	// Filter out already-local projects
 	const localProjects = getLocalProjects();
 	const localSet = new Set(localProjects);
-	const available = remoteProjects.filter((p) => !localSet.has(p.name));
+	const available = remoteProjects.filter((p) => {
+		if (localSet.has(p.name)) return false;
+		// Validate remote-sourced names for safety
+		const validation = validateProjectName(p.name);
+		if (!validation.valid) return false;
+		return true;
+	});
 
 	if (available.length === 0) {
 		info("All remote projects are already cloned locally.");
@@ -273,6 +292,11 @@ export async function cloneCommand(project?: string): Promise<void> {
 	// Clone each project sequentially
 	const cloned: string[] = [];
 	for (const name of selected) {
+		const validation = validateProjectName(name);
+		if (!validation.valid) {
+			error(`Skipping invalid project name: ${name}`);
+			continue;
+		}
 		const ok = await cloneSingleProject(name, remoteName, config);
 		if (ok) {
 			cloned.push(name);

@@ -133,6 +133,16 @@ export const MUTAGEN_BINARY_NAME = "mutagen";
 /** GitHub repository path for Mutagen releases. */
 export const MUTAGEN_REPO = "mutagen-io/mutagen";
 
+/**
+ * Pinned GPG key fingerprint for Mutagen release verification.
+ * NOTE: As of 2026-02-05, mutagen-io has no GPG keys on GitHub.
+ * The fingerprint below is a placeholder. When they publish a key, update it.
+ * Verify with: curl -sL https://github.com/mutagen-io.gpg | gpg --with-colons --import-options show-only --import 2>&1 | grep "^fpr:"
+ * @see https://github.com/mutagen-io.gpg
+ */
+export const MUTAGEN_GPG_FINGERPRINT =
+	"B850CA0C3E8B0D5B6029AD3C5B72E3F42C271B2A";
+
 /** Default sync mode for Mutagen sessions. */
 export const DEFAULT_SYNC_MODE = "two-way-resolved";
 
@@ -256,6 +266,9 @@ export const COMMON_MOUNTS = [
 export const COMMON_VSCODE_SETTINGS = {
 	"terminal.integrated.defaultProfile.linux": "zsh",
 };
+
+/** Maximum audit log file size in bytes before rotation (10 MB). */
+export const AUDIT_LOG_MAX_BYTES = 10 * 1024 * 1024;
 
 /** Supported editor configurations. */
 export const SUPPORTED_EDITORS = [

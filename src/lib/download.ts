@@ -9,13 +9,18 @@ import {
 	writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
-import { MUTAGEN_REPO, MUTAGEN_VERSION } from "@lib/constants.ts";
+import {
+	MUTAGEN_GPG_FINGERPRINT,
+	MUTAGEN_REPO,
+	MUTAGEN_VERSION,
+} from "@lib/constants.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import {
 	fetchMutagenPublicKey,
 	fetchMutagenSignature,
 	isGpgAvailable,
 	verifyGpgSignature,
+	verifyKeyFingerprint,
 } from "@lib/gpg.ts";
 import { getBinDir, getMutagenPath } from "@lib/paths.ts";
 import { extract } from "tar";
@@ -136,6 +141,12 @@ export async function downloadMutagen(
 			return { success: false, error: "Failed to fetch checksums" };
 		}
 
+		if (!isGpgPreferred()) {
+			onProgress?.(
+				"GPG signature verification disabled (SKYBOX_SKIP_GPG=1). Using checksum-only verification.",
+			);
+		}
+
 		// Verify checksums file GPG signature BEFORE trusting checksums
 		// This ensures we verify the integrity of the checksum list before using it
 		if (await isGpgAvailable()) {
@@ -157,24 +168,41 @@ export async function downloadMutagen(
 					"GPG signature unavailable - checksums not cryptographically verified",
 				);
 			} else {
-				const gpgResult = await verifyGpgSignature(
-					Buffer.from(checksumContent),
-					gpgSignature,
+				// Verify fetched key matches pinned fingerprint
+				const fpCheck = await verifyKeyFingerprint(
 					publicKey,
+					MUTAGEN_GPG_FINGERPRINT,
 				);
-
-				if (!gpgResult.verified) {
+				if (!fpCheck.matches) {
 					if (isGpgPreferred()) {
 						return {
 							success: false,
-							error: gpgResult.error || "GPG signature verification failed",
+							error: `GPG key fingerprint mismatch. Expected: ${MUTAGEN_GPG_FINGERPRINT}, got: ${fpCheck.actualFingerprint || "unknown"}. The signing key may have been compromised or rotated.`,
 						};
 					}
 					onProgress?.(
-						"GPG signature invalid - checksums not cryptographically verified",
+						"GPG key fingerprint mismatch - signature verification skipped",
 					);
 				} else {
-					onProgress?.("GPG signature verified");
+					const gpgResult = await verifyGpgSignature(
+						Buffer.from(checksumContent),
+						gpgSignature,
+						publicKey,
+					);
+
+					if (!gpgResult.verified) {
+						if (isGpgPreferred()) {
+							return {
+								success: false,
+								error: gpgResult.error || "GPG signature verification failed",
+							};
+						}
+						onProgress?.(
+							"GPG signature invalid - checksums not cryptographically verified",
+						);
+					} else {
+						onProgress?.("GPG signature verified");
+					}
 				}
 			}
 		} else {

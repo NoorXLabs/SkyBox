@@ -33,11 +33,18 @@ import pkg from "../package.json";
 installShutdownHandlers();
 
 // Run Docker check on bare `skybox` (no args) or `skybox init`
+// Skip for --help, --version, -v, -h which should always work
 const args = process.argv.slice(2);
 const command = args[0];
+const isHelpOrVersion =
+	args.includes("--help") ||
+	args.includes("-h") ||
+	args.includes("--version") ||
+	args.includes("-v");
 const showDockerBanner =
-	args.length === 0 || // bare `skybox`
-	command === "init"; // `skybox init`
+	!isHelpOrVersion &&
+	(args.length === 0 || // bare `skybox`
+		command === "init"); // `skybox init`
 
 if (showDockerBanner) {
 	runStartupChecks();
@@ -184,7 +191,15 @@ program.command("hook-check", { hidden: true }).action(hookCheckCommand);
 
 // Parse and run the command, then check for updates
 (async () => {
-	await program.parseAsync();
+	try {
+		await program.parseAsync();
+	} catch (err) {
+		// Commander already prints help for unknown commands.
+		// Catch unhandled errors from command actions and emit consistent exit.
+		const message = err instanceof Error ? err.message : String(err);
+		console.error(chalk.red(`Error: ${message}`));
+		process.exit(1);
+	}
 
 	try {
 		const currentVersion: string = pkg.version;

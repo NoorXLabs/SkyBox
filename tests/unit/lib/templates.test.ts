@@ -191,6 +191,32 @@ describe("templates", () => {
 			scaffoldTemplate("test");
 			expect(existsSync(templatesDir)).toBe(true);
 		});
+
+		test("rejects path traversal in template name", () => {
+			expect(() => scaffoldTemplate("../evil")).toThrow(
+				"Invalid template name",
+			);
+		});
+
+		test("rejects forward slash in template name", () => {
+			expect(() => scaffoldTemplate("foo/bar")).toThrow(
+				"Invalid template name",
+			);
+		});
+
+		test("rejects backslash in template name", () => {
+			expect(() => scaffoldTemplate("foo\\bar")).toThrow(
+				"Invalid template name",
+			);
+		});
+
+		test("rejects leading dash in template name", () => {
+			expect(() => scaffoldTemplate("-evil")).toThrow("Invalid template name");
+		});
+
+		test("rejects empty template name", () => {
+			expect(() => scaffoldTemplate("")).toThrow("Invalid template name");
+		});
 	});
 
 	describe("writeDevcontainerConfig", () => {

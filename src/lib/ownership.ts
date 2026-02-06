@@ -71,6 +71,10 @@ export async function getOwnershipStatus(
 	host: string,
 	projectPath: string,
 ): Promise<OwnershipStatus> {
+	// Reject paths with traversal sequences
+	if (projectPath.includes("..")) {
+		return { hasOwner: false };
+	}
 	const ownershipFile = `${projectPath}/${OWNERSHIP_FILE_NAME}`;
 	const command = `cat ${escapeShellArg(ownershipFile)} 2>/dev/null`;
 
@@ -100,6 +104,13 @@ export async function setOwnership(
 	host: string,
 	projectPath: string,
 ): Promise<SetOwnershipResult> {
+	// Reject paths with traversal sequences
+	if (projectPath.includes("..")) {
+		return {
+			success: false,
+			error: "Invalid project path: contains traversal sequences",
+		};
+	}
 	const info = createOwnershipInfo();
 	const json = JSON.stringify(info, null, 2);
 	const ownershipFile = `${projectPath}/${OWNERSHIP_FILE_NAME}`;

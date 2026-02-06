@@ -23,6 +23,11 @@ function normalizePath(path: string): string {
 	}
 }
 
+/** Validate a Docker container ID (short or full hex format). */
+function isValidContainerId(id: string): boolean {
+	return /^[a-f0-9]{12,64}$/.test(id);
+}
+
 import { getExecaErrorMessage, hasExitCode } from "@lib/errors.ts";
 import {
 	type ContainerInfo,
@@ -102,7 +107,8 @@ export async function getContainerId(
 			projectPath,
 			idsOnly: true,
 		});
-		return containerId || null;
+		if (!containerId || !isValidContainerId(containerId)) return null;
+		return containerId;
 	} catch {
 		return null;
 	}
@@ -146,8 +152,12 @@ export async function getContainerInfo(
 
 		if (!line) return null;
 
-		const [id, name, status, image] = line.split("\t");
-		return { id, name, status, image };
+		const [id, name, rawStatus, image] = line.split("\t");
+		if (!isValidContainerId(id)) return null;
+		const status = rawStatus?.toLowerCase().startsWith("up")
+			? ContainerStatus.Running
+			: ContainerStatus.Stopped;
+		return { id, name, status, rawStatus: rawStatus || "", image };
 	} catch {
 		return null;
 	}
@@ -242,8 +252,11 @@ export async function listSkyboxContainers(): Promise<ContainerInfo[]> {
 		if (!output) return [];
 
 		return output.split("\n").map((line) => {
-			const [id, name, status, image] = line.split("\t");
-			return { id, name, status, image };
+			const [id, name, rawStatus, image] = line.split("\t");
+			const status = rawStatus?.toLowerCase().startsWith("up")
+				? ContainerStatus.Running
+				: ContainerStatus.Stopped;
+			return { id, name, status, rawStatus: rawStatus || "", image };
 		});
 	} catch {
 		return [];

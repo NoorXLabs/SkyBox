@@ -123,13 +123,13 @@ describe("projectTemplates", () => {
 		test("rejects empty names", () => {
 			const result = validateProjectName("");
 			expect(result.valid).toBe(false);
-			expect(result.error).toContain("empty");
+			if (!result.valid) expect(result.error).toContain("empty");
 		});
 
 		test("rejects names with spaces", () => {
 			const result = validateProjectName("my project");
 			expect(result.valid).toBe(false);
-			expect(result.error).toContain("alphanumeric");
+			if (!result.valid) expect(result.error).toContain("alphanumeric");
 		});
 
 		test("rejects names with special characters", () => {

@@ -1,6 +1,10 @@
 // tests/unit/lib/shell.test.ts
 import { describe, expect, test } from "bun:test";
-import { buildShellCommand, escapeShellArg } from "@lib/shell.ts";
+import {
+	buildShellCommand,
+	escapeRemotePath,
+	escapeShellArg,
+} from "@lib/shell.ts";
 
 describe("shell", () => {
 	describe("escapeShellArg", () => {
@@ -84,6 +88,43 @@ describe("shell", () => {
 		test("buildShellCommand handles empty args", () => {
 			const result = buildShellCommand("ls", []);
 			expect(result).toBe("ls");
+		});
+	});
+
+	describe("escapeRemotePath", () => {
+		test("preserves tilde expansion for ~/path", () => {
+			const result = escapeRemotePath("~/code");
+			expect(result).toBe("~/'code'");
+		});
+
+		test("preserves tilde with nested path", () => {
+			const result = escapeRemotePath("~/projects/skybox");
+			expect(result).toBe("~/'projects/skybox'");
+		});
+
+		test("quotes absolute path fully", () => {
+			const result = escapeRemotePath("/opt/code");
+			expect(result).toBe("'/opt/code'");
+		});
+
+		test("quotes relative path fully", () => {
+			const result = escapeRemotePath("code");
+			expect(result).toBe("'code'");
+		});
+
+		test("escapes single quotes in tilde path", () => {
+			const result = escapeRemotePath("~/it's code");
+			expect(result).toBe("~/'it'\\''s code'");
+		});
+
+		test("escapes single quotes in absolute path", () => {
+			const result = escapeRemotePath("/opt/it's code");
+			expect(result).toBe("'/opt/it'\\''s code'");
+		});
+
+		test("returns bare ~ unquoted", () => {
+			const result = escapeRemotePath("~");
+			expect(result).toBe("~");
 		});
 	});
 });

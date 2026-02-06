@@ -126,6 +126,16 @@ export function loadUserTemplates(): UserLocalTemplate[] {
  * Scaffold a new user template file with required fields pre-filled.
  */
 export function scaffoldTemplate(name: string): string {
+	// Validate template name at sink to prevent path traversal
+	if (
+		!name ||
+		/[/\\]/.test(name) ||
+		name.includes("..") ||
+		name.startsWith("-")
+	) {
+		throw new Error(`Invalid template name: ${name}`);
+	}
+
 	const dir = getUserTemplatesDir();
 	mkdirSync(dir, { recursive: true });
 

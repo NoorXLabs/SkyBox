@@ -3,7 +3,12 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { findSSHKeys, parseSSHConfig, sanitizeSshError } from "@lib/ssh.ts";
+import {
+	findSSHKeys,
+	parseSSHConfig,
+	sanitizeSshError,
+	secureScp,
+} from "@lib/ssh.ts";
 
 describe("ssh", () => {
 	describe("parseSSHConfig", () => {
@@ -101,6 +106,25 @@ Host workserver
 			expect(sanitized).toBe(
 				"SSH authentication failed. Check your SSH key and remote configuration.",
 			);
+		});
+	});
+
+	describe("secureScp", () => {
+		test("is exported as a function", () => {
+			expect(typeof secureScp).toBe("function");
+		});
+
+		test("source code includes -- separator", async () => {
+			// Verify the implementation includes the -- argument separator
+			// by reading the source file. This is a static analysis test to
+			// ensure the security guard is never accidentally removed.
+			const { readFileSync } = await import("node:fs");
+			const source = readFileSync(
+				new URL("../../../src/lib/ssh.ts", import.meta.url).pathname,
+				"utf-8",
+			);
+			// Match the execa call with "--" in the args array
+			expect(source).toMatch(/execa\("scp",\s*\["--"/);
 		});
 	});
 });

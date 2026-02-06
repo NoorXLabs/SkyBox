@@ -40,7 +40,7 @@ import {
 	writeSession,
 } from "@lib/session.ts";
 import { escapeShellArg } from "@lib/shell.ts";
-import { runRemoteCommand } from "@lib/ssh.ts";
+import { runRemoteCommand, secureScp } from "@lib/ssh.ts";
 import { selectTemplate, writeDevcontainerConfig } from "@lib/templates.ts";
 import {
 	dryRun,
@@ -415,13 +415,7 @@ async function handleDecryption(
 	const { tmpdir } = await import("node:os");
 	const { join } = await import("node:path");
 	const { mkdtempSync, rmSync } = await import("node:fs");
-	const { execa } = await import("execa");
 	const { decryptFile } = await import("../lib/encryption.ts");
-
-	// Use mkdtempSync for unpredictable temp directory (prevents symlink attacks)
-	const tempDir = mkdtempSync(join(tmpdir(), "skybox-"));
-	const localEncPath = join(tempDir, "archive.tar.enc");
-	const localTarPath = join(tempDir, "archive.tar");
 
 	for (let attempt = 1; attempt <= MAX_PASSPHRASE_ATTEMPTS; attempt++) {
 		const passphrase = await password({
@@ -433,6 +427,10 @@ async function handleDecryption(
 			continue;
 		}
 
+		// Create fresh temp directory for each attempt (prevents symlink attacks)
+		const tempDir = mkdtempSync(join(tmpdir(), "skybox-"));
+		const localEncPath = join(tempDir, "archive.tar.enc");
+		const localTarPath = join(tempDir, "archive.tar");
 		const decryptSpin = spinner("Decrypting project archive...");
 
 		try {
@@ -440,7 +438,7 @@ async function handleDecryption(
 
 			// Download encrypted archive from remote
 			decryptSpin.text = "Downloading encrypted archive...";
-			await execa("scp", [`${host}:${remoteArchivePath}`, localEncPath]);
+			await secureScp(`${host}:${remoteArchivePath}`, localEncPath);
 
 			// Decrypt locally
 			decryptSpin.text = "Decrypting...";
@@ -449,7 +447,7 @@ async function handleDecryption(
 			// Upload decrypted tar to remote
 			decryptSpin.text = "Uploading decrypted files...";
 			const remoteTarPath = `${remotePath}/${project}.tar`;
-			await execa("scp", [localTarPath, `${host}:${remoteTarPath}`]);
+			await secureScp(localTarPath, `${host}:${remoteTarPath}`);
 
 			// Extract on remote and clean up
 			decryptSpin.text = "Extracting...";
@@ -474,7 +472,7 @@ async function handleDecryption(
 			}
 			decryptSpin.fail("Wrong passphrase. Please try again.");
 		} finally {
-			// Clean up entire temp directory
+			// Clean up this attempt's temp directory
 			try {
 				rmSync(tempDir, { recursive: true, force: true });
 			} catch {}

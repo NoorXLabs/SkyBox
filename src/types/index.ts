@@ -28,7 +28,7 @@ export interface RemoteConfig {
 
 /** Default sync configuration: mode and ignore patterns */
 export interface SyncDefaults {
-	sync_mode: string;
+	sync_mode: "two-way-resolved" | "two-way-safe" | "one-way-replica";
 	ignore: string[];
 	encryption?: boolean;
 	auto_up?: boolean;
@@ -107,7 +107,8 @@ export interface ContainerResult {
 export interface ContainerInfo {
 	id: string;
 	name: string;
-	status: string;
+	status: ContainerStatus;
+	rawStatus: string;
 	image: string;
 }
 
@@ -339,6 +340,13 @@ export interface SessionConflictResult {
 	hasConflict: boolean;
 	existingSession?: SessionInfo;
 }
+
+// Validation types
+
+/** Result of input validation functions. Discriminated union for type safety. */
+export type ValidationResult =
+	| { valid: true }
+	| { valid: false; error: string };
 
 // Install method types
 export type InstallMethod = "homebrew" | "github-release" | "npm" | "source";

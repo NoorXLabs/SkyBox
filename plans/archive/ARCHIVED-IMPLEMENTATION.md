@@ -413,4 +413,36 @@ Comprehensive security remediation across 5 batches (CRITICAL → LOW), plus cod
 
 ---
 
+## DevBox → SkyBox Rename (PR #43)
+
+- [x] **Full project rename** — 143 files, ~1,800 occurrences across source, tests, docs, config, build, skills — `9ebe71c`
+
+### Archived Plans
+
+- `plans/archive/2026-02-04-rename-devbox-to-skybox.md` — DevBox to SkyBox rename implementation plan
+
+---
+
+## Test Suite Review Fixes (2026-02-05)
+
+- [x] **Fork PR guard** — Added `if:` condition to CI workflow restricting fork PRs on self-hosted runner
+- [x] **Tilde expansion fix** — Added `escapeShellPath()` to resolve `~` to `$HOME` in E2E test utils
+- [x] **E2E cleanup fault-tolerance** — Independent try/catch for each cleanup step
+- [x] **Removed redundant biome action** — Removed `biomejs/setup-biome@v2` from CI (project-local biome used)
+- [x] **test:all preload** — Added `--preload ./tests/helpers/test-utils.ts` to `test:all` script
+- [x] **Renamed mutagen-sync.test.ts** — Renamed to `rsync-roundtrip.test.ts` to match actual content
+- [x] **E2E success checks** — Added `expect(result.success).toBe(true)` to all E2E remote command results
+- [x] **CLAUDE.md NPM Scripts table** — Updated with separate entries for all test tiers
+- [x] **E2E PR guard comment** — Added preemptive comment to `e2e.yml` guard
+- [x] **Static import fix** — `getContainerIdByProjectPath` uses static import in container-lifecycle test
+- [x] **afterAll cleanup** — Added `afterAll` with `cleanupTestContainers()` to shell-entry test
+- [x] **test-restructure plan archived** — Moved to `plans/archive/`
+- [x] **CLAUDE.md version** — Updated from `0.6.0-beta` to `0.7.7`
+
+### Archived Plans
+
+- `plans/archive/2026-02-05-test-suite-review-fixes.md` — Test suite code review findings
+
+---
+
 *Archived: 2026-02-05*

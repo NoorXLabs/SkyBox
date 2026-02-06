@@ -7,7 +7,7 @@ import { DEFAULT_IGNORE } from "@lib/constants.ts";
 import { downloadMutagen, isMutagenInstalled } from "@lib/download.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { getBinDir, getProjectsDir, getSkyboxHome } from "@lib/paths.ts";
-import { escapeShellArg } from "@lib/shell.ts";
+import { escapeRemotePath } from "@lib/shell.ts";
 import {
 	copyKey,
 	findSSHKeys,
@@ -27,6 +27,7 @@ import {
 	success,
 	warn,
 } from "@lib/ui.ts";
+import { sshFieldValidator } from "@lib/validation.ts";
 import type { SkyboxConfigV2 } from "@typedefs/index.ts";
 import { execa } from "execa";
 import inquirer from "inquirer";
@@ -117,17 +118,24 @@ async function configureRemote(): Promise<{
 
 	if (hostChoice === "__new__") {
 		const { hostname, username, friendlyName } = await inquirer.prompt([
-			{ type: "input", name: "hostname", message: "Server hostname or IP:" },
+			{
+				type: "input",
+				name: "hostname",
+				message: "Server hostname or IP:",
+				validate: sshFieldValidator("Hostname"),
+			},
 			{
 				type: "input",
 				name: "username",
 				message: "SSH username:",
 				default: "root",
+				validate: sshFieldValidator("Username"),
 			},
 			{
 				type: "input",
 				name: "friendlyName",
 				message: "Friendly name for this host:",
+				validate: sshFieldValidator("Name"),
 			},
 		]);
 
@@ -159,6 +167,7 @@ async function configureRemote(): Promise<{
 					name: "customPath",
 					message: "Path to SSH private key:",
 					default: "~/.ssh/id_ed25519",
+					validate: sshFieldValidator("Key path"),
 				},
 			]);
 			identityFile = customPath.replace(/^~/, homedir());
@@ -292,7 +301,7 @@ Host ${friendlyName}
 	const checkSpin = spinner("Checking remote directory...");
 	const checkResult = await runRemoteCommand(
 		sshConnectString,
-		`ls -d ${escapeShellArg(basePath)} 2>/dev/null || echo "__NOT_FOUND__"`,
+		`ls -d ${escapeRemotePath(basePath)} 2>/dev/null || echo "__NOT_FOUND__"`,
 		identityFile ?? undefined,
 	);
 
@@ -310,7 +319,7 @@ Host ${friendlyName}
 		if (createDir) {
 			const mkdirResult = await runRemoteCommand(
 				sshConnectString,
-				`mkdir -p ${escapeShellArg(basePath)}`,
+				`mkdir -p ${escapeRemotePath(basePath)}`,
 				identityFile ?? undefined,
 			);
 			if (mkdirResult.success) {
@@ -328,7 +337,7 @@ Host ${friendlyName}
 		// List existing projects
 		const lsResult = await runRemoteCommand(
 			sshConnectString,
-			`ls -1 ${escapeShellArg(basePath)} 2>/dev/null | head -10`,
+			`ls -1 ${escapeRemotePath(basePath)} 2>/dev/null | head -10`,
 			identityFile ?? undefined,
 		);
 		if (lsResult.stdout?.trim()) {

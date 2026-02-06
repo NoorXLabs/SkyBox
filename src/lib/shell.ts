@@ -23,6 +23,21 @@ export function escapeShellArg(arg: string): string {
 }
 
 /**
+ * Escape a remote path for use in SSH commands, preserving tilde expansion.
+ * Paths starting with ~/ are split: the ~ is left unquoted for shell expansion,
+ * and the rest is properly escaped.
+ */
+export function escapeRemotePath(path: string): string {
+	if (path === "~") {
+		return "~";
+	}
+	if (path.startsWith("~/")) {
+		return `~/${escapeShellArg(path.slice(2))}`;
+	}
+	return escapeShellArg(path);
+}
+
+/**
  * Builds a shell command string with safely escaped arguments.
  */
 export function buildShellCommand(command: string, args: string[]): string {

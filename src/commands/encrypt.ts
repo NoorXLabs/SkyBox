@@ -10,7 +10,7 @@ import { confirm, password, select } from "@inquirer/prompts";
 import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
 import { decryptFile, deriveKey } from "@lib/encryption.ts";
 import { escapeShellArg } from "@lib/shell.ts";
-import { runRemoteCommand } from "@lib/ssh.ts";
+import { runRemoteCommand, secureScp } from "@lib/ssh.ts";
 import {
 	dryRun,
 	error,
@@ -209,7 +209,6 @@ async function disableEncryption(project?: string): Promise<void> {
 				const { tmpdir } = await import("node:os");
 				const { join } = await import("node:path");
 				const { mkdtempSync, rmSync } = await import("node:fs");
-				const { execa } = await import("execa");
 
 				const key = await deriveKey(passphrase, projectConfig.encryption.salt);
 				// Use mkdtempSync for unpredictable temp directory (prevents symlink attacks)
@@ -219,14 +218,14 @@ async function disableEncryption(project?: string): Promise<void> {
 
 				try {
 					decryptSpin.text = "Downloading encrypted archive...";
-					await execa("scp", [`${host}:${remoteArchivePath}`, localEncPath]);
+					await secureScp(`${host}:${remoteArchivePath}`, localEncPath);
 
 					decryptSpin.text = "Decrypting...";
 					decryptFile(localEncPath, localTarPath, key);
 
 					decryptSpin.text = "Uploading decrypted files...";
 					const remoteTarPath = `${remotePath}/${project}.tar`;
-					await execa("scp", [localTarPath, `${host}:${remoteTarPath}`]);
+					await secureScp(localTarPath, `${host}:${remoteTarPath}`);
 
 					decryptSpin.text = "Extracting...";
 					const extractResult = await runRemoteCommand(

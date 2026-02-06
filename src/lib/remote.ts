@@ -5,6 +5,7 @@
 
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
+import { validateRemoteProjectPath } from "@lib/validation.ts";
 
 /**
  * Check if a project directory exists on the remote server.
@@ -14,6 +15,10 @@ export async function checkRemoteProjectExists(
 	basePath: string,
 	project: string,
 ): Promise<boolean> {
+	const pathCheck = validateRemoteProjectPath(project);
+	if (!pathCheck.valid) {
+		return false;
+	}
 	const fullPath = `${basePath}/${project}`;
 	const result = await runRemoteCommand(
 		host,

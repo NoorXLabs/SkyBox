@@ -99,12 +99,79 @@ export async function verifyGpgSignature(
 }
 
 /**
+ * Verify that a GPG public key matches the expected fingerprint.
+ * Imports the key into a temporary keyring and checks the fingerprint.
+ */
+export async function verifyKeyFingerprint(
+	publicKey: string,
+	expectedFingerprint: string,
+): Promise<{ matches: boolean; actualFingerprint?: string; error?: string }> {
+	if (!(await isGpgAvailable())) {
+		return { matches: false, error: "GPG is not available" };
+	}
+
+	const tempDir = mkdtempSync(join(tmpdir(), "skybox-gpg-fp-"));
+
+	try {
+		const keyPath = join(tempDir, "key.asc");
+		const keyringPath = join(tempDir, "keyring.gpg");
+
+		writeFileSync(keyPath, publicKey, { mode: 0o600 });
+
+		// Import the key to a temporary keyring
+		await execFileAsync("gpg", [
+			"--no-default-keyring",
+			"--keyring",
+			keyringPath,
+			"--batch",
+			"--quiet",
+			"--import",
+			keyPath,
+		]);
+
+		// List key fingerprints from the keyring
+		const { stdout } = await execFileAsync("gpg", [
+			"--no-default-keyring",
+			"--keyring",
+			keyringPath,
+			"--batch",
+			"--with-colons",
+			"--fingerprint",
+		]);
+
+		// Parse fingerprint from colon-delimited output
+		// Format: fpr:::::::::FINGERPRINT:
+		const fprLines = stdout.split("\n").filter((l) => l.startsWith("fpr:"));
+		const fingerprints = fprLines.map((l) => l.split(":")[9]);
+
+		const normalizedExpected = expectedFingerprint
+			.replace(/\s/g, "")
+			.toUpperCase();
+		const matches = fingerprints.some(
+			(fp) => fp?.toUpperCase() === normalizedExpected,
+		);
+
+		return {
+			matches,
+			actualFingerprint: fingerprints[0] || "unknown",
+		};
+	} catch (err) {
+		return {
+			matches: false,
+			error: `Failed to verify key fingerprint: ${getErrorMessage(err)}`,
+		};
+	} finally {
+		rmSync(tempDir, { recursive: true, force: true });
+	}
+}
+
+/**
  * Fetch Mutagen's public GPG key from GitHub.
  *
  * TRUST MODEL: This fetches the key from GitHub's key hosting service.
- * Users implicitly trust that GitHub's infrastructure hasn't been compromised.
- * For higher security requirements, the key could be embedded in the codebase,
- * though this trades off the ability to rotate keys without code updates.
+ * The fetched key is verified against the pinned fingerprint (MUTAGEN_GPG_FINGERPRINT)
+ * before use, preventing trust-on-first-use attacks.
+ * @see MUTAGEN_GPG_FINGERPRINT in constants.ts
  */
 export async function fetchMutagenPublicKey(): Promise<string | null> {
 	try {

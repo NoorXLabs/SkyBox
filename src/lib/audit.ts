@@ -5,9 +5,16 @@
  * Enabled via SKYBOX_AUDIT=1 environment variable.
  */
 
-import { appendFileSync, existsSync, mkdirSync } from "node:fs";
-import { hostname, userInfo } from "node:os";
+import {
+	appendFileSync,
+	existsSync,
+	mkdirSync,
+	renameSync,
+	statSync,
+} from "node:fs";
+import { homedir, hostname, userInfo } from "node:os";
 import { dirname, join } from "node:path";
+import { AUDIT_LOG_MAX_BYTES } from "@lib/constants.ts";
 import { getSkyboxHome } from "@lib/paths.ts";
 
 /** Audit log entry structure */
@@ -49,6 +56,32 @@ export function getAuditLogPath(): string {
 }
 
 /**
+ * Sanitize audit log details to prevent sensitive data leakage.
+ * Replaces home directory paths with ~ and redacts credential patterns.
+ */
+function sanitizeDetails(
+	details: Record<string, unknown>,
+): Record<string, unknown> {
+	const home = homedir();
+	const sanitized: Record<string, unknown> = {};
+	for (const [key, value] of Object.entries(details)) {
+		if (typeof value === "string") {
+			let clean = value;
+			if (home && clean.includes(home)) {
+				clean = clean.replaceAll(home, "~");
+			}
+			// Redact credential-like patterns
+			clean = clean.replace(/password[=:]\S+/gi, "password=[REDACTED]");
+			clean = clean.replace(/token[=:]\S+/gi, "token=[REDACTED]");
+			sanitized[key] = clean;
+		} else {
+			sanitized[key] = value;
+		}
+	}
+	return sanitized;
+}
+
+/**
  * Log a security-relevant event.
  *
  * NOTE: Uses synchronous file append for simplicity and guaranteed ordering.
@@ -69,7 +102,7 @@ export function logAuditEvent(
 		action,
 		user: userInfo().username,
 		machine: hostname(),
-		details,
+		details: sanitizeDetails(details),
 	};
 
 	const logPath = getAuditLogPath();
@@ -78,6 +111,17 @@ export function logAuditEvent(
 	// Ensure directory exists with secure permissions
 	if (!existsSync(logDir)) {
 		mkdirSync(logDir, { recursive: true, mode: 0o700 });
+	}
+
+	// Rotate log if it exceeds size threshold
+	if (existsSync(logPath)) {
+		try {
+			const stats = statSync(logPath);
+			if (stats.size > AUDIT_LOG_MAX_BYTES) {
+				const rotatedPath = `${logPath}.${new Date().toISOString().replace(/[:.]/g, "-")}`;
+				renameSync(logPath, rotatedPath);
+			}
+		} catch {}
 	}
 
 	// Append JSON line

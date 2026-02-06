@@ -3,6 +3,8 @@ import {
 	isPathTraversal,
 	validatePath,
 	validateRemotePath,
+	validateRemoteProjectPath,
+	validateSSHHost,
 } from "@lib/validation.ts";
 
 describe("validation", () => {
@@ -137,6 +139,138 @@ describe("validation", () => {
 		test("rejects paths with only whitespace", () => {
 			const result = validateRemotePath("   ");
 			expect(result.valid).toBe(false);
+		});
+	});
+
+	describe("validateSSHHost", () => {
+		test("accepts simple hostname", () => {
+			expect(validateSSHHost("myserver").valid).toBe(true);
+		});
+
+		test("accepts user@host", () => {
+			expect(validateSSHHost("deploy@myserver").valid).toBe(true);
+		});
+
+		test("accepts FQDN", () => {
+			expect(validateSSHHost("server.example.com").valid).toBe(true);
+		});
+
+		test("accepts IPv4 address", () => {
+			expect(validateSSHHost("192.168.1.100").valid).toBe(true);
+		});
+
+		test("accepts IPv6 address", () => {
+			expect(validateSSHHost("::1").valid).toBe(true);
+		});
+
+		test("rejects empty string", () => {
+			const result = validateSSHHost("");
+			expect(result.valid).toBe(false);
+			if (!result.valid) {
+				expect(result.error).toContain("empty");
+			}
+		});
+
+		test("rejects leading dash (option injection)", () => {
+			const result = validateSSHHost("-oProxyCommand=evil");
+			expect(result.valid).toBe(false);
+			if (!result.valid) {
+				expect(result.error).toContain("dash");
+			}
+		});
+
+		test("rejects whitespace in host", () => {
+			const result = validateSSHHost("host name");
+			expect(result.valid).toBe(false);
+			if (!result.valid) {
+				expect(result.error).toContain("whitespace");
+			}
+		});
+
+		test("rejects tab character", () => {
+			const result = validateSSHHost("host\tname");
+			expect(result.valid).toBe(false);
+		});
+
+		test("rejects newline in host", () => {
+			const result = validateSSHHost("host\nevil");
+			expect(result.valid).toBe(false);
+		});
+
+		test("rejects carriage return in host", () => {
+			const result = validateSSHHost("host\revil");
+			expect(result.valid).toBe(false);
+		});
+
+		test("rejects null byte (control character)", () => {
+			const result = validateSSHHost("host\x00evil");
+			expect(result.valid).toBe(false);
+			if (!result.valid) {
+				expect(result.error).toContain("control");
+			}
+		});
+
+		test("rejects bell character (control character)", () => {
+			const result = validateSSHHost("host\x07evil");
+			expect(result.valid).toBe(false);
+		});
+	});
+
+	describe("validateRemoteProjectPath", () => {
+		test("accepts valid project name", () => {
+			expect(validateRemoteProjectPath("my-project").valid).toBe(true);
+		});
+
+		test("accepts alphanumeric with hyphens and underscores", () => {
+			expect(validateRemoteProjectPath("my_project-123").valid).toBe(true);
+		});
+
+		test("rejects empty string", () => {
+			const result = validateRemoteProjectPath("");
+			expect(result.valid).toBe(false);
+			if (!result.valid) {
+				expect(result.error).toContain("empty");
+			}
+		});
+
+		test("rejects path traversal with ..", () => {
+			const result = validateRemoteProjectPath("../etc");
+			expect(result.valid).toBe(false);
+			if (!result.valid) {
+				expect(result.error).toContain("traversal");
+			}
+		});
+
+		test("rejects bare ..", () => {
+			const result = validateRemoteProjectPath("..");
+			expect(result.valid).toBe(false);
+			if (!result.valid) {
+				expect(result.error).toContain("traversal");
+			}
+		});
+
+		test("rejects forward slash", () => {
+			const result = validateRemoteProjectPath("foo/bar");
+			expect(result.valid).toBe(false);
+			if (!result.valid) {
+				expect(result.error).toContain("separator");
+			}
+		});
+
+		test("rejects backslash", () => {
+			const result = validateRemoteProjectPath("foo\\bar");
+			expect(result.valid).toBe(false);
+			if (!result.valid) {
+				expect(result.error).toContain("separator");
+			}
+		});
+
+		test("rejects leading dash", () => {
+			const result = validateRemoteProjectPath("-rf");
+			expect(result.valid).toBe(false);
+			if (!result.valid) {
+				expect(result.error).toContain("dash");
+			}
 		});
 	});
 });

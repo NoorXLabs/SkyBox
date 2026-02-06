@@ -37,7 +37,10 @@ describe("config", () => {
 	test("saveConfig creates config file with V2 format", async () => {
 		const config = {
 			editor: "cursor",
-			defaults: { sync_mode: "two-way-resolved", ignore: ["node_modules"] },
+			defaults: {
+				sync_mode: "two-way-resolved" as const,
+				ignore: ["node_modules"],
+			},
 			remotes: {
 				myserver: {
 					host: "myserver",
@@ -111,7 +114,7 @@ projects:
 	test("getRemote returns remote by name", async () => {
 		const config = {
 			editor: "cursor",
-			defaults: { sync_mode: "two-way-resolved", ignore: [] },
+			defaults: { sync_mode: "two-way-resolved" as const, ignore: [] },
 			remotes: {
 				"work-server": {
 					host: "192.168.1.100",
@@ -151,7 +154,7 @@ projects:
 	test("listRemotes returns all remotes with names", async () => {
 		const config = {
 			editor: "cursor",
-			defaults: { sync_mode: "two-way-resolved", ignore: [] },
+			defaults: { sync_mode: "two-way-resolved" as const, ignore: [] },
 			remotes: {
 				"work-server": {
 					host: "192.168.1.100",
@@ -188,7 +191,7 @@ projects:
 	test("listRemotes returns empty array when no remotes", async () => {
 		const config = {
 			editor: "cursor",
-			defaults: { sync_mode: "two-way-resolved", ignore: [] },
+			defaults: { sync_mode: "two-way-resolved" as const, ignore: [] },
 			remotes: {},
 			projects: {},
 		};
@@ -234,7 +237,7 @@ describe("config error paths", () => {
 
 		const config = {
 			editor: "cursor",
-			defaults: { sync_mode: "two-way-resolved", ignore: [] },
+			defaults: { sync_mode: "two-way-resolved" as const, ignore: [] },
 			remotes: {},
 			projects: {},
 		};
@@ -247,7 +250,7 @@ describe("config error paths", () => {
 	test("getRemote returns null for nonexistent remote with config present", () => {
 		const config = {
 			editor: "cursor",
-			defaults: { sync_mode: "two-way-resolved", ignore: [] },
+			defaults: { sync_mode: "two-way-resolved" as const, ignore: [] },
 			remotes: {
 				existing: { host: "example.com", path: "~/code" },
 			},
@@ -283,7 +286,7 @@ describe("config file permissions", () => {
 
 		const config = {
 			editor: "cursor",
-			defaults: { sync_mode: "two-way-resolved", ignore: [] },
+			defaults: { sync_mode: "two-way-resolved" as const, ignore: [] },
 			remotes: {},
 			projects: {},
 		};
@@ -298,7 +301,7 @@ describe("config file permissions", () => {
 	test("saveConfig creates config file with mode 0o600", () => {
 		const config = {
 			editor: "cursor",
-			defaults: { sync_mode: "two-way-resolved", ignore: [] },
+			defaults: { sync_mode: "two-way-resolved" as const, ignore: [] },
 			remotes: {},
 			projects: {},
 		};
@@ -383,7 +386,7 @@ describe("config schema validation edge cases", () => {
 		const validConfig = {
 			editor: "cursor",
 			defaults: {
-				sync_mode: "two-way-resolved",
+				sync_mode: "two-way-resolved" as const,
 				ignore: [".git", "node_modules"],
 			},
 			remotes: {

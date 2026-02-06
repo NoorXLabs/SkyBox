@@ -15,7 +15,7 @@ import { hasLocalDevcontainerConfig } from "@lib/container.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { getProjectPath } from "@lib/project.ts";
 import { validateProjectName } from "@lib/projectTemplates.ts";
-import { escapeShellArg } from "@lib/shell.ts";
+import { escapeRemotePath, escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import { selectTemplate, writeDevcontainerConfig } from "@lib/templates.ts";
 import {
@@ -28,6 +28,7 @@ import {
 	success,
 	warn,
 } from "@lib/ui.ts";
+import { toInquirerValidator } from "@lib/validation.ts";
 import type {
 	DevcontainerConfig,
 	RemoteEntry,
@@ -89,10 +90,7 @@ export async function newCommand(): Promise<void> {
 				type: "input",
 				name: "name",
 				message: "Project name:",
-				validate: (input: string) => {
-					const result = validateProjectName(input);
-					return result.valid ? true : result.error || "Invalid name";
-				},
+				validate: toInquirerValidator(validateProjectName),
 			},
 		]);
 		projectName = name;
@@ -101,7 +99,7 @@ export async function newCommand(): Promise<void> {
 		const checkSpin = spinner("Checking remote...");
 		const checkResult = await runRemoteCommand(
 			host,
-			`test -d ${escapeShellArg(`${remote.path}/${projectName}`)} && echo "EXISTS" || echo "NOT_FOUND"`,
+			`test -d ${escapeRemotePath(`${remote.path}/${projectName}`)} && echo "EXISTS" || echo "NOT_FOUND"`,
 		);
 
 		if (checkResult.stdout?.includes("EXISTS")) {
@@ -206,7 +204,7 @@ async function createProjectWithConfig(
 	const devcontainerJson = JSON.stringify(config, null, 2);
 	const encoded = Buffer.from(devcontainerJson).toString("base64");
 
-	const createCmd = `mkdir -p ${escapeShellArg(`${remotePath}/${DEVCONTAINER_DIR_NAME}`)} && echo ${escapeShellArg(encoded)} | base64 -d > ${escapeShellArg(`${remotePath}/${DEVCONTAINER_DIR_NAME}/${DEVCONTAINER_CONFIG_NAME}`)}`;
+	const createCmd = `mkdir -p ${escapeRemotePath(`${remotePath}/${DEVCONTAINER_DIR_NAME}`)} && echo ${escapeShellArg(encoded)} | base64 -d > ${escapeRemotePath(`${remotePath}/${DEVCONTAINER_DIR_NAME}/${DEVCONTAINER_CONFIG_NAME}`)}`;
 
 	const createResult = await runRemoteCommand(host, createCmd);
 
@@ -219,7 +217,7 @@ async function createProjectWithConfig(
 	// Initialize git repo
 	const gitResult = await runRemoteCommand(
 		host,
-		`cd ${escapeShellArg(remotePath)} && git init`,
+		`cd ${escapeRemotePath(remotePath)} && git init`,
 	);
 
 	if (!gitResult.success) {
@@ -253,9 +251,9 @@ async function cloneGitToRemote(
 
 	let cloneCmd: string;
 	if (keepHistory) {
-		cloneCmd = `git clone ${escapeShellArg(templateUrl)} ${escapeShellArg(tempPath)} && mv ${escapeShellArg(tempPath)} ${escapeShellArg(remotePath)}`;
+		cloneCmd = `git clone ${escapeShellArg(templateUrl)} ${escapeShellArg(tempPath)} && mv ${escapeShellArg(tempPath)} ${escapeRemotePath(remotePath)}`;
 	} else {
-		cloneCmd = `git clone ${escapeShellArg(templateUrl)} ${escapeShellArg(tempPath)} && rm -rf ${escapeShellArg(`${tempPath}/.git`)} && git -C ${escapeShellArg(tempPath)} init && mv ${escapeShellArg(tempPath)} ${escapeShellArg(remotePath)}`;
+		cloneCmd = `git clone ${escapeShellArg(templateUrl)} ${escapeShellArg(tempPath)} && rm -rf ${escapeShellArg(`${tempPath}/.git`)} && git -C ${escapeShellArg(tempPath)} init && mv ${escapeShellArg(tempPath)} ${escapeRemotePath(remotePath)}`;
 	}
 
 	const cloneResult = await runRemoteCommand(host, cloneCmd);
@@ -283,7 +281,7 @@ async function cloneGitToRemote(
 	// Check if devcontainer.json exists, add if not
 	const checkDevcontainer = await runRemoteCommand(
 		host,
-		`test -f ${escapeShellArg(`${remotePath}/${DEVCONTAINER_DIR_NAME}/${DEVCONTAINER_CONFIG_NAME}`)} && echo "EXISTS" || echo "NOT_FOUND"`,
+		`test -f ${escapeRemotePath(`${remotePath}/${DEVCONTAINER_DIR_NAME}/${DEVCONTAINER_CONFIG_NAME}`)} && echo "EXISTS" || echo "NOT_FOUND"`,
 	);
 
 	if (checkDevcontainer.stdout?.includes("NOT_FOUND")) {
@@ -301,7 +299,7 @@ async function cloneGitToRemote(
 
 		await runRemoteCommand(
 			host,
-			`mkdir -p ${escapeShellArg(`${remotePath}/${DEVCONTAINER_DIR_NAME}`)} && echo ${escapeShellArg(encoded)} | base64 -d > ${escapeShellArg(`${remotePath}/${DEVCONTAINER_DIR_NAME}/${DEVCONTAINER_CONFIG_NAME}`)}`,
+			`mkdir -p ${escapeRemotePath(`${remotePath}/${DEVCONTAINER_DIR_NAME}`)} && echo ${escapeShellArg(encoded)} | base64 -d > ${escapeRemotePath(`${remotePath}/${DEVCONTAINER_DIR_NAME}/${DEVCONTAINER_CONFIG_NAME}`)}`,
 		);
 
 		addSpin.succeed("Added devcontainer.json");
