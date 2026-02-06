@@ -262,7 +262,7 @@ export function registerNameCommand(program: Command): void {
 
 2. Register in `src/index.ts`:
 ```typescript
-import { registerNameCommand } from "./commands/name.ts";
+import { registerNameCommand } from "@commands/name.ts";
 // ...
 registerNameCommand(program);
 ```
@@ -348,8 +348,9 @@ Uses Docker with devcontainer spec:
 | `src/lib/ui.ts` | Terminal output helpers |
 | `src/lib/errors.ts` | Error handling utilities |
 | `src/lib/encryption.ts` | AES-256-GCM encrypt/decrypt for config values |
-| `src/lib/validation.ts` | Path traversal prevention, input validation |
+| `src/lib/validation.ts` | Path traversal prevention, input validation, SSH field validation, inquirer validator adapters |
 | `src/lib/shell.ts` | Shell escaping: `escapeShellArg()`, `buildShellCommand()` |
+| `src/lib/ssh.ts` | SSH operations: `runRemoteCommand()`, `secureScp()`, `writeSSHConfigEntry()` |
 | `src/lib/hooks.ts` | Hook runner for pre/post lifecycle events |
 | `src/lib/audit.ts` | Audit logging (JSON Lines to `~/.skybox/audit.log`) |
 | `src/lib/gpg.ts` | GPG signature verification for Mutagen downloads |
@@ -359,6 +360,15 @@ Uses Docker with devcontainer spec:
 | `biome.json` | Linting/formatting config |
 | `lefthook.yml` | Git hooks config |
 | `tsconfig.json` | TypeScript config |
+| `src/lib/config-schema.ts` | Runtime schema validation for config objects |
+| `src/lib/migration.ts` | Config format migration from V1 to V2 |
+| `src/lib/mutagen-extract.ts` | Bundled Mutagen binary extraction and versioning |
+| `src/lib/ownership.ts` | Resource ownership verification for remote projects |
+| `src/lib/paths.ts` | Centralized path computation for SkyBox directories |
+| `src/lib/project.ts` | Local project path resolution and validation |
+| `src/lib/remote.ts` | Operations for interacting with remote servers |
+| `src/lib/startup.ts` | Dependency checks run at CLI startup |
+| `src/lib/update-check.ts` | Version update check with 24h cache via GitHub API |
 | `src/lib/verify-lockfile.ts` | Verify bun.lock integrity (supply chain security) |
 
 ## Documentation
@@ -423,6 +433,18 @@ Note: `bun run check` is enforced automatically by a native Stop hook — no man
 
 - **Ownership uses local OS username**: The `.skybox-owner` system uses `userInfo().username` (local OS username), not the SSH remote user. This means ownership is consistent for a user across machines but could conflict if different people share the same local username. This is a deliberate trade-off for simplicity.
 
+- **`ValidationResult` type for all validators**: All validation functions must return `ValidationResult` (from `src/types/index.ts`), not inline `{ valid: true } | { valid: false; error: string }`. Use the shared type for consistency.
+
+- **SCP calls must use `secureScp()` or `--` separator**: Never call `execa("scp", [source, dest])` directly. Use `secureScp()` from `src/lib/ssh.ts` or manually add `"--"` before positional args to prevent option injection via crafted hostnames.
+
+- **SSH config fields must be validated**: All values written to `~/.ssh/config` via `writeSSHConfigEntry()` must pass `validateSSHField()`. This prevents SSH config injection via newlines or metacharacters. Init and remote prompts use `sshFieldValidator()` for inquirer validation.
+
+- **Inquirer validator adapter**: Use `toInquirerValidator()` from `src/lib/validation.ts` to convert any `(input: string) => ValidationResult` function into inquirer's `(input: string) => true | string` format. Use `sshFieldValidator(fieldName)` for SSH-specific fields.
+
+- **`isValidContainerId` in container.ts is private**: Like `normalizePath`, it cannot be imported. Validates Docker container IDs as 12-64 hex chars. Applied in both `getContainerId()` and `getContainerInfo()`.
+
+- **Audit log auto-rotates at 10 MB**: `AUDIT_LOG_MAX_BYTES` in constants.ts. Rotation renames to `audit.log.YYYY-MM-DD`. Details are sanitized: home paths replaced with `~`, credential patterns redacted.
+
 ## Environment Variables
 
 SkyBox respects the following environment variables:
@@ -445,7 +467,4 @@ When `SKYBOX_AUDIT=1`, security-relevant operations are logged to `~/.skybox/aud
 
 Logged actions: `clone:start`, `clone:success`, `clone:fail`, `push:start`, `push:success`, `push:fail`, `rm:local`, `rm:remote`, `up:start`, `up:success`, `down`, `lock:force`, `config:change`.
 
-**Log rotation:** The audit log grows unbounded. For long-running deployments, rotate manually with:
-```bash
-mv ~/.skybox/audit.log ~/.skybox/audit.log.$(date +%Y%m%d)
-```
+**Log rotation:** Auto-rotates at 10 MB (see `AUDIT_LOG_MAX_BYTES` in constants.ts). Rotated files are renamed to `audit.log.YYYY-MM-DD`.
