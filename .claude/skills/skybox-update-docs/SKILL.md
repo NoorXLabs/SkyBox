@@ -83,3 +83,4 @@ For each approved change:
 - **Match existing style** — read a sibling docs page first to match tone, structure, and formatting.
 - **Don't document internals** — only user-facing behavior belongs in docs.
 - **When called as a sub-step** by another skill (like `prep-release`), run only the Analyze and Propose steps. Let the calling skill decide whether to execute.
+- **Suggest full audit when needed** — if the Analyze step finds more than 3 pages needing updates, suggest: "This looks like it needs a broader audit. Consider running `skybox-audit-docs` for a comprehensive review." Let the user decide whether to switch to the full audit or continue with targeted updates.

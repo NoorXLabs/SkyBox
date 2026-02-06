@@ -64,8 +64,10 @@ Gather all information into a single report before changing anything.
 
 ### 4. Docs Audit
 
-- Invoke `noor:update-docs` analysis step (Analyze + Propose only, no execution)
-- Include any doc gaps in the report
+- Invoke `skybox-audit-docs` — run the full interactive audit (Phases 1-4)
+- If any **missing** severity completeness findings are accepted, warn that docs should be updated before tagging
+- Stale/drift and UX findings don't block the release but are included in the report
+- Reference the generated `.context/docs-audit-YYYY-MM-DD.md` report in this release audit output
 
 ### Report Format
 
@@ -108,7 +110,7 @@ After user approves the report, execute each step with a checkpoint:
 
 ### 3. Update Docs
 
-- If the audit found doc gaps, invoke `noor:update-docs` execute step
+- If the audit found doc gaps, invoke `skybox-update-docs` execute step
 - If no gaps were found, skip with confirmation
 
 ### 4. Update IMPLEMENTATION.md

@@ -10,6 +10,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Dry-Run Mode** (`--dry-run`): Global flag to preview what any command would do without executing side effects (SSH, Docker, filesystem writes, sync sessions)
+- **Security Hardening**: GPG signature verification for Mutagen downloads, audit logging (`SKYBOX_AUDIT=1`), runtime config schema validation, Mutagen binary checksum verification, lockfile integrity verification
+- **Integration & E2E Test Suites**: Layered Docker integration and remote E2E test infrastructure with CI workflows and security hardening
+- **Interactive Remote Delete**: Multi-select flow for `skybox rm --remote` — select a remote, pick projects via checkbox, confirm, and optionally clean up local copies
+- **Shell Integration**: Auto-start containers on `cd` into project directories (`skybox hook bash/zsh`, `auto_up` config option, background execution)
+- **LLMs.txt**: Machine-readable documentation for AI tools, sitemap, and robots.txt
+
+### Changed
+
+- **DevBox → SkyBox**: Complete project rename across CLI binary, commands, documentation, configuration, and tests
+- **Local Sessions**: Replaced remote SSH-based lock system with local file-based sessions (synced via Mutagen) for simpler multi-machine conflict detection
+- **Feature-Based Templates**: Unified devcontainer templates to feature-based architecture with dev container features
+- Analytics configuration moved to environment variables
+- Doctor command suggests `brew install devcontainer` on macOS when Homebrew is available
+- Bumped dependencies (ora, @biomejs/biome, @types/react)
+
+### Fixed
+
+- Insecure file permissions on config (now 0o600) and directories (now 0o700)
+- Predictable temp directory paths vulnerable to symlink attacks
+- Missing shell argument escaping in remote SSH commands
+- Weak Argon2 parameters — strengthened to OWASP minimums
+- Inconsistent project name validation across commands
+- Missing remote path validation for shell metacharacters
+- Duplicate template prompt in `skybox new` workflow
+- SSH key not passed to `getRemoteProjects` for remotes with explicit key files
+
+### Removed
+
+- `skybox locks` command (replaced by local session system)
+- Remote SSH-based lock polling
+- Architecture pages from public documentation (now internal-only)
 
 ## [0.7.7] - 2026-02-01
 
