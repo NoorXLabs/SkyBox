@@ -1,8 +1,9 @@
 // src/commands/browse.ts
 
 import { getRemoteHost, selectRemote } from "@commands/remote.ts";
-import { configExists, loadConfig } from "@lib/config.ts";
+import { requireConfig } from "@lib/config.ts";
 import { getErrorMessage } from "@lib/errors.ts";
+import { escapeRemotePath } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import { error, header, info, spinner } from "@lib/ui.ts";
 import type { RemoteProject } from "@typedefs/index.ts";
@@ -13,7 +14,7 @@ export async function getRemoteProjects(
 	basePath: string,
 	key?: string,
 ): Promise<RemoteProject[]> {
-	const script = `for d in "${basePath}"/*/; do
+	const script = `for d in ${escapeRemotePath(basePath)}/*/; do
     [ -d "$d" ] || continue
     name=$(basename "$d")
     branch=$(git -C "$d" branch --show-current 2>/dev/null || echo "-")
@@ -69,16 +70,7 @@ function printEmpty(): void {
 }
 
 export async function browseCommand(): Promise<void> {
-	if (!configExists()) {
-		error("skybox not configured. Run 'skybox init' first.");
-		process.exit(1);
-	}
-
-	const config = loadConfig();
-	if (!config) {
-		error("Failed to load config.");
-		process.exit(1);
-	}
+	const config = requireConfig();
 
 	// Select which remote to browse
 	const remoteName = await selectRemote(config);

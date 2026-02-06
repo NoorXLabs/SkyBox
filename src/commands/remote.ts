@@ -1,7 +1,7 @@
 // src/commands/remote.ts
 
 import { loadConfig, saveConfig } from "@lib/config.ts";
-import { escapeShellArg } from "@lib/shell.ts";
+import { escapeRemotePath } from "@lib/shell.ts";
 import {
 	copyKey,
 	findSSHKeys,
@@ -18,7 +18,11 @@ import {
 	success,
 	warn,
 } from "@lib/ui.ts";
-import { validateRemotePath } from "@lib/validation.ts";
+import {
+	sshFieldValidator,
+	toInquirerValidator,
+	validateRemotePath,
+} from "@lib/validation.ts";
 import type { RemoteEntry, SkyboxConfigV2 } from "@typedefs/index.ts";
 import chalk from "chalk";
 import inquirer from "inquirer";
@@ -216,23 +220,21 @@ export async function addRemoteInteractive(): Promise<void> {
 			type: "input",
 			name: "host",
 			message: "Server hostname or IP:",
-			validate: (input: string) => (input.trim() ? true : "Host is required"),
+			validate: sshFieldValidator("Host"),
 		},
 		{
 			type: "input",
 			name: "user",
 			message: "SSH username:",
 			default: "root",
+			validate: sshFieldValidator("Username"),
 		},
 		{
 			type: "input",
 			name: "path",
 			message: "Remote projects directory:",
 			default: "~/code",
-			validate: (input: string) => {
-				const result = validateRemotePath(input);
-				return result.valid ? true : result.error;
-			},
+			validate: toInquirerValidator(validateRemotePath),
 		},
 	]);
 
@@ -261,6 +263,7 @@ export async function addRemoteInteractive(): Promise<void> {
 				name: "customPath",
 				message: "Path to SSH private key:",
 				default: "~/.ssh/id_ed25519",
+				validate: sshFieldValidator("Key path"),
 			},
 		]);
 		identityFile = customPath.replace(/^~/, process.env.HOME || "");
@@ -326,7 +329,7 @@ export async function addRemoteInteractive(): Promise<void> {
 	const checkSpin = spinner("Checking remote directory...");
 	const checkResult = await runRemoteCommand(
 		sshConnectString,
-		`ls -d ${escapeShellArg(path)} 2>/dev/null || echo "__NOT_FOUND__"`,
+		`ls -d ${escapeRemotePath(path)} 2>/dev/null || echo "__NOT_FOUND__"`,
 		identityFile,
 	);
 
@@ -344,7 +347,7 @@ export async function addRemoteInteractive(): Promise<void> {
 		if (createDir) {
 			const mkdirResult = await runRemoteCommand(
 				sshConnectString,
-				`mkdir -p ${escapeShellArg(path)}`,
+				`mkdir -p ${escapeRemotePath(path)}`,
 				identityFile,
 			);
 			if (mkdirResult.success) {

@@ -1,10 +1,17 @@
 /** SSH operations: parse config, test connections, run remote commands. */
 
-import { appendFileSync, existsSync, readdirSync, readFileSync } from "node:fs";
+import {
+	appendFileSync,
+	existsSync,
+	mkdirSync,
+	readdirSync,
+	readFileSync,
+} from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { SSH_KEYWORDS, SSH_TIMEOUT_MS } from "@lib/constants.ts";
 import { getErrorMessage, getExecaErrorMessage } from "@lib/errors.ts";
+import { validateSSHField, validateSSHHost } from "@lib/validation.ts";
 import type { SSHConfigEntry, SSHHost } from "@typedefs/index.ts";
 import { execa } from "execa";
 
@@ -39,7 +46,7 @@ export function sanitizeSshError(error: string): string {
 	// Generic auth failure message
 	if (
 		sanitized.includes("Permission denied") ||
-		sanitized.includes("authentication")
+		sanitized.toLowerCase().includes("authentication")
 	) {
 		return "SSH authentication failed. Check your SSH key and remote configuration.";
 	}
@@ -118,16 +125,29 @@ export function findSSHKeys(): string[] {
 	return keys;
 }
 
+/** Validate host and return error response if invalid, or null if valid. */
+function assertValidHost(
+	host: string,
+): { success: false; error: string } | null {
+	const check = validateSSHHost(host);
+	if (!check.valid) {
+		return { success: false, error: check.error };
+	}
+	return null;
+}
+
 export async function testConnection(
 	host: string,
 	identityFile?: string,
 ): Promise<{ success: boolean; error?: string }> {
+	const hostError = assertValidHost(host);
+	if (hostError) return hostError;
 	try {
 		const args = ["-o", "BatchMode=yes", "-o", "ConnectTimeout=5"];
 		if (identityFile) {
 			args.push("-i", identityFile);
 		}
-		args.push(host, "echo", "ok");
+		args.push("--", host, "echo", "ok");
 		await execa("ssh", args, { timeout: SSH_TIMEOUT_MS });
 		return { success: true };
 	} catch (error: unknown) {
@@ -142,8 +162,12 @@ export async function copyKey(
 	host: string,
 	keyPath: string,
 ): Promise<{ success: boolean; error?: string }> {
+	const hostError = assertValidHost(host);
+	if (hostError) return hostError;
 	try {
-		await execa("ssh-copy-id", ["-i", keyPath, host], { stdio: "inherit" });
+		await execa("ssh-copy-id", ["-i", keyPath, "--", host], {
+			stdio: "inherit",
+		});
 		return { success: true };
 	} catch (error: unknown) {
 		return { success: false, error: sanitizeSshError(getErrorMessage(error)) };
@@ -155,12 +179,14 @@ export async function runRemoteCommand(
 	command: string,
 	identityFile?: string,
 ): Promise<{ success: boolean; stdout?: string; error?: string }> {
+	const hostError = assertValidHost(host);
+	if (hostError) return hostError;
 	try {
 		const args: string[] = [];
 		if (identityFile) {
 			args.push("-i", identityFile);
 		}
-		args.push(host, command);
+		args.push("--", host, command);
 		const result = await execa("ssh", args);
 		return { success: true, stdout: result.stdout };
 	} catch (error: unknown) {
@@ -169,6 +195,17 @@ export async function runRemoteCommand(
 			error: sanitizeSshError(getExecaErrorMessage(error)),
 		};
 	}
+}
+
+/**
+ * Copy files via SCP with argument injection prevention.
+ * Uses "--" separator to prevent source/destination being interpreted as options.
+ */
+export async function secureScp(
+	source: string,
+	destination: string,
+): Promise<void> {
+	await execa("scp", ["--", source, destination]);
 }
 
 export function writeSSHConfigEntry(entry: SSHConfigEntry): {
@@ -190,6 +227,26 @@ export function writeSSHConfigEntry(entry: SSHConfigEntry): {
 		};
 	}
 
+	// Validate all fields before writing to SSH config
+	for (const [field, value] of Object.entries({
+		name: entry.name,
+		hostname: entry.hostname,
+		user: entry.user,
+		identityFile: entry.identityFile,
+	})) {
+		if (value) {
+			const result = validateSSHField(value, field);
+			if (!result.valid) {
+				return { success: false, error: result.error };
+			}
+		}
+	}
+
+	// Validate port range if specified
+	if (entry.port !== undefined && (entry.port < 1 || entry.port > 65535)) {
+		return { success: false, error: "Port must be between 1 and 65535" };
+	}
+
 	// Build the config entry
 	const configEntry = `
 Host ${entry.name}
@@ -202,7 +259,6 @@ Host ${entry.name}
 		// Ensure .ssh directory exists
 		const sshDir = getSSHDir();
 		if (!existsSync(sshDir)) {
-			const { mkdirSync } = require("node:fs");
 			mkdirSync(sshDir, { mode: 0o700 });
 		}
 

@@ -1,16 +1,19 @@
 // src/commands/encrypt.ts
 
 import { randomBytes } from "node:crypto";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
 	getProjectRemote,
 	getRemoteHost,
 	getRemotePath,
 } from "@commands/remote.ts";
 import { confirm, password, select } from "@inquirer/prompts";
-import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
+import { requireConfig, saveConfig } from "@lib/config.ts";
 import { decryptFile, deriveKey } from "@lib/encryption.ts";
 import { escapeShellArg } from "@lib/shell.ts";
-import { runRemoteCommand } from "@lib/ssh.ts";
+import { runRemoteCommand, secureScp } from "@lib/ssh.ts";
 import {
 	dryRun,
 	error,
@@ -26,16 +29,7 @@ import chalk from "chalk";
  * Enable encryption for a project
  */
 async function enableEncryption(project?: string): Promise<void> {
-	if (!configExists()) {
-		error("skybox not configured. Run 'skybox init' first.");
-		process.exit(1);
-	}
-
-	const config = loadConfig();
-	if (!config) {
-		error("skybox not configured. Run 'skybox init' first.");
-		process.exit(1);
-	}
+	const config = requireConfig();
 
 	const projectNames = Object.keys(config.projects);
 	if (projectNames.length === 0) {
@@ -140,16 +134,7 @@ async function enableEncryption(project?: string): Promise<void> {
  * Disable encryption for a project
  */
 async function disableEncryption(project?: string): Promise<void> {
-	if (!configExists()) {
-		error("skybox not configured. Run 'skybox init' first.");
-		process.exit(1);
-	}
-
-	const config = loadConfig();
-	if (!config) {
-		error("skybox not configured. Run 'skybox init' first.");
-		process.exit(1);
-	}
+	const config = requireConfig();
 
 	// Filter to only projects with encryption enabled
 	const encryptedProjects = Object.entries(config.projects)
@@ -206,11 +191,6 @@ async function disableEncryption(project?: string): Promise<void> {
 			const decryptSpin = spinner("Decrypting remote archive...");
 
 			try {
-				const { tmpdir } = await import("node:os");
-				const { join } = await import("node:path");
-				const { mkdtempSync, rmSync } = await import("node:fs");
-				const { execa } = await import("execa");
-
 				const key = await deriveKey(passphrase, projectConfig.encryption.salt);
 				// Use mkdtempSync for unpredictable temp directory (prevents symlink attacks)
 				const tempDir = mkdtempSync(join(tmpdir(), "skybox-"));
@@ -219,14 +199,14 @@ async function disableEncryption(project?: string): Promise<void> {
 
 				try {
 					decryptSpin.text = "Downloading encrypted archive...";
-					await execa("scp", [`${host}:${remoteArchivePath}`, localEncPath]);
+					await secureScp(`${host}:${remoteArchivePath}`, localEncPath);
 
 					decryptSpin.text = "Decrypting...";
 					decryptFile(localEncPath, localTarPath, key);
 
 					decryptSpin.text = "Uploading decrypted files...";
 					const remoteTarPath = `${remotePath}/${project}.tar`;
-					await execa("scp", [localTarPath, `${host}:${remoteTarPath}`]);
+					await secureScp(localTarPath, `${host}:${remoteTarPath}`);
 
 					decryptSpin.text = "Extracting...";
 					const extractResult = await runRemoteCommand(

@@ -23,7 +23,7 @@ describe("clone command", () => {
 	test("rejects empty project name", () => {
 		const result = validateProjectName("");
 		expect(result.valid).toBe(false);
-		expect(result.error).toContain("empty");
+		if (!result.valid) expect(result.error).toContain("empty");
 	});
 
 	test("rejects project names with path traversal", () => {
@@ -33,7 +33,7 @@ describe("clone command", () => {
 
 	test("constructs correct local project path", () => {
 		const path = getProjectPath("myapp");
-		expect(path).toContain("myapp");
+		expect(path).toEndWith("/Projects/myapp");
 	});
 
 	test("detects existing local project directory", () => {

@@ -43,6 +43,10 @@ When run without a project argument, `skybox clone` enters an interactive flow:
 6. **Start Working** - If one project was cloned, offers to start its container. If multiple were cloned, prompts you to choose which project to start working on (or "None" to skip). The selected project goes through the full `skybox up` flow (session, container, editor/shell).
 7. **Reminder** - After starting a project, prints a reminder with the remaining cloned projects you can start later with `skybox up`
 
+### Project Name Validation
+
+Project names are validated before cloning. Names cannot contain path separators (`/`, `\`), traversal sequences (`..`), or start with a dash (`-`).
+
 ### Local Storage
 
 Projects are cloned to `~/.skybox/Projects/<project-name>`.

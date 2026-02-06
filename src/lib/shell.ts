@@ -1,8 +1,4 @@
-// src/lib/shell.ts
-/**
- * @file shell.ts
- * @description Utilities for safe shell command construction.
- */
+/** Shell escaping utilities for safe command construction. */
 
 /**
  * Escapes a string for safe use as a shell argument.
@@ -20,6 +16,23 @@
  */
 export function escapeShellArg(arg: string): string {
 	return `'${arg.replace(/'/g, "'\\''")}'`;
+}
+
+/**
+ * Escape a remote path for use in SSH commands, preserving tilde expansion.
+ * Paths starting with ~/ are split: the ~ is left unquoted for shell expansion,
+ * and the rest is properly escaped.
+ */
+export function escapeRemotePath(path: string): string {
+	// Only ~/... triggers tilde expansion. ~user/... is intentionally single-quoted
+	// (no expansion for other users' home directories).
+	if (path === "~") {
+		return "~";
+	}
+	if (path.startsWith("~/")) {
+		return `~/${escapeShellArg(path.slice(2))}`;
+	}
+	return escapeShellArg(path);
 }
 
 /**

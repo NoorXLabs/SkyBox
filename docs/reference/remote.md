@@ -45,6 +45,8 @@ Walks you through:
 6. Connection test
 7. Directory creation (if needed)
 
+All SSH fields are validated as you enter them. Hostnames, usernames, key paths, and remote paths are checked for invalid characters (such as newlines or shell metacharacters) and will prompt you to re-enter if invalid.
+
 **Direct mode:**
 ```bash
 skybox remote add <name> <user@host:path> [--key <path>]

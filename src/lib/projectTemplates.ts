@@ -2,7 +2,11 @@
 
 import { loadConfig } from "@lib/config.ts";
 import { TEMPLATES } from "@lib/constants.ts";
-import type { Template, UserTemplate } from "@typedefs/index.ts";
+import type {
+	Template,
+	UserTemplate,
+	ValidationResult,
+} from "@typedefs/index.ts";
 
 export function getBuiltInTemplates(): Template[] {
 	return TEMPLATES;
@@ -30,10 +34,7 @@ export function getAllTemplates(): {
 	};
 }
 
-export function validateProjectName(name: string): {
-	valid: boolean;
-	error?: string;
-} {
+export function validateProjectName(name: string): ValidationResult {
 	if (!name || name.trim() === "") {
 		return { valid: false, error: "Project name cannot be empty" };
 	}

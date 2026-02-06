@@ -314,8 +314,19 @@ When `SKYBOX_AUDIT=1`, security-relevant operations are logged to `~/.skybox/aud
 
 Logged actions include: `clone:start`, `clone:success`, `clone:fail`, `push:start`, `push:success`, `push:fail`, `rm:local`, `rm:remote`, `up:start`, `up:success`, `down`, `lock:force`, `config:change`.
 
-::: tip Log Rotation
-The audit log grows unbounded. For long-running deployments, rotate manually:
+#### Log Sanitization
+
+Audit log entries are automatically sanitized before being written:
+
+- **Home directory paths** are replaced with `~` (e.g., `/Users/john/code` becomes `~/code`)
+- **Credentials** matching `password=...` or `token=...` patterns are redacted
+
+#### Log Rotation
+
+The audit log is automatically rotated when it exceeds **10 MB**. When rotation occurs, the current log is renamed to `audit.log.YYYY-MM-DD` and a new log file is started.
+
+::: tip Manual Rotation
+You can also rotate the log manually at any time:
 ```bash
 mv ~/.skybox/audit.log ~/.skybox/audit.log.$(date +%Y%m%d)
 ```

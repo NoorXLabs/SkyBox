@@ -3,7 +3,7 @@
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { getProjectRemote, getRemoteHost } from "@commands/remote.ts";
-import { configExists } from "@lib/config.ts";
+import { requireConfig } from "@lib/config.ts";
 import { getContainerInfo, getContainerStatus } from "@lib/container.ts";
 import { getSyncStatus, sessionName } from "@lib/mutagen.ts";
 import { getProjectsDir } from "@lib/paths.ts";
@@ -13,6 +13,8 @@ import {
 	readSession,
 	type SessionInfo,
 } from "@lib/session.ts";
+import { escapeRemotePath } from "@lib/shell.ts";
+import { runRemoteCommand } from "@lib/ssh.ts";
 import { error, header } from "@lib/ui.ts";
 import {
 	type ContainerDetails,
@@ -201,7 +203,7 @@ async function getContainerDetails(
 		const [cpu, memory] = statsResult.stdout.trim().split("\t");
 
 		// Parse uptime from status string (e.g., "Up 2 hours")
-		const uptimeMatch = info.status.match(/Up\s+(.+)/i);
+		const uptimeMatch = info.rawStatus.match(/Up\s+(.+)/i);
 		const uptime = uptimeMatch ? uptimeMatch[1] : "-";
 
 		return {
@@ -251,12 +253,12 @@ async function getRemoteDiskUsage(projectName: string): Promise<string> {
 		const { remote } = projectRemote;
 		const host = getRemoteHost(remote);
 		const remotePath = `${remote.path}/${projectName}`;
-		const result = await execa(
-			"ssh",
-			[host, `du -sh ${remotePath} 2>/dev/null | cut -f1`],
-			{ timeout: 10000 },
+		const result = await runRemoteCommand(
+			host,
+			`du -sh ${escapeRemotePath(remotePath)} 2>/dev/null | cut -f1`,
 		);
-		return result.stdout.trim() || "unknown";
+		if (!result.success) return "unavailable";
+		return result.stdout?.trim() || "unknown";
 	} catch {
 		return "unavailable";
 	}
@@ -371,10 +373,7 @@ function formatOverviewTable(summaries: ProjectSummary[]): void {
 }
 
 export async function statusCommand(project?: string): Promise<void> {
-	if (!configExists()) {
-		error("skybox not configured. Run 'skybox init' first.");
-		process.exit(1);
-	}
+	requireConfig();
 
 	if (project) {
 		await showDetailed(project);

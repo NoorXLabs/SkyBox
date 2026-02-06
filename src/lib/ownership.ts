@@ -4,6 +4,7 @@ import { hostname, userInfo } from "node:os";
 import { OWNERSHIP_FILE_NAME } from "@lib/constants.ts";
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
+import { validateRemotePath } from "@lib/validation.ts";
 import type {
 	OwnershipInfo,
 	OwnershipStatus,
@@ -71,6 +72,10 @@ export async function getOwnershipStatus(
 	host: string,
 	projectPath: string,
 ): Promise<OwnershipStatus> {
+	const pathCheck = validateRemotePath(projectPath);
+	if (!pathCheck.valid) {
+		return { hasOwner: false };
+	}
 	const ownershipFile = `${projectPath}/${OWNERSHIP_FILE_NAME}`;
 	const command = `cat ${escapeShellArg(ownershipFile)} 2>/dev/null`;
 
@@ -100,6 +105,10 @@ export async function setOwnership(
 	host: string,
 	projectPath: string,
 ): Promise<SetOwnershipResult> {
+	const pathCheck = validateRemotePath(projectPath);
+	if (!pathCheck.valid) {
+		return { success: false, error: pathCheck.error };
+	}
 	const info = createOwnershipInfo();
 	const json = JSON.stringify(info, null, 2);
 	const ownershipFile = `${projectPath}/${OWNERSHIP_FILE_NAME}`;

@@ -1,7 +1,7 @@
 // src/commands/clone.ts
 
 import { existsSync, mkdirSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { getRemoteProjects } from "@commands/browse.ts";
 import {
 	getRemoteHost,
@@ -11,7 +11,7 @@ import {
 import { upCommand } from "@commands/up.ts";
 import { checkbox, select } from "@inquirer/prompts";
 import { AuditActions, logAuditEvent } from "@lib/audit.ts";
-import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
+import { requireConfig, saveConfig } from "@lib/config.ts";
 import {
 	createSelectiveSyncSessions,
 	createSyncSession,
@@ -35,6 +35,7 @@ import {
 	spinner,
 	success,
 } from "@lib/ui.ts";
+import type { SkyboxConfigV2 } from "@typedefs/index.ts";
 import inquirer from "inquirer";
 
 /**
@@ -44,10 +45,8 @@ import inquirer from "inquirer";
 export async function cloneSingleProject(
 	project: string,
 	remoteName: string,
-	config: ReturnType<typeof loadConfig>,
+	config: SkyboxConfigV2,
 ): Promise<boolean> {
-	if (!config) return false;
-
 	const remote = config.remotes[remoteName];
 	const host = getRemoteHost(remote);
 	const remotePath = getRemotePath(remote, project);
@@ -57,6 +56,19 @@ export async function cloneSingleProject(
 	header(`Cloning '${project}' from ${host}:${remotePath}...`);
 
 	const localPath = join(getProjectsDir(), project);
+
+	// Defense-in-depth: verify resolved path stays under projects directory
+	const normalizedLocal = resolve(localPath);
+	const normalizedProjectsDir = resolve(getProjectsDir());
+	if (!normalizedLocal.startsWith(`${normalizedProjectsDir}/`)) {
+		error("Invalid project path: would write outside projects directory");
+		logAuditEvent(AuditActions.CLONE_FAIL, {
+			project,
+			remote: remoteName,
+			error: "Path traversal detected",
+		});
+		return false;
+	}
 
 	if (isDryRun()) {
 		dryRun(`Would check if project exists on remote`);
@@ -186,16 +198,7 @@ export async function cloneSingleProject(
 }
 
 export async function cloneCommand(project?: string): Promise<void> {
-	if (!configExists()) {
-		error("skybox not configured. Run 'skybox init' first.");
-		process.exit(1);
-	}
-
-	const config = loadConfig();
-	if (!config) {
-		error("Failed to load config.");
-		process.exit(1);
-	}
+	const config = requireConfig();
 
 	// If project provided directly, use single-clone flow
 	if (project) {
@@ -250,7 +253,13 @@ export async function cloneCommand(project?: string): Promise<void> {
 	// Filter out already-local projects
 	const localProjects = getLocalProjects();
 	const localSet = new Set(localProjects);
-	const available = remoteProjects.filter((p) => !localSet.has(p.name));
+	const available = remoteProjects.filter((p) => {
+		if (localSet.has(p.name)) return false;
+		// Validate remote-sourced names for safety
+		const validation = validateProjectName(p.name);
+		if (!validation.valid) return false;
+		return true;
+	});
 
 	if (available.length === 0) {
 		info("All remote projects are already cloned locally.");

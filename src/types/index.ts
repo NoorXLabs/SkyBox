@@ -28,7 +28,7 @@ export interface RemoteConfig {
 
 /** Default sync configuration: mode and ignore patterns */
 export interface SyncDefaults {
-	sync_mode: string;
+	sync_mode: "two-way-resolved" | "two-way-safe" | "one-way-replica";
 	ignore: string[];
 	encryption?: boolean;
 	auto_up?: boolean;
@@ -107,7 +107,8 @@ export interface ContainerResult {
 export interface ContainerInfo {
 	id: string;
 	name: string;
-	status: string;
+	status: ContainerStatus;
+	rawStatus: string;
 	image: string;
 }
 
@@ -166,6 +167,13 @@ export interface DetailedStatus {
 }
 
 // Project types
+
+/** Result of project resolution phase (used by up command). */
+export interface ResolvedProject {
+	project: string;
+	projectPath: string;
+}
+
 export interface RemoteProject {
 	name: string;
 	branch: string;
@@ -340,6 +348,13 @@ export interface SessionConflictResult {
 	existingSession?: SessionInfo;
 }
 
+// Validation types
+
+/** Result of input validation functions. Discriminated union for type safety. */
+export type ValidationResult =
+	| { valid: true }
+	| { valid: false; error: string };
+
 // Install method types
 export type InstallMethod = "homebrew" | "github-release" | "npm" | "source";
 
@@ -348,4 +363,36 @@ export interface UpdateCheckMetadata {
 	lastCheck: string; // ISO 8601 datetime of last check
 	latestVersion: string | null; // Latest version found, or null if check failed
 	latestStableVersion: string | null; // Latest non-prerelease version
+}
+
+// Audit types
+
+/** Audit log entry structure */
+export interface AuditEntry {
+	timestamp: string;
+	action: string;
+	user: string;
+	machine: string;
+	details: Record<string, unknown>;
+}
+
+// GPG types
+
+/** Result of GPG signature verification */
+export interface GpgVerifyResult {
+	verified: boolean;
+	error?: string;
+	gpgUnavailable?: boolean;
+}
+
+/** Result of GPG key fingerprint verification */
+export interface KeyFingerprintResult {
+	matches: boolean;
+	actualFingerprint?: string;
+	error?: string;
+}
+
+/** Narrow devcontainer config used when reading workspace folder from existing config. */
+export interface DevcontainerWorkspaceConfig {
+	workspaceFolder?: string;
 }

@@ -1,5 +1,8 @@
 // src/commands/up.ts
 
+import { mkdtempSync, realpathSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
 	getProjectRemote,
 	getRemoteHost,
@@ -7,7 +10,7 @@ import {
 } from "@commands/remote.ts";
 import { checkbox, password, select } from "@inquirer/prompts";
 import { AuditActions, logAuditEvent } from "@lib/audit.ts";
-import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
+import { requireConfig, saveConfig } from "@lib/config.ts";
 import {
 	DEVCONTAINER_CONFIG_NAME,
 	DEVCONTAINER_DIR_NAME,
@@ -23,7 +26,7 @@ import {
 	startContainer,
 	stopContainer,
 } from "@lib/container.ts";
-import { deriveKey } from "@lib/encryption.ts";
+import { decryptFile, deriveKey } from "@lib/encryption.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { runHooks } from "@lib/hooks.ts";
 import { getSyncStatus, resumeSync } from "@lib/mutagen.ts";
@@ -40,7 +43,7 @@ import {
 	writeSession,
 } from "@lib/session.ts";
 import { escapeShellArg } from "@lib/shell.ts";
-import { runRemoteCommand } from "@lib/ssh.ts";
+import { runRemoteCommand, secureScp } from "@lib/ssh.ts";
 import { selectTemplate, writeDevcontainerConfig } from "@lib/templates.ts";
 import {
 	dryRun,
@@ -54,16 +57,11 @@ import {
 } from "@lib/ui.ts";
 import {
 	ContainerStatus,
+	type ResolvedProject,
 	type SkyboxConfigV2,
 	type UpOptions,
 } from "@typedefs/index.ts";
 import inquirer from "inquirer";
-
-/** Result of project resolution phase */
-interface ResolvedProject {
-	project: string;
-	projectPath: string;
-}
 
 /**
  * Sanitize Docker error output for display.
@@ -108,7 +106,6 @@ async function normalizeProject(
 	}
 
 	const rawPath = getProjectPath(project);
-	const { realpathSync } = await import("node:fs");
 	let normalizedPath: string;
 	try {
 		normalizedPath = realpathSync(rawPath);
@@ -412,17 +409,6 @@ async function handleDecryption(
 		return false;
 	}
 
-	const { tmpdir } = await import("node:os");
-	const { join } = await import("node:path");
-	const { mkdtempSync, rmSync } = await import("node:fs");
-	const { execa } = await import("execa");
-	const { decryptFile } = await import("../lib/encryption.ts");
-
-	// Use mkdtempSync for unpredictable temp directory (prevents symlink attacks)
-	const tempDir = mkdtempSync(join(tmpdir(), "skybox-"));
-	const localEncPath = join(tempDir, "archive.tar.enc");
-	const localTarPath = join(tempDir, "archive.tar");
-
 	for (let attempt = 1; attempt <= MAX_PASSPHRASE_ATTEMPTS; attempt++) {
 		const passphrase = await password({
 			message: "Enter passphrase:",
@@ -433,6 +419,10 @@ async function handleDecryption(
 			continue;
 		}
 
+		// Create fresh temp directory for each attempt (prevents symlink attacks)
+		const tempDir = mkdtempSync(join(tmpdir(), "skybox-"));
+		const localEncPath = join(tempDir, "archive.tar.enc");
+		const localTarPath = join(tempDir, "archive.tar");
 		const decryptSpin = spinner("Decrypting project archive...");
 
 		try {
@@ -440,7 +430,7 @@ async function handleDecryption(
 
 			// Download encrypted archive from remote
 			decryptSpin.text = "Downloading encrypted archive...";
-			await execa("scp", [`${host}:${remoteArchivePath}`, localEncPath]);
+			await secureScp(`${host}:${remoteArchivePath}`, localEncPath);
 
 			// Decrypt locally
 			decryptSpin.text = "Decrypting...";
@@ -449,7 +439,7 @@ async function handleDecryption(
 			// Upload decrypted tar to remote
 			decryptSpin.text = "Uploading decrypted files...";
 			const remoteTarPath = `${remotePath}/${project}.tar`;
-			await execa("scp", [localTarPath, `${host}:${remoteTarPath}`]);
+			await secureScp(localTarPath, `${host}:${remoteTarPath}`);
 
 			// Extract on remote and clean up
 			decryptSpin.text = "Extracting...";
@@ -474,7 +464,7 @@ async function handleDecryption(
 			}
 			decryptSpin.fail("Wrong passphrase. Please try again.");
 		} finally {
-			// Clean up entire temp directory
+			// Clean up this attempt's temp directory
 			try {
 				rmSync(tempDir, { recursive: true, force: true });
 			} catch {}
@@ -512,17 +502,8 @@ export async function upCommand(
 		return;
 	}
 
-	// Step 1: Check config exists
-	if (!configExists()) {
-		error("skybox not configured. Run 'skybox init' first.");
-		process.exit(1);
-	}
-
-	const config = loadConfig();
-	if (!config) {
-		error("Failed to load config.");
-		process.exit(1);
-	}
+	// Step 1: Load config
+	const config = requireConfig();
 
 	// Step 2: Resolve project(s)
 	const resolvedProjects = await resolveProjects(projectArg, options);

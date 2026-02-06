@@ -9,15 +9,21 @@ import {
 	writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
-import { MUTAGEN_REPO, MUTAGEN_VERSION } from "@lib/constants.ts";
+import {
+	MUTAGEN_GPG_FINGERPRINT,
+	MUTAGEN_REPO,
+	MUTAGEN_VERSION,
+} from "@lib/constants.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import {
 	fetchMutagenPublicKey,
 	fetchMutagenSignature,
 	isGpgAvailable,
 	verifyGpgSignature,
+	verifyKeyFingerprint,
 } from "@lib/gpg.ts";
 import { getBinDir, getMutagenPath } from "@lib/paths.ts";
+import { execa } from "execa";
 import { extract } from "tar";
 
 /** Whether GPG verification is preferred (evaluated at call time, not module load). */
@@ -78,15 +84,15 @@ export function getMutagenChecksumUrl(version: string): string {
 	return `https://github.com/${MUTAGEN_REPO}/releases/download/v${version}/SHA256SUMS`;
 }
 
-export function isMutagenInstalled(): boolean {
+export async function isMutagenInstalled(): Promise<boolean> {
 	const mutagenPath = getMutagenPath();
 	if (!existsSync(mutagenPath)) {
 		return false;
 	}
 
 	try {
-		const result = Bun.spawnSync([mutagenPath, "version"]);
-		return result.exitCode === 0;
+		await execa(mutagenPath, ["version"]);
+		return true;
 	} catch {
 		return false;
 	}
@@ -96,14 +102,86 @@ export async function getInstalledMutagenVersion(): Promise<string | null> {
 	const mutagenPath = getMutagenPath();
 	if (!existsSync(mutagenPath)) return null;
 	try {
-		const result = Bun.spawnSync([mutagenPath, "version"]);
-		if (result.exitCode === 0) {
-			return result.stdout.toString().trim();
-		}
-		return null;
+		const result = await execa(mutagenPath, ["version"]);
+		return result.stdout.trim();
 	} catch {
 		return null;
 	}
+}
+
+/**
+ * Verify the GPG signature on the checksums file.
+ * Returns { success: true } when verification passes or is skipped,
+ * and { success: false, error } when it fails and GPG is preferred.
+ */
+async function verifyGpgChecksums(
+	checksumContent: string,
+	gpgPreferred: boolean,
+	onProgress?: (message: string) => void,
+): Promise<{ success: boolean; error?: string }> {
+	if (await isGpgAvailable()) {
+		onProgress?.("Verifying GPG signature...");
+
+		const [publicKey, gpgSignature] = await Promise.all([
+			fetchMutagenPublicKey(),
+			fetchMutagenSignature(MUTAGEN_VERSION),
+		]);
+
+		if (!publicKey || !gpgSignature) {
+			if (gpgPreferred) {
+				return {
+					success: false,
+					error: "Failed to fetch GPG key or signature",
+				};
+			}
+			onProgress?.(
+				"GPG signature unavailable - checksums not cryptographically verified",
+			);
+		} else {
+			// Verify fetched key matches pinned fingerprint
+			const fpCheck = await verifyKeyFingerprint(
+				publicKey,
+				MUTAGEN_GPG_FINGERPRINT,
+			);
+			if (!fpCheck.matches) {
+				if (gpgPreferred) {
+					return {
+						success: false,
+						error: `GPG key fingerprint mismatch. Expected: ${MUTAGEN_GPG_FINGERPRINT}, got: ${fpCheck.actualFingerprint || "unknown"}. The signing key may have been compromised or rotated.`,
+					};
+				}
+				onProgress?.(
+					"GPG key fingerprint mismatch - signature verification skipped",
+				);
+			} else {
+				const gpgResult = await verifyGpgSignature(
+					Buffer.from(checksumContent),
+					gpgSignature,
+					publicKey,
+				);
+
+				if (!gpgResult.verified) {
+					if (gpgPreferred) {
+						return {
+							success: false,
+							error: gpgResult.error || "GPG signature verification failed",
+						};
+					}
+					onProgress?.(
+						"GPG signature invalid - checksums not cryptographically verified",
+					);
+				} else {
+					onProgress?.("GPG signature verified");
+				}
+			}
+		}
+	} else {
+		if (gpgPreferred) {
+			onProgress?.("GPG not available - using checksum verification only");
+		}
+	}
+
+	return { success: true };
 }
 
 export async function downloadMutagen(
@@ -111,6 +189,7 @@ export async function downloadMutagen(
 ): Promise<{ success: boolean; error?: string }> {
 	const platform = process.platform;
 	const arch = process.arch;
+	const gpgPreferred = isGpgPreferred();
 
 	if (platform !== "darwin" && platform !== "linux") {
 		return { success: false, error: `Unsupported platform: ${platform}` };
@@ -136,51 +215,20 @@ export async function downloadMutagen(
 			return { success: false, error: "Failed to fetch checksums" };
 		}
 
+		if (!gpgPreferred) {
+			onProgress?.(
+				"GPG verification is best-effort (SKYBOX_SKIP_GPG=1). Failures will not block installation.",
+			);
+		}
+
 		// Verify checksums file GPG signature BEFORE trusting checksums
-		// This ensures we verify the integrity of the checksum list before using it
-		if (await isGpgAvailable()) {
-			onProgress?.("Verifying GPG signature...");
-
-			const [publicKey, gpgSignature] = await Promise.all([
-				fetchMutagenPublicKey(),
-				fetchMutagenSignature(MUTAGEN_VERSION),
-			]);
-
-			if (!publicKey || !gpgSignature) {
-				if (isGpgPreferred()) {
-					return {
-						success: false,
-						error: "Failed to fetch GPG key or signature",
-					};
-				}
-				onProgress?.(
-					"GPG signature unavailable - checksums not cryptographically verified",
-				);
-			} else {
-				const gpgResult = await verifyGpgSignature(
-					Buffer.from(checksumContent),
-					gpgSignature,
-					publicKey,
-				);
-
-				if (!gpgResult.verified) {
-					if (isGpgPreferred()) {
-						return {
-							success: false,
-							error: gpgResult.error || "GPG signature verification failed",
-						};
-					}
-					onProgress?.(
-						"GPG signature invalid - checksums not cryptographically verified",
-					);
-				} else {
-					onProgress?.("GPG signature verified");
-				}
-			}
-		} else {
-			if (isGpgPreferred()) {
-				onProgress?.("GPG not available - using checksum verification only");
-			}
+		const gpgResult = await verifyGpgChecksums(
+			checksumContent,
+			gpgPreferred,
+			onProgress,
+		);
+		if (!gpgResult.success) {
+			return gpgResult;
 		}
 
 		// Parse expected hash from verified checksums file

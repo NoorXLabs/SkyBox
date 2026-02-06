@@ -6,13 +6,33 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { getErrorMessage } from "@lib/errors.ts";
+import type { GpgVerifyResult, KeyFingerprintResult } from "@typedefs/index.ts";
 
 const execFileAsync = promisify(execFile);
 
-export interface GpgVerifyResult {
-	verified: boolean;
-	error?: string;
-	gpgUnavailable?: boolean;
+/** Import a GPG public key into a temporary keyring. */
+async function importKeyToTempKeyring(
+	publicKey: string,
+): Promise<{ tempDir: string; keyringPath: string }> {
+	const tempDir = mkdtempSync(join(tmpdir(), "skybox-gpg-"));
+	const keyPath = join(tempDir, "key.asc");
+	const keyringPath = join(tempDir, "keyring.gpg");
+	writeFileSync(keyPath, publicKey, { mode: 0o600 });
+	try {
+		await execFileAsync("gpg", [
+			"--no-default-keyring",
+			"--keyring",
+			keyringPath,
+			"--batch",
+			"--quiet",
+			"--import",
+			keyPath,
+		]);
+	} catch (err) {
+		rmSync(tempDir, { recursive: true, force: true });
+		throw err;
+	}
+	return { tempDir, keyringPath };
 }
 
 /**
@@ -49,30 +69,20 @@ export async function verifyGpgSignature(
 		};
 	}
 
-	// Create a temporary directory for GPG operations
-	const tempDir = mkdtempSync(join(tmpdir(), "skybox-gpg-"));
+	// Create a temporary directory for GPG operations, import key, and verify
+	let tempDir: string | undefined;
 
 	try {
+		const imported = await importKeyToTempKeyring(publicKey);
+		tempDir = imported.tempDir;
+		const keyringPath = imported.keyringPath;
+
 		const dataPath = join(tempDir, "data");
 		const sigPath = join(tempDir, "data.sig");
-		const keyPath = join(tempDir, "key.asc");
-		const keyringPath = join(tempDir, "keyring.gpg");
 
 		// Write files with restricted permissions (owner-only read/write)
 		writeFileSync(dataPath, data, { mode: 0o600 });
 		writeFileSync(sigPath, signature, { mode: 0o600 });
-		writeFileSync(keyPath, publicKey, { mode: 0o600 });
-
-		// Import the key to a temporary keyring
-		await execFileAsync("gpg", [
-			"--no-default-keyring",
-			"--keyring",
-			keyringPath,
-			"--batch",
-			"--quiet",
-			"--import",
-			keyPath,
-		]);
 
 		// Verify the signature
 		await execFileAsync("gpg", [
@@ -94,7 +104,66 @@ export async function verifyGpgSignature(
 		};
 	} finally {
 		// Clean up temp directory
-		rmSync(tempDir, { recursive: true, force: true });
+		if (tempDir) {
+			rmSync(tempDir, { recursive: true, force: true });
+		}
+	}
+}
+
+/**
+ * Verify that a GPG public key matches the expected fingerprint.
+ * Imports the key into a temporary keyring and checks the fingerprint.
+ */
+export async function verifyKeyFingerprint(
+	publicKey: string,
+	expectedFingerprint: string,
+): Promise<KeyFingerprintResult> {
+	if (!(await isGpgAvailable())) {
+		return { matches: false, error: "GPG is not available" };
+	}
+
+	let tempDir: string | undefined;
+
+	try {
+		const imported = await importKeyToTempKeyring(publicKey);
+		tempDir = imported.tempDir;
+		const keyringPath = imported.keyringPath;
+
+		// List key fingerprints from the keyring
+		const { stdout } = await execFileAsync("gpg", [
+			"--no-default-keyring",
+			"--keyring",
+			keyringPath,
+			"--batch",
+			"--with-colons",
+			"--fingerprint",
+		]);
+
+		// Parse fingerprint from colon-delimited output
+		// Format: fpr:::::::::FINGERPRINT:
+		const fprLines = stdout.split("\n").filter((l) => l.startsWith("fpr:"));
+		const fingerprints = fprLines.map((l) => l.split(":")[9]);
+
+		const normalizedExpected = expectedFingerprint
+			.replace(/\s/g, "")
+			.toUpperCase();
+		const matches = fingerprints.some(
+			(fp) => fp?.toUpperCase() === normalizedExpected,
+		);
+
+		return {
+			matches,
+			actualFingerprint: fingerprints[0] || "unknown",
+		};
+	} catch (err) {
+		return {
+			matches: false,
+			error: `Failed to verify key fingerprint: ${getErrorMessage(err)}`,
+		};
+	} finally {
+		if (tempDir) {
+			rmSync(tempDir, { recursive: true, force: true });
+		}
 	}
 }
 
@@ -102,9 +171,9 @@ export async function verifyGpgSignature(
  * Fetch Mutagen's public GPG key from GitHub.
  *
  * TRUST MODEL: This fetches the key from GitHub's key hosting service.
- * Users implicitly trust that GitHub's infrastructure hasn't been compromised.
- * For higher security requirements, the key could be embedded in the codebase,
- * though this trades off the ability to rotate keys without code updates.
+ * The fetched key is verified against the pinned fingerprint (MUTAGEN_GPG_FINGERPRINT)
+ * before use, preventing trust-on-first-use attacks.
+ * @see MUTAGEN_GPG_FINGERPRINT in constants.ts
  */
 export async function fetchMutagenPublicKey(): Promise<string | null> {
 	try {
