@@ -83,7 +83,7 @@ skybox init
 The wizard will:
 
 1. **Check dependencies** - Verify Docker and devcontainer CLI are installed
-2. **Install Mutagen** - Download the file sync tool automatically
+2. **Install Mutagen** - Download the file sync tool automatically (with GPG signature verification if `gpg` is available)
 3. **Configure remote server** - Set up SSH connection to your backup server
 4. **Choose editor** - Select your preferred code editor
 
@@ -183,6 +183,16 @@ If Mutagen fails to install automatically:
 1. Check your internet connection
 2. Try manual installation: [Mutagen](https://mutagen.io/documentation/introduction/installation)
 3. Run `skybox init` again after installing manually
+
+### GPG Signature Verification
+
+During Mutagen installation, SkyBox verifies the download's GPG signature when `gpg` is available on your system. If GPG is not installed, SkyBox falls back to checksum-only verification.
+
+To skip GPG verification entirely:
+
+```bash
+SKYBOX_SKIP_GPG=1 skybox init
+```
 
 ### Permission Denied Errors
 

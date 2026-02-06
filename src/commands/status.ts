@@ -3,7 +3,7 @@
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { getProjectRemote, getRemoteHost } from "@commands/remote.ts";
-import { configExists } from "@lib/config.ts";
+import { requireConfig } from "@lib/config.ts";
 import { getContainerInfo, getContainerStatus } from "@lib/container.ts";
 import { getSyncStatus, sessionName } from "@lib/mutagen.ts";
 import { getProjectsDir } from "@lib/paths.ts";
@@ -13,7 +13,7 @@ import {
 	readSession,
 	type SessionInfo,
 } from "@lib/session.ts";
-import { escapeShellArg } from "@lib/shell.ts";
+import { escapeRemotePath } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import { error, header } from "@lib/ui.ts";
 import {
@@ -255,7 +255,7 @@ async function getRemoteDiskUsage(projectName: string): Promise<string> {
 		const remotePath = `${remote.path}/${projectName}`;
 		const result = await runRemoteCommand(
 			host,
-			`du -sh ${escapeShellArg(remotePath)} 2>/dev/null | cut -f1`,
+			`du -sh ${escapeRemotePath(remotePath)} 2>/dev/null | cut -f1`,
 		);
 		if (!result.success) return "unavailable";
 		return result.stdout?.trim() || "unknown";
@@ -373,10 +373,7 @@ function formatOverviewTable(summaries: ProjectSummary[]): void {
 }
 
 export async function statusCommand(project?: string): Promise<void> {
-	if (!configExists()) {
-		error("skybox not configured. Run 'skybox init' first.");
-		process.exit(1);
-	}
+	requireConfig();
 
 	if (project) {
 		await showDetailed(project);

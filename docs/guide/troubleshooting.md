@@ -363,6 +363,35 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
    skybox remote add myremote user@host
    ```
 
+## Input Validation Errors
+
+SkyBox validates user input to prevent security issues. Here are common validation errors and how to resolve them.
+
+### SSH Field Validation
+
+When adding remotes or running `skybox init`, SSH fields (hostname, username, key path) are restricted to alphanumeric characters and `@ . _ ~ : - /`. If you see errors like:
+
+- **"Hostname contains invalid characters"** — Remove spaces, quotes, or special characters from the hostname
+- **"Username cannot contain newlines"** — Re-enter the username without line breaks
+
+### Project Name Restrictions
+
+Project names cannot contain:
+- Path separators (`/` or `\`)
+- Traversal sequences (`..`)
+- Leading dashes (`-`)
+
+If you see **"Project name cannot contain path separators"**, use a simple name like `my-app` instead.
+
+### Remote Path Restrictions
+
+Remote paths cannot contain shell metacharacters. If you see:
+
+- **"Remote path cannot contain command substitution"** — Remove `$()`, `${}`, or backtick expressions from the path
+- **"Remote path cannot contain shell metacharacters"** — Remove `;`, `|`, or `&` characters from the path
+
+Use a plain path like `~/code` or `/home/user/projects`.
+
 ## Getting Help
 
 If these solutions don't help:

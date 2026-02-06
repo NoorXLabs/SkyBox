@@ -167,6 +167,13 @@ export interface DetailedStatus {
 }
 
 // Project types
+
+/** Result of project resolution phase (used by up command). */
+export interface ResolvedProject {
+	project: string;
+	projectPath: string;
+}
+
 export interface RemoteProject {
 	name: string;
 	branch: string;
@@ -356,4 +363,36 @@ export interface UpdateCheckMetadata {
 	lastCheck: string; // ISO 8601 datetime of last check
 	latestVersion: string | null; // Latest version found, or null if check failed
 	latestStableVersion: string | null; // Latest non-prerelease version
+}
+
+// Audit types
+
+/** Audit log entry structure */
+export interface AuditEntry {
+	timestamp: string;
+	action: string;
+	user: string;
+	machine: string;
+	details: Record<string, unknown>;
+}
+
+// GPG types
+
+/** Result of GPG signature verification */
+export interface GpgVerifyResult {
+	verified: boolean;
+	error?: string;
+	gpgUnavailable?: boolean;
+}
+
+/** Result of GPG key fingerprint verification */
+export interface KeyFingerprintResult {
+	matches: boolean;
+	actualFingerprint?: string;
+	error?: string;
+}
+
+/** Narrow devcontainer config used when reading workspace folder from existing config. */
+export interface DevcontainerWorkspaceConfig {
+	workspaceFolder?: string;
 }

@@ -33,6 +33,7 @@ import {
 	type ContainerInfo,
 	type ContainerResult,
 	ContainerStatus,
+	type DevcontainerWorkspaceConfig,
 } from "@typedefs/index.ts";
 
 export type EditorId = (typeof SUPPORTED_EDITORS)[number]["id"] | string;
@@ -68,14 +69,10 @@ async function queryDockerContainers(options: {
 	return result.stdout.trim();
 }
 
-export interface DevcontainerConfig {
-	workspaceFolder?: string;
-}
-
 // Read devcontainer.json configuration
 export function getDevcontainerConfig(
 	projectPath: string,
-): DevcontainerConfig | null {
+): DevcontainerWorkspaceConfig | null {
 	const configPath = join(
 		projectPath,
 		DEVCONTAINER_DIR_NAME,

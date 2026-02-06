@@ -54,6 +54,9 @@ export const SESSION_FILE = ".skybox/session.lock";
 /** Session TTL in milliseconds (24 hours). */
 export const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
 
+/** Maximum audit log file size in bytes before rotation (10 MB). */
+export const AUDIT_LOG_MAX_BYTES = 10 * 1024 * 1024;
+
 /** Ownership metadata file name. */
 export const OWNERSHIP_FILE_NAME = ".skybox-owner";
 
@@ -135,8 +138,12 @@ export const MUTAGEN_REPO = "mutagen-io/mutagen";
 
 /**
  * Pinned GPG key fingerprint for Mutagen release verification.
- * NOTE: As of 2026-02-05, mutagen-io has no GPG keys on GitHub.
- * The fingerprint below is a placeholder. When they publish a key, update it.
+ *
+ * TODO: This is a placeholder fingerprint. As of 2026-02-05, mutagen-io has no
+ * GPG keys on GitHub. When they publish a key, replace this value and remove
+ * this TODO. GPG verification will fail with this placeholder — callers should
+ * handle fingerprint mismatch gracefully (see download.ts).
+ *
  * Verify with: curl -sL https://github.com/mutagen-io.gpg | gpg --with-colons --import-options show-only --import 2>&1 | grep "^fpr:"
  * @see https://github.com/mutagen-io.gpg
  */
@@ -266,9 +273,6 @@ export const COMMON_MOUNTS = [
 export const COMMON_VSCODE_SETTINGS = {
 	"terminal.integrated.defaultProfile.linux": "zsh",
 };
-
-/** Maximum audit log file size in bytes before rotation (10 MB). */
-export const AUDIT_LOG_MAX_BYTES = 10 * 1024 * 1024;
 
 /** Supported editor configurations. */
 export const SUPPORTED_EDITORS = [

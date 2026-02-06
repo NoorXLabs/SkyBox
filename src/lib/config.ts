@@ -12,6 +12,7 @@ import { dirname } from "node:path";
 import { validateConfig } from "@lib/config-schema.ts";
 import { migrateConfig, needsMigration } from "@lib/migration.ts";
 import { getConfigPath } from "@lib/paths.ts";
+import { error } from "@lib/ui.ts";
 import type {
 	RemoteEntry,
 	SkyboxConfig,
@@ -67,6 +68,19 @@ export function loadConfig(): SkyboxConfigV2 | null {
 	validateConfig(rawConfig);
 
 	return rawConfig;
+}
+
+/**
+ * Load config or exit if SkyBox is not configured.
+ * Combines the common configExists() + loadConfig() pattern.
+ */
+export function requireConfig(): SkyboxConfigV2 {
+	const config = loadConfig();
+	if (!config) {
+		error("SkyBox is not configured. Run 'skybox init' first.");
+		process.exit(1);
+	}
+	return config;
 }
 
 export function saveConfig(config: SkyboxConfigV2): void {

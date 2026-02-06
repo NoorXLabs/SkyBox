@@ -1,13 +1,6 @@
 // tests/unit/lib/templates.test.ts
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import {
-	existsSync,
-	mkdirSync,
-	readFileSync,
-	rmSync,
-	writeFileSync,
-} from "node:fs";
-import { tmpdir } from "node:os";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
 	DEVCONTAINER_CONFIG_NAME,
@@ -21,27 +14,20 @@ import {
 	validateTemplate,
 	writeDevcontainerConfig,
 } from "@lib/templates.ts";
+import {
+	createTestContext,
+	type TestContext,
+} from "@tests/helpers/test-utils.ts";
 
 describe("templates", () => {
-	let testDir: string;
-	let originalEnv: string | undefined;
+	let ctx: TestContext;
 
 	beforeEach(() => {
-		testDir = join(tmpdir(), `skybox-templates-test-${Date.now()}`);
-		mkdirSync(testDir, { recursive: true });
-		originalEnv = process.env.SKYBOX_HOME;
-		process.env.SKYBOX_HOME = testDir;
+		ctx = createTestContext("templates");
 	});
 
 	afterEach(() => {
-		if (existsSync(testDir)) {
-			rmSync(testDir, { recursive: true });
-		}
-		if (originalEnv) {
-			process.env.SKYBOX_HOME = originalEnv;
-		} else {
-			delete process.env.SKYBOX_HOME;
-		}
+		ctx.cleanup();
 	});
 
 	test("TEMPLATES contains expected templates", () => {
@@ -53,19 +39,19 @@ describe("templates", () => {
 	});
 
 	test("createDevcontainerConfig creates .devcontainer directory", () => {
-		createDevcontainerConfig(testDir, "node");
-		expect(existsSync(join(testDir, DEVCONTAINER_DIR_NAME))).toBe(true);
+		createDevcontainerConfig(ctx.testDir, "node");
+		expect(existsSync(join(ctx.testDir, DEVCONTAINER_DIR_NAME))).toBe(true);
 		expect(
 			existsSync(
-				join(testDir, DEVCONTAINER_DIR_NAME, DEVCONTAINER_CONFIG_NAME),
+				join(ctx.testDir, DEVCONTAINER_DIR_NAME, DEVCONTAINER_CONFIG_NAME),
 			),
 		).toBe(true);
 	});
 
 	test("createDevcontainerConfig writes valid JSON", () => {
-		createDevcontainerConfig(testDir, "node");
+		createDevcontainerConfig(ctx.testDir, "node");
 		const content = readFileSync(
-			join(testDir, DEVCONTAINER_DIR_NAME, DEVCONTAINER_CONFIG_NAME),
+			join(ctx.testDir, DEVCONTAINER_DIR_NAME, DEVCONTAINER_CONFIG_NAME),
 			"utf-8",
 		);
 		const parsed = JSON.parse(content);
@@ -115,7 +101,7 @@ describe("templates", () => {
 		});
 
 		test("loads valid template", () => {
-			const templatesDir = join(testDir, "templates");
+			const templatesDir = join(ctx.testDir, "templates");
 			mkdirSync(templatesDir, { recursive: true });
 			const config = {
 				name: "test",
@@ -136,7 +122,7 @@ describe("templates", () => {
 		});
 
 		test("marks template with invalid JSON", () => {
-			const templatesDir = join(testDir, "templates");
+			const templatesDir = join(ctx.testDir, "templates");
 			mkdirSync(templatesDir, { recursive: true });
 			writeFileSync(join(templatesDir, "bad.json"), "not json{{{");
 
@@ -148,7 +134,7 @@ describe("templates", () => {
 		});
 
 		test("marks template missing required fields", () => {
-			const templatesDir = join(testDir, "templates");
+			const templatesDir = join(ctx.testDir, "templates");
 			mkdirSync(templatesDir, { recursive: true });
 			writeFileSync(
 				join(templatesDir, "incomplete.json"),
@@ -162,7 +148,7 @@ describe("templates", () => {
 		});
 
 		test("ignores non-json files", () => {
-			const templatesDir = join(testDir, "templates");
+			const templatesDir = join(ctx.testDir, "templates");
 			mkdirSync(templatesDir, { recursive: true });
 			writeFileSync(join(templatesDir, "readme.txt"), "hello");
 			writeFileSync(join(templatesDir, "notes.md"), "# notes");
@@ -185,7 +171,7 @@ describe("templates", () => {
 		});
 
 		test("creates templates directory if it does not exist", () => {
-			const templatesDir = join(testDir, "templates");
+			const templatesDir = join(ctx.testDir, "templates");
 			expect(existsSync(templatesDir)).toBe(false);
 
 			scaffoldTemplate("test");
@@ -226,11 +212,11 @@ describe("templates", () => {
 				image: "node:20",
 				workspaceFolder: "/workspaces/test",
 			};
-			writeDevcontainerConfig(testDir, config);
+			writeDevcontainerConfig(ctx.testDir, config);
 
 			const content = JSON.parse(
 				readFileSync(
-					join(testDir, DEVCONTAINER_DIR_NAME, DEVCONTAINER_CONFIG_NAME),
+					join(ctx.testDir, DEVCONTAINER_DIR_NAME, DEVCONTAINER_CONFIG_NAME),
 					"utf-8",
 				),
 			);

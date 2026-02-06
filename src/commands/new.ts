@@ -4,7 +4,7 @@ import { cloneSingleProject } from "@commands/clone.ts";
 import { getRemoteHost, selectRemote } from "@commands/remote.ts";
 import { upCommand } from "@commands/up.ts";
 import { select } from "@inquirer/prompts";
-import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
+import { loadConfig, requireConfig, saveConfig } from "@lib/config.ts";
 import {
 	DEVCONTAINER_CONFIG_NAME,
 	DEVCONTAINER_DIR_NAME,
@@ -48,17 +48,7 @@ function withWorkspaceSettings(
 }
 
 export async function newCommand(): Promise<void> {
-	// Check config exists
-	if (!configExists()) {
-		error("skybox not configured. Run 'skybox init' first.");
-		process.exit(1);
-	}
-
-	const config = loadConfig();
-	if (!config) {
-		error("Failed to load config.");
-		process.exit(1);
-	}
+	const config = requireConfig();
 
 	header("Create a new project");
 

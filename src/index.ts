@@ -22,6 +22,7 @@ import { statusCommand } from "@commands/status.ts";
 import { upCommand } from "@commands/up.ts";
 import { updateCommand } from "@commands/update.ts";
 import { INSTALL_METHOD } from "@lib/constants.ts";
+import { getErrorMessage } from "@lib/errors.ts";
 import { installShutdownHandlers } from "@lib/shutdown.ts";
 import { runStartupChecks } from "@lib/startup.ts";
 import { checkForUpdate, getUpgradeCommand } from "@lib/update-check.ts";
@@ -196,7 +197,7 @@ program.command("hook-check", { hidden: true }).action(hookCheckCommand);
 	} catch (err) {
 		// Commander already prints help for unknown commands.
 		// Catch unhandled errors from command actions and emit consistent exit.
-		const message = err instanceof Error ? err.message : String(err);
+		const message = getErrorMessage(err);
 		console.error(chalk.red(`Error: ${message}`));
 		process.exit(1);
 	}

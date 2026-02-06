@@ -33,6 +33,7 @@ The command walks you through:
 Project names must:
 - Contain only letters, numbers, hyphens, and underscores
 - Not start with a hyphen or underscore
+- Not contain path separators (`/` or `\`) or traversal sequences (`..`)
 - Not already exist on the selected remote
 
 ### Template Selection

@@ -11,7 +11,7 @@ import {
 import { upCommand } from "@commands/up.ts";
 import { checkbox, select } from "@inquirer/prompts";
 import { AuditActions, logAuditEvent } from "@lib/audit.ts";
-import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
+import { requireConfig, saveConfig } from "@lib/config.ts";
 import {
 	createSelectiveSyncSessions,
 	createSyncSession,
@@ -35,6 +35,7 @@ import {
 	spinner,
 	success,
 } from "@lib/ui.ts";
+import type { SkyboxConfigV2 } from "@typedefs/index.ts";
 import inquirer from "inquirer";
 
 /**
@@ -44,10 +45,8 @@ import inquirer from "inquirer";
 export async function cloneSingleProject(
 	project: string,
 	remoteName: string,
-	config: ReturnType<typeof loadConfig>,
+	config: SkyboxConfigV2,
 ): Promise<boolean> {
-	if (!config) return false;
-
 	const remote = config.remotes[remoteName];
 	const host = getRemoteHost(remote);
 	const remotePath = getRemotePath(remote, project);
@@ -199,16 +198,7 @@ export async function cloneSingleProject(
 }
 
 export async function cloneCommand(project?: string): Promise<void> {
-	if (!configExists()) {
-		error("skybox not configured. Run 'skybox init' first.");
-		process.exit(1);
-	}
-
-	const config = loadConfig();
-	if (!config) {
-		error("Failed to load config.");
-		process.exit(1);
-	}
+	const config = requireConfig();
 
 	// If project provided directly, use single-clone flow
 	if (project) {
@@ -292,11 +282,6 @@ export async function cloneCommand(project?: string): Promise<void> {
 	// Clone each project sequentially
 	const cloned: string[] = [];
 	for (const name of selected) {
-		const validation = validateProjectName(name);
-		if (!validation.valid) {
-			error(`Skipping invalid project name: ${name}`);
-			continue;
-		}
 		const ok = await cloneSingleProject(name, remoteName, config);
 		if (ok) {
 			cloned.push(name);

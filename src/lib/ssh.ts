@@ -1,6 +1,12 @@
 /** SSH operations: parse config, test connections, run remote commands. */
 
-import { appendFileSync, existsSync, readdirSync, readFileSync } from "node:fs";
+import {
+	appendFileSync,
+	existsSync,
+	mkdirSync,
+	readdirSync,
+	readFileSync,
+} from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { SSH_KEYWORDS, SSH_TIMEOUT_MS } from "@lib/constants.ts";
@@ -40,7 +46,7 @@ export function sanitizeSshError(error: string): string {
 	// Generic auth failure message
 	if (
 		sanitized.includes("Permission denied") ||
-		sanitized.includes("authentication")
+		sanitized.toLowerCase().includes("authentication")
 	) {
 		return "SSH authentication failed. Check your SSH key and remote configuration.";
 	}
@@ -119,14 +125,23 @@ export function findSSHKeys(): string[] {
 	return keys;
 }
 
+/** Validate host and return error response if invalid, or null if valid. */
+function assertValidHost(
+	host: string,
+): { success: false; error: string } | null {
+	const check = validateSSHHost(host);
+	if (!check.valid) {
+		return { success: false, error: check.error };
+	}
+	return null;
+}
+
 export async function testConnection(
 	host: string,
 	identityFile?: string,
 ): Promise<{ success: boolean; error?: string }> {
-	const hostCheck = validateSSHHost(host);
-	if (!hostCheck.valid) {
-		return { success: false, error: hostCheck.error };
-	}
+	const hostError = assertValidHost(host);
+	if (hostError) return hostError;
 	try {
 		const args = ["-o", "BatchMode=yes", "-o", "ConnectTimeout=5"];
 		if (identityFile) {
@@ -147,10 +162,8 @@ export async function copyKey(
 	host: string,
 	keyPath: string,
 ): Promise<{ success: boolean; error?: string }> {
-	const hostCheck = validateSSHHost(host);
-	if (!hostCheck.valid) {
-		return { success: false, error: hostCheck.error };
-	}
+	const hostError = assertValidHost(host);
+	if (hostError) return hostError;
 	try {
 		await execa("ssh-copy-id", ["-i", keyPath, "--", host], {
 			stdio: "inherit",
@@ -166,10 +179,8 @@ export async function runRemoteCommand(
 	command: string,
 	identityFile?: string,
 ): Promise<{ success: boolean; stdout?: string; error?: string }> {
-	const hostCheck = validateSSHHost(host);
-	if (!hostCheck.valid) {
-		return { success: false, error: hostCheck.error };
-	}
+	const hostError = assertValidHost(host);
+	if (hostError) return hostError;
 	try {
 		const args: string[] = [];
 		if (identityFile) {
@@ -231,6 +242,11 @@ export function writeSSHConfigEntry(entry: SSHConfigEntry): {
 		}
 	}
 
+	// Validate port range if specified
+	if (entry.port !== undefined && (entry.port < 1 || entry.port > 65535)) {
+		return { success: false, error: "Port must be between 1 and 65535" };
+	}
+
 	// Build the config entry
 	const configEntry = `
 Host ${entry.name}
@@ -243,7 +259,6 @@ Host ${entry.name}
 		// Ensure .ssh directory exists
 		const sshDir = getSSHDir();
 		if (!existsSync(sshDir)) {
-			const { mkdirSync } = require("node:fs");
 			mkdirSync(sshDir, { mode: 0o700 });
 		}
 

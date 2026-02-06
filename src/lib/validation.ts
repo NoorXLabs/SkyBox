@@ -2,6 +2,17 @@
 
 import type { ValidationResult } from "@typedefs/index.ts";
 
+/** Require a non-empty string; returns a validation error if empty or whitespace-only. */
+function requireNonEmpty(
+	value: string | undefined | null,
+	label: string,
+): ValidationResult | null {
+	if (!value || value.trim() === "") {
+		return { valid: false, error: `${label} cannot be empty` };
+	}
+	return null;
+}
+
 export function isPathTraversal(path: string): boolean {
 	const normalized = path.replace(/\\/g, "/");
 	const segments = normalized.split("/");
@@ -9,9 +20,8 @@ export function isPathTraversal(path: string): boolean {
 }
 
 export function validatePath(path: string): ValidationResult {
-	if (!path || path.trim() === "") {
-		return { valid: false, error: "Path cannot be empty" };
-	}
+	const empty = requireNonEmpty(path, "Path");
+	if (empty) return empty;
 	if (path.startsWith("/")) {
 		return { valid: false, error: "Path cannot be absolute" };
 	}
@@ -27,9 +37,8 @@ export function validatePath(path: string): ValidationResult {
  * Blocks shell metacharacters that could enable command injection.
  */
 export function validateRemotePath(path: string): ValidationResult {
-	if (!path || path.trim() === "") {
-		return { valid: false, error: "Remote path cannot be empty" };
-	}
+	const empty = requireNonEmpty(path, "Remote path");
+	if (empty) return empty;
 
 	// Check for command substitution: $(...), ${...}, or `...`
 	if (/\$[({]/.test(path) || /`/.test(path)) {
@@ -61,9 +70,8 @@ export function validateRemotePath(path: string): ValidationResult {
  * Rejects names that could escape the parent directory via traversal.
  */
 export function validateRemoteProjectPath(project: string): ValidationResult {
-	if (!project || project.trim() === "") {
-		return { valid: false, error: "Project name cannot be empty" };
-	}
+	const empty = requireNonEmpty(project, "Project name");
+	if (empty) return empty;
 	if (project.includes("..")) {
 		return {
 			valid: false,
@@ -90,12 +98,13 @@ export function validateSSHField(
 	value: string,
 	fieldName: string,
 ): ValidationResult {
-	if (!value || value.trim() === "") {
-		return { valid: false, error: `${fieldName} cannot be empty` };
-	}
+	const empty = requireNonEmpty(value, fieldName);
+	if (empty) return empty;
 	if (/[\n\r]/.test(value)) {
 		return { valid: false, error: `${fieldName} cannot contain newlines` };
 	}
+	// Intentionally excludes spaces and special characters to prevent SSH config injection.
+	// Paths with spaces should use alternative quoting at the SSH config level.
 	if (!/^[a-zA-Z0-9@._~:\-/]+$/.test(value)) {
 		return { valid: false, error: `${fieldName} contains invalid characters` };
 	}
@@ -108,9 +117,8 @@ export function validateSSHField(
  * hosts with whitespace, and hosts with control characters.
  */
 export function validateSSHHost(host: string): ValidationResult {
-	if (!host || host.trim() === "") {
-		return { valid: false, error: "SSH host cannot be empty" };
-	}
+	const empty = requireNonEmpty(host, "SSH host");
+	if (empty) return empty;
 	if (host.startsWith("-")) {
 		return {
 			valid: false,
@@ -139,10 +147,9 @@ export function validateSSHHost(host: string): ValidationResult {
 export function sshFieldValidator(
 	fieldName: string,
 ): (input: string) => true | string {
-	return (input: string) => {
-		const result = validateSSHField(input, fieldName);
-		return result.valid ? true : result.error;
-	};
+	return toInquirerValidator((input: string) =>
+		validateSSHField(input, fieldName),
+	);
 }
 
 /** Adapt any ValidationResult function into an inquirer validate callback. */

@@ -11,6 +11,7 @@ import {
 } from "@lib/config.ts";
 import { ConfigValidationError, validateConfig } from "@lib/config-schema.ts";
 import {
+	createTestConfig,
 	createTestContext,
 	type TestContext,
 } from "@tests/helpers/test-utils.ts";
@@ -189,14 +190,7 @@ projects:
 	});
 
 	test("listRemotes returns empty array when no remotes", async () => {
-		const config = {
-			editor: "cursor",
-			defaults: { sync_mode: "two-way-resolved" as const, ignore: [] },
-			remotes: {},
-			projects: {},
-		};
-
-		saveConfig(config);
+		saveConfig(createTestConfig());
 		expect(listRemotes()).toEqual([]);
 	});
 
@@ -235,28 +229,17 @@ describe("config error paths", () => {
 		const nestedDir = join(ctx.testDir, "nested", "deep");
 		process.env.SKYBOX_HOME = nestedDir;
 
-		const config = {
-			editor: "cursor",
-			defaults: { sync_mode: "two-way-resolved" as const, ignore: [] },
-			remotes: {},
-			projects: {},
-		};
-
 		// Should not throw even though nested/deep doesn't exist
-		saveConfig(config);
+		saveConfig(createTestConfig());
 		expect(configExists()).toBe(true);
 	});
 
 	test("getRemote returns null for nonexistent remote with config present", () => {
-		const config = {
-			editor: "cursor",
-			defaults: { sync_mode: "two-way-resolved" as const, ignore: [] },
-			remotes: {
-				existing: { host: "example.com", path: "~/code" },
-			},
-			projects: {},
-		};
-		saveConfig(config);
+		saveConfig(
+			createTestConfig({
+				remotes: { existing: { host: "example.com", path: "~/code" } },
+			}),
+		);
 
 		expect(getRemote("nonexistent")).toBeNull();
 	});
@@ -264,18 +247,12 @@ describe("config error paths", () => {
 
 describe("config file permissions", () => {
 	let ctx: TestContext;
-	let originalEnv: string | undefined;
 
 	beforeEach(() => {
 		ctx = createTestContext("config-permissions");
-		originalEnv = process.env.SKYBOX_HOME;
 	});
 
 	afterEach(() => {
-		// Restore env before cleanup since cleanup also restores it
-		if (originalEnv) {
-			process.env.SKYBOX_HOME = originalEnv;
-		}
 		ctx.cleanup();
 	});
 
@@ -284,14 +261,7 @@ describe("config file permissions", () => {
 		const newDir = join(ctx.testDir, "new-skybox-home");
 		process.env.SKYBOX_HOME = newDir;
 
-		const config = {
-			editor: "cursor",
-			defaults: { sync_mode: "two-way-resolved" as const, ignore: [] },
-			remotes: {},
-			projects: {},
-		};
-
-		saveConfig(config);
+		saveConfig(createTestConfig());
 
 		const stats = statSync(newDir);
 		const mode = stats.mode & 0o777;
@@ -299,14 +269,7 @@ describe("config file permissions", () => {
 	});
 
 	test("saveConfig creates config file with mode 0o600", () => {
-		const config = {
-			editor: "cursor",
-			defaults: { sync_mode: "two-way-resolved" as const, ignore: [] },
-			remotes: {},
-			projects: {},
-		};
-
-		saveConfig(config);
+		saveConfig(createTestConfig());
 
 		const configPath = join(ctx.testDir, "config.yaml");
 		const stats = statSync(configPath);

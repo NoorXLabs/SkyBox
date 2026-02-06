@@ -1,6 +1,8 @@
 // src/commands/down.ts
 
-import { existsSync, rmSync } from "node:fs";
+import { existsSync, rmSync, unlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
 	getProjectRemote,
 	getRemoteHost,
@@ -8,7 +10,7 @@ import {
 } from "@commands/remote.ts";
 import { password } from "@inquirer/prompts";
 import { AuditActions, logAuditEvent } from "@lib/audit.ts";
-import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
+import { requireConfig, saveConfig } from "@lib/config.ts";
 import { MAX_PASSPHRASE_ATTEMPTS } from "@lib/constants.ts";
 import {
 	getContainerInfo,
@@ -27,7 +29,7 @@ import {
 	resolveProjectFromCwd,
 } from "@lib/project.ts";
 import { deleteSession } from "@lib/session.ts";
-import { escapeShellArg } from "@lib/shell.ts";
+import { escapeRemotePath, escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand, secureScp } from "@lib/ssh.ts";
 import {
 	dryRun,
@@ -59,7 +61,7 @@ async function handleEncryption(
 		return true;
 	}
 
-	const projectRemote = getProjectRemote(project ?? "", config);
+	const projectRemote = getProjectRemote(project, config);
 	if (!projectRemote) {
 		return true;
 	}
@@ -90,10 +92,6 @@ async function handleEncryption(
 		const encryptSpin = spinner("Encrypting project archive...");
 
 		try {
-			const { tmpdir } = await import("node:os");
-			const { join } = await import("node:path");
-			const { unlinkSync } = await import("node:fs");
-
 			const key = await deriveKey(passphrase, salt);
 			const timestamp = Date.now();
 			const localTarPath = join(tmpdir(), `skybox-${project}-${timestamp}.tar`);
@@ -108,7 +106,7 @@ async function handleEncryption(
 				const remoteTarPath = `${remotePath}/${project}.tar`;
 				const tarResult = await runRemoteCommand(
 					host,
-					`cd ${escapeShellArg(remotePath)} && tar cf ${escapeShellArg(`${project}.tar`)} --exclude=${escapeShellArg(archiveName)} --exclude=${escapeShellArg(`${project}.tar`)} -C ${escapeShellArg(remotePath)} .`,
+					`cd ${escapeRemotePath(remotePath)} && tar cf ${escapeShellArg(`${project}.tar`)} --exclude=${escapeShellArg(archiveName)} --exclude=${escapeShellArg(`${project}.tar`)} -C ${escapeRemotePath(remotePath)} .`,
 				);
 
 				if (!tarResult.success) {
@@ -133,7 +131,7 @@ async function handleEncryption(
 				encryptSpin.text = "Cleaning up remote...";
 				const cleanResult = await runRemoteCommand(
 					host,
-					`rm -f ${escapeShellArg(remoteTarPath)} && find ${escapeShellArg(remotePath)} -mindepth 1 -not -name ${escapeShellArg(archiveName)} -depth -delete 2>/dev/null; true`,
+					`rm -f ${escapeRemotePath(remoteTarPath)} && find ${escapeRemotePath(remotePath)} -mindepth 1 -not -name ${escapeShellArg(archiveName)} -depth -delete 2>/dev/null; true`,
 				);
 
 				if (!cleanResult.success) {
@@ -190,17 +188,7 @@ export async function downCommand(
 		return;
 	}
 
-	// Check config exists
-	if (!configExists()) {
-		error("skybox not configured. Run 'skybox init' first.");
-		process.exit(1);
-	}
-
-	const config = loadConfig();
-	if (!config) {
-		error("Failed to load config.");
-		process.exit(1);
-	}
+	const config = requireConfig();
 
 	// Resolve project
 	let project = projectArg;
@@ -235,17 +223,23 @@ export async function downCommand(
 		project = selectedProject;
 	}
 
+	// At this point project is always resolved — guard for TypeScript narrowing
+	if (!project) {
+		error("No project specified.");
+		process.exit(1);
+	}
+
 	// Verify project exists locally
-	if (!projectExists(project ?? "")) {
+	if (!projectExists(project)) {
 		error(`Project '${project}' not found locally.`);
 		process.exit(1);
 	}
 
-	const projectPath = getProjectPath(project ?? "");
+	const projectPath = getProjectPath(project);
 	header(`Stopping '${project}'...`);
 
 	if (isDryRun()) {
-		const projectConfig = config.projects[project ?? ""];
+		const projectConfig = config.projects[project];
 		if (projectConfig?.hooks) {
 			dryRun(`Would run pre-down hooks for '${project}'`);
 		}
@@ -262,7 +256,7 @@ export async function downCommand(
 	}
 
 	// Run pre-down hooks
-	const projectConfig = config.projects[project ?? ""];
+	const projectConfig = config.projects[project];
 	if (projectConfig?.hooks) {
 		await runHooks("pre-down", projectConfig.hooks, projectPath);
 	}
@@ -276,7 +270,7 @@ export async function downCommand(
 	} else {
 		// Flush sync before stopping container
 		const syncSpin = spinner("Syncing pending changes...");
-		const syncResult = await waitForSync(project ?? "");
+		const syncResult = await waitForSync(project);
 		if (syncResult.success) {
 			syncSpin.succeed("Sync complete");
 		} else {
@@ -302,7 +296,7 @@ export async function downCommand(
 		}
 
 		// Encrypt project on remote if encryption is enabled
-		const encryptOk = await handleEncryption(project ?? "", config);
+		const encryptOk = await handleEncryption(project, config);
 		if (!encryptOk) {
 			warn("Encryption failed — project files remain unencrypted on remote");
 		}
@@ -376,7 +370,7 @@ export async function downCommand(
 	if (shouldRemoveLocal) {
 		// Pause sync first
 		const syncSpin = spinner("Stopping sync...");
-		await pauseSync(project ?? "");
+		await pauseSync(project);
 		syncSpin.succeed("Sync paused");
 
 		// Remove local files
@@ -388,20 +382,17 @@ export async function downCommand(
 			rmSpin.succeed("Local files removed");
 
 			// Get remote info for the info message
-			const projectRemoteInfo = getProjectRemote(project ?? "", config);
+			const projectRemoteInfo = getProjectRemote(project, config);
 
 			// Optionally remove from config
-			if (config.projects?.[project ?? ""]) {
-				delete config.projects[project ?? ""];
+			if (config.projects?.[project]) {
+				delete config.projects[project];
 				saveConfig(config);
 			}
 
 			if (projectRemoteInfo) {
 				const host = getRemoteHost(projectRemoteInfo.remote);
-				const remotePath = getRemotePath(
-					projectRemoteInfo.remote,
-					project ?? "",
-				);
+				const remotePath = getRemotePath(projectRemoteInfo.remote, project);
 				info(`Remote copy preserved at ${host}:${remotePath}`);
 			}
 			info(`Run 'skybox clone ${project}' to restore locally.`);
@@ -423,7 +414,7 @@ export async function downCommand(
 
 			if (pauseSyncSession) {
 				const syncSpin = spinner("Pausing sync...");
-				const pauseResult = await pauseSync(project ?? "");
+				const pauseResult = await pauseSync(project);
 				if (pauseResult.success) {
 					syncSpin.succeed("Sync paused");
 				} else {

@@ -59,7 +59,7 @@ async function checkDependencies(): Promise<boolean> {
 }
 
 async function handleMutagen(): Promise<boolean> {
-	if (isMutagenInstalled()) {
+	if (await isMutagenInstalled()) {
 		success("Mutagen already installed");
 		return true;
 	}

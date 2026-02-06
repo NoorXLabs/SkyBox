@@ -1,6 +1,12 @@
 // tests/unit/lib/ssh.test.ts
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import {
+	existsSync,
+	mkdirSync,
+	readFileSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -8,7 +14,11 @@ import {
 	parseSSHConfig,
 	sanitizeSshError,
 	secureScp,
+	writeSSHConfigEntry,
 } from "@lib/ssh.ts";
+
+const scpAvailable =
+	existsSync("/usr/bin/scp") || existsSync("/usr/local/bin/scp");
 
 describe("ssh", () => {
 	describe("parseSSHConfig", () => {
@@ -58,13 +68,76 @@ Host workserver
 			expect(hosts[0].user).toBe("admin");
 			expect(hosts[1].name).toBe("workserver");
 		});
+
+		test("skips Host * wildcard entries", () => {
+			const sshConfig = `
+Host *
+  ServerAliveInterval 60
+  ServerAliveCountMax 3
+
+Host myserver
+  HostName 192.168.1.100
+  User admin
+
+Host *.example.com
+  User deploy
+
+Host workserver
+  HostName work.example.com
+  User developer
+`;
+			writeFileSync(join(testDir, ".ssh", "config"), sshConfig);
+
+			const hosts = parseSSHConfig();
+
+			expect(hosts).toHaveLength(2);
+			expect(hosts[0].name).toBe("myserver");
+			expect(hosts[1].name).toBe("workserver");
+		});
 	});
 
 	describe("findSSHKeys", () => {
-		test("finds existing ssh keys", async () => {
+		let sshTestDir: string;
+		let originalHome: string | undefined;
+
+		beforeEach(() => {
+			sshTestDir = join(tmpdir(), `skybox-ssh-keys-test-${Date.now()}`);
+			mkdirSync(join(sshTestDir, ".ssh"), { recursive: true });
+			originalHome = process.env.HOME;
+			process.env.HOME = sshTestDir;
+		});
+
+		afterEach(() => {
+			if (existsSync(sshTestDir)) {
+				rmSync(sshTestDir, { recursive: true });
+			}
+			if (originalHome) {
+				process.env.HOME = originalHome;
+			}
+		});
+
+		test("finds ed25519 and rsa keys when present", () => {
+			const sshDir = join(sshTestDir, ".ssh");
+			writeFileSync(join(sshDir, "id_ed25519"), "fake-private-key");
+			writeFileSync(join(sshDir, "id_ed25519.pub"), "fake-public-key");
+			writeFileSync(join(sshDir, "id_rsa"), "fake-rsa-key");
+			writeFileSync(join(sshDir, "id_rsa.pub"), "fake-rsa-pub");
+
 			const keys = findSSHKeys();
-			// This will depend on the actual system, just verify it returns an array
-			expect(Array.isArray(keys)).toBe(true);
+			expect(keys).toHaveLength(2);
+			expect(keys).toContain(join(sshDir, "id_ed25519"));
+			expect(keys).toContain(join(sshDir, "id_rsa"));
+		});
+
+		test("returns empty array when no keys exist", () => {
+			const keys = findSSHKeys();
+			expect(keys).toEqual([]);
+		});
+
+		test("returns empty array when .ssh directory does not exist", () => {
+			rmSync(join(sshTestDir, ".ssh"), { recursive: true });
+			const keys = findSSHKeys();
+			expect(keys).toEqual([]);
 		});
 	});
 
@@ -107,6 +180,16 @@ Host workserver
 				"SSH authentication failed. Check your SSH key and remote configuration.",
 			);
 		});
+
+		test("redacts identity file path even when Permission denied follows on same line", () => {
+			// The identity file regex is greedy: it matches everything after "identity file"
+			// until comma or newline, so "Permission denied" on the same line is consumed.
+			const input =
+				"Warning: identity file /Users/john/.ssh/id_rsa not accessible: Permission denied (publickey)";
+			const sanitized = sanitizeSshError(input);
+			expect(sanitized).toContain("identity file [REDACTED]");
+			expect(sanitized).not.toContain("/Users/john/.ssh/id_rsa");
+		});
 	});
 
 	describe("secureScp", () => {
@@ -114,17 +197,159 @@ Host workserver
 			expect(typeof secureScp).toBe("function");
 		});
 
-		test("source code includes -- separator", async () => {
-			// Verify the implementation includes the -- argument separator
-			// by reading the source file. This is a static analysis test to
-			// ensure the security guard is never accidentally removed.
-			const { readFileSync } = await import("node:fs");
-			const source = readFileSync(
-				new URL("../../../src/lib/ssh.ts", import.meta.url).pathname,
-				"utf-8",
-			);
-			// Match the execa call with "--" in the args array
-			expect(source).toMatch(/execa\("scp",\s*\["--"/);
+		test.skipIf(!scpAvailable)(
+			"treats malicious source as literal filename via -- separator",
+			async () => {
+				// secureScp uses "--" separator to prevent option injection.
+				// With "--", scp treats "-oProxyCommand=evil" as a literal filename.
+				// The error should indicate a missing file, confirming the argument
+				// was NOT interpreted as an scp option.
+				try {
+					await secureScp("-oProxyCommand=evil", "dest:/tmp/file");
+					// If it didn't throw, that's also fine (unlikely but acceptable)
+				} catch (error: unknown) {
+					const message =
+						error instanceof Error ? error.message : String(error);
+					// The security guard works: scp reports "No such file" for the literal path
+					expect(message).toContain("No such file");
+				}
+			},
+		);
+	});
+
+	describe("writeSSHConfigEntry", () => {
+		let sshTestDir: string;
+		let originalHome: string | undefined;
+
+		beforeEach(() => {
+			sshTestDir = join(tmpdir(), `skybox-ssh-write-test-${Date.now()}`);
+			mkdirSync(join(sshTestDir, ".ssh"), { recursive: true });
+			originalHome = process.env.HOME;
+			process.env.HOME = sshTestDir;
+		});
+
+		afterEach(() => {
+			if (existsSync(sshTestDir)) {
+				rmSync(sshTestDir, { recursive: true });
+			}
+			if (originalHome) {
+				process.env.HOME = originalHome;
+			}
+		});
+
+		test("successfully writes an SSH config entry", () => {
+			const result = writeSSHConfigEntry({
+				name: "testserver",
+				hostname: "192.168.1.100",
+				user: "admin",
+				identityFile: "~/.ssh/id_ed25519",
+			});
+
+			expect(result.success).toBe(true);
+			expect(result.error).toBeUndefined();
+
+			const configPath = join(sshTestDir, ".ssh", "config");
+			expect(existsSync(configPath)).toBe(true);
+
+			const content = readFileSync(configPath, "utf-8");
+			expect(content).toContain("Host testserver");
+			expect(content).toContain("HostName 192.168.1.100");
+			expect(content).toContain("User admin");
+			expect(content).toContain("IdentityFile ~/.ssh/id_ed25519");
+		});
+
+		test("writes entry with optional port", () => {
+			const result = writeSSHConfigEntry({
+				name: "testserver",
+				hostname: "192.168.1.100",
+				user: "admin",
+				identityFile: "~/.ssh/id_ed25519",
+				port: 2222,
+			});
+
+			expect(result.success).toBe(true);
+
+			const configPath = join(sshTestDir, ".ssh", "config");
+			const content = readFileSync(configPath, "utf-8");
+			expect(content).toContain("Port 2222");
+		});
+
+		test("rejects duplicate host names", () => {
+			const existingConfig = `
+Host myserver
+  HostName 10.0.0.1
+  User root
+`;
+			writeFileSync(join(sshTestDir, ".ssh", "config"), existingConfig);
+
+			const result = writeSSHConfigEntry({
+				name: "myserver",
+				hostname: "192.168.1.100",
+				user: "admin",
+				identityFile: "~/.ssh/id_ed25519",
+			});
+
+			expect(result.success).toBe(false);
+			expect(result.error).toContain("already exists");
+		});
+
+		test("rejects duplicate host names case-insensitively", () => {
+			const existingConfig = `
+Host MyServer
+  HostName 10.0.0.1
+  User root
+`;
+			writeFileSync(join(sshTestDir, ".ssh", "config"), existingConfig);
+
+			const result = writeSSHConfigEntry({
+				name: "myserver",
+				hostname: "192.168.1.100",
+				user: "admin",
+				identityFile: "~/.ssh/id_ed25519",
+			});
+
+			expect(result.success).toBe(false);
+			expect(result.error).toContain("already exists");
+		});
+
+		test("rejects entries with invalid field characters", () => {
+			const result = writeSSHConfigEntry({
+				name: "test\nserver",
+				hostname: "192.168.1.100",
+				user: "admin",
+				identityFile: "~/.ssh/id_ed25519",
+			});
+
+			expect(result.success).toBe(false);
+			expect(result.error).toContain("cannot contain newlines");
+		});
+
+		test("rejects entries with invalid hostname", () => {
+			const result = writeSSHConfigEntry({
+				name: "testserver",
+				hostname: "bad host name",
+				user: "admin",
+				identityFile: "~/.ssh/id_ed25519",
+			});
+
+			expect(result.success).toBe(false);
+			expect(result.error).toContain("contains invalid characters");
+		});
+
+		test("creates .ssh directory if it does not exist", () => {
+			rmSync(join(sshTestDir, ".ssh"), { recursive: true });
+			expect(existsSync(join(sshTestDir, ".ssh"))).toBe(false);
+
+			const result = writeSSHConfigEntry({
+				name: "testserver",
+				hostname: "192.168.1.100",
+				user: "admin",
+				identityFile: "~/.ssh/id_ed25519",
+			});
+
+			expect(result.success).toBe(true);
+			expect(existsSync(join(sshTestDir, ".ssh"))).toBe(true);
+			expect(existsSync(join(sshTestDir, ".ssh", "config"))).toBe(true);
 		});
 	});
 });

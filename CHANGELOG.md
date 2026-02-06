@@ -10,17 +10,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Dry-Run Mode** (`--dry-run`): Global flag to preview what any command would do without executing side effects (SSH, Docker, filesystem writes, sync sessions)
-- **Security Hardening**: GPG signature verification for Mutagen downloads, audit logging (`SKYBOX_AUDIT=1`), runtime config schema validation, Mutagen binary checksum verification, lockfile integrity verification
+- **Security Hardening**: GPG signature verification with key fingerprint pinning for Mutagen downloads, audit logging (`SKYBOX_AUDIT=1`) with detail sanitization and auto-rotation, runtime config schema validation, Mutagen binary checksum verification, lockfile integrity verification
 - **Integration & E2E Test Suites**: Layered Docker integration and remote E2E test infrastructure with CI workflows and security hardening
 - **Interactive Remote Delete**: Multi-select flow for `skybox rm --remote` — select a remote, pick projects via checkbox, confirm, and optionally clean up local copies
 - **Shell Integration**: Auto-start containers on `cd` into project directories (`skybox hook bash/zsh`, `auto_up` config option, background execution)
 - **LLMs.txt**: Machine-readable documentation for AI tools, sitemap, and robots.txt
+- **Input Validation Hardening**: SSH host validation (option injection prevention), SSH config field validation (newline/metacharacter injection), remote project path validation, Docker container ID format validation, and inquirer validator adapters (`toInquirerValidator`, `sshFieldValidator`)
+- **Shell Escaping**: `escapeRemotePath()` for tilde-preserving remote path escaping, `secureScp()` for SCP with argument injection prevention via `--` separator
+- **Config Helpers**: `requireConfig()` replaces repetitive config-exists + load + null-check pattern across all commands
 
 ### Changed
 
 - **DevBox → SkyBox**: Complete project rename across CLI binary, commands, documentation, configuration, and tests
 - **Local Sessions**: Replaced remote SSH-based lock system with local file-based sessions (synced via Mutagen) for simpler multi-machine conflict detection
 - **Feature-Based Templates**: Unified devcontainer templates to feature-based architecture with dev container features
+- `isMutagenInstalled()` is now async (uses `execa` instead of `Bun.spawnSync`)
+- `ContainerInfo.status` uses `ContainerStatus` enum instead of raw string, with `rawStatus` for display
+- `SyncDefaults.sync_mode` narrowed from `string` to `"two-way-resolved" | "two-way-safe" | "one-way-replica"`
+- Types centralized in `src/types/index.ts` (`AuditEntry`, `GpgVerifyResult`, `KeyFingerprintResult`, `ResolvedProject`, `DevcontainerWorkspaceConfig`, `ValidationResult`)
+- Remote paths use `escapeRemotePath()` instead of `escapeShellArg()` for proper tilde expansion
+- CLI `--help` and `--version` flags skip Docker startup check
+- Dynamic imports in `up` and `down` commands replaced with static imports
 - Analytics configuration moved to environment variables
 - Doctor command suggests `brew install devcontainer` on macOS when Homebrew is available
 - Bumped dependencies (ora, @biomejs/biome, @types/react)
@@ -35,6 +45,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Missing remote path validation for shell metacharacters
 - Duplicate template prompt in `skybox new` workflow
 - SSH key not passed to `getRemoteProjects` for remotes with explicit key files
+- SSH option injection — added `--` separator before positional args in all SSH and SCP calls
+- SSH config injection — field values validated before writing to `~/.ssh/config`
+- SCP argument injection — direct `execa("scp")` calls replaced with `secureScp()`
+- Path traversal in clone — defense-in-depth check ensures resolved path stays within projects directory
+- Unvalidated remote-sourced project names in interactive clone flow
+- GPG trust-on-first-use — fetched key now verified against pinned fingerprint before signature check
+- Unredacted credentials and home directory paths in audit log details
+- Unbounded audit log growth — auto-rotates at 10 MB
+- Unhandled errors in CLI entry point now caught with consistent error output
+- Null-safety in `down` command — TypeScript narrowing guard replaces `project ?? ""` fallbacks
+- SSH authentication error matching now case-insensitive
 
 ### Removed
 

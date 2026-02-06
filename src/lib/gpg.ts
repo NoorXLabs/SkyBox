@@ -6,13 +6,28 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { getErrorMessage } from "@lib/errors.ts";
+import type { GpgVerifyResult, KeyFingerprintResult } from "@typedefs/index.ts";
 
 const execFileAsync = promisify(execFile);
 
-export interface GpgVerifyResult {
-	verified: boolean;
-	error?: string;
-	gpgUnavailable?: boolean;
+/** Import a GPG public key into a temporary keyring. */
+async function importKeyToTempKeyring(
+	publicKey: string,
+): Promise<{ tempDir: string; keyringPath: string }> {
+	const tempDir = mkdtempSync(join(tmpdir(), "skybox-gpg-"));
+	const keyPath = join(tempDir, "key.asc");
+	const keyringPath = join(tempDir, "keyring.gpg");
+	writeFileSync(keyPath, publicKey, { mode: 0o600 });
+	await execFileAsync("gpg", [
+		"--no-default-keyring",
+		"--keyring",
+		keyringPath,
+		"--batch",
+		"--quiet",
+		"--import",
+		keyPath,
+	]);
+	return { tempDir, keyringPath };
 }
 
 /**
@@ -49,30 +64,16 @@ export async function verifyGpgSignature(
 		};
 	}
 
-	// Create a temporary directory for GPG operations
-	const tempDir = mkdtempSync(join(tmpdir(), "skybox-gpg-"));
+	// Create a temporary directory for GPG operations and import key
+	const { tempDir, keyringPath } = await importKeyToTempKeyring(publicKey);
 
 	try {
 		const dataPath = join(tempDir, "data");
 		const sigPath = join(tempDir, "data.sig");
-		const keyPath = join(tempDir, "key.asc");
-		const keyringPath = join(tempDir, "keyring.gpg");
 
 		// Write files with restricted permissions (owner-only read/write)
 		writeFileSync(dataPath, data, { mode: 0o600 });
 		writeFileSync(sigPath, signature, { mode: 0o600 });
-		writeFileSync(keyPath, publicKey, { mode: 0o600 });
-
-		// Import the key to a temporary keyring
-		await execFileAsync("gpg", [
-			"--no-default-keyring",
-			"--keyring",
-			keyringPath,
-			"--batch",
-			"--quiet",
-			"--import",
-			keyPath,
-		]);
 
 		// Verify the signature
 		await execFileAsync("gpg", [
@@ -105,30 +106,14 @@ export async function verifyGpgSignature(
 export async function verifyKeyFingerprint(
 	publicKey: string,
 	expectedFingerprint: string,
-): Promise<{ matches: boolean; actualFingerprint?: string; error?: string }> {
+): Promise<KeyFingerprintResult> {
 	if (!(await isGpgAvailable())) {
 		return { matches: false, error: "GPG is not available" };
 	}
 
-	const tempDir = mkdtempSync(join(tmpdir(), "skybox-gpg-fp-"));
+	const { tempDir, keyringPath } = await importKeyToTempKeyring(publicKey);
 
 	try {
-		const keyPath = join(tempDir, "key.asc");
-		const keyringPath = join(tempDir, "keyring.gpg");
-
-		writeFileSync(keyPath, publicKey, { mode: 0o600 });
-
-		// Import the key to a temporary keyring
-		await execFileAsync("gpg", [
-			"--no-default-keyring",
-			"--keyring",
-			keyringPath,
-			"--batch",
-			"--quiet",
-			"--import",
-			keyPath,
-		]);
-
 		// List key fingerprints from the keyring
 		const { stdout } = await execFileAsync("gpg", [
 			"--no-default-keyring",

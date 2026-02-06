@@ -1,7 +1,4 @@
-/**
- * @file remote.ts
- * @description Operations for interacting with remote servers.
- */
+/** Operations for interacting with remote servers. */
 
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";

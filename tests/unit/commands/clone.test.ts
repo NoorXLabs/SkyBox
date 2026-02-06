@@ -33,7 +33,7 @@ describe("clone command", () => {
 
 	test("constructs correct local project path", () => {
 		const path = getProjectPath("myapp");
-		expect(path).toContain("myapp");
+		expect(path).toEndWith("/Projects/myapp");
 	});
 
 	test("detects existing local project directory", () => {
