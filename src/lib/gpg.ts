@@ -18,15 +18,20 @@ async function importKeyToTempKeyring(
 	const keyPath = join(tempDir, "key.asc");
 	const keyringPath = join(tempDir, "keyring.gpg");
 	writeFileSync(keyPath, publicKey, { mode: 0o600 });
-	await execFileAsync("gpg", [
-		"--no-default-keyring",
-		"--keyring",
-		keyringPath,
-		"--batch",
-		"--quiet",
-		"--import",
-		keyPath,
-	]);
+	try {
+		await execFileAsync("gpg", [
+			"--no-default-keyring",
+			"--keyring",
+			keyringPath,
+			"--batch",
+			"--quiet",
+			"--import",
+			keyPath,
+		]);
+	} catch (err) {
+		rmSync(tempDir, { recursive: true, force: true });
+		throw err;
+	}
 	return { tempDir, keyringPath };
 }
 
@@ -64,10 +69,14 @@ export async function verifyGpgSignature(
 		};
 	}
 
-	// Create a temporary directory for GPG operations and import key
-	const { tempDir, keyringPath } = await importKeyToTempKeyring(publicKey);
+	// Create a temporary directory for GPG operations, import key, and verify
+	let tempDir: string | undefined;
 
 	try {
+		const imported = await importKeyToTempKeyring(publicKey);
+		tempDir = imported.tempDir;
+		const keyringPath = imported.keyringPath;
+
 		const dataPath = join(tempDir, "data");
 		const sigPath = join(tempDir, "data.sig");
 
@@ -95,7 +104,9 @@ export async function verifyGpgSignature(
 		};
 	} finally {
 		// Clean up temp directory
-		rmSync(tempDir, { recursive: true, force: true });
+		if (tempDir) {
+			rmSync(tempDir, { recursive: true, force: true });
+		}
 	}
 }
 
@@ -111,9 +122,13 @@ export async function verifyKeyFingerprint(
 		return { matches: false, error: "GPG is not available" };
 	}
 
-	const { tempDir, keyringPath } = await importKeyToTempKeyring(publicKey);
+	let tempDir: string | undefined;
 
 	try {
+		const imported = await importKeyToTempKeyring(publicKey);
+		tempDir = imported.tempDir;
+		const keyringPath = imported.keyringPath;
+
 		// List key fingerprints from the keyring
 		const { stdout } = await execFileAsync("gpg", [
 			"--no-default-keyring",
@@ -146,7 +161,9 @@ export async function verifyKeyFingerprint(
 			error: `Failed to verify key fingerprint: ${getErrorMessage(err)}`,
 		};
 	} finally {
-		rmSync(tempDir, { recursive: true, force: true });
+		if (tempDir) {
+			rmSync(tempDir, { recursive: true, force: true });
+		}
 	}
 }
 
