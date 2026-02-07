@@ -6,7 +6,7 @@ import { SUPPORTED_EDITORS } from "@lib/constants.ts";
 import { dryRun, header, info, isDryRun, success } from "@lib/ui.ts";
 import inquirer from "inquirer";
 
-export async function editorCommand(): Promise<void> {
+export const editorCommand = async (): Promise<void> => {
 	const config = requireLoadedConfigOrExit();
 
 	const currentEditor = config.editor || "not set";
@@ -55,4 +55,4 @@ export async function editorCommand(): Promise<void> {
 	config.editor = editor;
 	saveConfig(config);
 	success(`Default editor updated to ${editor}.`);
-}
+};

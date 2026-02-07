@@ -12,9 +12,9 @@ export interface CreateProjectSyncSessionOptions {
 	syncPaths?: string[];
 }
 
-export async function createProjectSyncSession(
+export const createProjectSyncSession = async (
 	options: CreateProjectSyncSessionOptions,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string }> => {
 	const { project, localPath, remoteHost, remotePath, ignores, syncPaths } =
 		options;
 
@@ -30,4 +30,4 @@ export async function createProjectSyncSession(
 	}
 
 	return createSyncSession(project, localPath, remoteHost, remotePath, ignores);
-}
+};

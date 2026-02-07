@@ -9,7 +9,7 @@ import { getProjectsDir } from "@lib/paths.ts";
 import { error, header, info } from "@lib/ui.ts";
 import type { LocalProject } from "@typedefs/index.ts";
 
-async function getLocalProjects(): Promise<LocalProject[]> {
+const getLocalProjects = async (): Promise<LocalProject[]> => {
 	const projectsDir = getProjectsDir();
 	if (!existsSync(projectsDir)) {
 		return [];
@@ -40,9 +40,9 @@ async function getLocalProjects(): Promise<LocalProject[]> {
 	}
 
 	return projects;
-}
+};
 
-function printProjects(projects: LocalProject[]): void {
+const printProjects = (projects: LocalProject[]): void => {
 	header("Local projects:");
 	console.log();
 
@@ -54,15 +54,15 @@ function printProjects(projects: LocalProject[]): void {
 	}
 
 	info("Run 'skybox up <project>' to start working.");
-}
+};
 
-function printEmpty(): void {
+const printEmpty = (): void => {
 	console.log();
 	console.log("No local projects yet.");
 	info("Run 'skybox clone <project>' or 'skybox push ./path' to get started.");
-}
+};
 
-export async function listCommand(): Promise<void> {
+export const listCommand = async (): Promise<void> => {
 	if (!configExists()) {
 		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
@@ -75,4 +75,4 @@ export async function listCommand(): Promise<void> {
 	} else {
 		printProjects(projects);
 	}
-}
+};

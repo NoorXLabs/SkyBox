@@ -25,27 +25,27 @@ let auditEnabledOverride: boolean | null = null;
  * Check if audit logging is enabled.
  * Checks env var on each call to support dynamic configuration.
  */
-function isAuditEnabled(): boolean {
+const isAuditEnabled = (): boolean => {
 	if (auditEnabledOverride !== null) {
 		return auditEnabledOverride;
 	}
 	return process.env.SKYBOX_AUDIT === "1";
-}
+};
 
 /**
  * Enable or disable audit logging (for testing).
  * Pass null to restore default behavior (check env var).
  */
-export function setAuditEnabled(enabled: boolean | null): void {
+export const setAuditEnabled = (enabled: boolean | null): void => {
 	auditEnabledOverride = enabled;
-}
+};
 
 /**
  * Get the audit log file path.
  */
-export function getAuditLogPath(): string {
+export const getAuditLogPath = (): string => {
 	return join(getSkyboxHome(), "audit.log");
-}
+};
 
 /**
  * Sanitize audit log details to prevent sensitive data leakage.
@@ -54,9 +54,9 @@ export function getAuditLogPath(): string {
  * NOTE: Only sanitizes top-level string values. Nested objects are passed
  * through as-is. Callers should ensure sensitive data is in top-level fields.
  */
-function sanitizeDetails(
+const sanitizeDetails = (
 	details: Record<string, unknown>,
-): Record<string, unknown> {
+): Record<string, unknown> => {
 	const home = homedir();
 	const sanitized: Record<string, unknown> = {};
 	for (const [key, value] of Object.entries(details)) {
@@ -76,7 +76,7 @@ function sanitizeDetails(
 		}
 	}
 	return sanitized;
-}
+};
 
 /**
  * Log a security-relevant event.
@@ -88,10 +88,10 @@ function sanitizeDetails(
  * @param action - The action being performed (e.g., "clone", "push", "rm")
  * @param details - Additional context for the action
  */
-export function logAuditEvent(
+export const logAuditEvent = (
 	action: string,
 	details: Record<string, unknown>,
-): void {
+): void => {
 	if (!isAuditEnabled()) return;
 
 	const entry: AuditEntry = {
@@ -124,7 +124,7 @@ export function logAuditEvent(
 	// Append JSON line
 	const line = `${JSON.stringify(entry)}\n`;
 	appendFileSync(logPath, line, { encoding: "utf-8", mode: 0o600 });
-}
+};
 
 /**
  * Common audit actions.

@@ -11,9 +11,9 @@ import type { GpgVerifyResult, KeyFingerprintResult } from "@typedefs/index.ts";
 const execFileAsync = promisify(execFile);
 
 /** Import a GPG public key into a temporary keyring. */
-async function importKeyToTempKeyring(
+const importKeyToTempKeyring = async (
 	publicKey: string,
-): Promise<{ tempDir: string; keyringPath: string }> {
+): Promise<{ tempDir: string; keyringPath: string }> => {
 	const tempDir = mkdtempSync(join(tmpdir(), "skybox-gpg-"));
 	const keyPath = join(tempDir, "key.asc");
 	const keyringPath = join(tempDir, "keyring.gpg");
@@ -33,19 +33,19 @@ async function importKeyToTempKeyring(
 		throw err;
 	}
 	return { tempDir, keyringPath };
-}
+};
 
 /**
  * Check if GPG is available on the system.
  */
-export async function isGpgAvailable(): Promise<boolean> {
+export const isGpgAvailable = async (): Promise<boolean> => {
 	try {
 		await execFileAsync("gpg", ["--version"]);
 		return true;
 	} catch {
 		return false;
 	}
-}
+};
 
 /**
  * Verify a detached GPG signature.
@@ -54,11 +54,11 @@ export async function isGpgAvailable(): Promise<boolean> {
  * @param signature - The detached signature
  * @param publicKey - The armored public key to verify against
  */
-export async function verifyGpgSignature(
+export const verifyGpgSignature = async (
 	data: Buffer,
 	signature: Buffer,
 	publicKey: string,
-): Promise<GpgVerifyResult> {
+): Promise<GpgVerifyResult> => {
 	// Check if GPG is available
 	if (!(await isGpgAvailable())) {
 		return {
@@ -108,16 +108,16 @@ export async function verifyGpgSignature(
 			rmSync(tempDir, { recursive: true, force: true });
 		}
 	}
-}
+};
 
 /**
  * Verify that a GPG public key matches the expected fingerprint.
  * Imports the key into a temporary keyring and checks the fingerprint.
  */
-export async function verifyKeyFingerprint(
+export const verifyKeyFingerprint = async (
 	publicKey: string,
 	expectedFingerprint: string,
-): Promise<KeyFingerprintResult> {
+): Promise<KeyFingerprintResult> => {
 	if (!(await isGpgAvailable())) {
 		return { matches: false, error: "GPG is not available" };
 	}
@@ -165,7 +165,7 @@ export async function verifyKeyFingerprint(
 			rmSync(tempDir, { recursive: true, force: true });
 		}
 	}
-}
+};
 
 /**
  * Fetch Mutagen's public GPG key from GitHub.
@@ -175,7 +175,7 @@ export async function verifyKeyFingerprint(
  * before use, preventing trust-on-first-use attacks.
  * @see MUTAGEN_GPG_FINGERPRINT in constants.ts
  */
-export async function fetchMutagenPublicKey(): Promise<string | null> {
+export const fetchMutagenPublicKey = async (): Promise<string | null> => {
 	try {
 		const response = await fetch("https://github.com/mutagen-io.gpg");
 		if (!response.ok) return null;
@@ -183,14 +183,14 @@ export async function fetchMutagenPublicKey(): Promise<string | null> {
 	} catch {
 		return null;
 	}
-}
+};
 
 /**
  * Fetch the GPG signature for Mutagen checksums.
  */
-export async function fetchMutagenSignature(
+export const fetchMutagenSignature = async (
 	version: string,
-): Promise<Buffer | null> {
+): Promise<Buffer | null> => {
 	try {
 		const url = `https://github.com/mutagen-io/mutagen/releases/download/v${version}/SHA256SUMS.sig`;
 		const response = await fetch(url);
@@ -200,4 +200,4 @@ export async function fetchMutagenSignature(
 	} catch {
 		return null;
 	}
-}
+};

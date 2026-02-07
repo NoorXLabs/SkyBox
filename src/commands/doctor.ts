@@ -20,7 +20,7 @@ const icons: Record<DoctorCheckStatus, string> = {
 	fail: chalk.red("✗"),
 };
 
-function checkDocker(): DoctorCheckResult {
+const checkDocker = (): DoctorCheckResult => {
 	const name = "Docker";
 
 	// Check if Docker is installed
@@ -64,9 +64,9 @@ function checkDocker(): DoctorCheckResult {
 			message: "Docker is running",
 		};
 	}
-}
+};
 
-function checkMutagen(): DoctorCheckResult {
+const checkMutagen = (): DoctorCheckResult => {
 	const name = "Mutagen";
 
 	// Check if Mutagen binary exists
@@ -102,9 +102,9 @@ function checkMutagen(): DoctorCheckResult {
 			fix: "Run 'skybox init' to reinstall Mutagen",
 		};
 	}
-}
+};
 
-function checkConfig(): DoctorCheckResult {
+const checkConfig = (): DoctorCheckResult => {
 	const name = "Configuration";
 
 	try {
@@ -151,9 +151,9 @@ function checkConfig(): DoctorCheckResult {
 			fix: "Check ~/.skybox/config.yaml for errors",
 		};
 	}
-}
+};
 
-async function checkSSHConnectivity(): Promise<DoctorCheckResult[]> {
+const checkSSHConnectivity = async (): Promise<DoctorCheckResult[]> => {
 	const results: DoctorCheckResult[] = [];
 
 	try {
@@ -200,9 +200,9 @@ async function checkSSHConnectivity(): Promise<DoctorCheckResult[]> {
 	}
 
 	return results;
-}
+};
 
-function checkDevcontainerCLI(): DoctorCheckResult {
+const checkDevcontainerCLI = (): DoctorCheckResult => {
 	const name = "Devcontainer CLI";
 
 	try {
@@ -234,17 +234,17 @@ function checkDevcontainerCLI(): DoctorCheckResult {
 			fix,
 		};
 	}
-}
+};
 
-function printResult(result: DoctorCheckResult): void {
+const printResult = (result: DoctorCheckResult): void => {
 	const icon = icons[result.status];
 	console.log(`  ${icon} ${result.name}: ${result.message}`);
 	if (result.fix && result.status !== "pass") {
 		console.log(chalk.dim(`      Fix: ${result.fix}`));
 	}
-}
+};
 
-function printReport(report: DoctorReport): void {
+const printReport = (report: DoctorReport): void => {
 	console.log();
 	console.log(chalk.bold("SkyBox Doctor"));
 	console.log(chalk.dim("─".repeat(40)));
@@ -280,9 +280,9 @@ function printReport(report: DoctorReport): void {
 		console.log(chalk.green("  All checks passed. SkyBox is ready to use!"));
 	}
 	console.log();
-}
+};
 
-export async function doctorCommand(): Promise<void> {
+export const doctorCommand = async (): Promise<void> => {
 	const checks: DoctorCheckResult[] = [];
 
 	// Run sync checks
@@ -307,4 +307,4 @@ export async function doctorCommand(): Promise<void> {
 	if (failed > 0) {
 		process.exit(1);
 	}
-}
+};

@@ -18,71 +18,71 @@ import {
  * Get the SkyBox home directory.
  * Returns fresh value on each call to support dynamic SKYBOX_HOME changes (e.g., in tests).
  */
-export function getSkyboxHome(): string {
+export const getSkyboxHome = (): string => {
 	return process.env.SKYBOX_HOME || join(homedir(), SKYBOX_HOME_DIR);
-}
+};
 
 /**
  * Get the path to the config file.
  */
-export function getConfigPath(): string {
+export const getConfigPath = (): string => {
 	return join(getSkyboxHome(), CONFIG_FILENAME);
-}
+};
 
 /**
  * Get the path to the projects directory.
  */
-export function getProjectsDir(): string {
+export const getProjectsDir = (): string => {
 	return join(getSkyboxHome(), PROJECTS_DIR_NAME);
-}
+};
 
 /**
  * Get the path to the bin directory.
  */
-export function getBinDir(): string {
+export const getBinDir = (): string => {
 	return join(getSkyboxHome(), BIN_DIR_NAME);
-}
+};
 
 /**
  * Get the path to the Mutagen binary.
  */
-export function getMutagenPath(): string {
+export const getMutagenPath = (): string => {
 	return join(getBinDir(), MUTAGEN_BINARY_NAME);
-}
+};
 
 /**
  * Get the path to the logs directory.
  */
-export function getLogsDir(): string {
+export const getLogsDir = (): string => {
 	return join(getSkyboxHome(), LOGS_DIR_NAME);
-}
+};
 
 /**
  * Get the path to the user templates directory.
  */
-export function getUserTemplatesDir(): string {
+export const getUserTemplatesDir = (): string => {
 	return join(getSkyboxHome(), TEMPLATES_DIR_NAME);
-}
+};
 
 /**
  * Get the path to the update check metadata file.
  */
-export function getUpdateCheckPath(): string {
+export const getUpdateCheckPath = (): string => {
 	return join(getSkyboxHome(), UPDATE_CHECK_FILE);
-}
+};
 
 /**
  * Get the path to the file that records the extracted Mutagen version.
  * Used to detect when SkyBox is updated and Mutagen needs re-extraction.
  */
-export function getMutagenVersionPath(): string {
+export const getMutagenVersionPath = (): string => {
 	return join(getBinDir(), MUTAGEN_VERSION_FILE);
-}
+};
 
 /**
  * Get the path to the auto-up log file.
  * Used by shell hooks to log auto-start operations.
  */
-export function getAutoUpLogPath(): string {
+export const getAutoUpLogPath = (): string => {
 	return join(getLogsDir(), AUTO_UP_LOG_FILE);
-}
+};

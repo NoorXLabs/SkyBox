@@ -94,6 +94,7 @@ bun run src/index.ts <command>
 
 - Strict mode enabled - no implicit any, strict null checks
 - All types defined in `src/types/index.ts`
+- **Arrow functions**: Use `export const fn = (...): ReturnType => { }` — not `export function fn() { }`. All exported functions use arrow syntax.
 - Async/await for all I/O operations
 - Use `execa` for executing external commands
 
@@ -245,27 +246,28 @@ Follow conventional commits:
 
 ### Adding a New Command
 
-1. Create `src/commands/<name>.ts`:
+1. Create `src/commands/<name>.ts` with an exported action handler:
 ```typescript
-import { Command } from "commander";
+import { requireLoadedConfigOrExit } from "@lib/command-guard.ts";
+import { error, header } from "@lib/ui.ts";
 
-export function registerNameCommand(program: Command): void {
-	program
-		.command("name")
-		.description("Command description")
-		.argument("[arg]", "argument description")
-		.option("-f, --flag", "flag description")
-		.action(async (arg, options) => {
-			// Implementation
-		});
-}
+export const nameCommand = async (arg: string, options: { flag?: boolean }): Promise<void> => {
+	requireLoadedConfigOrExit();
+	header("Name");
+	// Implementation
+};
 ```
 
-2. Register in `src/index.ts`:
+2. Wire up in `src/index.ts`:
 ```typescript
-import { registerNameCommand } from "@commands/name.ts";
-// ...
-registerNameCommand(program);
+import { nameCommand } from "@commands/name.ts";
+
+program
+	.command("name")
+	.description("Command description")
+	.argument("[arg]", "argument description")
+	.option("-f, --flag", "flag description")
+	.action(nameCommand);
 ```
 
 3. Add tests in `tests/unit/commands/name.test.ts`

@@ -7,7 +7,7 @@ import type { InstallMethod, UpdateCheckMetadata } from "@typedefs/index.ts";
 /**
  * Check if we should query GitHub for updates (24h cooldown).
  */
-export function shouldCheckForUpdate(): boolean {
+export const shouldCheckForUpdate = (): boolean => {
 	const metadataPath = getUpdateCheckPath();
 	if (!existsSync(metadataPath)) return true;
 
@@ -19,15 +19,15 @@ export function shouldCheckForUpdate(): boolean {
 	} catch {
 		return true;
 	}
-}
+};
 
 /**
  * Save update check results to disk.
  */
-export function saveUpdateCheckMetadata(
+export const saveUpdateCheckMetadata = (
 	latestVersion: string | null,
 	latestStableVersion: string | null,
-): void {
+): void => {
 	const metadataPath = getUpdateCheckPath();
 	const metadata: UpdateCheckMetadata = {
 		lastCheck: new Date().toISOString(),
@@ -39,13 +39,13 @@ export function saveUpdateCheckMetadata(
 	} catch {
 		// Silently fail — update check is non-critical
 	}
-}
+};
 
 /**
  * Compare two semver-ish version strings. Returns true if `latest` is newer than `current`.
  * Handles prerelease tags: 0.7.0 > 0.6.0-beta, 0.6.0 > 0.6.0-beta.
  */
-export function isNewerVersion(latest: string, current: string): boolean {
+export const isNewerVersion = (latest: string, current: string): boolean => {
 	const parse = (v: string) => {
 		const [core, pre] = v.split("-");
 		const parts = core.split(".").map(Number);
@@ -63,12 +63,12 @@ export function isNewerVersion(latest: string, current: string): boolean {
 	if (!c.pre && l.pre) return false;
 	// Both prerelease or both release with same version
 	return false;
-}
+};
 
 /**
  * Get the correct upgrade command for the user's install method.
  */
-export function getUpgradeCommand(method: InstallMethod): string {
+export const getUpgradeCommand = (method: InstallMethod): string => {
 	switch (method) {
 		case "homebrew":
 			return "brew upgrade skybox";
@@ -79,16 +79,16 @@ export function getUpgradeCommand(method: InstallMethod): string {
 		case "source":
 			return "git pull && bun install";
 	}
-}
+};
 
 /**
  * Fetch latest release versions from GitHub. Non-blocking, swallows errors.
  * Returns { latest, latestStable } or null on failure.
  */
-export async function fetchLatestVersions(): Promise<{
+export const fetchLatestVersions = async (): Promise<{
 	latest: string;
 	latestStable: string | null;
-} | null> {
+} | null> => {
 	try {
 		const response = await fetch(GITHUB_API_URL, {
 			headers: {
@@ -119,16 +119,16 @@ export async function fetchLatestVersions(): Promise<{
 	} catch {
 		return null;
 	}
-}
+};
 
 /**
  * Run the full update check flow. Call after every command.
  * Returns the newer version string, or null if no update available.
  */
-export async function checkForUpdate(
+export const checkForUpdate = async (
 	currentVersion: string,
 	isBeta: boolean,
-): Promise<string | null> {
+): Promise<string | null> => {
 	if (!shouldCheckForUpdate()) {
 		// Read cached result
 		try {
@@ -159,4 +159,4 @@ export async function checkForUpdate(
 		return target;
 	}
 	return null;
-}
+};

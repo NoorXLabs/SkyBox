@@ -14,16 +14,16 @@
  * - \\' - escaped single quote (outside quotes)
  * - 's' - second quoted section
  */
-export function escapeShellArg(arg: string): string {
+export const escapeShellArg = (arg: string): string => {
 	return `'${arg.replace(/'/g, "'\\''")}'`;
-}
+};
 
 /**
  * Escape a remote path for use in SSH commands, preserving tilde expansion.
  * Paths starting with ~/ are split: the ~ is left unquoted for shell expansion,
  * and the rest is properly escaped.
  */
-export function escapeRemotePath(path: string): string {
+export const escapeRemotePath = (path: string): string => {
 	// Only ~/... triggers tilde expansion. ~user/... is intentionally single-quoted
 	// (no expansion for other users' home directories).
 	if (path === "~") {
@@ -33,12 +33,12 @@ export function escapeRemotePath(path: string): string {
 		return `~/${escapeShellArg(path.slice(2))}`;
 	}
 	return escapeShellArg(path);
-}
+};
 
 /**
  * Builds a shell command string with safely escaped arguments.
  */
-export function buildShellCommand(command: string, args: string[]): string {
+export const buildShellCommand = (command: string, args: string[]): string => {
 	if (args.length === 0) return command;
 	return `${command} ${args.map(escapeShellArg).join(" ")}`;
-}
+};

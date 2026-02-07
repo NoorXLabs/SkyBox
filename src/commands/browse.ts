@@ -9,11 +9,11 @@ import { error, header, info, spinner } from "@lib/ui.ts";
 import type { RemoteProject } from "@typedefs/index.ts";
 import chalk from "chalk";
 
-export async function getRemoteProjects(
+export const getRemoteProjects = async (
 	host: string,
 	basePath: string,
 	key?: string,
-): Promise<RemoteProject[]> {
+): Promise<RemoteProject[]> => {
 	const script = `for d in ${escapeRemotePath(basePath)}/*/; do
     [ -d "$d" ] || continue
     name=$(basename "$d")
@@ -35,13 +35,13 @@ export async function getRemoteProjects(
 			const [name, branch] = line.split("|");
 			return { name, branch };
 		});
-}
+};
 
-function printProjects(
+const printProjects = (
 	projects: RemoteProject[],
 	host: string,
 	basePath: string,
-): void {
+): void => {
 	header(`Remote projects (${host}:${basePath}):`);
 	console.log();
 
@@ -61,15 +61,15 @@ function printProjects(
 
 	console.log();
 	info("Run 'skybox clone <project>' to clone a project locally.");
-}
+};
 
-function printEmpty(): void {
+const printEmpty = (): void => {
 	console.log();
 	console.log("No projects found on remote.");
 	info("Run 'skybox push ./my-project' to push your first project.");
-}
+};
 
-export async function browseCommand(): Promise<void> {
+export const browseCommand = async (): Promise<void> => {
 	const config = requireConfig();
 
 	// Select which remote to browse
@@ -93,4 +93,4 @@ export async function browseCommand(): Promise<void> {
 		error(getErrorMessage(err) || "Check your SSH config.");
 		process.exit(1);
 	}
-}
+};

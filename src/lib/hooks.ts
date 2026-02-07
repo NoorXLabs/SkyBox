@@ -17,9 +17,9 @@ interface HookResult {
 /**
  * Normalize a hook config value (string or HookEntry[]) into HookEntry[].
  */
-function normalizeHookEntries(
+const normalizeHookEntries = (
 	value: string | HookEntry[] | undefined,
-): HookEntry[] {
+): HookEntry[] => {
 	if (!value) return [];
 	if (typeof value === "string") {
 		return [{ command: value, context: "host" }];
@@ -28,7 +28,7 @@ function normalizeHookEntries(
 		command: entry.command,
 		context: entry.context ?? "host",
 	}));
-}
+};
 
 /**
  * Run all hooks for a given lifecycle event.
@@ -38,11 +38,11 @@ function normalizeHookEntries(
  * Users are responsible for securing their hook configurations.
  * Hooks should only be defined in trusted config files.
  */
-export async function runHooks(
+export const runHooks = async (
 	event: HookEvent,
 	hooks: HooksConfig | undefined,
 	cwd: string,
-): Promise<HookResult> {
+): Promise<HookResult> => {
 	if (!hooks) return { success: true, errors: [] };
 
 	const entries = normalizeHookEntries(hooks[event]);
@@ -75,12 +75,12 @@ export async function runHooks(
 	}
 
 	return { success: errors.length === 0, errors };
-}
+};
 
 /**
  * Reset hook warning state (for testing purposes).
  * @internal
  */
-export function resetHookWarningState(): void {
+export const resetHookWarningState = (): void => {
 	hookState.warningShown = false;
-}
+};

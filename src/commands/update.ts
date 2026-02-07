@@ -7,7 +7,7 @@ import {
 } from "@lib/mutagen-extract.ts";
 import { dryRun, info, isDryRun, spinner, success } from "@lib/ui.ts";
 
-export async function updateCommand(): Promise<void> {
+export const updateCommand = async (): Promise<void> => {
 	info("Checking for updates...\n");
 
 	if (isDryRun()) {
@@ -55,4 +55,4 @@ export async function updateCommand(): Promise<void> {
 	} catch (err) {
 		s.fail(`Update failed: ${getErrorMessage(err)}`);
 	}
-}
+};

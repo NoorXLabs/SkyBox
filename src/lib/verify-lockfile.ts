@@ -9,7 +9,7 @@ import { existsSync } from "node:fs";
 const LOCKFILE_PATH = "bun.lock";
 const PACKAGE_JSON_PATH = "package.json";
 
-function main(): void {
+const main = (): void => {
 	// Check lockfile exists
 	if (!existsSync(LOCKFILE_PATH)) {
 		console.error("❌ bun.lock not found");
@@ -35,6 +35,6 @@ function main(): void {
 	}
 
 	console.log("✅ Lockfile integrity verified");
-}
+};
 
 main();

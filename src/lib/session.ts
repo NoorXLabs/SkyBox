@@ -18,25 +18,25 @@ export type { SessionConflictResult, SessionInfo };
 /**
  * Returns the machine name (hostname) for session identification.
  */
-export function getMachineName(): string {
+export const getMachineName = (): string => {
 	return hostname();
-}
+};
 
 /**
  * Get the session file path for a project.
  * @param projectPath - Absolute path to the project directory
  * @returns Absolute path to the session lock file
  */
-export function getSessionFilePath(projectPath: string): string {
+export const getSessionFilePath = (projectPath: string): string => {
 	return join(projectPath, SESSION_FILE);
-}
+};
 
 /**
  * Read and parse the session file for a project.
  * Returns null if the file doesn't exist, is invalid, or has expired.
  * @param projectPath - Absolute path to the project directory
  */
-export function readSession(projectPath: string): SessionInfo | null {
+export const readSession = (projectPath: string): SessionInfo | null => {
 	const sessionPath = getSessionFilePath(projectPath);
 
 	if (!existsSync(sessionPath)) {
@@ -68,7 +68,7 @@ export function readSession(projectPath: string): SessionInfo | null {
 		// Invalid JSON or read error - treat as no session
 		return null;
 	}
-}
+};
 
 /**
  * Write a session file for the current machine.
@@ -76,7 +76,7 @@ export function readSession(projectPath: string): SessionInfo | null {
  * Uses atomic write (write to temp file, then rename) to prevent corruption.
  * @param projectPath - Absolute path to the project directory
  */
-export function writeSession(projectPath: string): void {
+export const writeSession = (projectPath: string): void => {
 	const sessionPath = getSessionFilePath(projectPath);
 	const sessionDir = dirname(sessionPath);
 
@@ -100,14 +100,14 @@ export function writeSession(projectPath: string): void {
 	);
 	writeFileSync(tempPath, JSON.stringify(session, null, 2), "utf-8");
 	renameSync(tempPath, sessionPath);
-}
+};
 
 /**
  * Delete the session file for a project.
  * Silently succeeds if the file doesn't exist.
  * @param projectPath - Absolute path to the project directory
  */
-export function deleteSession(projectPath: string): void {
+export const deleteSession = (projectPath: string): void => {
 	const sessionPath = getSessionFilePath(projectPath);
 
 	if (existsSync(sessionPath)) {
@@ -117,16 +117,16 @@ export function deleteSession(projectPath: string): void {
 			// Ignore errors - file may have been deleted by another process
 		}
 	}
-}
+};
 
 /**
  * Check if a different machine has an active session for this project.
  * @param projectPath - Absolute path to the project directory
  * @returns Conflict status and existing session info if applicable
  */
-export function checkSessionConflict(
+export const checkSessionConflict = (
 	projectPath: string,
-): SessionConflictResult {
+): SessionConflictResult => {
 	const session = readSession(projectPath);
 
 	if (!session) {
@@ -142,4 +142,4 @@ export function checkSessionConflict(
 
 	// Different machine has an active session
 	return { hasConflict: true, existingSession: session };
-}
+};

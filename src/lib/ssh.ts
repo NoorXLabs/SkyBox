@@ -15,17 +15,17 @@ import { validateSSHField, validateSSHHost } from "@lib/validation.ts";
 import type { SSHConfigEntry, SSHHost } from "@typedefs/index.ts";
 import { execa } from "execa";
 
-function getSSHDir(): string {
+const getSSHDir = (): string => {
 	const home = process.env.HOME || homedir();
 	return join(home, ".ssh");
-}
+};
 
 /**
  * Sanitize SSH error messages for user display.
  * Removes authentication details and host-specific info.
  * @internal Exported for testing
  */
-export function sanitizeSshError(error: string): string {
+export const sanitizeSshError = (error: string): string => {
 	let sanitized = error;
 
 	// Remove private key paths
@@ -52,9 +52,9 @@ export function sanitizeSshError(error: string): string {
 	}
 
 	return sanitized;
-}
+};
 
-export function parseSSHConfig(): SSHHost[] {
+export const parseSSHConfig = (): SSHHost[] => {
 	const configPath = join(getSSHDir(), "config");
 
 	if (!existsSync(configPath)) {
@@ -99,9 +99,9 @@ export function parseSSHConfig(): SSHHost[] {
 	}
 
 	return hosts;
-}
+};
 
-export function findSSHKeys(): string[] {
+export const findSSHKeys = (): string[] => {
 	const sshDir = getSSHDir();
 
 	if (!existsSync(sshDir)) {
@@ -123,23 +123,23 @@ export function findSSHKeys(): string[] {
 	}
 
 	return keys;
-}
+};
 
 /** Validate host and return error response if invalid, or null if valid. */
-function assertValidHost(
+const assertValidHost = (
 	host: string,
-): { success: false; error: string } | null {
+): { success: false; error: string } | null => {
 	const check = validateSSHHost(host);
 	if (!check.valid) {
 		return { success: false, error: check.error };
 	}
 	return null;
-}
+};
 
-export async function testConnection(
+export const testConnection = async (
 	host: string,
 	identityFile?: string,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string }> => {
 	const hostError = assertValidHost(host);
 	if (hostError) return hostError;
 	try {
@@ -156,12 +156,12 @@ export async function testConnection(
 			error: sanitizeSshError(getExecaErrorMessage(error)),
 		};
 	}
-}
+};
 
-export async function copyKey(
+export const copyKey = async (
 	host: string,
 	keyPath: string,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string }> => {
 	const hostError = assertValidHost(host);
 	if (hostError) return hostError;
 	try {
@@ -172,13 +172,13 @@ export async function copyKey(
 	} catch (error: unknown) {
 		return { success: false, error: sanitizeSshError(getErrorMessage(error)) };
 	}
-}
+};
 
-export async function runRemoteCommand(
+export const runRemoteCommand = async (
 	host: string,
 	command: string,
 	identityFile?: string,
-): Promise<{ success: boolean; stdout?: string; error?: string }> {
+): Promise<{ success: boolean; stdout?: string; error?: string }> => {
 	const hostError = assertValidHost(host);
 	if (hostError) return hostError;
 	try {
@@ -195,23 +195,25 @@ export async function runRemoteCommand(
 			error: sanitizeSshError(getExecaErrorMessage(error)),
 		};
 	}
-}
+};
 
 /**
  * Copy files via SCP with argument injection prevention.
  * Uses "--" separator to prevent source/destination being interpreted as options.
  */
-export async function secureScp(
+export const secureScp = async (
 	source: string,
 	destination: string,
-): Promise<void> {
+): Promise<void> => {
 	await execa("scp", ["--", source, destination]);
-}
+};
 
-export function writeSSHConfigEntry(entry: SSHConfigEntry): {
+export const writeSSHConfigEntry = (
+	entry: SSHConfigEntry,
+): {
 	success: boolean;
 	error?: string;
-} {
+} => {
 	const configPath = join(getSSHDir(), "config");
 
 	// Check if entry already exists
@@ -268,4 +270,4 @@ Host ${entry.name}
 	} catch (error: unknown) {
 		return { success: false, error: getErrorMessage(error) };
 	}
-}
+};

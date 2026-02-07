@@ -17,7 +17,7 @@ export function exitWithErrorAndInfo(
 	process.exit(code);
 }
 
-export function requireLoadedConfigOrExit(): SkyboxConfigV2 {
+export const requireLoadedConfigOrExit = (): SkyboxConfigV2 => {
 	if (!configExists()) {
 		exitWithError("skybox not configured. Run 'skybox init' first.");
 	}
@@ -27,5 +27,5 @@ export function requireLoadedConfigOrExit(): SkyboxConfigV2 {
 		exitWithError("Failed to load config.");
 	}
 
-	return config;
-}
+	return config as SkyboxConfigV2;
+};

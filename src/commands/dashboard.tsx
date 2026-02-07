@@ -32,7 +32,7 @@ interface DashboardProject {
 	sessionStatus: string; // "active here", "active on <machine>", or "none"
 }
 
-async function gatherProjectData(): Promise<DashboardProject[]> {
+const gatherProjectData = async (): Promise<DashboardProject[]> => {
 	const projectsDir = getProjectsDir();
 	if (!existsSync(projectsDir)) return [];
 
@@ -102,7 +102,7 @@ async function gatherProjectData(): Promise<DashboardProject[]> {
 	}
 
 	return results;
-}
+};
 
 interface CardField {
 	label: string;
@@ -110,7 +110,7 @@ interface CardField {
 	color?: string;
 }
 
-function getSimpleFields(p: DashboardProject): CardField[] {
+const getSimpleFields = (p: DashboardProject): CardField[] => {
 	return [
 		{
 			label: "Container",
@@ -125,9 +125,9 @@ function getSimpleFields(p: DashboardProject): CardField[] {
 		},
 		{ label: "Branch", value: p.branch },
 	];
-}
+};
 
-function getDetailedFields(p: DashboardProject): CardField[] {
+const getDetailedFields = (p: DashboardProject): CardField[] => {
 	const gitLabel = p.gitStatus === "dirty" ? "dirty" : "clean";
 	const gitExtra =
 		p.ahead > 0 || p.behind > 0 ? ` ↑${p.ahead} ↓${p.behind}` : "";
@@ -157,9 +157,9 @@ function getDetailedFields(p: DashboardProject): CardField[] {
 		{ label: "Uptime", value: p.uptime },
 		{ label: "Encrypted", value: p.encrypted ? "yes" : "no" },
 	];
-}
+};
 
-function ProjectCard({
+const ProjectCard = ({
 	project,
 	fields,
 	selected,
@@ -169,7 +169,7 @@ function ProjectCard({
 	fields: CardField[];
 	selected: boolean;
 	width: number;
-}): React.ReactElement {
+}): React.ReactElement => {
 	const borderColor = selected ? "blue" : "gray";
 	const innerWidth = width - 4; // account for border + padding
 
@@ -196,22 +196,22 @@ function ProjectCard({
 			))}
 		</Box>
 	);
-}
+};
 
 /** Split an array into chunks of size n */
-function chunk<T>(arr: T[], n: number): T[][] {
+const chunk = <T,>(arr: T[], n: number): T[][] => {
 	const result: T[][] = [];
 	for (let i = 0; i < arr.length; i += n) {
 		result.push(arr.slice(i, i + n));
 	}
 	return result;
-}
+};
 
-function Dashboard({
+const Dashboard = ({
 	initialDetailed,
 }: {
 	initialDetailed: boolean;
-}): React.ReactElement {
+}): React.ReactElement => {
 	const { exit } = useApp();
 	const { stdout } = useStdout();
 	const [projects, setProjects] = useState<DashboardProject[]>([]);
@@ -327,33 +327,33 @@ function Dashboard({
 			</Box>
 		</Box>
 	);
-}
+};
 
-function containerColor(status: string): string | undefined {
+const containerColor = (status: string): string | undefined => {
 	if (status === "running") return "green";
 	if (status === "stopped") return "red";
 	return undefined;
-}
+};
 
-function syncColor(status: string): string | undefined {
+const syncColor = (status: string): string | undefined => {
 	if (status === "syncing") return "green";
 	if (status === "paused") return "yellow";
 	if (status === "error") return "red";
 	return undefined;
-}
+};
 
-function sessionColor(status: string): string | undefined {
+const sessionColor = (status: string): string | undefined => {
 	if (status === "active here") return "green";
 	if (status.startsWith("active on ")) return "yellow";
 	if (status === "none") return "gray";
 	return undefined;
-}
+};
 
-export async function dashboardCommand(options: {
+export const dashboardCommand = async (options: {
 	detailed?: boolean;
-}): Promise<void> {
+}): Promise<void> => {
 	const instance = render(
 		<Dashboard initialDetailed={options.detailed ?? false} />,
 	);
 	await instance.waitUntilExit();
-}
+};

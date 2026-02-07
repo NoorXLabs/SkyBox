@@ -52,10 +52,10 @@ import inquirer from "inquirer";
  * Encrypt project directory on remote after sync flush.
  * Tars project, downloads tar, encrypts locally, uploads encrypted archive, deletes plaintext on remote.
  */
-async function handleEncryption(
+const handleEncryption = async (
 	project: string,
 	config: SkyboxConfigV2,
-): Promise<boolean> {
+): Promise<boolean> => {
 	const projectConfig = config.projects[project];
 	if (!projectConfig?.encryption?.enabled) {
 		return true;
@@ -122,12 +122,12 @@ async function handleEncryption(
 	}
 
 	return false;
-}
+};
 
-export async function downCommand(
+export const downCommand = async (
 	projectArg: string | undefined,
 	options: DownOptions,
-): Promise<void> {
+): Promise<void> => {
 	// Batch mode: stop all local projects
 	if (options.all) {
 		const projects = getLocalProjects();
@@ -366,4 +366,4 @@ export async function downCommand(
 
 	logAuditEvent(AuditActions.DOWN, { project });
 	success(`'${project}' stopped.`);
-}
+};

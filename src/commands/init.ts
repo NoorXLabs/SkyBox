@@ -32,7 +32,7 @@ import type { SkyboxConfigV2 } from "@typedefs/index.ts";
 import { execa } from "execa";
 import inquirer from "inquirer";
 
-async function checkDependencies(): Promise<boolean> {
+const checkDependencies = async (): Promise<boolean> => {
 	header("Checking dependencies...");
 
 	// Check Docker
@@ -56,9 +56,9 @@ async function checkDependencies(): Promise<boolean> {
 	}
 
 	return true;
-}
+};
 
-async function handleMutagen(): Promise<boolean> {
+const handleMutagen = async (): Promise<boolean> => {
 	if (await isMutagenInstalled()) {
 		success("Mutagen already installed");
 		return true;
@@ -81,15 +81,15 @@ async function handleMutagen(): Promise<boolean> {
 		);
 		return false;
 	}
-}
+};
 
-async function configureRemote(): Promise<{
+const configureRemote = async (): Promise<{
 	name: string;
 	host: string;
 	user?: string;
 	basePath: string;
 	key?: string;
-} | null> {
+} | null> => {
 	header("Configure remote server");
 
 	const existingHosts = parseSSHConfig();
@@ -355,9 +355,9 @@ Host ${friendlyName}
 		basePath,
 		key: identityFile,
 	};
-}
+};
 
-async function configureEditor(): Promise<string> {
+const configureEditor = async (): Promise<string> => {
 	header("Configure editor");
 
 	const { editor } = await inquirer.prompt([
@@ -384,9 +384,9 @@ async function configureEditor(): Promise<string> {
 	}
 
 	return editor;
-}
+};
 
-export async function initCommand(): Promise<void> {
+export const initCommand = async (): Promise<void> => {
 	console.log();
 	console.log("Welcome to skybox setup!");
 	console.log();
@@ -516,4 +516,4 @@ export async function initCommand(): Promise<void> {
 		`Clone from remote: skybox clone <project-name>`,
 		`Browse remote projects: skybox browse`,
 	]);
-}
+};

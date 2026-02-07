@@ -28,7 +28,7 @@ import {
 import chalk from "chalk";
 import { execa } from "execa";
 
-export async function getDiskUsage(path: string): Promise<string> {
+export const getDiskUsage = async (path: string): Promise<string> => {
 	try {
 		const result = await execa("du", ["-sh", path], { timeout: 5000 });
 		// Output is like "1.2G\t/path/to/dir"
@@ -37,9 +37,11 @@ export async function getDiskUsage(path: string): Promise<string> {
 	} catch {
 		return "unknown";
 	}
-}
+};
 
-export async function getLastActive(projectPath: string): Promise<Date | null> {
+export const getLastActive = async (
+	projectPath: string,
+): Promise<Date | null> => {
 	// Try git log first
 	try {
 		const result = await execa("git", [
@@ -64,15 +66,15 @@ export async function getLastActive(projectPath: string): Promise<Date | null> {
 	} catch {
 		return null;
 	}
-}
+};
 
-export async function getGitInfo(
+export const getGitInfo = async (
 	projectPath: string,
-): Promise<GitDetails | null> {
+): Promise<GitDetails | null> => {
 	return getSharedGitInfo(projectPath);
-}
+};
 
-function colorContainer(status: string): string {
+const colorContainer = (status: string): string => {
 	switch (status) {
 		case "running":
 			return chalk.green(status);
@@ -81,9 +83,9 @@ function colorContainer(status: string): string {
 		default:
 			return chalk.dim(status);
 	}
-}
+};
 
-function colorSync(status: string): string {
+const colorSync = (status: string): string => {
 	switch (status) {
 		case "syncing":
 			return chalk.green(status);
@@ -94,9 +96,9 @@ function colorSync(status: string): string {
 		default:
 			return chalk.dim(status);
 	}
-}
+};
 
-function formatSessionStatus(session: SessionInfo | null): string {
+const formatSessionStatus = (session: SessionInfo | null): string => {
 	if (!session) {
 		return "none";
 	}
@@ -105,11 +107,11 @@ function formatSessionStatus(session: SessionInfo | null): string {
 		return "active here";
 	}
 	return `active on ${session.machine}`;
-}
+};
 
-async function getContainerDetails(
+const getContainerDetails = async (
 	projectPath: string,
-): Promise<ContainerDetails> {
+): Promise<ContainerDetails> => {
 	const status = await getContainerStatus(projectPath);
 	const info = await getContainerInfo(projectPath);
 
@@ -159,9 +161,9 @@ async function getContainerDetails(
 			memory: "-",
 		};
 	}
-}
+};
 
-async function getSyncDetails(projectName: string): Promise<SyncDetails> {
+const getSyncDetails = async (projectName: string): Promise<SyncDetails> => {
 	const status = await getSyncStatus(projectName);
 
 	if (!status.exists) {
@@ -179,9 +181,9 @@ async function getSyncDetails(projectName: string): Promise<SyncDetails> {
 		pending: "0 files", // Would need more mutagen parsing for real count
 		lastSync: "-", // Would need more mutagen parsing
 	};
-}
+};
 
-async function getRemoteDiskUsage(projectName: string): Promise<string> {
+const getRemoteDiskUsage = async (projectName: string): Promise<string> => {
 	try {
 		const projectRemote = getProjectRemote(projectName);
 		if (!projectRemote) {
@@ -199,9 +201,11 @@ async function getRemoteDiskUsage(projectName: string): Promise<string> {
 	} catch {
 		return "unavailable";
 	}
-}
+};
 
-async function getProjectSummary(projectName: string): Promise<ProjectSummary> {
+const getProjectSummary = async (
+	projectName: string,
+): Promise<ProjectSummary> => {
 	const projectPath = join(getProjectsDir(), projectName);
 
 	// Run checks in parallel
@@ -244,9 +248,9 @@ async function getProjectSummary(projectName: string): Promise<ProjectSummary> {
 		size: diskUsage,
 		path: projectPath,
 	};
-}
+};
 
-function formatOverviewTable(summaries: ProjectSummary[]): void {
+const formatOverviewTable = (summaries: ProjectSummary[]): void => {
 	// Column headers
 	const headers = [
 		"NAME",
@@ -307,9 +311,9 @@ function formatOverviewTable(summaries: ProjectSummary[]): void {
 		].join("  ");
 		console.log(`  ${row}`);
 	}
-}
+};
 
-export async function statusCommand(project?: string): Promise<void> {
+export const statusCommand = async (project?: string): Promise<void> => {
 	requireConfig();
 
 	if (project) {
@@ -317,9 +321,9 @@ export async function statusCommand(project?: string): Promise<void> {
 	} else {
 		await showOverview();
 	}
-}
+};
 
-async function showOverview(): Promise<void> {
+const showOverview = async (): Promise<void> => {
 	const projectsDir = getProjectsDir();
 	if (!existsSync(projectsDir)) {
 		console.log();
@@ -352,9 +356,9 @@ async function showOverview(): Promise<void> {
 	console.log();
 	formatOverviewTable(summaries);
 	console.log();
-}
+};
 
-async function showDetailed(projectName: string): Promise<void> {
+const showDetailed = async (projectName: string): Promise<void> => {
 	const projectPath = join(getProjectsDir(), projectName);
 
 	if (!existsSync(projectPath)) {
@@ -441,4 +445,4 @@ async function showDetailed(projectName: string): Promise<void> {
 	console.log(`  Local:      ${localDisk}`);
 	console.log(`  Remote:     ${remoteDisk}`);
 	console.log();
-}
+};

@@ -69,7 +69,7 @@ import inquirer from "inquirer";
  * Removes potentially sensitive information while preserving useful details.
  * @internal Exported for testing
  */
-export function sanitizeDockerError(errorStr: string): string {
+export const sanitizeDockerError = (errorStr: string): string => {
 	let sanitized = errorStr;
 
 	// Only redact paths that likely contain sensitive info
@@ -90,15 +90,15 @@ export function sanitizeDockerError(errorStr: string): string {
 	sanitized = sanitized.replace(/token[=:]\S+/gi, "token=[REDACTED]");
 
 	return sanitized;
-}
+};
 
 /**
  * Normalize a project name to a ResolvedProject with realpath-resolved path.
  * Returns null if the project doesn't exist locally.
  */
-async function normalizeProject(
+const normalizeProject = async (
 	project: string,
-): Promise<ResolvedProject | null> {
+): Promise<ResolvedProject | null> => {
 	if (!projectExists(project)) {
 		error(
 			`Project '${project}' not found locally. Run 'skybox clone ${project}' first.`,
@@ -115,17 +115,17 @@ async function normalizeProject(
 	}
 
 	return { project, projectPath: normalizedPath };
-}
+};
 
 /**
  * Resolve which project(s) to operate on from argument, cwd, or prompt.
  * Returns an array of resolved projects, or null if resolution failed.
  * When no argument is given, shows a checkbox for multi-select.
  */
-async function resolveProjects(
+const resolveProjects = async (
 	projectArg: string | undefined,
 	options: UpOptions,
-): Promise<ResolvedProject[] | null> {
+): Promise<ResolvedProject[] | null> => {
 	// If explicit argument, return single project
 	if (projectArg) {
 		const resolved = await normalizeProject(projectArg);
@@ -172,17 +172,17 @@ async function resolveProjects(
 	}
 
 	return resolved;
-}
+};
 
 /**
  * Check for session conflicts and write session file.
  * Sessions are local files synced by Mutagen - no SSH involved.
  * Returns true if session written successfully, false if user cancelled.
  */
-async function handleSessionAcquisition(
+const handleSessionAcquisition = async (
 	projectPath: string,
 	options: UpOptions,
-): Promise<boolean> {
+): Promise<boolean> => {
 	const existingSession = readSession(projectPath);
 	const currentMachine = getMachineName();
 
@@ -227,13 +227,13 @@ async function handleSessionAcquisition(
 	writeSession(projectPath);
 	info("Session started");
 	return true;
-}
+};
 
 /**
  * Check sync status and resume if paused.
  * Non-fatal - container can start without sync.
  */
-async function checkAndResumeSync(project: string): Promise<void> {
+const checkAndResumeSync = async (project: string): Promise<void> => {
 	const syncSpin = spinner("Checking sync status...");
 	const syncStatus = await getSyncStatus(project);
 
@@ -255,16 +255,16 @@ async function checkAndResumeSync(project: string): Promise<void> {
 	}
 
 	syncSpin.succeed("Sync is active");
-}
+};
 
 /**
  * Handle existing container status (running or stopped).
  * Returns 'skip' to skip to post-start, 'continue' to proceed, or 'exit' to abort.
  */
-async function handleContainerStatus(
+const handleContainerStatus = async (
 	projectPath: string,
 	options: UpOptions,
-): Promise<{ action: "skip" | "continue" | "exit"; rebuild?: boolean }> {
+): Promise<{ action: "skip" | "continue" | "exit"; rebuild?: boolean }> => {
 	const containerStatus = await getContainerStatus(projectPath);
 
 	if (containerStatus === ContainerStatus.Running) {
@@ -307,17 +307,17 @@ async function handleContainerStatus(
 	}
 
 	return { action: "continue" };
-}
+};
 
 /**
  * Ensure project has devcontainer.json, creating from template if needed.
  * Returns true if config exists (or was created), false if user cancelled.
  */
-async function ensureDevcontainerConfig(
+const ensureDevcontainerConfig = async (
 	projectPath: string,
 	project: string,
 	options: UpOptions,
-): Promise<boolean> {
+): Promise<boolean> => {
 	if (hasLocalDevcontainerConfig(projectPath)) {
 		return true;
 	}
@@ -365,16 +365,16 @@ async function ensureDevcontainerConfig(
 
 	await commitDevcontainerConfig(projectPath);
 	return true;
-}
+};
 
 /**
  * Decrypt project archive on remote if encryption is enabled and archive exists.
  * Downloads archive, decrypts locally, uploads tar, extracts on remote.
  */
-async function handleDecryption(
+const handleDecryption = async (
 	project: string,
 	config: SkyboxConfigV2,
-): Promise<boolean> {
+): Promise<boolean> => {
 	const projectConfig = config.projects[project];
 	if (!projectConfig?.encryption?.enabled) {
 		return true;
@@ -445,12 +445,12 @@ async function handleDecryption(
 	}
 
 	return false;
-}
+};
 
-export async function upCommand(
+export const upCommand = async (
 	projectArg: string | undefined,
 	options: UpOptions,
-): Promise<void> {
+): Promise<void> => {
 	// Batch mode: start all local projects
 	if (options.all) {
 		const projects = getLocalProjects();
@@ -521,18 +521,18 @@ export async function upCommand(
 	if (succeeded.length > 0) {
 		await handleMultiPostStart(succeeded, config, options);
 	}
-}
+};
 
 /**
  * Start a single project (session, decrypt, sync, container).
  * Extracted from upCommand so it can be called in a loop.
  */
-async function startSingleProject(
+const startSingleProject = async (
 	project: string,
 	projectPath: string,
 	config: SkyboxConfigV2,
 	options: UpOptions,
-): Promise<void> {
+): Promise<void> => {
 	logAuditEvent(AuditActions.UP_START, { project });
 	header(`Starting '${project}'...`);
 
@@ -602,17 +602,17 @@ async function startSingleProject(
 		deleteSession(projectPath);
 		throw err;
 	}
-}
+};
 
 /**
  * Handle post-start behavior when multiple projects were started.
  * Offers to open all/some/none in editor.
  */
-async function handleMultiPostStart(
+const handleMultiPostStart = async (
 	succeeded: ResolvedProject[],
 	config: SkyboxConfigV2,
 	options: UpOptions,
-): Promise<void> {
+): Promise<void> => {
 	if (options.noPrompt) {
 		return;
 	}
@@ -715,9 +715,9 @@ async function handleMultiPostStart(
 			success(`Set ${editor} as default editor.`);
 		}
 	}
-}
+};
 
-async function commitDevcontainerConfig(projectPath: string): Promise<void> {
+const commitDevcontainerConfig = async (projectPath: string): Promise<void> => {
 	try {
 		const { execa } = await import("execa");
 		await execa("git", [
@@ -737,12 +737,12 @@ async function commitDevcontainerConfig(projectPath: string): Promise<void> {
 	} catch {
 		// Git commit might fail if no changes or not a git repo - that's ok
 	}
-}
+};
 
-async function startContainerWithRetry(
+const startContainerWithRetry = async (
 	projectPath: string,
 	options: UpOptions,
-): Promise<void> {
+): Promise<void> => {
 	const startSpin = spinner("Starting container locally...");
 
 	let result = await startContainer(projectPath, { rebuild: options.rebuild });
@@ -765,17 +765,17 @@ async function startContainerWithRetry(
 	}
 
 	startSpin.succeed("Container started");
-}
+};
 
 export type PostStartAction = "editor" | "shell" | "both" | "none";
 
 /**
  * Determine what post-start action to take based on options or user prompt.
  */
-export async function determinePostStartAction(
+export const determinePostStartAction = async (
 	config: SkyboxConfigV2,
 	options: UpOptions,
-): Promise<{ action: PostStartAction; editor: string | undefined }> {
+): Promise<{ action: PostStartAction; editor: string | undefined }> => {
 	// Handle flags for non-interactive mode
 	if (options.editor && options.attach) {
 		return { action: "both", editor: config.editor || "cursor" };
@@ -836,16 +836,16 @@ export async function determinePostStartAction(
 	]);
 
 	return { action, editor };
-}
+};
 
 /**
  * Execute the determined post-start action (open editor, attach shell, or both).
  */
-export async function executePostStartAction(
+export const executePostStartAction = async (
 	projectPath: string,
 	action: PostStartAction,
 	editor: string | undefined,
-): Promise<void> {
+): Promise<void> => {
 	if (action === "none") {
 		success("Container ready. Run 'skybox up' again to open editor or attach.");
 		return;
@@ -870,13 +870,13 @@ export async function executePostStartAction(
 		info("Attaching to shell (Ctrl+D to exit)...");
 		await attachToShell(projectPath);
 	}
-}
+};
 
-async function handlePostStart(
+const handlePostStart = async (
 	projectPath: string,
 	config: SkyboxConfigV2,
 	options: UpOptions,
-): Promise<void> {
+): Promise<void> => {
 	if (isDryRun()) {
 		dryRun("Would prompt for post-start action (editor/shell)");
 		return;
@@ -909,4 +909,4 @@ async function handlePostStart(
 	}
 
 	await executePostStartAction(projectPath, action, editor);
-}
+};

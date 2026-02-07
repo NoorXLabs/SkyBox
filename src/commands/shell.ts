@@ -19,10 +19,10 @@ import { ContainerStatus, type ShellOptions } from "@typedefs/index.ts";
 import { execa } from "execa";
 import inquirer from "inquirer";
 
-export async function shellCommand(
+export const shellCommand = async (
 	project: string,
 	options: ShellOptions,
-): Promise<void> {
+): Promise<void> => {
 	// Step 1: Check config exists
 	requireLoadedConfigOrExit();
 
@@ -145,4 +145,4 @@ export async function shellCommand(
 			process.exit(1);
 		}
 	}
-}
+};

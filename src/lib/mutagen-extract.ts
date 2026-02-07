@@ -20,7 +20,7 @@ import { extract } from "tar";
  * Check if Mutagen needs to be extracted from the bundle.
  * Returns true if binary is missing or version doesn't match.
  */
-export function needsMutagenExtraction(): boolean {
+export const needsMutagenExtraction = (): boolean => {
 	const mutagenPath = getMutagenPath();
 	const versionPath = getMutagenVersionPath();
 
@@ -33,36 +33,36 @@ export function needsMutagenExtraction(): boolean {
 	} catch {
 		return true;
 	}
-}
+};
 
 /**
  * Record the currently extracted Mutagen version.
  */
-export function recordMutagenVersion(): void {
+export const recordMutagenVersion = (): void => {
 	const binDir = getBinDir();
 	if (!existsSync(binDir)) {
 		mkdirSync(binDir, { recursive: true });
 	}
 	writeFileSync(getMutagenVersionPath(), MUTAGEN_VERSION);
-}
+};
 
 /**
  * Get the expected asset filename for the current platform.
  */
-function getBundledAssetName(): string {
+const getBundledAssetName = (): string => {
 	const os = process.platform === "darwin" ? "darwin" : "linux";
 	const cpu = process.arch === "arm64" ? "arm64" : "amd64";
 	return `mutagen_${os}_${cpu}_v${MUTAGEN_VERSION}.tar.gz`;
-}
+};
 
 /**
  * Extract the bundled Mutagen binary.
  * Looks for the tarball in the compiled binary's asset directory.
  * Returns { success, error? }.
  */
-export async function extractBundledMutagen(
+export const extractBundledMutagen = async (
 	onProgress?: (message: string) => void,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string }> => {
 	const binDir = getBinDir();
 	const assetName = getBundledAssetName();
 
@@ -103,17 +103,17 @@ export async function extractBundledMutagen(
 	} catch (error: unknown) {
 		return { success: false, error: getErrorMessage(error) };
 	}
-}
+};
 
 /**
  * Ensure Mutagen is extracted and ready. Call before any Mutagen operation.
  * In bundled mode, extracts from asset. In dev mode, falls through to download flow.
  */
-export async function ensureMutagenExtracted(
+export const ensureMutagenExtracted = async (
 	onProgress?: (message: string) => void,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string }> => {
 	if (!needsMutagenExtraction()) {
 		return { success: true };
 	}
 	return extractBundledMutagen(onProgress);
-}
+};

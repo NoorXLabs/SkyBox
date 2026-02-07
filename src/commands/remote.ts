@@ -31,9 +31,9 @@ import inquirer from "inquirer";
  * Prompt user to select a remote from configured remotes.
  * If only one remote exists, returns it automatically.
  */
-export async function selectRemote(
+export const selectRemote = async (
 	config?: SkyboxConfigV2 | null,
-): Promise<string> {
+): Promise<string> => {
 	const cfg = config ?? loadConfig();
 	if (!cfg) {
 		error("skybox not configured. Run 'skybox init' first.");
@@ -64,16 +64,16 @@ export async function selectRemote(
 	]);
 
 	return selected;
-}
+};
 
 /**
  * Get the remote associated with a project.
  * Returns null if project not found or remote not configured.
  */
-export function getProjectRemote(
+export const getProjectRemote = (
 	projectName: string,
 	config?: SkyboxConfigV2 | null,
-): { name: string; remote: RemoteEntry } | null {
+): { name: string; remote: RemoteEntry } | null => {
 	const cfg = config ?? loadConfig();
 	if (!cfg) return null;
 
@@ -84,45 +84,45 @@ export function getProjectRemote(
 	if (!remote) return null;
 
 	return { name: project.remote, remote };
-}
+};
 
 /**
  * Build SSH connection string from remote entry.
  * Returns "user@host" or just "host" if no user specified.
  */
-export function getRemoteHost(remote: RemoteEntry): string {
+export const getRemoteHost = (remote: RemoteEntry): string => {
 	return remote.user ? `${remote.user}@${remote.host}` : remote.host;
-}
+};
 
 /**
  * Build remote path for a project on a given remote.
  */
-export function getRemotePath(
+export const getRemotePath = (
 	remote: RemoteEntry,
 	projectName: string,
-): string {
+): string => {
 	return `${remote.path}/${projectName}`;
-}
+};
 
 /**
  * Parse a remote string in "user@host:path" format
  */
-export function parseRemoteString(
+export const parseRemoteString = (
 	str: string,
-): { user: string; host: string; path: string } | null {
+): { user: string; host: string; path: string } | null => {
 	const match = str.match(/^([^@]+)@([^:]+):(.+)$/);
 	if (!match) return null;
 	return { user: match[1], host: match[2], path: match[3] };
-}
+};
 
 /**
  * Add a remote directly without interaction (for CLI direct mode)
  */
-export async function addRemoteDirect(
+export const addRemoteDirect = async (
 	name: string,
 	remoteStr: string,
 	options?: { key?: string },
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string }> => {
 	const parsed = parseRemoteString(remoteStr);
 	if (!parsed) {
 		return {
@@ -182,12 +182,12 @@ export async function addRemoteDirect(
 	saveConfig(config);
 
 	return { success: true };
-}
+};
 
 /**
  * Interactive wizard for adding a remote
  */
-export async function addRemoteInteractive(): Promise<void> {
+export const addRemoteInteractive = async (): Promise<void> => {
 	header("Add new remote");
 
 	if (isDryRun()) {
@@ -388,12 +388,12 @@ export async function addRemoteInteractive(): Promise<void> {
 	saveConfig(config);
 
 	success(`Remote "${name}" added`);
-}
+};
 
 /**
  * Display all configured remotes
  */
-export function listRemotes(): void {
+export const listRemotes = (): void => {
 	const config = loadConfig();
 
 	if (!config?.remotes || Object.keys(config.remotes).length === 0) {
@@ -410,12 +410,12 @@ export function listRemotes(): void {
 		);
 	}
 	console.log();
-}
+};
 
 /**
  * Remove a remote
  */
-export async function removeRemote(name: string): Promise<void> {
+export const removeRemote = async (name: string): Promise<void> => {
 	const config = loadConfig();
 
 	if (!config) {
@@ -463,15 +463,15 @@ export async function removeRemote(name: string): Promise<void> {
 	saveConfig(config);
 
 	success(`Remote "${name}" removed`);
-}
+};
 
 /**
  * Rename a remote and update project references
  */
-export async function renameRemote(
+export const renameRemote = async (
 	oldName: string,
 	newName: string,
-): Promise<void> {
+): Promise<void> => {
 	const config = loadConfig();
 
 	if (!config) {
@@ -513,12 +513,12 @@ export async function renameRemote(
 	if (updatedProjects > 0) {
 		info(`Updated ${updatedProjects} project reference(s)`);
 	}
-}
+};
 
 /**
  * Show help for the remote command
  */
-function showHelp(): void {
+const showHelp = (): void => {
 	console.log();
 	console.log(`${chalk.bold("Usage:")} skybox remote <subcommand> [options]`);
 	console.log();
@@ -542,17 +542,17 @@ function showHelp(): void {
 	console.log("  skybox remote remove myserver");
 	console.log("  skybox remote rename myserver production");
 	console.log();
-}
+};
 
 /**
  * Main handler for remote subcommands
  */
-export async function remoteCommand(
+export const remoteCommand = async (
 	subcommand?: string,
 	arg1?: string,
 	arg2?: string,
 	options?: { key?: string },
-): Promise<void> {
+): Promise<void> => {
 	switch (subcommand) {
 		case "add":
 			if (arg1 && arg2) {
@@ -598,4 +598,4 @@ export async function remoteCommand(
 			showHelp();
 			break;
 	}
-}
+};

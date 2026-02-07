@@ -8,17 +8,17 @@ import type {
 /**
  * Check if config needs migration from old single-remote format
  */
-export function needsMigration(config: unknown): boolean {
+export const needsMigration = (config: unknown): boolean => {
 	if (!config || typeof config !== "object") return false;
 	const c = config as Record<string, unknown>;
 	// Old format has `remote` object, new format has `remotes` map
 	return "remote" in c && !("remotes" in c);
-}
+};
 
 /**
  * Migrate old single-remote config to new multi-remote format
  */
-export function migrateConfig(oldConfig: SkyboxConfig): SkyboxConfigV2 {
+export const migrateConfig = (oldConfig: SkyboxConfig): SkyboxConfigV2 => {
 	const remoteName = oldConfig.remote.host;
 
 	const newRemote: RemoteEntry = {
@@ -48,4 +48,4 @@ export function migrateConfig(oldConfig: SkyboxConfig): SkyboxConfigV2 {
 		projects: migratedProjects,
 		templates: oldConfig.templates,
 	};
-}
+};

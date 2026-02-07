@@ -29,7 +29,7 @@ type TestConfigOverrides = Omit<Partial<SkyboxConfigV2>, "defaults"> & {
 /**
  * Creates an isolated test environment with SKYBOX_HOME set.
  */
-export function createTestContext(name: string): TestContext {
+export const createTestContext = (name: string): TestContext => {
 	const testDir = join(tmpdir(), `skybox-${name}-test-${Date.now()}`);
 	const originalEnv = process.env.SKYBOX_HOME;
 
@@ -49,14 +49,14 @@ export function createTestContext(name: string): TestContext {
 			}
 		},
 	};
-}
+};
 
 /**
  * Creates a test config with sensible defaults.
  */
-export function createTestConfig(
+export const createTestConfig = (
 	overrides: TestConfigOverrides = {},
-): SkyboxConfigV2 {
+): SkyboxConfigV2 => {
 	const { defaults: defaultsOverride, ...restOverrides } = overrides;
 	const defaults: SkyboxConfigV2["defaults"] = {
 		sync_mode: "two-way-resolved",
@@ -71,12 +71,12 @@ export function createTestConfig(
 		projects: {},
 		...restOverrides,
 	};
-}
+};
 
 /**
  * Creates a standard unit test context and captures console.log output.
  */
-export function createUnitTestContext(name: string): UnitTestContext {
+export const createUnitTestContext = (name: string): UnitTestContext => {
 	const testContext = createTestContext(name);
 	const logOutput: string[] = [];
 	const consoleLogSpy = spyOn(console, "log").mockImplementation(
@@ -94,43 +94,46 @@ export function createUnitTestContext(name: string): UnitTestContext {
 			consoleLogSpy.mockRestore();
 		},
 	};
-}
+};
 
 /**
  * Creates a test remote entry.
  */
-export function createTestRemote(
+export const createTestRemote = (
 	name: string,
 	overrides: Partial<RemoteEntry> = {},
-): RemoteEntry {
+): RemoteEntry => {
 	return {
 		host: `${name}.example.com`,
 		user: "testuser",
 		path: "/home/testuser/projects",
 		...overrides,
 	};
-}
+};
 
 /**
  * Writes a test config to the test directory.
  */
-export function writeTestConfig(testDir: string, config: SkyboxConfigV2): void {
+export const writeTestConfig = (
+	testDir: string,
+	config: SkyboxConfigV2,
+): void => {
 	const configPath = join(testDir, "config.yaml");
 	writeFileSync(configPath, stringify(config));
-}
+};
 
 /**
  * Creates an initialized git repository in the given directory.
  * Includes an initial commit so branches are established.
  */
-export async function createTestGitRepo(dir: string): Promise<void> {
+export const createTestGitRepo = async (dir: string): Promise<void> => {
 	await execa("git", ["init"], { cwd: dir });
 	await execa("git", ["config", "user.email", "test@test.com"], { cwd: dir });
 	await execa("git", ["config", "user.name", "Test"], { cwd: dir });
 	writeFileSync(join(dir, "README.md"), "# Test");
 	await execa("git", ["add", "."], { cwd: dir });
 	await execa("git", ["commit", "-m", "init"], { cwd: dir });
-}
+};
 
 /**
  * Check if execa module is mocked by another test file.

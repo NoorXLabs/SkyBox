@@ -33,20 +33,20 @@ import {
 import { execa } from "execa";
 import inquirer from "inquirer";
 
-async function isGitRepo(path: string): Promise<boolean> {
+const isGitRepo = async (path: string): Promise<boolean> => {
 	return existsSync(join(path, ".git"));
-}
+};
 
-async function initGit(path: string): Promise<void> {
+const initGit = async (path: string): Promise<void> => {
 	await execa("git", ["init"], { cwd: path });
 	await execa("git", ["add", "."], { cwd: path });
 	await execa("git", ["commit", "-m", "Initial commit"], { cwd: path });
-}
+};
 
-export async function pushCommand(
+export const pushCommand = async (
 	sourcePath: string,
 	name?: string,
-): Promise<void> {
+): Promise<void> => {
 	if (!sourcePath) {
 		error("Usage: skybox push <path> [name]");
 		process.exit(1);
@@ -290,4 +290,4 @@ export async function pushCommand(
 		info(`Project saved to ${localPath}`);
 		info(`Run 'skybox up ${projectName}' when ready to start working.`);
 	}
-}
+};

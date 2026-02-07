@@ -18,7 +18,7 @@ import { ContainerStatus } from "@typedefs/index.ts";
  * Generate bash shell hook code.
  * Uses PROMPT_COMMAND to trigger on directory changes.
  */
-export function generateBashHook(): string {
+export const generateBashHook = (): string => {
 	return `# SkyBox shell hook for bash
 # Add to ~/.bashrc: eval "$(skybox hook bash)"
 
@@ -38,13 +38,13 @@ if [[ ! "$PROMPT_COMMAND" =~ _skybox_hook ]]; then
   PROMPT_COMMAND="_skybox_hook\${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
 fi
 `;
-}
+};
 
 /**
  * Generate zsh shell hook code.
  * Uses precmd hook via add-zsh-hook.
  */
-export function generateZshHook(): string {
+export const generateZshHook = (): string => {
 	return `# SkyBox shell hook for zsh
 # Add to ~/.zshrc: eval "$(skybox hook zsh)"
 
@@ -65,12 +65,12 @@ if [[ \${precmd_functions[(Ie)_skybox_hook]} -eq 0 ]]; then
   add-zsh-hook precmd _skybox_hook
 fi
 `;
-}
+};
 
 /**
  * Log a message to the auto-up log file.
  */
-function logAutoUp(message: string): void {
+const logAutoUp = (message: string): void => {
 	try {
 		const logsDir = getLogsDir();
 		if (!existsSync(logsDir)) {
@@ -82,13 +82,13 @@ function logAutoUp(message: string): void {
 	} catch {
 		// Logging is non-critical, never fail
 	}
-}
+};
 
 /**
  * Command handler for `skybox hook <shell>`.
  * Outputs shell hook code to stdout.
  */
-export async function hookCommand(shell: string | undefined): Promise<void> {
+export const hookCommand = async (shell: string | undefined): Promise<void> => {
 	if (!shell) {
 		error("Usage: skybox hook <bash|zsh>");
 		process.exit(1);
@@ -105,14 +105,14 @@ export async function hookCommand(shell: string | undefined): Promise<void> {
 			error(`Unsupported shell: ${shell}. Supported: bash, zsh`);
 			process.exit(1);
 	}
-}
+};
 
 /**
  * Command handler for `skybox hook-check`.
  * Hidden subcommand called by shell hooks.
  * Always exits 0 to never break the shell.
  */
-export async function hookCheckCommand(): Promise<void> {
+export const hookCheckCommand = async (): Promise<void> => {
 	try {
 		if (isDryRun()) {
 			dryRun("Would check and auto-start container if needed");
@@ -207,4 +207,4 @@ export async function hookCheckCommand(): Promise<void> {
 		logAutoUp(`Error: ${message}`);
 		process.exit(0);
 	}
-}
+};

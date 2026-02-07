@@ -18,11 +18,13 @@ import { dryRun, error, info, isDryRun, spinner, success } from "@lib/ui.ts";
 import type { SkyboxConfigV2 } from "@typedefs/index.ts";
 import { execa } from "execa";
 
-function getDevcontainerPath(projectPath: string): string {
+const getDevcontainerPath = (projectPath: string): string => {
 	return join(projectPath, DEVCONTAINER_DIR_NAME, DEVCONTAINER_CONFIG_NAME);
-}
+};
 
-export async function devcontainerEditCommand(project: string): Promise<void> {
+export const devcontainerEditCommand = async (
+	project: string,
+): Promise<void> => {
 	if (!projectExists(project)) {
 		exitWithError(`Project "${project}" not found locally.`);
 	}
@@ -61,9 +63,11 @@ export async function devcontainerEditCommand(project: string): Promise<void> {
 
 	// Push to remote
 	await pushDevcontainerToRemote(project, projectPath, config);
-}
+};
 
-export async function devcontainerResetCommand(project: string): Promise<void> {
+export const devcontainerResetCommand = async (
+	project: string,
+): Promise<void> => {
 	if (!projectExists(project)) {
 		exitWithError(`Project "${project}" not found locally.`);
 	}
@@ -99,13 +103,13 @@ export async function devcontainerResetCommand(project: string): Promise<void> {
 	// Push to remote
 	const appConfig = loadConfig();
 	await pushDevcontainerToRemote(project, projectPath, appConfig);
-}
+};
 
-async function pushDevcontainerToRemote(
+const pushDevcontainerToRemote = async (
 	project: string,
 	projectPath: string,
 	config: SkyboxConfigV2 | null,
-): Promise<void> {
+): Promise<void> => {
 	if (!config) {
 		info("No config found. Skipped pushing to remote.");
 		return;
@@ -147,4 +151,4 @@ async function pushDevcontainerToRemote(
 	} catch (err) {
 		s.fail(`Failed to push: ${getErrorMessage(err)}`);
 	}
-}
+};

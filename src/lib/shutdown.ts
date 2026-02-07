@@ -13,17 +13,17 @@ let installed = false;
 /** Timeout for async cleanup handlers (ms) */
 const CLEANUP_TIMEOUT_MS = 3000;
 
-function getCleanupHandlersInReverse(): CleanupHandler[] {
+const getCleanupHandlersInReverse = (): CleanupHandler[] => {
 	return [...cleanupHandlers].reverse();
-}
+};
 
 /**
  * Register a cleanup handler to run on process exit.
  * Handlers run in reverse order (LIFO).
  */
-export function registerCleanupHandler(handler: CleanupHandler): void {
+export const registerCleanupHandler = (handler: CleanupHandler): void => {
 	cleanupHandlers.push(handler);
-}
+};
 
 /**
  * Run all registered cleanup handlers.
@@ -32,7 +32,7 @@ export function registerCleanupHandler(handler: CleanupHandler): void {
  * Returns a promise that resolves when all handlers (including async ones)
  * have completed or timed out.
  */
-export async function runCleanupHandlers(): Promise<void> {
+export const runCleanupHandlers = async (): Promise<void> => {
 	if (cleanupRan) return;
 	cleanupRan = true;
 
@@ -50,22 +50,22 @@ export async function runCleanupHandlers(): Promise<void> {
 			// Continue running other handlers even if one fails
 		}
 	}
-}
+};
 
 /**
  * Reset cleanup handlers (for testing).
  */
-export function resetCleanupHandlers(): void {
+export const resetCleanupHandlers = (): void => {
 	cleanupHandlers.length = 0;
 	cleanupRan = false;
 	installed = false;
-}
+};
 
 /**
  * Install process exit handlers.
  * Should be called once at startup. Subsequent calls are no-ops.
  */
-export function installShutdownHandlers(): void {
+export const installShutdownHandlers = (): void => {
 	if (installed) return;
 	installed = true;
 
@@ -106,4 +106,4 @@ export function installShutdownHandlers(): void {
 			.then(() => process.exit(1))
 			.catch(() => process.exit(1));
 	});
-}
+};

@@ -7,11 +7,11 @@ import { validateRemoteProjectPath } from "@lib/validation.ts";
 /**
  * Check if a project directory exists on the remote server.
  */
-export async function checkRemoteProjectExists(
+export const checkRemoteProjectExists = async (
 	host: string,
 	basePath: string,
 	project: string,
-): Promise<boolean> {
+): Promise<boolean> => {
 	const pathCheck = validateRemoteProjectPath(project);
 	if (!pathCheck.valid) {
 		return false;
@@ -22,4 +22,4 @@ export async function checkRemoteProjectExists(
 		`test -d ${escapeShellArg(fullPath)} && echo "EXISTS" || echo "NOT_FOUND"`,
 	);
 	return result.stdout?.includes("EXISTS") ?? false;
-}
+};

@@ -15,7 +15,7 @@ import type {
  * Parse ownership info from JSON string.
  * Returns null if invalid or incomplete.
  */
-export function parseOwnershipInfo(json: string): OwnershipInfo | null {
+export const parseOwnershipInfo = (json: string): OwnershipInfo | null => {
 	try {
 		const data = JSON.parse(json);
 		if (
@@ -33,7 +33,7 @@ export function parseOwnershipInfo(json: string): OwnershipInfo | null {
 	} catch {
 		return null;
 	}
-}
+};
 
 /**
  * Create ownership info for the current user.
@@ -47,13 +47,13 @@ export function parseOwnershipInfo(json: string): OwnershipInfo | null {
  * machines, they would both be considered "owners". This is a known trade-off
  * for simplicity in typical single-user scenarios.
  */
-export function createOwnershipInfo(): OwnershipInfo {
+export const createOwnershipInfo = (): OwnershipInfo => {
 	return {
 		owner: userInfo().username,
 		created: new Date().toISOString(),
 		machine: hostname(),
 	};
-}
+};
 
 /**
  * Check if the current user is the owner.
@@ -61,17 +61,17 @@ export function createOwnershipInfo(): OwnershipInfo {
  * Compares local OS username against the stored owner field.
  * See createOwnershipInfo() for username semantics.
  */
-export function isOwner(info: OwnershipInfo): boolean {
+export const isOwner = (info: OwnershipInfo): boolean => {
 	return info.owner === userInfo().username;
-}
+};
 
 /**
  * Get ownership status for a project on the remote.
  */
-export async function getOwnershipStatus(
+export const getOwnershipStatus = async (
 	host: string,
 	projectPath: string,
-): Promise<OwnershipStatus> {
+): Promise<OwnershipStatus> => {
 	const pathCheck = validateRemotePath(projectPath);
 	if (!pathCheck.valid) {
 		return { hasOwner: false };
@@ -95,16 +95,16 @@ export async function getOwnershipStatus(
 		isOwner: isOwner(info),
 		info,
 	};
-}
+};
 
 /**
  * Set ownership for a project on the remote.
  * Creates the .skybox-owner file with current user's info.
  */
-export async function setOwnership(
+export const setOwnership = async (
 	host: string,
 	projectPath: string,
-): Promise<SetOwnershipResult> {
+): Promise<SetOwnershipResult> => {
 	const pathCheck = validateRemotePath(projectPath);
 	if (!pathCheck.valid) {
 		return { success: false, error: pathCheck.error };
@@ -125,16 +125,20 @@ export async function setOwnership(
 	}
 
 	return { success: true };
-}
+};
 
 /**
  * Check if user is authorized to perform a write operation on a project.
  * Returns true if: no ownership file exists OR current user is the owner.
  */
-export async function checkWriteAuthorization(
+export const checkWriteAuthorization = async (
 	host: string,
 	projectPath: string,
-): Promise<{ authorized: boolean; error?: string; ownerInfo?: OwnershipInfo }> {
+): Promise<{
+	authorized: boolean;
+	error?: string;
+	ownerInfo?: OwnershipInfo;
+}> => {
 	const status = await getOwnershipStatus(host, projectPath);
 
 	if (!status.hasOwner) {
@@ -151,4 +155,4 @@ export async function checkWriteAuthorization(
 		error: `Project owned by '${status.info.owner}' (created on ${status.info.machine})`,
 		ownerInfo: status.info,
 	};
-}
+};

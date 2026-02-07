@@ -22,13 +22,13 @@ import { execa } from "execa";
  * @param arg - The argument to escape
  * @returns Shell-safe string with tilde resolved to "$HOME"
  */
-export function escapeShellPath(arg: string): string {
+export const escapeShellPath = (arg: string): string => {
 	if (arg.startsWith("~/")) {
 		// Use "$HOME" (double-quoted to handle spaces) + escaped remainder
 		return `"$HOME"/${escapeShellArg(arg.slice(2))}`;
 	}
 	return escapeShellArg(arg);
-}
+};
 
 /** Options for the retry wrapper */
 export interface RetryOptions {
@@ -68,11 +68,11 @@ export interface E2ETestContext {
  * Generates a unique run ID for test isolation.
  * Format: {timestamp}-{random6chars}
  */
-function generateRunId(): string {
+const generateRunId = (): string => {
 	const timestamp = Date.now();
 	const random = Math.random().toString(36).substring(2, 8);
 	return `${timestamp}-${random}`;
-}
+};
 
 /**
  * Validates that a test name contains only safe characters.
@@ -82,20 +82,20 @@ function generateRunId(): string {
  * @param name - Test name to validate
  * @throws Error if name contains unsafe characters
  */
-function validateTestName(name: string): void {
+const validateTestName = (name: string): void => {
 	if (!/^[a-zA-Z0-9-]+$/.test(name)) {
 		throw new Error(
 			`Invalid test name "${name}": only alphanumeric characters and hyphens are allowed`,
 		);
 	}
-}
+};
 
 /**
  * Returns the SSH host string from a remote entry.
  */
-function getRemoteHost(remote: RemoteEntry): string {
+const getRemoteHost = (remote: RemoteEntry): string => {
 	return remote.user ? `${remote.user}@${remote.host}` : remote.host;
-}
+};
 
 /**
  * Creates an E2E test context with unique identifiers and cleanup utilities.
@@ -104,7 +104,7 @@ function getRemoteHost(remote: RemoteEntry): string {
  * @param name - Test name used to generate project name (alphanumeric and hyphens only)
  * @returns E2ETestContext with setup and cleanup methods
  */
-export function createE2ETestContext(name: string): E2ETestContext {
+export const createE2ETestContext = (name: string): E2ETestContext => {
 	validateTestName(name);
 	// runId is internally generated from Date.now() and Math.random().toString(36),
 	// producing only digits, lowercase letters, and a hyphen — safe for shell interpolation.
@@ -173,7 +173,7 @@ export function createE2ETestContext(name: string): E2ETestContext {
 			}
 		},
 	};
-}
+};
 
 /**
  * Retry wrapper for flaky operations with exponential backoff.
@@ -183,10 +183,10 @@ export function createE2ETestContext(name: string): E2ETestContext {
  * @returns Result of the function
  * @throws Last error if all attempts fail
  */
-export async function withRetry<T>(
+export const withRetry = async <T>(
 	fn: () => Promise<T>,
 	options: RetryOptions = {},
-): Promise<T> {
+): Promise<T> => {
 	const { attempts = 3, delay = 1000, onRetry } = options;
 
 	let lastError: Error | undefined;
@@ -207,7 +207,7 @@ export async function withRetry<T>(
 	}
 
 	throw lastError;
-}
+};
 
 /**
  * Syncs files from local to remote over rsync with retry support.
@@ -217,19 +217,19 @@ export async function withRetry<T>(
  * @param remoteDestination - Remote destination path (without host prefix)
  * @param options - Optional rsync flags and retry overrides
  */
-export async function rsyncToRemote(
+export const rsyncToRemote = async (
 	remote: RemoteEntry,
 	localSource: string,
 	remoteDestination: string,
 	options: { delete?: boolean; retry?: RetryOptions } = {},
-): Promise<void> {
+): Promise<void> => {
 	const args = ["-az", ...getRsyncSshArgs(remote)];
 	if (options.delete) {
 		args.push("--delete");
 	}
 	args.push(localSource, `${getRemoteHost(remote)}:${remoteDestination}`);
 	await withRetry(() => execa("rsync", args), options.retry);
-}
+};
 
 /**
  * Syncs files from remote to local over rsync with retry support.
@@ -239,12 +239,12 @@ export async function rsyncToRemote(
  * @param localDestination - Local rsync destination path
  * @param options - Optional retry overrides
  */
-export async function rsyncFromRemote(
+export const rsyncFromRemote = async (
 	remote: RemoteEntry,
 	remoteSource: string,
 	localDestination: string,
 	options: { retry?: RetryOptions } = {},
-): Promise<void> {
+): Promise<void> => {
 	await withRetry(
 		() =>
 			execa("rsync", [
@@ -255,7 +255,7 @@ export async function rsyncFromRemote(
 			]),
 		options.retry,
 	);
-}
+};
 
 /**
  * Asserts that a remote command succeeded and returns trimmed stdout.
@@ -263,19 +263,19 @@ export async function rsyncFromRemote(
  * @param result - Result from runRemoteCommand/runTestRemoteCommand
  * @returns Trimmed stdout text (empty string if undefined)
  */
-export function expectRemoteCommandSuccess(
+export const expectRemoteCommandSuccess = (
 	result: RemoteCommandResult,
-): string {
+): string => {
 	expect(result.success).toBe(true);
 	return result.stdout?.trim() ?? "";
-}
+};
 
 /**
  * Returns rsync SSH arguments for a remote config.
  */
-function getRsyncSshArgs(remote: RemoteEntry): string[] {
+const getRsyncSshArgs = (remote: RemoteEntry): string[] => {
 	return remote.key ? ["-e", `ssh -i ${remote.key}`] : [];
-}
+};
 
 /**
  * Removes the test directory on the remote server.
@@ -283,10 +283,10 @@ function getRsyncSshArgs(remote: RemoteEntry): string[] {
  * @param runId - The test run ID used to identify the directory
  * @param remote - Remote server configuration
  */
-export async function cleanupRemoteTestDir(
+export const cleanupRemoteTestDir = async (
 	runId: string,
 	remote: RemoteEntry,
-): Promise<void> {
+): Promise<void> => {
 	const remotePath = `~/skybox-e2e-tests/run-${runId}`;
 	const host = getRemoteHost(remote);
 
@@ -295,7 +295,7 @@ export async function cleanupRemoteTestDir(
 		`rm -rf ${escapeShellPath(remotePath)}`,
 		remote.key,
 	);
-}
+};
 
 /**
  * Finds and deletes test-* locks on the remote server.
@@ -303,7 +303,7 @@ export async function cleanupRemoteTestDir(
  *
  * @param remote - Remote server configuration
  */
-export async function cleanupStaleLocks(remote: RemoteEntry): Promise<void> {
+export const cleanupStaleLocks = async (remote: RemoteEntry): Promise<void> => {
 	const host = getRemoteHost(remote);
 
 	// Find and delete test-* locks
@@ -312,7 +312,7 @@ export async function cleanupStaleLocks(remote: RemoteEntry): Promise<void> {
 		"rm -f ~/.skybox-locks/test-*.lock 2>/dev/null || true",
 		remote.key,
 	);
-}
+};
 
 /**
  * Wrapper around runRemoteCommand for test convenience.
@@ -322,10 +322,10 @@ export async function cleanupStaleLocks(remote: RemoteEntry): Promise<void> {
  * @param command - Command to execute on the remote server
  * @returns Command result with success status, stdout, and error
  */
-export async function runTestRemoteCommand(
+export const runTestRemoteCommand = async (
 	remote: RemoteEntry,
 	command: string,
-): Promise<RemoteCommandResult> {
+): Promise<RemoteCommandResult> => {
 	const host = getRemoteHost(remote);
 	return runRemoteCommand(host, command, remote.key);
-}
+};

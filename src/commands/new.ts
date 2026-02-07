@@ -36,18 +36,18 @@ import type {
 } from "@typedefs/index.ts";
 import inquirer from "inquirer";
 
-function withWorkspaceSettings(
+const withWorkspaceSettings = (
 	config: DevcontainerConfig,
 	projectName: string,
-): DevcontainerConfig {
+): DevcontainerConfig => {
 	return {
 		...config,
 		workspaceFolder: `${WORKSPACE_PATH_PREFIX}/${projectName}`,
 		workspaceMount: `source=\${localWorkspaceFolder},target=${WORKSPACE_PATH_PREFIX}/${projectName},type=bind,consistency=cached`,
 	};
-}
+};
 
-export async function newCommand(): Promise<void> {
+export const newCommand = async (): Promise<void> => {
 	const config = requireConfig();
 
 	header("Create a new project");
@@ -176,13 +176,13 @@ export async function newCommand(): Promise<void> {
 	const devcontainerConfig =
 		selection.source !== "git" ? selection.config : undefined;
 	await offerClone(projectName, remoteName, config, devcontainerConfig);
-}
+};
 
-async function createProjectWithConfig(
+const createProjectWithConfig = async (
 	remote: RemoteEntry,
 	projectName: string,
 	devcontainerConfig: DevcontainerConfig,
-): Promise<void> {
+): Promise<void> => {
 	const host = getRemoteHost(remote);
 	const remotePath = `${remote.path}/${projectName}`;
 
@@ -215,13 +215,13 @@ async function createProjectWithConfig(
 	} else {
 		createSpin.succeed("Project created on remote");
 	}
-}
+};
 
-async function cloneGitToRemote(
+const cloneGitToRemote = async (
 	remote: RemoteEntry,
 	projectName: string,
 	templateUrl: string,
-): Promise<void> {
+): Promise<void> => {
 	const host = getRemoteHost(remote);
 	const remotePath = `${remote.path}/${projectName}`;
 
@@ -294,14 +294,14 @@ async function cloneGitToRemote(
 
 		addSpin.succeed("Added devcontainer.json");
 	}
-}
+};
 
-async function offerClone(
+const offerClone = async (
 	projectName: string,
 	remoteName: string,
 	config: SkyboxConfigV2,
 	devcontainerConfig?: DevcontainerConfig,
-): Promise<void> {
+): Promise<void> => {
 	console.log();
 	const { shouldClone } = await inquirer.prompt([
 		{
@@ -358,4 +358,4 @@ async function offerClone(
 	} else {
 		info(`Run 'skybox up ${projectName}' when ready to start working.`);
 	}
-}
+};

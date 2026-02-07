@@ -21,7 +21,7 @@ import chalk from "chalk";
 /**
  * Display all configuration settings including remotes
  */
-export async function showConfig(): Promise<void> {
+export const showConfig = async (): Promise<void> => {
 	const config = loadConfig();
 	if (!config) {
 		error("skybox not configured. Run 'skybox init' first.");
@@ -49,12 +49,12 @@ export async function showConfig(): Promise<void> {
 	console.log();
 	console.log(`  editor: ${config.editor}`);
 	console.log();
-}
+};
 
 /**
  * Test SSH connection to all configured remotes and show project counts
  */
-export async function validateConfig(): Promise<void> {
+export const validateConfig = async (): Promise<void> => {
 	const config = loadConfig();
 	if (!config) {
 		error("skybox not configured. Run 'skybox init' first.");
@@ -104,15 +104,15 @@ export async function validateConfig(): Promise<void> {
 	} else {
 		error("Some remotes failed to connect.");
 	}
-}
+};
 
 /**
  * Set a global configuration value
  */
-export async function setConfigValue(
+export const setConfigValue = async (
 	key: string,
 	value: string,
-): Promise<void> {
+): Promise<void> => {
 	const config = loadConfig();
 	if (!config) {
 		error("skybox not configured. Run 'skybox init' first.");
@@ -137,12 +137,12 @@ export async function setConfigValue(
 		saveConfig(config);
 		success(`Set editor to "${value}"`);
 	}
-}
+};
 
 /**
  * Show help for the config command
  */
-function showHelp(): void {
+const showHelp = (): void => {
 	console.log();
 	console.log(`${chalk.bold("Usage:")} skybox config [subcommand] [options]`);
 	console.log();
@@ -174,7 +174,7 @@ function showHelp(): void {
 	console.log("  skybox config --validate     # Test all remote connections");
 	console.log("  skybox config set editor vim # Change default editor");
 	console.log();
-}
+};
 
 /**
  * Main handler for config command
@@ -183,12 +183,12 @@ export interface ConfigOptions {
 	validate?: boolean;
 }
 
-export async function configCommand(
+export const configCommand = async (
 	options: ConfigOptions,
 	subcommand?: string,
 	arg1?: string,
 	arg2?: string,
-): Promise<void> {
+): Promise<void> => {
 	if (options.validate) {
 		await validateConfig();
 		return;
@@ -311,4 +311,4 @@ export async function configCommand(
 	}
 
 	await showConfig();
-}
+};

@@ -51,10 +51,10 @@ import inquirer from "inquirer";
  * Clean up a local project: stop container, terminate sync, remove files, clear session.
  * Logs errors but continues on failure (resilient cleanup).
  */
-async function cleanupLocalProject(
+const cleanupLocalProject = async (
 	project: string,
 	force: boolean,
-): Promise<void> {
+): Promise<void> => {
 	const projectPath = getProjectPath(project);
 
 	// Check session status and delete if present
@@ -129,18 +129,18 @@ async function cleanupLocalProject(
 		const msg = getErrorMessage(err);
 		throw new Error(`Failed to remove local files: ${msg}`);
 	}
-}
+};
 
 /**
  * Delete a single project from a remote server via rm -rf.
  * Does NOT prompt for confirmation — caller is responsible for that.
  * Returns true on success, false on failure (logs error).
  */
-async function deleteProjectFromRemote(
+const deleteProjectFromRemote = async (
 	project: string,
 	host: string,
 	remote: RemoteEntry,
-): Promise<boolean> {
+): Promise<boolean> => {
 	const remotePath = `${remote.path}/${project}`;
 	const remoteSpin = spinner(`Deleting '${project}' from remote...`);
 	try {
@@ -162,16 +162,16 @@ async function deleteProjectFromRemote(
 		error(getErrorMessage(err));
 		return false;
 	}
-}
+};
 
 /**
  * Interactive multi-select flow for deleting remote projects.
  * Triggered by `skybox rm --remote` (no project argument).
  */
-async function rmRemoteInteractive(
+const rmRemoteInteractive = async (
 	config: SkyboxConfigV2,
 	options: RmOptions,
-): Promise<void> {
+): Promise<void> => {
 	// Select which remote to delete from
 	const remoteName = await selectRemote(config);
 	const remote = config.remotes[remoteName];
@@ -276,12 +276,12 @@ async function rmRemoteInteractive(
 	success(
 		`Done. ${deletedCount} of ${selected.length} project(s) deleted from ${remoteName}.`,
 	);
-}
+};
 
-export async function rmCommand(
+export const rmCommand = async (
 	project: string | undefined,
 	options: RmOptions,
-): Promise<void> {
+): Promise<void> => {
 	// Interactive remote multi-select when --remote flag but no project argument
 	if (!project && options.remote) {
 		if (!configExists()) {
@@ -419,13 +419,13 @@ export async function rmCommand(
 		logAuditEvent(AuditActions.RM_LOCAL, { project });
 		success(`Project '${project}' removed locally. Remote copy preserved.`);
 	}
-}
+};
 
-async function deleteFromRemote(
+const deleteFromRemote = async (
 	project: string,
 	config: SkyboxConfigV2,
 	options: RmOptions,
-): Promise<void> {
+): Promise<void> => {
 	const projectRemote = getProjectRemote(project, config);
 
 	if (!projectRemote) {
@@ -488,4 +488,4 @@ async function deleteFromRemote(
 		path: remotePath,
 	});
 	success(`Project '${project}' removed locally and from remote.`);
-}
+};

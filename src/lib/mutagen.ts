@@ -5,51 +5,53 @@ import { getMutagenPath } from "@lib/paths.ts";
 import type { SyncStatus, SyncStatusValue } from "@typedefs/index.ts";
 import { execa } from "execa";
 
-function sanitizeMutagenSegment(value: string, fallback: string): string {
+const sanitizeMutagenSegment = (value: string, fallback: string): string => {
 	const sanitized = value
 		.toLowerCase()
 		.replace(/[^a-z0-9_-]/g, "-")
 		.replace(/-+/g, "-")
 		.replace(/^-|-$/g, "");
 	return sanitized || fallback;
-}
+};
 
-function buildIgnoreArgs(ignores: string[]): string[] {
+const buildIgnoreArgs = (ignores: string[]): string[] => {
 	return ignores.flatMap((pattern) => ["--ignore", pattern]);
-}
+};
 
-function toRemoteEndpoint(remoteHost: string, remotePath: string): string {
+const toRemoteEndpoint = (remoteHost: string, remotePath: string): string => {
 	return `${remoteHost}:${remotePath}`;
-}
+};
 
 /**
  * Generate a sanitized Mutagen session name from a project name.
  * Mutagen session names should contain only alphanumeric characters, hyphens, and underscores.
  */
-export function sessionName(project: string): string {
+export const sessionName = (project: string): string => {
 	return `skybox-${sanitizeMutagenSegment(project, "project")}`;
-}
+};
 
 /** Standard result type for Mutagen operations */
 type MutagenResult = { success: boolean; error?: string };
 
 /** Execute a Mutagen command and return a standardized result */
-async function executeMutagenCommand(args: string[]): Promise<MutagenResult> {
+const executeMutagenCommand = async (
+	args: string[],
+): Promise<MutagenResult> => {
 	try {
 		await execa(getMutagenPath(), args);
 		return { success: true };
 	} catch (error: unknown) {
 		return { success: false, error: getExecaErrorMessage(error) };
 	}
-}
+};
 
-async function createSyncSessionByName(options: {
+const createSyncSessionByName = async (options: {
 	name: string;
 	localPath: string;
 	remoteHost: string;
 	remotePath: string;
 	ignores: string[];
-}): Promise<MutagenResult> {
+}): Promise<MutagenResult> => {
 	const { name, localPath, remoteHost, remotePath, ignores } = options;
 	return executeMutagenCommand([
 		"sync",
@@ -62,15 +64,15 @@ async function createSyncSessionByName(options: {
 		"two-way-resolved",
 		...buildIgnoreArgs(ignores),
 	]);
-}
+};
 
-export async function createSyncSession(
+export const createSyncSession = async (
 	project: string,
 	localPath: string,
 	remoteHost: string,
 	remotePath: string,
 	ignores: string[],
-): Promise<MutagenResult> {
+): Promise<MutagenResult> => {
 	return createSyncSessionByName({
 		name: sessionName(project),
 		localPath,
@@ -78,9 +80,9 @@ export async function createSyncSession(
 		remotePath,
 		ignores,
 	});
-}
+};
 
-export async function getSyncStatus(project: string): Promise<SyncStatus> {
+export const getSyncStatus = async (project: string): Promise<SyncStatus> => {
 	const name = sessionName(project);
 
 	try {
@@ -107,12 +109,12 @@ export async function getSyncStatus(project: string): Promise<SyncStatus> {
 		}
 		return { exists: false, paused: false, status: "error" };
 	}
-}
+};
 
-export async function waitForSync(
+export const waitForSync = async (
 	project: string,
 	onProgress?: (message: string) => void,
-): Promise<MutagenResult> {
+): Promise<MutagenResult> => {
 	const name = sessionName(project);
 	onProgress?.("Waiting for sync to complete...");
 	const result = await executeMutagenCommand(["sync", "flush", name]);
@@ -120,58 +122,61 @@ export async function waitForSync(
 		onProgress?.("Sync complete");
 	}
 	return result;
-}
+};
 
-export async function pauseSync(project: string): Promise<MutagenResult> {
+export const pauseSync = async (project: string): Promise<MutagenResult> => {
 	const name = sessionName(project);
 	return executeMutagenCommand(["sync", "pause", name]);
-}
+};
 
-export async function resumeSync(project: string): Promise<MutagenResult> {
+export const resumeSync = async (project: string): Promise<MutagenResult> => {
 	const name = sessionName(project);
 	return executeMutagenCommand(["sync", "resume", name]);
-}
+};
 
-export async function terminateSession(
+export const terminateSession = async (
 	project: string,
-): Promise<MutagenResult> {
+): Promise<MutagenResult> => {
 	const name = sessionName(project);
 	return executeMutagenCommand(["sync", "terminate", name]);
-}
+};
 
 /**
  * Generate a sanitized Mutagen session name for a selective sync subpath.
  */
-export function selectiveSessionName(project: string, subpath: string): string {
+export const selectiveSessionName = (
+	project: string,
+	subpath: string,
+): string => {
 	const sanitizedProject = sanitizeMutagenSegment(project, "project");
 	const sanitizedPath = sanitizeMutagenSegment(subpath, "path");
 	return `skybox-${sanitizedProject}-${sanitizedPath}`;
-}
+};
 
 /**
  * Terminate selective sync sessions for specific subpaths.
  */
-export async function terminateSelectiveSyncSessions(
+export const terminateSelectiveSyncSessions = async (
 	project: string,
 	syncPaths: string[],
-): Promise<void> {
+): Promise<void> => {
 	for (const subpath of syncPaths) {
 		const name = selectiveSessionName(project, subpath);
 		await executeMutagenCommand(["sync", "terminate", name]);
 	}
-}
+};
 
 /**
  * Create multiple Mutagen sync sessions for selective subdirectory sync.
  */
-export async function createSelectiveSyncSessions(
+export const createSelectiveSyncSessions = async (
 	project: string,
 	localPath: string,
 	remoteHost: string,
 	remotePath: string,
 	syncPaths: string[],
 	ignores: string[],
-): Promise<MutagenResult> {
+): Promise<MutagenResult> => {
 	for (const subpath of syncPaths) {
 		const name = selectiveSessionName(project, subpath);
 		const localSubpath = join(localPath, subpath);
@@ -189,4 +194,4 @@ export async function createSelectiveSyncSessions(
 		}
 	}
 	return { success: true };
-}
+};

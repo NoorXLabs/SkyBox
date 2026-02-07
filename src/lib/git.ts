@@ -1,7 +1,7 @@
 import type { GitDetails } from "@typedefs/index.ts";
 import { execa } from "execa";
 
-export async function getGitBranch(projectPath: string): Promise<string> {
+export const getGitBranch = async (projectPath: string): Promise<string> => {
 	try {
 		const result = await execa("git", [
 			"-C",
@@ -13,11 +13,11 @@ export async function getGitBranch(projectPath: string): Promise<string> {
 	} catch {
 		return "-";
 	}
-}
+};
 
-export async function getGitInfo(
+export const getGitInfo = async (
 	projectPath: string,
-): Promise<GitDetails | null> {
+): Promise<GitDetails | null> => {
 	try {
 		await execa("git", ["-C", projectPath, "rev-parse", "--git-dir"]);
 	} catch {
@@ -64,4 +64,4 @@ export async function getGitInfo(
 	} catch {
 		return null;
 	}
-}
+};

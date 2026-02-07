@@ -19,11 +19,11 @@ export interface RemoteArchiveResult {
 	cleanupWarning?: boolean;
 }
 
-export function createRemoteArchiveTarget(
+export const createRemoteArchiveTarget = (
 	project: string,
 	host: string,
 	remotePath: string,
-): RemoteArchiveTarget {
+): RemoteArchiveTarget => {
 	const archiveName = `${project}.tar.enc`;
 	return {
 		project,
@@ -32,23 +32,23 @@ export function createRemoteArchiveTarget(
 		archiveName,
 		remoteArchivePath: `${remotePath}/${archiveName}`,
 	};
-}
+};
 
-export async function remoteArchiveExists(
+export const remoteArchiveExists = async (
 	target: RemoteArchiveTarget,
-): Promise<boolean> {
+): Promise<boolean> => {
 	const checkResult = await runRemoteCommand(
 		target.host,
 		`test -f ${escapeShellArg(target.remoteArchivePath)} && echo "EXISTS" || echo "NOT_FOUND"`,
 	);
 	return checkResult.success && checkResult.stdout?.includes("EXISTS") === true;
-}
+};
 
-export async function decryptRemoteArchive(
+export const decryptRemoteArchive = async (
 	target: RemoteArchiveTarget,
 	key: Buffer,
 	onProgress?: (message: string) => void,
-): Promise<RemoteArchiveResult> {
+): Promise<RemoteArchiveResult> => {
 	const tempDir = mkdtempSync(join(tmpdir(), "skybox-"));
 	const localEncPath = join(tempDir, "archive.tar.enc");
 	const localTarPath = join(tempDir, "archive.tar");
@@ -84,13 +84,13 @@ export async function decryptRemoteArchive(
 			rmSync(tempDir, { recursive: true, force: true });
 		} catch {}
 	}
-}
+};
 
-export async function encryptRemoteArchive(
+export const encryptRemoteArchive = async (
 	target: RemoteArchiveTarget,
 	key: Buffer,
 	onProgress?: (message: string) => void,
-): Promise<RemoteArchiveResult> {
+): Promise<RemoteArchiveResult> => {
 	const tempDir = mkdtempSync(join(tmpdir(), "skybox-"));
 	const localTarPath = join(tempDir, "archive.tar");
 	const localEncPath = join(tempDir, "archive.tar.enc");
@@ -135,4 +135,4 @@ export async function encryptRemoteArchive(
 			rmSync(tempDir, { recursive: true, force: true });
 		} catch {}
 	}
-}
+};

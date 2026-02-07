@@ -1,9 +1,9 @@
 export type RelativeTimeFormat = "long" | "short";
 
-export function formatRelativeTime(
+export const formatRelativeTime = (
 	date: Date | null,
 	format: RelativeTimeFormat = "long",
-): string {
+): string => {
 	if (!date) {
 		return "-";
 	}
@@ -24,4 +24,4 @@ export function formatRelativeTime(
 	if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
 	if (minutes > 0) return `${minutes} min${minutes > 1 ? "s" : ""} ago`;
 	return "just now";
-}
+};

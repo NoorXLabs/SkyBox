@@ -14,10 +14,10 @@ interface LogsOptions {
 	sync?: boolean;
 }
 
-export async function logsCommand(
+export const logsCommand = async (
 	project: string,
 	options: LogsOptions,
-): Promise<void> {
+): Promise<void> => {
 	if (!projectExists(project)) {
 		exitWithError(`Project "${project}" not found locally.`);
 	}
@@ -27,20 +27,20 @@ export async function logsCommand(
 	} else {
 		await showContainerLogs(project, options);
 	}
-}
+};
 
-function normalizePath(path: string): string {
+const normalizePath = (path: string): string => {
 	try {
 		return realpathSync(path);
 	} catch {
 		return path;
 	}
-}
+};
 
-async function showContainerLogs(
+const showContainerLogs = async (
 	project: string,
 	options: LogsOptions,
-): Promise<void> {
+): Promise<void> => {
 	const projectPath = normalizePath(getProjectPath(project));
 	const containerId = await getContainerId(projectPath);
 
@@ -59,12 +59,12 @@ async function showContainerLogs(
 	} catch (err) {
 		error(`Failed to get container logs: ${getErrorMessage(err)}`);
 	}
-}
+};
 
-async function showSyncLogs(
+const showSyncLogs = async (
 	project: string,
 	_options: LogsOptions,
-): Promise<void> {
+): Promise<void> => {
 	const mutagenPath = getMutagenPath();
 	const name = sessionName(project);
 
@@ -76,4 +76,4 @@ async function showSyncLogs(
 	} catch (err) {
 		error(`Failed to get sync logs: ${getErrorMessage(err)}`);
 	}
-}
+};
