@@ -343,7 +343,7 @@ async function ensureDevcontainerConfig(
 		return false;
 	}
 
-	const selection = await selectTemplate();
+	const selection = await selectTemplate({ allowGitUrl: false });
 	if (!selection) {
 		return false;
 	}

@@ -110,7 +110,7 @@ If no `devcontainer.json` exists for the project, you will be prompted to create
 
 ### Devcontainer Reset
 
-Replace the project's `devcontainer.json` with a fresh copy from the unified template selector. You can choose from built-in templates, your custom local templates in `~/.skybox/templates/`, or enter a git URL. After selection, the new file is pushed to the remote server. See [Custom Templates](/reference/custom-templates) for details.
+Replace the project's `devcontainer.json` with a fresh copy from the unified template selector. You can choose from built-in templates and your custom local templates in `~/.skybox/templates/`. After selection, the new file is pushed to the remote server. See [Custom Templates](/reference/custom-templates) for details.
 
 ```bash
 skybox config devcontainer reset <project>

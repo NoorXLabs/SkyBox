@@ -25,6 +25,13 @@ import type {
 } from "@typedefs/index.ts";
 import { execa } from "execa";
 
+export interface TemplateSelectorOptions {
+	/** Show "Enter git URL" option in the selector. Default: true */
+	allowGitUrl?: boolean;
+	/** Show "Create new template" option in the selector. Default: true */
+	allowCreateTemplate?: boolean;
+}
+
 export function buildDevcontainerConfigFromTemplate(
 	projectPath: string,
 	templateId: string,
@@ -208,10 +215,15 @@ async function createNewTemplateFlow(): Promise<void> {
 
 /**
  * Unified template selector used by all commands.
- * Shows built-in templates, git URL option, and user local templates.
+ * Shows built-in templates and user local templates, with optional sections
+ * (for example, git URL and create-template actions) controlled by options.
  * Returns a TemplateSelection or null if cancelled.
  */
-export async function selectTemplate(): Promise<TemplateSelection | null> {
+export async function selectTemplate(
+	options: TemplateSelectorOptions = {},
+): Promise<TemplateSelection | null> {
+	const { allowGitUrl = true, allowCreateTemplate = true } = options;
+
 	try {
 		while (true) {
 			const userTemplates = loadUserTemplates();
@@ -231,8 +243,10 @@ export async function selectTemplate(): Promise<TemplateSelection | null> {
 			}
 
 			// Other section
-			choices.push(new Separator("── Other ──"));
-			choices.push({ name: "Enter git URL", value: "git-url" });
+			if (allowGitUrl) {
+				choices.push(new Separator("── Other ──"));
+				choices.push({ name: "Enter git URL", value: "git-url" });
+			}
 
 			// User templates section
 			choices.push(new Separator("── Your Templates ──"));
@@ -246,7 +260,9 @@ export async function selectTemplate(): Promise<TemplateSelection | null> {
 					});
 				}
 			}
-			choices.push({ name: "Create new template", value: "create-new" });
+			if (allowCreateTemplate) {
+				choices.push({ name: "Create new template", value: "create-new" });
+			}
 
 			const choice = await select({
 				message: "Select a template:",
@@ -254,7 +270,7 @@ export async function selectTemplate(): Promise<TemplateSelection | null> {
 				loop: false,
 			});
 
-			if (choice === "git-url") {
+			if (allowGitUrl && choice === "git-url") {
 				const url = await input({
 					message: "Git repository URL:",
 					validate: (val: string) => {
@@ -267,7 +283,7 @@ export async function selectTemplate(): Promise<TemplateSelection | null> {
 				return { source: "git", url };
 			}
 
-			if (choice === "create-new") {
+			if (allowCreateTemplate && choice === "create-new") {
 				await createNewTemplateFlow();
 				// Loop back to selector so user can pick the new template
 				continue;

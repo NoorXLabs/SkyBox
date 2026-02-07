@@ -77,7 +77,7 @@ If the container fails to start on the first attempt, SkyBox automatically retri
 
 ### Devcontainer Templates
 
-If no `.devcontainer/devcontainer.json` exists, SkyBox offers to create one using the unified template selector. You can choose from built-in templates, your custom local templates stored in `~/.skybox/templates/`, or enter a git URL. See [Custom Templates](/reference/custom-templates) for details on creating and managing templates.
+If no `.devcontainer/devcontainer.json` exists, SkyBox offers to create one using the unified template selector. You can choose from built-in templates and your custom local templates stored in `~/.skybox/templates/`.
 
 ### Container States
 

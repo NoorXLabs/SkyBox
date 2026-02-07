@@ -180,11 +180,13 @@ Each listed path gets its own independent Mutagen session (e.g., `skybox-my-app-
 
 ## Templates
 
-SkyBox uses a **unified template selector** whenever a devcontainer configuration is needed — during `skybox up`, `skybox new`, or `skybox config devcontainer reset`. The selector shows three categories:
+SkyBox uses a shared template selector whenever a devcontainer configuration is needed — during `skybox up`, `skybox new`, or `skybox config devcontainer reset`.
+
+When git templates are enabled (for example, in `skybox new`), the selector shows three categories:
 
 - **Built-in templates** — pre-configured environments for common languages
 - **Your custom templates** — local devcontainer.json files you create and manage
-- **Git URLs** — clone a repository as a project template
+- **Git URLs** — clone a repository as a project template (supported in `skybox new`)
 
 ### Built-in Templates
 

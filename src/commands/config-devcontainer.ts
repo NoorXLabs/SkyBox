@@ -76,7 +76,7 @@ export async function devcontainerResetCommand(project: string): Promise<void> {
 		return;
 	}
 
-	const selection = await selectTemplate();
+	const selection = await selectTemplate({ allowGitUrl: false });
 	if (!selection) {
 		return;
 	}

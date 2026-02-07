@@ -159,7 +159,7 @@ Templates are validated at two points:
 
 ## Template Selector
 
-All commands that need a devcontainer configuration use the same unified selector:
+SkyBox uses a shared template selector component. Available options can vary by command:
 
 ```
 ? Select a template:
@@ -180,6 +180,8 @@ All commands that need a devcontainer configuration use the same unified selecto
 - **Built-in** and **Other** sections are fixed at the top
 - **Your Templates** section appears at the bottom and grows as you add templates
 - **Create new template** is always the last item
+
+`Enter git URL` is shown in `skybox new`. The `skybox up` and `skybox config devcontainer reset` selectors show built-in and local templates only.
 
 ## Creating a Template
 
@@ -213,9 +215,9 @@ The template will appear in the selector the next time any command needs a devco
 
 | Command | When templates are shown |
 |---------|------------------------|
-| `skybox up` | When a project has no `devcontainer.json` |
+| `skybox up` | When a project has no `devcontainer.json` (built-in and local templates only) |
 | `skybox new` | When creating a new project (built-in/user templates create an empty project with the selected config; git URLs clone the repo) |
-| `skybox config devcontainer reset` | When resetting a project's devcontainer config |
+| `skybox config devcontainer reset` | When resetting a project's devcontainer config (built-in and local templates only) |
 
 ## Field Reference
 
