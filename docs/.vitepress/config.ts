@@ -24,7 +24,7 @@ if (env.VITE_RYBBIT_SRC && env.VITE_RYBBIT_SITE_ID) {
 export default defineConfig({
   title: 'SkyBox',
   description: 'Development environment management CLI',
-  srcExclude: ['**/architecture/**'],
+  srcExclude: ['**/architecture/**', '**/snippets/**'],
 
   sitemap: {
     hostname: 'https://skybox.noorxlabs.com'
@@ -64,8 +64,8 @@ export default defineConfig({
         {
           text: 'Workflows',
           items: [
-            { text: 'New Project', link: '/guide/workflows/new-project' },
             { text: 'Daily Development', link: '/guide/workflows/daily-development' },
+            { text: 'New Project', link: '/guide/workflows/new-project' },
             { text: 'Multi-Machine', link: '/guide/workflows/multi-machine' },
           ],
         },

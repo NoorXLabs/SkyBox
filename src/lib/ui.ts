@@ -1,40 +1,48 @@
-/** Terminal UI helpers: colored output, spinners, headers. */
+// terminal UI helpers: colored output, spinners, headers.
 import chalk from "chalk";
 import { program } from "commander";
 import inquirer from "inquirer";
 import ora, { type Ora } from "ora";
 
+// success
 export const success = (message: string): void => {
 	console.log(chalk.green("  ✓"), message);
 };
 
+// error
 export const error = (message: string): void => {
 	console.log(chalk.red("  ✗"), message);
 };
 
+// warn
 export const warn = (message: string): void => {
 	console.log(chalk.yellow("  !"), message);
 };
 
+// info
 export const info = (message: string): void => {
 	console.log(chalk.blue("  ℹ"), message);
 };
 
+// dry run
 export const dryRun = (message: string): void => {
 	console.log(chalk.dim("  ⏭"), chalk.dim(`[dry-run] ${message}`));
 };
 
+// header
 export const header = (message: string): void => {
 	console.log();
 	console.log(chalk.bold(message));
 };
 
+// spinner
 export const spinner = (message: string): Ora => {
 	// discardStdin: false prevents conflicts with inquirer prompts
 	// See: https://github.com/sindresorhus/ora/issues/134
 	return ora({ text: message, prefixText: " ", discardStdin: false }).start();
 };
 
+// print next steps
 export const printNextSteps = (steps: string[]): void => {
 	console.log();
 	console.log(chalk.bold("Next steps:"));
@@ -44,10 +52,8 @@ export const printNextSteps = (steps: string[]): void => {
 	console.log();
 };
 
-/**
- * Prompt for double confirmation before a destructive action.
- * Returns true if user confirms both prompts, false otherwise.
- */
+// prompt for double confirmation before a destructive action.
+// returns true if user confirms both prompts, false otherwise.
 export const confirmDestructiveAction = async (options: {
 	firstPrompt: string;
 	secondPrompt: string;
@@ -86,6 +92,7 @@ export const confirmDestructiveAction = async (options: {
 	return true;
 };
 
+// check if --dry-run flag was passed to the CLI
 export const isDryRun = (): boolean => {
 	return program.opts().dryRun === true;
 };

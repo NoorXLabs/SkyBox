@@ -1,14 +1,13 @@
 #!/usr/bin/env bun
-/**
- * Verify bun.lock integrity by checking consistency with package.json.
- * Run before builds to detect potential tampering.
- */
+// verify bun.lock integrity by checking consistency with package.json.
+// run before builds to detect potential tampering.
 
 import { existsSync } from "node:fs";
 
 const LOCKFILE_PATH = "bun.lock";
 const PACKAGE_JSON_PATH = "package.json";
 
+// verify bun.lock consistency with package.json
 const main = (): void => {
 	// Check lockfile exists
 	if (!existsSync(LOCKFILE_PATH)) {

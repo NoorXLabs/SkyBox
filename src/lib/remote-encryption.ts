@@ -19,6 +19,7 @@ export interface RemoteArchiveResult {
 	cleanupWarning?: boolean;
 }
 
+// create remote archive target
 export const createRemoteArchiveTarget = (
 	project: string,
 	host: string,
@@ -34,6 +35,7 @@ export const createRemoteArchiveTarget = (
 	};
 };
 
+// remote archive exists
 export const remoteArchiveExists = async (
 	target: RemoteArchiveTarget,
 ): Promise<boolean> => {
@@ -44,6 +46,7 @@ export const remoteArchiveExists = async (
 	return checkResult.success && checkResult.stdout?.includes("EXISTS") === true;
 };
 
+// decrypt remote archive
 export const decryptRemoteArchive = async (
 	target: RemoteArchiveTarget,
 	key: Buffer,
@@ -86,6 +89,7 @@ export const decryptRemoteArchive = async (
 	}
 };
 
+// encrypt remote archive
 export const encryptRemoteArchive = async (
 	target: RemoteArchiveTarget,
 	key: Buffer,

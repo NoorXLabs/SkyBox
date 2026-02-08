@@ -1,9 +1,7 @@
-/**
- * Encryption utilities for SkyBox.
- * Provides AES-256-GCM encryption for both config values (string-based)
- * and project archives (file-based).
- * Key derivation uses Argon2id (memory-hard KDF).
- */
+// encryption utilities for SkyBox.
+// provides AES-256-GCM encryption for both config values (string-based)
+// and project archives (file-based).
+// key derivation uses Argon2id (memory-hard KDF).
 
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
@@ -20,10 +18,8 @@ import {
 } from "@lib/constants.ts";
 import argon2 from "argon2";
 
-/**
- * Derive a 256-bit key from a passphrase using Argon2id.
- * Memory-hard KDF for resistance to brute-force attacks.
- */
+// derive a 256-bit key from a passphrase using Argon2id.
+// memory-hard KDF for resistance to brute-force attacks.
 export const deriveKey = async (
 	passphrase: string,
 	salt: string,
@@ -39,11 +35,9 @@ export const deriveKey = async (
 	});
 };
 
-/**
- * Derive a 256-bit key using legacy Argon2 parameters (pre-v0.7.7).
- * Used as a fallback when decryption with current parameters fails,
- * indicating the data was encrypted before the OWASP parameter hardening.
- */
+// derive a 256-bit key using legacy Argon2 parameters (pre-v0.7.7).
+// used as a fallback when decryption with current parameters fails,
+// indicating the data was encrypted before the OWASP parameter hardening.
 export const deriveKeyLegacy = async (
 	passphrase: string,
 	salt: string,
@@ -59,10 +53,8 @@ export const deriveKeyLegacy = async (
 	});
 };
 
-/**
- * Encrypt a plaintext string. Returns `ENC[base64...]` format.
- * Used for encrypting individual config values.
- */
+// encrypt a plaintext string. Returns `ENC[base64...]` format.
+// used for encrypting individual config values.
 export const encrypt = (plaintext: string, key: Buffer): string => {
 	const iv = randomBytes(ENCRYPTION_IV_LENGTH);
 	const cipher = createCipheriv(ENCRYPTION_ALGORITHM, key, iv);
@@ -75,10 +67,8 @@ export const encrypt = (plaintext: string, key: Buffer): string => {
 	return `ENC[${payload}]`;
 };
 
-/**
- * Decrypt an `ENC[base64...]` string back to plaintext.
- * Used for decrypting individual config values.
- */
+// decrypt an `ENC[base64...]` string back to plaintext.
+// used for decrypting individual config values.
 export const decrypt = (ciphertext: string, key: Buffer): string => {
 	const payload = ciphertext.slice(4, -1);
 	const data = Buffer.from(payload, "base64");
@@ -93,16 +83,14 @@ export const decrypt = (ciphertext: string, key: Buffer): string => {
 	return decipher.update(encrypted) + decipher.final("utf-8");
 };
 
-/** Check if a string is in `ENC[...]` encrypted format */
+// check if a string is in `ENC[...]` encrypted format
 export const isEncrypted = (value: string): boolean => {
 	return value.startsWith("ENC[") && value.endsWith("]");
 };
 
-/**
- * Encrypt a file using AES-256-GCM.
- * Output format: [IV: 16 bytes][encrypted data][auth tag: 16 bytes]
- * Used for encrypting project tar archives.
- */
+// encrypt a file using AES-256-GCM.
+// output format: [IV: 16 bytes][encrypted data][auth tag: 16 bytes]
+// used for encrypting project tar archives.
 export const encryptFile = (
 	inputPath: string,
 	outputPath: string,
@@ -116,11 +104,9 @@ export const encryptFile = (
 	writeFileSync(outputPath, Buffer.concat([iv, encrypted, tag]));
 };
 
-/**
- * Decrypt a file encrypted with `encryptFile()`.
- * Reads IV from start, auth tag from end, decrypts the middle.
- * Throws on incorrect passphrase (GCM auth tag mismatch).
- */
+// decrypt a file encrypted with `encryptFile()`.
+// reads IV from start, auth tag from end, decrypts the middle.
+// throws on incorrect passphrase (GCM auth tag mismatch).
 export const decryptFile = (
 	inputPath: string,
 	outputPath: string,
@@ -148,12 +134,10 @@ export const decryptFile = (
 	writeFileSync(outputPath, decrypted);
 };
 
-/**
- * Decrypt an `ENC[base64...]` string with automatic legacy parameter fallback.
- * First attempts decryption with the current key. If that fails (e.g., data was
- * encrypted with pre-v0.7.7 Argon2 parameters), re-derives the key using legacy
- * parameters and retries.
- */
+// decrypt an `ENC[base64...]` string with automatic legacy parameter fallback.
+// first attempts decryption with the current key. If that fails (e.g., data was
+// encrypted with pre-v0.7.7 Argon2 parameters), re-derives the key using legacy
+// parameters and retries.
 export const decryptWithFallback = async (
 	ciphertext: string,
 	passphrase: string,
@@ -168,12 +152,10 @@ export const decryptWithFallback = async (
 	}
 };
 
-/**
- * Decrypt a file with automatic legacy parameter fallback.
- * First attempts decryption with the current key. If that fails (e.g., file was
- * encrypted with pre-v0.7.7 Argon2 parameters), re-derives the key using legacy
- * parameters and retries. Re-throws if both attempts fail.
- */
+// decrypt a file with automatic legacy parameter fallback.
+// first attempts decryption with the current key. If that fails (e.g., file was
+// encrypted with pre-v0.7.7 Argon2 parameters), re-derives the key using legacy
+// parameters and retries. Re-throws if both attempts fail.
 export const decryptFileWithFallback = async (
 	inputPath: string,
 	outputPath: string,

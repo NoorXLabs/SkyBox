@@ -1,6 +1,8 @@
-/** Local session management for multi-machine conflict detection. */
+// local session management for multi-machine conflict detection.
 
+import { createHmac } from "node:crypto";
 import {
+	chmodSync,
 	existsSync,
 	mkdirSync,
 	readFileSync,
@@ -10,32 +12,46 @@ import {
 } from "node:fs";
 import { hostname, userInfo } from "node:os";
 import { basename, dirname, join } from "node:path";
-import { SESSION_FILE, SESSION_TTL_MS } from "@lib/constants.ts";
+import {
+	SESSION_FILE,
+	SESSION_FILE_MODE,
+	SESSION_HMAC_KEY,
+	SESSION_TTL_MS,
+} from "@lib/constants.ts";
 import type { SessionConflictResult, SessionInfo } from "@typedefs/index.ts";
 
 export type { SessionConflictResult, SessionInfo };
 
-/**
- * Returns the machine name (hostname) for session identification.
- */
+// returns the machine name (hostname) for session identification.
 export const getMachineName = (): string => {
 	return hostname();
 };
 
-/**
- * Get the session file path for a project.
- * @param projectPath - Absolute path to the project directory
- * @returns Absolute path to the session lock file
- */
+// get the session file path for a project.
+// @param projectPath - Absolute path to the project directory
+// @returns Absolute path to the session lock file
 export const getSessionFilePath = (projectPath: string): string => {
 	return join(projectPath, SESSION_FILE);
 };
 
-/**
- * Read and parse the session file for a project.
- * Returns null if the file doesn't exist, is invalid, or has expired.
- * @param projectPath - Absolute path to the project directory
- */
+// compute HMAC-SHA256 integrity hash for a session's data fields.
+const computeSessionHash = (session: SessionInfo): string => {
+	const payload = `${session.machine}:${session.user}:${session.timestamp}:${session.pid}:${session.expires}`;
+	return createHmac("sha256", SESSION_HMAC_KEY).update(payload).digest("hex");
+};
+
+// verify the integrity hash on a session object.
+// returns false if the hash is missing or doesn't match.
+const verifySessionHash = (session: SessionInfo): boolean => {
+	if (!session.hash) {
+		return false;
+	}
+	return session.hash === computeSessionHash(session);
+};
+
+// read and parse the session file for a project.
+// returns null if the file doesn't exist, is invalid, has expired, or fails integrity check.
+// @param projectPath - Absolute path to the project directory
 export const readSession = (projectPath: string): SessionInfo | null => {
 	const sessionPath = getSessionFilePath(projectPath);
 
@@ -58,6 +74,11 @@ export const readSession = (projectPath: string): SessionInfo | null => {
 			return null;
 		}
 
+		// Verify integrity hash — reject tampered files
+		if (!verifySessionHash(session)) {
+			return null;
+		}
+
 		// Check if session has expired
 		if (new Date(session.expires).getTime() < Date.now()) {
 			return null;
@@ -70,12 +91,10 @@ export const readSession = (projectPath: string): SessionInfo | null => {
 	}
 };
 
-/**
- * Write a session file for the current machine.
- * Creates the .skybox directory if it doesn't exist.
- * Uses atomic write (write to temp file, then rename) to prevent corruption.
- * @param projectPath - Absolute path to the project directory
- */
+// write a session file for the current machine.
+// creates the .skybox directory if it doesn't exist.
+// uses atomic write (write to temp file, then rename) to prevent corruption.
+// @param projectPath - Absolute path to the project directory
 export const writeSession = (projectPath: string): void => {
 	const sessionPath = getSessionFilePath(projectPath);
 	const sessionDir = dirname(sessionPath);
@@ -93,6 +112,9 @@ export const writeSession = (projectPath: string): void => {
 		expires: new Date(Date.now() + SESSION_TTL_MS).toISOString(),
 	};
 
+	// Compute integrity hash before writing
+	session.hash = computeSessionHash(session);
+
 	// Atomic write: write to temp file in same directory, then rename
 	const tempPath = join(
 		sessionDir,
@@ -100,13 +122,14 @@ export const writeSession = (projectPath: string): void => {
 	);
 	writeFileSync(tempPath, JSON.stringify(session, null, 2), "utf-8");
 	renameSync(tempPath, sessionPath);
+
+	// Set read-only to prevent accidental edits
+	chmodSync(sessionPath, SESSION_FILE_MODE);
 };
 
-/**
- * Delete the session file for a project.
- * Silently succeeds if the file doesn't exist.
- * @param projectPath - Absolute path to the project directory
- */
+// delete the session file for a project.
+// silently succeeds if the file doesn't exist.
+// @param projectPath - Absolute path to the project directory
 export const deleteSession = (projectPath: string): void => {
 	const sessionPath = getSessionFilePath(projectPath);
 
@@ -119,11 +142,9 @@ export const deleteSession = (projectPath: string): void => {
 	}
 };
 
-/**
- * Check if a different machine has an active session for this project.
- * @param projectPath - Absolute path to the project directory
- * @returns Conflict status and existing session info if applicable
- */
+// check if a different machine has an active session for this project.
+// @param projectPath - Absolute path to the project directory
+// @returns Conflict status and existing session info if applicable
 export const checkSessionConflict = (
 	projectPath: string,
 ): SessionConflictResult => {

@@ -12,6 +12,7 @@ export interface CreateProjectSyncSessionOptions {
 	syncPaths?: string[];
 }
 
+// create project sync session
 export const createProjectSyncSession = async (
 	options: CreateProjectSyncSessionOptions,
 ): Promise<{ success: boolean; error?: string }> => {

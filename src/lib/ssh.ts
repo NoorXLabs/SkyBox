@@ -1,4 +1,4 @@
-/** SSH operations: parse config, test connections, run remote commands. */
+// SSH operations: parse config, test connections, run remote commands.
 
 import {
 	appendFileSync,
@@ -15,16 +15,15 @@ import { validateSSHField, validateSSHHost } from "@lib/validation.ts";
 import type { SSHConfigEntry, SSHHost } from "@typedefs/index.ts";
 import { execa } from "execa";
 
+// get SSH dir
 const getSSHDir = (): string => {
 	const home = process.env.HOME || homedir();
 	return join(home, ".ssh");
 };
 
-/**
- * Sanitize SSH error messages for user display.
- * Removes authentication details and host-specific info.
- * @internal Exported for testing
- */
+// sanitize SSH error messages for user display.
+// removes authentication details and host-specific info.
+// @internal Exported for testing
 export const sanitizeSshError = (error: string): string => {
 	let sanitized = error;
 
@@ -54,6 +53,7 @@ export const sanitizeSshError = (error: string): string => {
 	return sanitized;
 };
 
+// parse SSH config
 export const parseSSHConfig = (): SSHHost[] => {
 	const configPath = join(getSSHDir(), "config");
 
@@ -101,6 +101,7 @@ export const parseSSHConfig = (): SSHHost[] => {
 	return hosts;
 };
 
+// find SSH keys
 export const findSSHKeys = (): string[] => {
 	const sshDir = getSSHDir();
 
@@ -125,7 +126,7 @@ export const findSSHKeys = (): string[] => {
 	return keys;
 };
 
-/** Validate host and return error response if invalid, or null if valid. */
+// validate host and return error response if invalid, or null if valid.
 const assertValidHost = (
 	host: string,
 ): { success: false; error: string } | null => {
@@ -136,6 +137,7 @@ const assertValidHost = (
 	return null;
 };
 
+// test connection
 export const testConnection = async (
 	host: string,
 	identityFile?: string,
@@ -158,6 +160,7 @@ export const testConnection = async (
 	}
 };
 
+// copy key
 export const copyKey = async (
 	host: string,
 	keyPath: string,
@@ -174,6 +177,7 @@ export const copyKey = async (
 	}
 };
 
+// run remote command
 export const runRemoteCommand = async (
 	host: string,
 	command: string,
@@ -197,10 +201,8 @@ export const runRemoteCommand = async (
 	}
 };
 
-/**
- * Copy files via SCP with argument injection prevention.
- * Uses "--" separator to prevent source/destination being interpreted as options.
- */
+// copy files via SCP with argument injection prevention.
+// uses "--" separator to prevent source/destination being interpreted as options.
 export const secureScp = async (
 	source: string,
 	destination: string,
@@ -208,6 +210,7 @@ export const secureScp = async (
 	await execa("scp", ["--", source, destination]);
 };
 
+// write SSH config entry
 export const writeSSHConfigEntry = (
 	entry: SSHConfigEntry,
 ): {

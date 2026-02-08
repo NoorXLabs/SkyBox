@@ -6,6 +6,7 @@ import { SUPPORTED_EDITORS } from "@lib/constants.ts";
 import { dryRun, header, info, isDryRun, success } from "@lib/ui.ts";
 import inquirer from "inquirer";
 
+// interactively change the default editor preference
 export const editorCommand = async (): Promise<void> => {
 	const config = requireLoadedConfigOrExit();
 

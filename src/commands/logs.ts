@@ -14,6 +14,7 @@ interface LogsOptions {
 	sync?: boolean;
 }
 
+// display container or sync session logs for a project
 export const logsCommand = async (
 	project: string,
 	options: LogsOptions,
@@ -29,6 +30,7 @@ export const logsCommand = async (
 	}
 };
 
+// resolve symlinks in a path via realpathSync
 const normalizePath = (path: string): string => {
 	try {
 		return realpathSync(path);
@@ -37,6 +39,7 @@ const normalizePath = (path: string): string => {
 	}
 };
 
+// stream Docker container logs for a project
 const showContainerLogs = async (
 	project: string,
 	options: LogsOptions,
@@ -61,6 +64,7 @@ const showContainerLogs = async (
 	}
 };
 
+// stream Mutagen sync monitoring logs for a project
 const showSyncLogs = async (
 	project: string,
 	_options: LogsOptions,

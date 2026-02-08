@@ -28,6 +28,7 @@ import {
 import chalk from "chalk";
 import { execa } from "execa";
 
+// get human-readable disk usage for a local directory
 export const getDiskUsage = async (path: string): Promise<string> => {
 	try {
 		const result = await execa("du", ["-sh", path], { timeout: 5000 });
@@ -39,6 +40,7 @@ export const getDiskUsage = async (path: string): Promise<string> => {
 	}
 };
 
+// get the last activity timestamp from git log or directory mtime
 export const getLastActive = async (
 	projectPath: string,
 ): Promise<Date | null> => {
@@ -68,12 +70,14 @@ export const getLastActive = async (
 	}
 };
 
+// get shared git info (branch and last commit) for a project
 export const getGitInfo = async (
 	projectPath: string,
 ): Promise<GitDetails | null> => {
 	return getSharedGitInfo(projectPath);
 };
 
+// apply color formatting to a container status string
 const colorContainer = (status: string): string => {
 	switch (status) {
 		case "running":
@@ -85,6 +89,7 @@ const colorContainer = (status: string): string => {
 	}
 };
 
+// apply color formatting to a sync status string
 const colorSync = (status: string): string => {
 	switch (status) {
 		case "syncing":
@@ -98,6 +103,7 @@ const colorSync = (status: string): string => {
 	}
 };
 
+// format a session's machine ownership into a display string
 const formatSessionStatus = (session: SessionInfo | null): string => {
 	if (!session) {
 		return "none";
@@ -109,6 +115,7 @@ const formatSessionStatus = (session: SessionInfo | null): string => {
 	return `active on ${session.machine}`;
 };
 
+// gather container status, image, uptime, CPU, and memory for a project
 const getContainerDetails = async (
 	projectPath: string,
 ): Promise<ContainerDetails> => {
@@ -163,6 +170,7 @@ const getContainerDetails = async (
 	}
 };
 
+// gather sync session status details for a project
 const getSyncDetails = async (projectName: string): Promise<SyncDetails> => {
 	const status = await getSyncStatus(projectName);
 
@@ -183,6 +191,7 @@ const getSyncDetails = async (projectName: string): Promise<SyncDetails> => {
 	};
 };
 
+// query remote server for disk usage of a project directory
 const getRemoteDiskUsage = async (projectName: string): Promise<string> => {
 	try {
 		const projectRemote = getProjectRemote(projectName);
@@ -203,6 +212,7 @@ const getRemoteDiskUsage = async (projectName: string): Promise<string> => {
 	}
 };
 
+// gather a high-level summary of container, sync, git, session, and disk status
 const getProjectSummary = async (
 	projectName: string,
 ): Promise<ProjectSummary> => {
@@ -250,6 +260,7 @@ const getProjectSummary = async (
 	};
 };
 
+// render a formatted table of project summaries to the terminal
 const formatOverviewTable = (summaries: ProjectSummary[]): void => {
 	// Column headers
 	const headers = [
@@ -313,6 +324,7 @@ const formatOverviewTable = (summaries: ProjectSummary[]): void => {
 	}
 };
 
+// show project status overview or detailed view for a single project
 export const statusCommand = async (project?: string): Promise<void> => {
 	requireConfig();
 
@@ -323,6 +335,7 @@ export const statusCommand = async (project?: string): Promise<void> => {
 	}
 };
 
+// display an overview table of all local projects
 const showOverview = async (): Promise<void> => {
 	const projectsDir = getProjectsDir();
 	if (!existsSync(projectsDir)) {
@@ -358,6 +371,7 @@ const showOverview = async (): Promise<void> => {
 	console.log();
 };
 
+// display detailed status for a single project
 const showDetailed = async (projectName: string): Promise<void> => {
 	const projectPath = join(getProjectsDir(), projectName);
 
@@ -426,7 +440,9 @@ const showDetailed = async (projectName: string): Promise<void> => {
 		console.log(`  Status:     ${chalk.green("active here")}`);
 		console.log(`  Machine:    ${session.machine}`);
 		console.log(`  User:       ${session.user}`);
-		console.log(`  Started:    ${session.timestamp}`);
+		console.log(
+			`  Started:    ${formatRelativeTimeShared(new Date(session.timestamp))}`,
+		);
 		console.log(`  PID:        ${session.pid}`);
 	} else {
 		// Session belongs to a different machine
@@ -435,7 +451,9 @@ const showDetailed = async (projectName: string): Promise<void> => {
 		);
 		console.log(`  Machine:    ${session.machine}`);
 		console.log(`  User:       ${session.user}`);
-		console.log(`  Started:    ${session.timestamp}`);
+		console.log(
+			`  Started:    ${formatRelativeTimeShared(new Date(session.timestamp))}`,
+		);
 		console.log(`  PID:        ${session.pid}`);
 	}
 

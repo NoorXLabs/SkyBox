@@ -1,29 +1,27 @@
-/**
- * @file constants.ts
- * @description Single source of truth for ALL constants in the codebase.
- * Every hardcoded value — including single-use ones — lives here.
- * Organized by domain. Large structured data at the bottom.
- */
+// @file constants.ts
+// @description Single source of truth for ALL constants in the codebase.
+// every hardcoded value — including single-use ones — lives here.
+// organized by domain. Large structured data at the bottom.
 
 import type { InstallMethod, Template } from "@typedefs/index.ts";
 
 // ── App & GitHub ──
 
-/** How SkyBox was installed. Set at build time via SKYBOX_INSTALL_METHOD env var. */
+// how SkyBox was installed. Set at build time via SKYBOX_INSTALL_METHOD env var.
 export const INSTALL_METHOD: InstallMethod =
 	(process.env.SKYBOX_INSTALL_METHOD as InstallMethod) || "source";
 
-/** GitHub repo coordinates for update checks. */
+// GitHub repo coordinates for update checks.
 export const GITHUB_OWNER = "NoorXLabs";
 export const GITHUB_REPO = "SkyBox";
 
-/** GitHub API URL for release checks. */
+// GitHub API URL for release checks.
 export const GITHUB_API_URL = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases`;
 
-/** Exit code when user presses Ctrl+C. */
+// exit code when user presses Ctrl+C.
 export const CTRL_C_EXIT_CODE = 130;
 
-/** Valid lifecycle hook event names. */
+// valid lifecycle hook event names.
 export const HOOK_EVENTS = [
 	"pre-up",
 	"post-up",
@@ -31,136 +29,125 @@ export const HOOK_EVENTS = [
 	"post-down",
 ] as const;
 
-/** Maximum passphrase entry attempts for encryption/decryption. */
+// maximum passphrase entry attempts for encryption/decryption.
 export const MAX_PASSPHRASE_ATTEMPTS = 3;
 
-/** Width of a single dashboard card including border chars and padding. */
+// width of a single dashboard card including border chars and padding.
 export const CARD_WIDTH = 38;
 
-/** Gap between dashboard cards. */
+// gap between dashboard cards.
 export const CARD_GAP = 2;
 
-/** Maximum project name entry attempts for `skybox new`. */
+// maximum project name entry attempts for `skybox new`.
 export const MAX_NAME_ATTEMPTS = 5;
 
 // ── Paths & Directories ──
 
-/** Config filename. */
+// config filename.
 export const CONFIG_FILENAME = "config.yaml";
 
-/** Session file path relative to project directory. */
+// session file path relative to project directory.
 export const SESSION_FILE = ".skybox/session.lock";
 
-/** Session TTL in milliseconds (24 hours). */
+// session TTL in milliseconds (24 hours).
 export const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
 
-/** Maximum audit log file size in bytes before rotation (10 MB). */
+// HMAC key for session file integrity verification.
+// not a secret — exists to detect accidental edits, not to prevent determined tampering.
+export const SESSION_HMAC_KEY = "skybox-session-integrity-v1";
+
+// read-only file permission (owner read only).
+export const SESSION_FILE_MODE = 0o400;
+
+// maximum audit log file size in bytes before rotation (10 MB).
 export const AUDIT_LOG_MAX_BYTES = 10 * 1024 * 1024;
 
-/** Ownership metadata file name. */
+// ownership metadata file name.
 export const OWNERSHIP_FILE_NAME = ".skybox-owner";
 
-/** Default SkyBox home directory name. */
+// default SkyBox home directory name.
 export const SKYBOX_HOME_DIR = ".skybox";
 
-/** Projects subdirectory name. */
+// projects subdirectory name.
 export const PROJECTS_DIR_NAME = "Projects";
 
-/** Binary directory name. */
+// binary directory name.
 export const BIN_DIR_NAME = "bin";
 
-/** Logs directory name. */
+// logs directory name.
 export const LOGS_DIR_NAME = "logs";
 
-/** Auto-up log filename for shell hook operations. */
+// auto-up log filename for shell hook operations.
 export const AUTO_UP_LOG_FILE = "auto-up.log";
 
-/** User templates directory name. */
+// user templates directory name.
 export const TEMPLATES_DIR_NAME = "templates";
 
-/** File that records the extracted Mutagen version. */
+// file that records the extracted Mutagen version.
 export const MUTAGEN_VERSION_FILE = ".mutagen-version";
 
-/** Update check metadata file. */
+// update check metadata file.
 export const UPDATE_CHECK_FILE = ".update-check.json";
 
-/** Devcontainer directory name. */
+// devcontainer directory name.
 export const DEVCONTAINER_DIR_NAME = ".devcontainer";
 
-/** Devcontainer config filename. */
+// devcontainer config filename.
 export const DEVCONTAINER_CONFIG_NAME = "devcontainer.json";
 
-/** Container workspace path prefix. */
+// container workspace path prefix.
 export const WORKSPACE_PATH_PREFIX = "/workspaces";
 
-/** Alternative devcontainer config filename (root-level). */
+// alternative devcontainer config filename (root-level).
 export const DEVCONTAINER_ALT_CONFIG_NAME = ".devcontainer.json";
 
 // ── Docker & Containers ──
 
-/**
- * Docker label key used to identify devcontainers.
- * This label is set automatically by devcontainer-cli when starting a container.
- * The value is the absolute path to the local project folder.
- */
+// Docker label key used to identify devcontainers.
+// this label is set automatically by devcontainer-cli when starting a container.
+// the value is the absolute path to the local project folder.
 export const DOCKER_LABEL_KEY = "devcontainer.local_folder";
 
-/** Docker label used to identify test containers for cleanup. */
+// Docker label used to identify test containers for cleanup.
 export const DOCKER_TEST_LABEL = "skybox-test=true";
 
-/** Default timeout for waiting on containers in tests (30 seconds). */
+// default timeout for waiting on containers in tests (30 seconds).
 export const DEFAULT_CONTAINER_TIMEOUT = 30000;
 
-/** Polling interval for container status checks in tests (500ms). */
+// polling interval for container status checks in tests (500ms).
 export const CONTAINER_POLL_INTERVAL = 500;
 
 // ── Editors ──
 
-/** Default editor preference. */
+// default editor preference.
 export const DEFAULT_EDITOR = "vscode";
 
-/** VS Code remote URI prefix for devcontainers. */
+// VS Code remote URI prefix for devcontainers.
 export const VSCODE_REMOTE_URI_PREFIX = "vscode-remote://dev-container+";
 
 // ── Sync & Mutagen ──
 
-/**
- * Pinned Mutagen version for binary downloads.
- * @see https://github.com/mutagen-io/mutagen/releases
- */
+// pinned Mutagen version for binary downloads.
+// @see https://github.com/mutagen-io/mutagen/releases
 export const MUTAGEN_VERSION = "0.18.1";
 
-/** Mutagen binary name. */
+// Mutagen binary name.
 export const MUTAGEN_BINARY_NAME = "mutagen";
 
-/** GitHub repository path for Mutagen releases. */
+// GitHub repository path for Mutagen releases.
 export const MUTAGEN_REPO = "mutagen-io/mutagen";
 
-/**
- * Pinned GPG key fingerprint for Mutagen release verification.
- *
- * TODO: This is a placeholder fingerprint. As of 2026-02-05, mutagen-io has no
- * GPG keys on GitHub. When they publish a key, replace this value and remove
- * this TODO. GPG verification will fail with this placeholder — callers should
- * handle fingerprint mismatch gracefully (see download.ts).
- *
- * Verify with: curl -sL https://github.com/mutagen-io.gpg | gpg --with-colons --import-options show-only --import 2>&1 | grep "^fpr:"
- * @see https://github.com/mutagen-io.gpg
- */
-export const MUTAGEN_GPG_FINGERPRINT =
-	"B850CA0C3E8B0D5B6029AD3C5B72E3F42C271B2A";
-
-/** Default sync mode for Mutagen sessions. */
+// default sync mode for Mutagen sessions.
 export const DEFAULT_SYNC_MODE = "two-way-resolved";
 
-/** Valid sync mode values for configuration validation. */
+// valid sync mode values for configuration validation.
 export const VALID_SYNC_MODES = [
 	"two-way-resolved",
 	"two-way-safe",
 	"one-way-replica",
 ];
 
-/** Default file ignore patterns for sync. */
+// default file ignore patterns for sync.
 export const DEFAULT_IGNORE = [
 	".git/index.lock",
 	".git/*.lock",
@@ -180,45 +167,45 @@ export const DEFAULT_IGNORE = [
 
 // ── Encryption ──
 
-/** Encryption algorithm. */
+// encryption algorithm.
 export const ENCRYPTION_ALGORITHM = "aes-256-gcm";
 
-/** Encryption key length in bytes. */
+// encryption key length in bytes.
 export const ENCRYPTION_KEY_LENGTH = 32;
 
-/** Initialization vector length in bytes. */
+// initialization vector length in bytes.
 export const ENCRYPTION_IV_LENGTH = 16;
 
-/** Authentication tag length in bytes. */
+// authentication tag length in bytes.
 export const ENCRYPTION_TAG_LENGTH = 16;
 
-/** Argon2 memory cost in KiB (64 MiB). */
+// Argon2 memory cost in KiB (64 MiB).
 export const ARGON2_MEMORY_COST = 65536;
 
-/** Argon2 time cost (iterations). OWASP minimum: 3. */
+// Argon2 time cost (iterations). OWASP minimum: 3.
 export const ARGON2_TIME_COST = 3;
 
-/** Argon2 parallelism factor. OWASP minimum: 4. */
+// Argon2 parallelism factor. OWASP minimum: 4.
 export const ARGON2_PARALLELISM = 4;
 
-/** Legacy Argon2 time cost (pre-v0.7.7, before OWASP hardening). */
+// legacy Argon2 time cost (pre-v0.7.7, before OWASP hardening).
 export const ARGON2_LEGACY_TIME_COST = 2;
 
-/** Legacy Argon2 parallelism (pre-v0.7.7, before OWASP hardening). */
+// legacy Argon2 parallelism (pre-v0.7.7, before OWASP hardening).
 export const ARGON2_LEGACY_PARALLELISM = 1;
 
-/** Filename for the encryption verification marker inside archives. */
+// filename for the encryption verification marker inside archives.
 export const ENCRYPTION_CHECK_FILENAME = ".skybox-enc-check";
 
-/** Known content for passphrase verification. */
+// known content for passphrase verification.
 export const ENCRYPTION_CHECK_CONTENT = "skybox-encryption-verify";
 
 // ── SSH ──
 
-/** Default timeout for SSH operations in milliseconds. */
+// default timeout for SSH operations in milliseconds.
 export const SSH_TIMEOUT_MS = 10_000;
 
-/** SSH config keyword prefixes with their lengths for parsing. */
+// SSH config keyword prefixes with their lengths for parsing.
 export const SSH_KEYWORDS = {
 	HOST: { prefix: "host ", length: 5 },
 	HOSTNAME: { prefix: "hostname ", length: 9 },
@@ -227,33 +214,49 @@ export const SSH_KEYWORDS = {
 	IDENTITY_FILE: { prefix: "identityfile ", length: 13 },
 } as const;
 
-/** SSH config mount path inside containers. */
+// SSH config mount path inside containers.
 export const SSH_CONFIG_MOUNT_PATH = "/var/ssh-config";
 
-/** SSH symlink setup command (runs after container starts). */
+// SSH symlink setup command (runs after container starts).
 export const SSH_SYMLINK_COMMAND = `[ ! -L $HOME/.ssh ] && rm -rf $HOME/.ssh && ln -s ${SSH_CONFIG_MOUNT_PATH} $HOME/.ssh || true`;
+
+// ── Telemetry ──
+
+// Rybbit analytics endpoint for first-run install tracking.
+// set via RYBBIT_URL env var at build time; telemetry is disabled if unset.
+export const RYBBIT_URL = process.env.RYBBIT_URL ?? "";
+
+// public site identifier for Rybbit.
+// set via RYBBIT_SITE_ID env var at build time; telemetry is disabled if unset.
+export const RYBBIT_SITE_ID = process.env.RYBBIT_SITE_ID ?? "";
+
+// Rybbit API key for authenticating track requests.
+// set via RYBBIT_API_KEY env var at build time; telemetry is disabled if unset.
+export const RYBBIT_API_KEY = process.env.RYBBIT_API_KEY ?? "";
+
+// timeout for the telemetry HTTP call in milliseconds.
+export const TELEMETRY_TIMEOUT_MS = 5000;
+
+// marker file name written after first-run telemetry fires.
+export const INSTALLED_MARKER_FILE = ".installed";
 
 // ── Update Check ──
 
-/** Update check cooldown interval in milliseconds (24 hours). */
+// update check cooldown interval in milliseconds (24 hours).
 export const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000;
 
 // ── Templates (large structured data) ──
 
-/**
- * SECURITY: Container images are pinned by SHA256 digest to prevent supply chain attacks.
- *
- * To update image digests:
- * 1. Pull the new image: docker pull mcr.microsoft.com/devcontainers/javascript-node:20
- * 2. Get the digest: docker inspect --format='{{index .RepoDigests 0}}' <image>
- * 3. Update the digest in the TEMPLATES array below
- * 4. Test the new image works correctly
- * 5. Document the update in CHANGELOG.md
- *
- * Check for updates periodically at: https://mcr.microsoft.com/en-us/catalog?search=devcontainers
- */
+// SECURITY: Container images are pinned by SHA256 digest to prevent supply chain attacks.
+// to update image digests:
+// 1. Pull the new image: docker pull mcr.microsoft.com/devcontainers/javascript-node:20
+// 2. Get the digest: docker inspect --format='{{index .RepoDigests 0}}' <image>
+// 3. Update the digest in the TEMPLATES array below
+// 4. Test the new image works correctly
+// 5. Document the update in CHANGELOG.md
+// check for updates periodically at: https://mcr.microsoft.com/en-us/catalog?search=devcontainers
 
-/** Common devcontainer features for all templates. */
+// common devcontainer features for all templates.
 export const COMMON_FEATURES = {
 	"ghcr.io/devcontainers/features/common-utils:2": {
 		configureZshAsDefaultShell: true,
@@ -264,25 +267,26 @@ export const COMMON_FEATURES = {
 	"ghcr.io/devcontainers/features/git:1": {},
 };
 
-/** Mounts for SSH passthrough. */
+// mounts for SSH passthrough.
 export const COMMON_MOUNTS = [
 	`source=$\{localEnv:HOME}/.ssh,target=${SSH_CONFIG_MOUNT_PATH},type=bind,readonly`,
 ];
 
-/** Common VS Code settings for all templates. */
+// common VS Code settings for all templates.
 export const COMMON_VSCODE_SETTINGS = {
 	"terminal.integrated.defaultProfile.linux": "zsh",
 };
 
-/** Supported editor configurations. */
+// supported editor configurations.
 export const SUPPORTED_EDITORS = [
 	{ id: "cursor", name: "Cursor" },
 	{ id: "code", name: "VS Code" },
 	{ id: "code-insiders", name: "VS Code Insiders" },
+	{ id: "zed", name: "Zed" },
 	{ id: "other", name: "Other (specify command)" },
 ] as const;
 
-/** Devcontainer template definitions. */
+// devcontainer template definitions.
 export const TEMPLATES: Template[] = [
 	{
 		id: "node",

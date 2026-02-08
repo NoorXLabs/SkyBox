@@ -1,5 +1,6 @@
 export type RelativeTimeFormat = "long" | "short";
 
+// format relative time
 export const formatRelativeTime = (
 	date: Date | null,
 	format: RelativeTimeFormat = "long",

@@ -20,6 +20,7 @@ import { dryRun, header, isDryRun, success } from "@lib/ui.ts";
 import { ContainerStatus, type OpenOptions } from "@typedefs/index.ts";
 import inquirer from "inquirer";
 
+// open an editor or shell for an already-running project container
 export const openCommand = async (
 	projectArg: string | undefined,
 	options: OpenOptions,

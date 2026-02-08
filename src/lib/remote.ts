@@ -1,12 +1,10 @@
-/** Operations for interacting with remote servers. */
+// operations for interacting with remote servers.
 
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import { validateRemoteProjectPath } from "@lib/validation.ts";
 
-/**
- * Check if a project directory exists on the remote server.
- */
+// check if a project directory exists on the remote server.
 export const checkRemoteProjectExists = async (
 	host: string,
 	basePath: string,

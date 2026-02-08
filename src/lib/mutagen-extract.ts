@@ -1,4 +1,4 @@
-/** Bundled Mutagen binary extraction and version management. */
+// bundled Mutagen binary extraction and version management.
 import {
 	chmodSync,
 	existsSync,
@@ -16,10 +16,8 @@ import {
 } from "@lib/paths.ts";
 import { extract } from "tar";
 
-/**
- * Check if Mutagen needs to be extracted from the bundle.
- * Returns true if binary is missing or version doesn't match.
- */
+// check if Mutagen needs to be extracted from the bundle.
+// returns true if binary is missing or version doesn't match.
 export const needsMutagenExtraction = (): boolean => {
 	const mutagenPath = getMutagenPath();
 	const versionPath = getMutagenVersionPath();
@@ -35,9 +33,7 @@ export const needsMutagenExtraction = (): boolean => {
 	}
 };
 
-/**
- * Record the currently extracted Mutagen version.
- */
+// record the currently extracted Mutagen version.
 export const recordMutagenVersion = (): void => {
 	const binDir = getBinDir();
 	if (!existsSync(binDir)) {
@@ -46,20 +42,16 @@ export const recordMutagenVersion = (): void => {
 	writeFileSync(getMutagenVersionPath(), MUTAGEN_VERSION);
 };
 
-/**
- * Get the expected asset filename for the current platform.
- */
+// get the expected asset filename for the current platform.
 const getBundledAssetName = (): string => {
 	const os = process.platform === "darwin" ? "darwin" : "linux";
 	const cpu = process.arch === "arm64" ? "arm64" : "amd64";
 	return `mutagen_${os}_${cpu}_v${MUTAGEN_VERSION}.tar.gz`;
 };
 
-/**
- * Extract the bundled Mutagen binary.
- * Looks for the tarball in the compiled binary's asset directory.
- * Returns { success, error? }.
- */
+// extract the bundled Mutagen binary.
+// looks for the tarball in the compiled binary's asset directory.
+// returns { success, error? }.
 export const extractBundledMutagen = async (
 	onProgress?: (message: string) => void,
 ): Promise<{ success: boolean; error?: string }> => {
@@ -85,7 +77,7 @@ export const extractBundledMutagen = async (
 		if (!existsSync(assetPath)) {
 			return {
 				success: false,
-				error: `Bundled Mutagen asset not found at ${assetPath}. Run 'skybox update' to download.`,
+				error: `Bundled Mutagen asset not found at ${assetPath}. Run 'skybox doctor' to diagnose.`,
 			};
 		}
 
@@ -105,10 +97,8 @@ export const extractBundledMutagen = async (
 	}
 };
 
-/**
- * Ensure Mutagen is extracted and ready. Call before any Mutagen operation.
- * In bundled mode, extracts from asset. In dev mode, falls through to download flow.
- */
+// ensure Mutagen is extracted and ready. Call before any Mutagen operation.
+// in bundled mode, extracts from asset. In dev mode, falls through to download flow.
 export const ensureMutagenExtracted = async (
 	onProgress?: (message: string) => void,
 ): Promise<{ success: boolean; error?: string }> => {

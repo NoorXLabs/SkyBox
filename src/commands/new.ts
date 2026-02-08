@@ -36,6 +36,7 @@ import type {
 } from "@typedefs/index.ts";
 import inquirer from "inquirer";
 
+// add workspace folder and mount settings to a devcontainer config
 const withWorkspaceSettings = (
 	config: DevcontainerConfig,
 	projectName: string,
@@ -47,6 +48,7 @@ const withWorkspaceSettings = (
 	};
 };
 
+// create a new project on remote from a template or git URL
 export const newCommand = async (): Promise<void> => {
 	const config = requireConfig();
 
@@ -178,6 +180,7 @@ export const newCommand = async (): Promise<void> => {
 	await offerClone(projectName, remoteName, config, devcontainerConfig);
 };
 
+// create a project directory on the remote with devcontainer.json and git init
 const createProjectWithConfig = async (
 	remote: RemoteEntry,
 	projectName: string,
@@ -217,6 +220,7 @@ const createProjectWithConfig = async (
 	}
 };
 
+// clone a git template URL to the remote server
 const cloneGitToRemote = async (
 	remote: RemoteEntry,
 	projectName: string,
@@ -296,6 +300,7 @@ const cloneGitToRemote = async (
 	}
 };
 
+// prompt to clone the newly created remote project locally
 const offerClone = async (
 	projectName: string,
 	remoteName: string,

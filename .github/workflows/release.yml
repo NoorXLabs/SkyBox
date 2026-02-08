@@ -33,11 +33,15 @@ jobs:
         run: bun run src/lib/verify-lockfile.ts
 
       - name: Build all platforms
+        env:
+          RYBBIT_URL: ${{ secrets.RYBBIT_URL }}
+          RYBBIT_SITE_ID: ${{ secrets.RYBBIT_SITE_ID }}
+          RYBBIT_API_KEY: ${{ secrets.RYBBIT_API_KEY }}
         run: |
-          bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.SKYBOX_INSTALL_METHOD='github-release'" --target=bun-darwin-arm64 --outfile=skybox-darwin-arm64
-          bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.SKYBOX_INSTALL_METHOD='github-release'" --target=bun-darwin-x64 --outfile=skybox-darwin-x64
-          bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.SKYBOX_INSTALL_METHOD='github-release'" --target=bun-linux-x64 --outfile=skybox-linux-x64
-          bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.SKYBOX_INSTALL_METHOD='github-release'" --target=bun-linux-arm64 --outfile=skybox-linux-arm64
+          bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.SKYBOX_INSTALL_METHOD='github-release'" --define "process.env.RYBBIT_URL='${RYBBIT_URL}'" --define "process.env.RYBBIT_SITE_ID='${RYBBIT_SITE_ID}'" --define "process.env.RYBBIT_API_KEY='${RYBBIT_API_KEY}'" --target=bun-darwin-arm64 --outfile=skybox-darwin-arm64
+          bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.SKYBOX_INSTALL_METHOD='github-release'" --define "process.env.RYBBIT_URL='${RYBBIT_URL}'" --define "process.env.RYBBIT_SITE_ID='${RYBBIT_SITE_ID}'" --define "process.env.RYBBIT_API_KEY='${RYBBIT_API_KEY}'" --target=bun-darwin-x64 --outfile=skybox-darwin-x64
+          bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.SKYBOX_INSTALL_METHOD='github-release'" --define "process.env.RYBBIT_URL='${RYBBIT_URL}'" --define "process.env.RYBBIT_SITE_ID='${RYBBIT_SITE_ID}'" --define "process.env.RYBBIT_API_KEY='${RYBBIT_API_KEY}'" --target=bun-linux-x64 --outfile=skybox-linux-x64
+          bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.SKYBOX_INSTALL_METHOD='github-release'" --define "process.env.RYBBIT_URL='${RYBBIT_URL}'" --define "process.env.RYBBIT_SITE_ID='${RYBBIT_SITE_ID}'" --define "process.env.RYBBIT_API_KEY='${RYBBIT_API_KEY}'" --target=bun-linux-arm64 --outfile=skybox-linux-arm64
 
       - name: Create tarballs
         run: |

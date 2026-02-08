@@ -1,12 +1,10 @@
-/** Version update check: GitHub Releases API with 24h cache. */
+// version update check: GitHub Releases API with 24h cache.
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { CHECK_INTERVAL_MS, GITHUB_API_URL } from "@lib/constants.ts";
 import { getUpdateCheckPath } from "@lib/paths.ts";
 import type { InstallMethod, UpdateCheckMetadata } from "@typedefs/index.ts";
 
-/**
- * Check if we should query GitHub for updates (24h cooldown).
- */
+// check if we should query GitHub for updates (24h cooldown).
 export const shouldCheckForUpdate = (): boolean => {
 	const metadataPath = getUpdateCheckPath();
 	if (!existsSync(metadataPath)) return true;
@@ -21,9 +19,7 @@ export const shouldCheckForUpdate = (): boolean => {
 	}
 };
 
-/**
- * Save update check results to disk.
- */
+// save update check results to disk.
 export const saveUpdateCheckMetadata = (
 	latestVersion: string | null,
 	latestStableVersion: string | null,
@@ -41,11 +37,10 @@ export const saveUpdateCheckMetadata = (
 	}
 };
 
-/**
- * Compare two semver-ish version strings. Returns true if `latest` is newer than `current`.
- * Handles prerelease tags: 0.7.0 > 0.6.0-beta, 0.6.0 > 0.6.0-beta.
- */
+// compare two semver-ish version strings. Returns true if `latest` is newer than `current`.
+// handles prerelease tags: 0.7.0 > 0.6.0-beta, 0.6.0 > 0.6.0-beta.
 export const isNewerVersion = (latest: string, current: string): boolean => {
+	// parse
 	const parse = (v: string) => {
 		const [core, pre] = v.split("-");
 		const parts = core.split(".").map(Number);
@@ -65,26 +60,20 @@ export const isNewerVersion = (latest: string, current: string): boolean => {
 	return false;
 };
 
-/**
- * Get the correct upgrade command for the user's install method.
- */
+// get the correct upgrade command for the user's install method.
 export const getUpgradeCommand = (method: InstallMethod): string => {
 	switch (method) {
 		case "homebrew":
 			return "brew upgrade skybox";
-		case "npm":
-			return "npm update -g skybox";
 		case "github-release":
-			return "https://github.com/NoorXLabs/SkyBox/releases/latest";
+			return "skybox update";
 		case "source":
 			return "git pull && bun install";
 	}
 };
 
-/**
- * Fetch latest release versions from GitHub. Non-blocking, swallows errors.
- * Returns { latest, latestStable } or null on failure.
- */
+// fetch latest release versions from GitHub. Non-blocking, swallows errors.
+// returns { latest, latestStable } or null on failure.
 export const fetchLatestVersions = async (): Promise<{
 	latest: string;
 	latestStable: string | null;
@@ -99,6 +88,7 @@ export const fetchLatestVersions = async (): Promise<{
 		});
 		if (!response.ok) return null;
 
+		// releases
 		const releases = (await response.json()) as Array<{
 			tag_name: string;
 			prerelease: boolean;
@@ -121,10 +111,8 @@ export const fetchLatestVersions = async (): Promise<{
 	}
 };
 
-/**
- * Run the full update check flow. Call after every command.
- * Returns the newer version string, or null if no update available.
- */
+// run the full update check flow. Call after every command.
+// returns the newer version string, or null if no update available.
 export const checkForUpdate = async (
 	currentVersion: string,
 	isBeta: boolean,

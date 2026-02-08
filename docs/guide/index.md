@@ -13,7 +13,7 @@ SkyBox manages the complete lifecycle of containerized development environments:
 
 ## How It Works
 
-```
+```text
 Your Machine                     Remote Server
 ┌─────────────────────┐         ┌─────────────────────┐
 │  ~/.skybox/Projects │◄───────►│    ~/code/          │
@@ -61,15 +61,6 @@ SkyBox is designed for developers who want minimal friction:
 - Smart project detection when running commands
 - Direct editor integration with devcontainer support
 - Clean status views showing all your projects at a glance
-
-## Prerequisites
-
-Before installing SkyBox, ensure you have:
-
-- **Docker** - For running development containers
-- **Node.js** - Required for the devcontainer CLI
-- **SSH access** to a remote server (for sync functionality)
-- **Bun** - JavaScript runtime for running SkyBox
 
 ## Next Steps
 

@@ -1,13 +1,11 @@
-/** Config format migration from V1 (single remote) to V2 (multi-remote). */
+// config format migration from V1 (single remote) to V2 (multi-remote).
 import type {
 	RemoteEntry,
 	SkyboxConfig,
 	SkyboxConfigV2,
 } from "@typedefs/index.ts";
 
-/**
- * Check if config needs migration from old single-remote format
- */
+// check if config needs migration from old single-remote format
 export const needsMigration = (config: unknown): boolean => {
 	if (!config || typeof config !== "object") return false;
 	const c = config as Record<string, unknown>;
@@ -15,9 +13,7 @@ export const needsMigration = (config: unknown): boolean => {
 	return "remote" in c && !("remotes" in c);
 };
 
-/**
- * Migrate old single-remote config to new multi-remote format
- */
+// migrate old single-remote config to new multi-remote format
 export const migrateConfig = (oldConfig: SkyboxConfig): SkyboxConfigV2 => {
 	const remoteName = oldConfig.remote.host;
 

@@ -34,6 +34,7 @@ import {
 	projectExists,
 	resolveProjectFromCwd,
 } from "@lib/project.ts";
+import { formatRelativeTime } from "@lib/relative-time.ts";
 import {
 	createRemoteArchiveTarget,
 	decryptRemoteArchive,
@@ -64,11 +65,9 @@ import {
 } from "@typedefs/index.ts";
 import inquirer from "inquirer";
 
-/**
- * Sanitize Docker error output for display.
- * Removes potentially sensitive information while preserving useful details.
- * @internal Exported for testing
- */
+// sanitize Docker error output for display.
+// removes potentially sensitive information while preserving useful details.
+// @internal Exported for testing
 export const sanitizeDockerError = (errorStr: string): string => {
 	let sanitized = errorStr;
 
@@ -92,10 +91,8 @@ export const sanitizeDockerError = (errorStr: string): string => {
 	return sanitized;
 };
 
-/**
- * Normalize a project name to a ResolvedProject with realpath-resolved path.
- * Returns null if the project doesn't exist locally.
- */
+// normalize a project name to a ResolvedProject with realpath-resolved path.
+// returns null if the project doesn't exist locally.
 const normalizeProject = async (
 	project: string,
 ): Promise<ResolvedProject | null> => {
@@ -117,11 +114,9 @@ const normalizeProject = async (
 	return { project, projectPath: normalizedPath };
 };
 
-/**
- * Resolve which project(s) to operate on from argument, cwd, or prompt.
- * Returns an array of resolved projects, or null if resolution failed.
- * When no argument is given, shows a checkbox for multi-select.
- */
+// resolve which project(s) to operate on from argument, cwd, or prompt.
+// returns an array of resolved projects, or null if resolution failed.
+// when no argument is given, shows a checkbox for multi-select.
 const resolveProjects = async (
 	projectArg: string | undefined,
 	options: UpOptions,
@@ -174,11 +169,9 @@ const resolveProjects = async (
 	return resolved;
 };
 
-/**
- * Check for session conflicts and write session file.
- * Sessions are local files synced by Mutagen - no SSH involved.
- * Returns true if session written successfully, false if user cancelled.
- */
+// check for session conflicts and write session file.
+// sessions are local files synced by Mutagen - no SSH involved.
+// returns true if session written successfully, false if user cancelled.
 const handleSessionAcquisition = async (
 	projectPath: string,
 	options: UpOptions,
@@ -196,7 +189,9 @@ const handleSessionAcquisition = async (
 
 		// Different machine has an active session
 		const { machine, timestamp } = existingSession;
-		warn(`This project is running on ${machine} (since ${timestamp})`);
+		warn(
+			`This project is running on ${machine} (started ${formatRelativeTime(new Date(timestamp))})`,
+		);
 
 		if (options.noPrompt) {
 			error("Cannot continue with --no-prompt. Exiting.");
@@ -229,10 +224,8 @@ const handleSessionAcquisition = async (
 	return true;
 };
 
-/**
- * Check sync status and resume if paused.
- * Non-fatal - container can start without sync.
- */
+// check sync status and resume if paused.
+// non-fatal - container can start without sync.
 const checkAndResumeSync = async (project: string): Promise<void> => {
 	const syncSpin = spinner("Checking sync status...");
 	const syncStatus = await getSyncStatus(project);
@@ -257,10 +250,8 @@ const checkAndResumeSync = async (project: string): Promise<void> => {
 	syncSpin.succeed("Sync is active");
 };
 
-/**
- * Handle existing container status (running or stopped).
- * Returns 'skip' to skip to post-start, 'continue' to proceed, or 'exit' to abort.
- */
+// handle existing container status (running or stopped).
+// returns 'skip' to skip to post-start, 'continue' to proceed, or 'exit' to abort.
 const handleContainerStatus = async (
 	projectPath: string,
 	options: UpOptions,
@@ -309,10 +300,8 @@ const handleContainerStatus = async (
 	return { action: "continue" };
 };
 
-/**
- * Ensure project has devcontainer.json, creating from template if needed.
- * Returns true if config exists (or was created), false if user cancelled.
- */
+// ensure project has devcontainer.json, creating from template if needed.
+// returns true if config exists (or was created), false if user cancelled.
 const ensureDevcontainerConfig = async (
 	projectPath: string,
 	project: string,
@@ -367,10 +356,8 @@ const ensureDevcontainerConfig = async (
 	return true;
 };
 
-/**
- * Decrypt project archive on remote if encryption is enabled and archive exists.
- * Downloads archive, decrypts locally, uploads tar, extracts on remote.
- */
+// decrypt project archive on remote if encryption is enabled and archive exists.
+// downloads archive, decrypts locally, uploads tar, extracts on remote.
 const handleDecryption = async (
 	project: string,
 	config: SkyboxConfigV2,
@@ -447,6 +434,7 @@ const handleDecryption = async (
 	return false;
 };
 
+// start project containers with session, sync, decryption, and post-start actions
 export const upCommand = async (
 	projectArg: string | undefined,
 	options: UpOptions,
@@ -523,10 +511,8 @@ export const upCommand = async (
 	}
 };
 
-/**
- * Start a single project (session, decrypt, sync, container).
- * Extracted from upCommand so it can be called in a loop.
- */
+// start a single project (session, decrypt, sync, container).
+// extracted from upCommand so it can be called in a loop.
 const startSingleProject = async (
 	project: string,
 	projectPath: string,
@@ -604,10 +590,8 @@ const startSingleProject = async (
 	}
 };
 
-/**
- * Handle post-start behavior when multiple projects were started.
- * Offers to open all/some/none in editor.
- */
+// handle post-start behavior when multiple projects were started.
+// offers to open all/some/none in editor.
 const handleMultiPostStart = async (
 	succeeded: ResolvedProject[],
 	config: SkyboxConfigV2,
@@ -717,6 +701,7 @@ const handleMultiPostStart = async (
 	}
 };
 
+// stage and commit the devcontainer.json file to git
 const commitDevcontainerConfig = async (projectPath: string): Promise<void> => {
 	try {
 		const { execa } = await import("execa");
@@ -739,6 +724,7 @@ const commitDevcontainerConfig = async (projectPath: string): Promise<void> => {
 	}
 };
 
+// start container with retry
 const startContainerWithRetry = async (
 	projectPath: string,
 	options: UpOptions,
@@ -769,9 +755,7 @@ const startContainerWithRetry = async (
 
 export type PostStartAction = "editor" | "shell" | "both" | "none";
 
-/**
- * Determine what post-start action to take based on options or user prompt.
- */
+// determine what post-start action to take based on options or user prompt.
 export const determinePostStartAction = async (
 	config: SkyboxConfigV2,
 	options: UpOptions,
@@ -838,9 +822,7 @@ export const determinePostStartAction = async (
 	return { action, editor };
 };
 
-/**
- * Execute the determined post-start action (open editor, attach shell, or both).
- */
+// execute the determined post-start action (open editor, attach shell, or both).
 export const executePostStartAction = async (
 	projectPath: string,
 	action: PostStartAction,
@@ -872,6 +854,7 @@ export const executePostStartAction = async (
 	}
 };
 
+// prompt for and execute post-start actions (editor/shell) after container startup
 const handlePostStart = async (
 	projectPath: string,
 	config: SkyboxConfigV2,

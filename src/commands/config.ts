@@ -18,9 +18,7 @@ import {
 import { validatePath } from "@lib/validation.ts";
 import chalk from "chalk";
 
-/**
- * Display all configuration settings including remotes
- */
+// display all configuration settings including remotes
 export const showConfig = async (): Promise<void> => {
 	const config = loadConfig();
 	if (!config) {
@@ -51,9 +49,7 @@ export const showConfig = async (): Promise<void> => {
 	console.log();
 };
 
-/**
- * Test SSH connection to all configured remotes and show project counts
- */
+// test SSH connection to all configured remotes and show project counts
 export const validateConfig = async (): Promise<void> => {
 	const config = loadConfig();
 	if (!config) {
@@ -106,9 +102,7 @@ export const validateConfig = async (): Promise<void> => {
 	}
 };
 
-/**
- * Set a global configuration value
- */
+// set a global configuration value
 export const setConfigValue = async (
 	key: string,
 	value: string,
@@ -139,9 +133,7 @@ export const setConfigValue = async (
 	}
 };
 
-/**
- * Show help for the config command
- */
+// show help for the config command
 const showHelp = (): void => {
 	console.log();
 	console.log(`${chalk.bold("Usage:")} skybox config [subcommand] [options]`);
@@ -176,13 +168,12 @@ const showHelp = (): void => {
 	console.log();
 };
 
-/**
- * Main handler for config command
- */
+// main handler for config command
 export interface ConfigOptions {
 	validate?: boolean;
 }
 
+// route config subcommands: show, set, validate, devcontainer, sync-paths
 export const configCommand = async (
 	options: ConfigOptions,
 	subcommand?: string,

@@ -21,7 +21,6 @@ The devcontainer CLI requires Node.js. Make sure Node.js is installed before ins
 Install the following tools from their official sources before continuing:
 
 - **Docker Desktop** (20.10+) — [Get Docker](https://docs.docker.com/get-started/get-docker/)
-- **Node.js** (LTS) — [Download Node.js](https://nodejs.org/en/download) *(required for devcontainer CLI)*
 - **Devcontainer CLI** (0.50+) — [Installation instructions](https://github.com/devcontainers/cli#npm-install)
 - **SSH** — Pre-installed on macOS and Linux. Windows users need [WSL 2](https://learn.microsoft.com/en-us/windows/wsl/install).
 
@@ -83,7 +82,7 @@ skybox init
 The wizard will:
 
 1. **Check dependencies** - Verify Docker and devcontainer CLI are installed
-2. **Install Mutagen** - Download the file sync tool automatically (with GPG signature verification if `gpg` is available)
+2. **Install Mutagen** - Extract the bundled file sync tool automatically
 3. **Configure remote server** - Set up SSH connection to your backup server
 4. **Choose editor** - Select your preferred code editor
 
@@ -115,10 +114,9 @@ Configure editor
 Preferred editor:
   1) Cursor
   2) VS Code
-  3) Zed
-  4) Vim
-  5) Neovim
-  6) Other
+  3) VS Code Insiders
+  4) Zed
+  5) Other (specify command)
 
 Setting up skybox...
   Created ~/.skybox
@@ -139,8 +137,8 @@ SkyBox stores its configuration and projects in `~/.skybox/`:
 ```
 ~/.skybox/
 ├── config.yaml      # Main configuration file
-├── projects/        # Local project files
-├── bin/             # Downloaded tools (mutagen)
+├── Projects/        # Local synced project copies
+├── bin/             # Bundled tools (mutagen)
 └── logs/            # Log files
 ```
 
@@ -165,8 +163,8 @@ If `skybox init` reports Docker is not found:
 
 If `devcontainer --version` fails:
 
-1. Ensure Node.js is installed first (see [Prerequisites](#installing-prerequisites))
-2. Install the devcontainer CLI from the [official instructions](https://github.com/devcontainers/cli)
+1. Ensure Node.js is installed first
+2. Install the devcontainer CLI from the [official instructions](https://github.com/devcontainers/cli#npm-install)
 
 ### SSH Connection Failed
 
@@ -180,19 +178,9 @@ If the SSH connection test fails:
 
 If Mutagen fails to install automatically:
 
-1. Check your internet connection
-2. Try manual installation: [Mutagen](https://mutagen.io/documentation/introduction/installation)
-3. Run `skybox init` again after installing manually
-
-### GPG Signature Verification
-
-During Mutagen installation, SkyBox verifies the download's GPG signature when `gpg` is available on your system. If GPG is not installed, SkyBox falls back to checksum-only verification.
-
-To skip GPG verification entirely:
-
-```bash
-SKYBOX_SKIP_GPG=1 skybox init
-```
+1. Run `skybox doctor` to diagnose and automatically re-extract the bundled Mutagen binary
+2. If running from source (dev mode), SkyBox falls back to downloading from GitHub — check your internet connection
+3. Try manual installation: [Mutagen](https://mutagen.io/documentation/introduction/installation)
 
 ### Permission Denied Errors
 
@@ -213,3 +201,4 @@ Once installation is complete:
 
 - Follow the [Quick Start](/guide/quick-start) to create your first project
 - Learn about [Core Concepts](/guide/concepts) to understand how SkyBox works
+- Explore [Workflows](/guide/workflows/daily-development) for day-to-day patterns

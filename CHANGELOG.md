@@ -7,10 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-02-07
+
 ### Added
 
 - **Dry-Run Mode** (`--dry-run`): Global flag to preview what any command would do without executing side effects (SSH, Docker, filesystem writes, sync sessions)
-- **Security Hardening**: GPG signature verification with key fingerprint pinning for Mutagen downloads, audit logging (`SKYBOX_AUDIT=1`) with detail sanitization and auto-rotation, runtime config schema validation, Mutagen binary checksum verification, lockfile integrity verification
+- **Security Hardening**: Audit logging (`SKYBOX_AUDIT=1`) with detail sanitization and auto-rotation, runtime config schema validation, Mutagen binary checksum verification, lockfile integrity verification
 - **Integration & E2E Test Suites**: Layered Docker integration and remote E2E test infrastructure with CI workflows and security hardening
 - **Interactive Remote Delete**: Multi-select flow for `skybox rm --remote` — select a remote, pick projects via checkbox, confirm, and optionally clean up local copies
 - **Shell Integration**: Auto-start containers on `cd` into project directories (`skybox hook bash/zsh`, `auto_up` config option, background execution)
@@ -18,22 +20,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Input Validation Hardening**: SSH host validation (option injection prevention), SSH config field validation (newline/metacharacter injection), remote project path validation, Docker container ID format validation, and inquirer validator adapters (`toInquirerValidator`, `sshFieldValidator`)
 - **Shell Escaping**: `escapeRemotePath()` for tilde-preserving remote path escaping, `secureScp()` for SCP with argument injection prevention via `--` separator
 - **Config Helpers**: `requireConfig()` replaces repetitive config-exists + load + null-check pattern across all commands
+- **Self-Update for GitHub Release Installs** (`skybox update`): Downloads and installs new SkyBox versions directly with checksum verification, atomic binary replacement, and automatic rollback on failure
+- **Session Integrity Checking**: Session lock files protected with HMAC-SHA256 to detect tampering
+- **First-Run Telemetry**: Tracks SkyBox installations via Rybbit analytics on first run (opt-out with `SKYBOX_TELEMETRY=0`), fire-and-forget with zero latency impact
 
 ### Changed
 
 - **DevBox → SkyBox**: Complete project rename across CLI binary, commands, documentation, configuration, and tests
 - **Local Sessions**: Replaced remote SSH-based lock system with local file-based sessions (synced via Mutagen) for simpler multi-machine conflict detection
 - **Feature-Based Templates**: Unified devcontainer templates to feature-based architecture with dev container features
+- All exported functions converted to arrow syntax for consistency
 - `isMutagenInstalled()` is now async (uses `execa` instead of `Bun.spawnSync`)
 - `ContainerInfo.status` uses `ContainerStatus` enum instead of raw string, with `rawStatus` for display
 - `SyncDefaults.sync_mode` narrowed from `string` to `"two-way-resolved" | "two-way-safe" | "one-way-replica"`
-- Types centralized in `src/types/index.ts` (`AuditEntry`, `GpgVerifyResult`, `KeyFingerprintResult`, `ResolvedProject`, `DevcontainerWorkspaceConfig`, `ValidationResult`)
+- Types centralized in `src/types/index.ts` (`AuditEntry`, `ResolvedProject`, `DevcontainerWorkspaceConfig`, `ValidationResult`)
 - Remote paths use `escapeRemotePath()` instead of `escapeShellArg()` for proper tilde expansion
 - CLI `--help` and `--version` flags skip Docker startup check
 - Dynamic imports in `up` and `down` commands replaced with static imports
 - Analytics configuration moved to environment variables
 - Doctor command suggests `brew install devcontainer` on macOS when Homebrew is available
 - Bumped dependencies (ora, @biomejs/biome, @types/react)
+- `skybox doctor` now auto-repairs Mutagen installation (extracts bundled binary or downloads) instead of only warning
+- Session files are now read-only (0o400) to prevent accidental modification
+- `skybox update` no longer triggers the passive update-check notification
+- Removed npm install method — SkyBox is distributed via GitHub Releases, Homebrew, or source only
 
 ### Fixed
 
@@ -50,7 +60,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SCP argument injection — direct `execa("scp")` calls replaced with `secureScp()`
 - Path traversal in clone — defense-in-depth check ensures resolved path stays within projects directory
 - Unvalidated remote-sourced project names in interactive clone flow
-- GPG trust-on-first-use — fetched key now verified against pinned fingerprint before signature check
 - Unredacted credentials and home directory paths in audit log details
 - Unbounded audit log growth — auto-rotates at 10 MB
 - Unhandled errors in CLI entry point now caught with consistent error output
@@ -62,6 +71,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `skybox locks` command (replaced by local session system)
 - Remote SSH-based lock polling
 - Architecture pages from public documentation (now internal-only)
+- GPG signature verification with key fingerprint pinning for Mutagen downloads (feature removed; checksum verification retained)
 
 ## [0.7.7] - 2026-02-01
 
@@ -318,6 +328,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Design documents for commands
   - Implementation plans
 
+[0.8.0]: https://github.com/NoorXLabs/SkyBox/compare/v0.7.7...v0.8.0
 [0.7.7]: https://github.com/NoorXLabs/SkyBox/compare/v0.7.6...v0.7.7
 [0.7.6]: https://github.com/NoorXLabs/SkyBox/compare/v0.7.5...v0.7.6
 [0.7.5]: https://github.com/NoorXLabs/SkyBox/compare/v0.7.4...v0.7.5

@@ -24,6 +24,7 @@ skybox up [project] [options]
 | `--no-prompt` | Non-interactive mode (errors instead of prompting) |
 | `--verbose` | Show detailed error output on container start failure |
 | `-A, --all` | Start all local projects in batch mode (tallies success/failure counts) |
+| `--dry-run` | Show what would happen without making changes |
 
 ## Description
 

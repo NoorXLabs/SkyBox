@@ -4,6 +4,12 @@ import { execSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { getRemoteHost } from "@commands/remote.ts";
 import { configExists, loadConfig } from "@lib/config.ts";
+import { MUTAGEN_VERSION } from "@lib/constants.ts";
+import { downloadMutagen } from "@lib/download.ts";
+import {
+	ensureMutagenExtracted,
+	needsMutagenExtraction,
+} from "@lib/mutagen-extract.ts";
 import { getMutagenPath } from "@lib/paths.ts";
 import { testConnection } from "@lib/ssh.ts";
 import type {
@@ -20,6 +26,7 @@ const icons: Record<DoctorCheckStatus, string> = {
 	fail: chalk.red("✗"),
 };
 
+// check whether Docker is installed and running
 const checkDocker = (): DoctorCheckResult => {
 	const name = "Docker";
 
@@ -66,44 +73,62 @@ const checkDocker = (): DoctorCheckResult => {
 	}
 };
 
-const checkMutagen = (): DoctorCheckResult => {
+// check whether the Mutagen binary is installed, version matches, and attempt repair if needed
+const checkMutagen = async (): Promise<DoctorCheckResult> => {
 	const name = "Mutagen";
+	const mutagenPath = getMutagenPath();
+	const missing = !existsSync(mutagenPath);
+	const needsExtraction = needsMutagenExtraction();
 
-	// Check if Mutagen binary exists
-	try {
-		const mutagenPath = getMutagenPath();
-
-		if (!existsSync(mutagenPath)) {
-			return {
-				name,
-				status: "warn",
-				message: "Mutagen not installed (will be downloaded on first use)",
-				fix: "Run 'skybox init' to download Mutagen",
-			};
+	// If binary exists and version matches, report pass
+	if (!missing && !needsExtraction) {
+		try {
+			const result = execSync(`"${mutagenPath}" version`, {
+				encoding: "utf-8",
+				timeout: 5000,
+			});
+			const version = result.trim().split("\n")[0] || "installed";
+			return { name, status: "pass", message: `Mutagen ${version}` };
+		} catch {
+			// Binary exists but can't run — fall through to repair
 		}
+	}
 
-		// Try to get version
-		const result = execSync(`"${mutagenPath}" version`, {
-			encoding: "utf-8",
-			timeout: 5000,
-		});
-		const version = result.trim().split("\n")[0] || "installed";
+	// Attempt auto-repair: re-extract bundled binary
+	const issue = missing ? "not installed" : "outdated or corrupted";
+	const extractResult = await ensureMutagenExtracted();
 
+	if (extractResult.success) {
 		return {
 			name,
 			status: "pass",
-			message: `Mutagen ${version}`,
-		};
-	} catch {
-		return {
-			name,
-			status: "warn",
-			message: "Mutagen check failed",
-			fix: "Run 'skybox init' to reinstall Mutagen",
+			message: `Mutagen v${MUTAGEN_VERSION} (${missing ? "installed" : "repaired"})`,
 		};
 	}
+
+	// Bundled extraction failed — try download fallback
+	try {
+		const dlResult = await downloadMutagen();
+		if (dlResult.success) {
+			return {
+				name,
+				status: "pass",
+				message: `Mutagen v${MUTAGEN_VERSION} (downloaded)`,
+			};
+		}
+	} catch {
+		// Download also failed
+	}
+
+	return {
+		name,
+		status: "fail",
+		message: `Mutagen ${issue} — automatic repair failed`,
+		fix: "Download Mutagen manually and place at ~/.skybox/bin/mutagen",
+	};
 };
 
+// check whether the SkyBox config file is valid with remotes configured
 const checkConfig = (): DoctorCheckResult => {
 	const name = "Configuration";
 
@@ -153,6 +178,7 @@ const checkConfig = (): DoctorCheckResult => {
 	}
 };
 
+// test SSH connectivity to all configured remotes
 const checkSSHConnectivity = async (): Promise<DoctorCheckResult[]> => {
 	const results: DoctorCheckResult[] = [];
 
@@ -202,6 +228,7 @@ const checkSSHConnectivity = async (): Promise<DoctorCheckResult[]> => {
 	return results;
 };
 
+// check whether the devcontainer CLI is installed
 const checkDevcontainerCLI = (): DoctorCheckResult => {
 	const name = "Devcontainer CLI";
 
@@ -236,6 +263,7 @@ const checkDevcontainerCLI = (): DoctorCheckResult => {
 	}
 };
 
+// print a single doctor check result with status icon and fix hint
 const printResult = (result: DoctorCheckResult): void => {
 	const icon = icons[result.status];
 	console.log(`  ${icon} ${result.name}: ${result.message}`);
@@ -244,6 +272,7 @@ const printResult = (result: DoctorCheckResult): void => {
 	}
 };
 
+// print the full doctor report with pass/warn/fail summary
 const printReport = (report: DoctorReport): void => {
 	console.log();
 	console.log(chalk.bold("SkyBox Doctor"));
@@ -282,12 +311,13 @@ const printReport = (report: DoctorReport): void => {
 	console.log();
 };
 
+// run diagnostic checks on Docker, Mutagen, config, CLI, and SSH
 export const doctorCommand = async (): Promise<void> => {
 	const checks: DoctorCheckResult[] = [];
 
 	// Run sync checks
 	checks.push(checkDocker());
-	checks.push(checkMutagen());
+	checks.push(await checkMutagen());
 	checks.push(checkDevcontainerCLI());
 	checks.push(checkConfig());
 

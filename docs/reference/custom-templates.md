@@ -161,16 +161,11 @@ Templates are validated at two points:
 
 SkyBox uses a shared template selector component. Available options can vary by command:
 
+<!--@include: ../snippets/template-selector-full.md-->
+
+If you have custom templates in `~/.skybox/templates/`, they appear in the "Your Templates" section with validation status:
+
 ```
-? Select a template:
-── Built-in ──
-  Node.js — Node.js (latest) with npm/yarn + Docker support
-  Bun — Bun (latest) with TypeScript + Docker support
-  Python — Python (latest) with pip/venv + Docker support
-  Go — Go (latest) + Docker support
-  Generic — Debian with basic dev tools + Docker support
-── Other ──
-  Enter git URL
 ── Your Templates ──
   bun
   python ⚠ missing workspaceFolder

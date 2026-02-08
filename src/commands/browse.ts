@@ -9,6 +9,7 @@ import { error, header, info, spinner } from "@lib/ui.ts";
 import type { RemoteProject } from "@typedefs/index.ts";
 import chalk from "chalk";
 
+// fetch project names and git branches from a remote server via SSH
 export const getRemoteProjects = async (
 	host: string,
 	basePath: string,
@@ -37,6 +38,7 @@ export const getRemoteProjects = async (
 		});
 };
 
+// display a formatted table of remote projects
 const printProjects = (
 	projects: RemoteProject[],
 	host: string,
@@ -63,12 +65,14 @@ const printProjects = (
 	info("Run 'skybox clone <project>' to clone a project locally.");
 };
 
+// display a message when no remote projects are found
 const printEmpty = (): void => {
 	console.log();
 	console.log("No projects found on remote.");
 	info("Run 'skybox push ./my-project' to push your first project.");
 };
 
+// list projects on a remote server via SSH
 export const browseCommand = async (): Promise<void> => {
 	const config = requireConfig();
 

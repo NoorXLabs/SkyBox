@@ -1,10 +1,11 @@
-/** Mutagen sync session management: create, pause, resume, terminate. */
+// Mutagen sync session management: create, pause, resume, terminate.
 import { join } from "node:path";
 import { getExecaErrorMessage } from "@lib/errors.ts";
 import { getMutagenPath } from "@lib/paths.ts";
 import type { SyncStatus, SyncStatusValue } from "@typedefs/index.ts";
 import { execa } from "execa";
 
+// sanitize mutagen segment
 const sanitizeMutagenSegment = (value: string, fallback: string): string => {
 	const sanitized = value
 		.toLowerCase()
@@ -14,26 +15,26 @@ const sanitizeMutagenSegment = (value: string, fallback: string): string => {
 	return sanitized || fallback;
 };
 
+// build ignore args
 const buildIgnoreArgs = (ignores: string[]): string[] => {
 	return ignores.flatMap((pattern) => ["--ignore", pattern]);
 };
 
+// to remote endpoint
 const toRemoteEndpoint = (remoteHost: string, remotePath: string): string => {
 	return `${remoteHost}:${remotePath}`;
 };
 
-/**
- * Generate a sanitized Mutagen session name from a project name.
- * Mutagen session names should contain only alphanumeric characters, hyphens, and underscores.
- */
+// generate a sanitized Mutagen session name from a project name.
+// Mutagen session names should contain only alphanumeric characters, hyphens, and underscores.
 export const sessionName = (project: string): string => {
 	return `skybox-${sanitizeMutagenSegment(project, "project")}`;
 };
 
-/** Standard result type for Mutagen operations */
+// standard result type for Mutagen operations
 type MutagenResult = { success: boolean; error?: string };
 
-/** Execute a Mutagen command and return a standardized result */
+// execute a Mutagen command and return a standardized result
 const executeMutagenCommand = async (
 	args: string[],
 ): Promise<MutagenResult> => {
@@ -45,6 +46,7 @@ const executeMutagenCommand = async (
 	}
 };
 
+// create a Mutagen sync session between local and remote paths by name
 const createSyncSessionByName = async (options: {
 	name: string;
 	localPath: string;
@@ -66,6 +68,7 @@ const createSyncSessionByName = async (options: {
 	]);
 };
 
+// create sync session
 export const createSyncSession = async (
 	project: string,
 	localPath: string,
@@ -82,6 +85,7 @@ export const createSyncSession = async (
 	});
 };
 
+// get the current status of a Mutagen sync session
 export const getSyncStatus = async (project: string): Promise<SyncStatus> => {
 	const name = sessionName(project);
 
@@ -111,6 +115,7 @@ export const getSyncStatus = async (project: string): Promise<SyncStatus> => {
 	}
 };
 
+// wait for sync
 export const waitForSync = async (
 	project: string,
 	onProgress?: (message: string) => void,
@@ -124,16 +129,19 @@ export const waitForSync = async (
 	return result;
 };
 
+// pause sync
 export const pauseSync = async (project: string): Promise<MutagenResult> => {
 	const name = sessionName(project);
 	return executeMutagenCommand(["sync", "pause", name]);
 };
 
+// resume sync
 export const resumeSync = async (project: string): Promise<MutagenResult> => {
 	const name = sessionName(project);
 	return executeMutagenCommand(["sync", "resume", name]);
 };
 
+// terminate session
 export const terminateSession = async (
 	project: string,
 ): Promise<MutagenResult> => {
@@ -141,9 +149,7 @@ export const terminateSession = async (
 	return executeMutagenCommand(["sync", "terminate", name]);
 };
 
-/**
- * Generate a sanitized Mutagen session name for a selective sync subpath.
- */
+// generate a sanitized Mutagen session name for a selective sync subpath.
 export const selectiveSessionName = (
 	project: string,
 	subpath: string,
@@ -153,9 +159,7 @@ export const selectiveSessionName = (
 	return `skybox-${sanitizedProject}-${sanitizedPath}`;
 };
 
-/**
- * Terminate selective sync sessions for specific subpaths.
- */
+// terminate selective sync sessions for specific subpaths.
 export const terminateSelectiveSyncSessions = async (
 	project: string,
 	syncPaths: string[],
@@ -166,9 +170,7 @@ export const terminateSelectiveSyncSessions = async (
 	}
 };
 
-/**
- * Create multiple Mutagen sync sessions for selective subdirectory sync.
- */
+// create multiple Mutagen sync sessions for selective subdirectory sync.
 export const createSelectiveSyncSessions = async (
 	project: string,
 	localPath: string,

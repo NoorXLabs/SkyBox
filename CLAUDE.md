@@ -95,6 +95,7 @@ bun run src/index.ts <command>
 - Strict mode enabled - no implicit any, strict null checks
 - All types defined in `src/types/index.ts`
 - **Arrow functions**: Use `export const fn = (...): ReturnType => { }` — not `export function fn() { }`. All exported functions use arrow syntax.
+- **No JSDoc in production code**: `src/` uses inline `//` comments only where logic isn't self-evident. Do not add `/** */` blocks. Test helpers in `tests/` do use JSDoc — that's fine.
 - Async/await for all I/O operations
 - Use `execa` for executing external commands
 
@@ -195,7 +196,7 @@ describe("feature name", () => {
 - Clean up all created files in `afterEach`
 - Use real filesystem operations (no mocking fs module)
 - Test both success and error cases
-- Use `test.skipIf(!condition)` for tests requiring optional external binaries (GPG, SCP)
+- Use `test.skipIf(!condition)` for tests requiring optional external binaries (SCP)
 
 ### Integration Test Conventions
 
@@ -287,7 +288,7 @@ Config file location: `~/.skybox/config.yaml`
 
 Config structure (V2 - multi-remote):
 ```yaml
-editor: cursor | code | vim | nvim | zed
+editor: cursor | code | code-insiders | zed | <custom>
 
 defaults:
   sync_mode: two-way-resolved
@@ -327,7 +328,7 @@ Local session files detect multi-machine conflicts:
 ### Sync System
 
 Bidirectional file sync via Mutagen:
-- Mutagen binary auto-downloaded during `skybox init`
+- Mutagen binary bundled and extracted during `skybox init` (falls back to download in dev mode)
 - Sessions managed in `src/lib/mutagen.ts`
 - Default ignore patterns in `src/lib/constants.ts` as `DEFAULT_IGNORE`
 
@@ -351,13 +352,14 @@ Uses Docker with devcontainer spec:
 | `src/lib/ui.ts` | Terminal output helpers |
 | `src/lib/errors.ts` | Error handling utilities |
 | `src/lib/encryption.ts` | AES-256-GCM encrypt/decrypt for config values |
+| `src/lib/git.ts` | Git operations for status, push, and project creation |
 | `src/lib/validation.ts` | Path traversal prevention, input validation, SSH field validation, inquirer validator adapters |
 | `src/lib/shell.ts` | Shell escaping: `escapeShellArg()`, `escapeRemotePath()`, `buildShellCommand()` |
-| `src/lib/download.ts` | Mutagen binary download with checksum and GPG verification |
+| `src/lib/download.ts` | Mutagen binary download fallback (dev mode) with checksum verification |
 | `src/lib/ssh.ts` | SSH operations: `runRemoteCommand()`, `secureScp()`, `writeSSHConfigEntry()` |
 | `src/lib/hooks.ts` | Hook runner for pre/post lifecycle events |
 | `src/lib/audit.ts` | Audit logging (JSON Lines to `~/.skybox/audit.log`) |
-| `src/lib/gpg.ts` | GPG signature verification for Mutagen downloads |
+| `src/lib/command-guard.ts` | Config guards for commands (requireLoadedConfigOrExit) |
 | `src/lib/shutdown.ts` | Graceful shutdown and signal handling |
 | `src/commands/dashboard.tsx` | Ink/React TUI dashboard |
 | `.github/workflows/release.yml` | Release workflow: builds 4 platform binaries (darwin-arm64, darwin-x64, linux-x64, linux-arm64) |
@@ -370,8 +372,13 @@ Uses Docker with devcontainer spec:
 | `src/lib/ownership.ts` | Resource ownership verification for remote projects |
 | `src/lib/paths.ts` | Centralized path computation for SkyBox directories |
 | `src/lib/project.ts` | Local project path resolution and validation |
+| `src/lib/relative-time.ts` | Human-readable relative timestamps for status and dashboard |
 | `src/lib/remote.ts` | Operations for interacting with remote servers |
+| `src/lib/remote-encryption.ts` | Remote encryption/decryption workflow for up, down, and encrypt commands |
 | `src/lib/startup.ts` | Dependency checks run at CLI startup |
+| `src/lib/sync-session.ts` | Sync session lifecycle (creates standard or selective sync sessions) |
+| `src/lib/telemetry.ts` | First-run install tracking (Rybbit analytics, fire-and-forget) |
+| `src/lib/templates.ts` | Template selection UI for up, new, and config devcontainer |
 | `src/lib/update-check.ts` | Version update check with 24h cache via GitHub API |
 | `src/lib/verify-lockfile.ts` | Verify bun.lock integrity (supply chain security) |
 
@@ -461,8 +468,11 @@ SkyBox respects the following environment variables:
 |----------|---------|-------------|
 | `SKYBOX_HOME` | `~/.skybox` | Override SkyBox data directory location |
 | `SKYBOX_AUDIT` | `0` | Set to `1` to enable audit logging to `~/.skybox/audit.log` |
-| `SKYBOX_SKIP_GPG` | `0` | Set to `1` to skip GPG signature verification for Mutagen downloads |
 | `SKYBOX_HOOK_WARNINGS` | `1` | Set to `0` to suppress one-time hook security warning |
+| `SKYBOX_TELEMETRY` | `1` | Set to `0` to disable first-run install tracking |
+| `RYBBIT_URL` | unset | Rybbit analytics endpoint for first-run telemetry (set at build time) |
+| `RYBBIT_SITE_ID` | unset | Rybbit site identifier for first-run telemetry (set at build time) |
+| `RYBBIT_API_KEY` | unset | Rybbit API key for authenticating telemetry requests (set at build time) |
 | `DEBUG` | unset | Set to any value to enable debug output in list command |
 
 ### Audit Logging

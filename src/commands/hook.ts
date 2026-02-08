@@ -1,9 +1,6 @@
-/**
- * Shell hook commands for auto-starting containers on directory enter.
- *
- * - `skybox hook <shell>` - Output shell hook code for bash/zsh
- * - `skybox hook-check` - Hidden: check and auto-start (called by hook)
- */
+// shell hook commands for auto-starting containers on directory enter.
+// - `skybox hook <shell>` - Output shell hook code for bash/zsh
+// - `skybox hook-check` - Hidden: check and auto-start (called by hook)
 
 import { spawn } from "node:child_process";
 import { appendFileSync, existsSync, mkdirSync } from "node:fs";
@@ -14,10 +11,8 @@ import { resolveProjectFromCwd } from "@lib/project.ts";
 import { dryRun, error, isDryRun } from "@lib/ui.ts";
 import { ContainerStatus } from "@typedefs/index.ts";
 
-/**
- * Generate bash shell hook code.
- * Uses PROMPT_COMMAND to trigger on directory changes.
- */
+// generate bash shell hook code.
+// uses PROMPT_COMMAND to trigger on directory changes.
 export const generateBashHook = (): string => {
 	return `# SkyBox shell hook for bash
 # Add to ~/.bashrc: eval "$(skybox hook bash)"
@@ -40,10 +35,8 @@ fi
 `;
 };
 
-/**
- * Generate zsh shell hook code.
- * Uses precmd hook via add-zsh-hook.
- */
+// generate zsh shell hook code.
+// uses precmd hook via add-zsh-hook.
 export const generateZshHook = (): string => {
 	return `# SkyBox shell hook for zsh
 # Add to ~/.zshrc: eval "$(skybox hook zsh)"
@@ -67,9 +60,7 @@ fi
 `;
 };
 
-/**
- * Log a message to the auto-up log file.
- */
+// log a message to the auto-up log file.
 const logAutoUp = (message: string): void => {
 	try {
 		const logsDir = getLogsDir();
@@ -84,10 +75,8 @@ const logAutoUp = (message: string): void => {
 	}
 };
 
-/**
- * Command handler for `skybox hook <shell>`.
- * Outputs shell hook code to stdout.
- */
+// command handler for `skybox hook <shell>`.
+// outputs shell hook code to stdout.
 export const hookCommand = async (shell: string | undefined): Promise<void> => {
 	if (!shell) {
 		error("Usage: skybox hook <bash|zsh>");
@@ -107,11 +96,9 @@ export const hookCommand = async (shell: string | undefined): Promise<void> => {
 	}
 };
 
-/**
- * Command handler for `skybox hook-check`.
- * Hidden subcommand called by shell hooks.
- * Always exits 0 to never break the shell.
- */
+// command handler for `skybox hook-check`.
+// hidden subcommand called by shell hooks.
+// always exits 0 to never break the shell.
 export const hookCheckCommand = async (): Promise<void> => {
 	try {
 		if (isDryRun()) {

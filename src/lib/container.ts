@@ -1,4 +1,4 @@
-/** Docker container operations: query, start, stop, inspect. */
+// Docker container operations: query, start, stop, inspect.
 
 import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { join } from "node:path";
@@ -23,6 +23,7 @@ const normalizePath = (path: string): string => {
 	}
 };
 
+// resolve devcontainer config path
 const resolveDevcontainerConfigPath = (projectPath: string): string | null => {
 	const configPath = join(
 		projectPath,
@@ -35,6 +36,7 @@ const resolveDevcontainerConfigPath = (projectPath: string): string | null => {
 	return null;
 };
 
+// parse container status
 const parseContainerStatus = (
 	rawStatus: string | undefined,
 ): ContainerStatus => {
@@ -43,7 +45,7 @@ const parseContainerStatus = (
 		: ContainerStatus.Stopped;
 };
 
-/** Validate a Docker container ID (short or full hex format). */
+// validate a Docker container ID (short or full hex format).
 const isValidContainerId = (id: string): boolean => {
 	return /^[a-f0-9]{12,64}$/.test(id);
 };
@@ -58,10 +60,8 @@ import {
 
 export type EditorId = (typeof SUPPORTED_EDITORS)[number]["id"] | string;
 
-/**
- * Query Docker for containers matching a label filter.
- * Centralizes the common Docker query pattern used throughout the codebase.
- */
+// query Docker for containers matching a label filter.
+// centralizes the common Docker query pattern used throughout the codebase.
 const queryDockerContainers = async (options: {
 	projectPath?: string;
 	includeAll?: boolean; // Include stopped containers (-a)

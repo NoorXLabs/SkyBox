@@ -1,6 +1,6 @@
 # skybox update
 
-Update the Mutagen binary to the latest bundled version.
+Check for and install SkyBox updates.
 
 ## Usage
 
@@ -10,46 +10,78 @@ skybox update
 
 ## Description
 
-The `update` command checks whether the locally installed Mutagen binary matches the version bundled with SkyBox and updates it if needed.
+The `update` command checks GitHub Releases for a newer version of SkyBox and either performs the update automatically or tells you the right command for your install method.
 
-The command performs the following steps:
+### Behavior by Install Method
 
-1. **Version Check** - Reads the currently installed Mutagen version
-2. **Comparison** - Compares it against the target version bundled with SkyBox
-3. **Extraction** - If a bundled Mutagen asset is available (compiled builds), extracts it directly
-4. **Download Fallback** - If no bundled asset is found (dev mode), downloads from GitHub with a progress indicator
+| Install Method | Behavior |
+|---------------|----------|
+| **Direct download** (GitHub Release binary) | Downloads the new binary and replaces the current one in place |
+| **Homebrew** | Shows the `brew upgrade skybox` command to run |
+| **Source** | Shows the `git pull && bun install` command to run |
 
-If Mutagen is already up to date, the command reports success and exits without downloading.
+For direct download users, `skybox update` is the primary way to stay up to date. You'll also see a passive notification after any command when a new version is available:
 
-### When to Use
+```
+Update available: 0.7.7 → 0.8.0.
+Run: skybox update
+```
 
-- After upgrading SkyBox to a new version that bundles a newer Mutagen release
-- If Mutagen was not installed during initial setup
-- To repair a corrupted or missing Mutagen binary
+### Self-Update Process (Direct Download)
+
+When installed via GitHub Release binary, the command:
+
+1. **Verifies permissions** — checks write access to the binary directory before downloading
+2. **Downloads checksum** — fetches `checksums.txt` from the release for integrity verification
+3. **Downloads** the correct platform binary (e.g., `skybox-darwin-arm64`) to a temp file
+4. **Verifies integrity** — computes SHA-256 of the download and compares against the expected checksum
+5. **Prepares binary** — sets executable permissions and removes macOS quarantine attributes
+6. **Backs up** the current binary before replacing it
+7. **Replaces** the current binary atomically (rename temp over current)
+8. **Verifies** the new binary runs correctly (`--version` check)
+9. **Rolls back** automatically if verification fails, restoring the previous version
+
+If `checksums.txt` is not available for a release (e.g., older releases), the update proceeds with a warning but skips integrity verification.
 
 ## Examples
 
 ```bash
-# Check and update Mutagen
+# Check and update
 skybox update
 
-# Output when already up to date:
+# Output when up to date:
 #   Checking for updates...
-#   ✔ Mutagen is up to date (v0.18.1).
+#   ✔ No update available. You are on the latest version (0.8.0).
 
-# Output when updating:
+# Output when updating (direct download):
 #   Checking for updates...
-#   Mutagen: v0.17.5 → v0.18.1
-#   ✔ Mutagen updated to v0.18.1.
+#   ✔ SkyBox updated to v0.8.1 (verified).
+
+# Output when update available (Homebrew):
+#   Checking for updates...
+#   Update available: 0.7.7 → 0.8.0
+#   Run: brew upgrade skybox
+
+# Output when permission denied:
+#   ✗ Cannot update: permission denied for /usr/local/bin. Try running with sudo.
+
+# Output when checksum fails:
+#   ✗ Checksum verification failed.
+#   ✗ The downloaded binary does not match the expected checksum. The download may be corrupted.
+
+# Output when post-update verification fails:
+#   ✗ Update verification failed.
+#   ✗ The new binary did not report version 0.8.1. Restored previous version.
 ```
 
 ## Exit Codes
 
 | Code | Meaning |
 |------|---------|
-| 0 | Success |
-| 1 | Error (download failed) |
+| 0 | Success (up to date or updated) |
+| 1 | Error (permission denied, network failure, checksum mismatch, or verification failed) |
 
 ## See Also
 
-- [skybox init](/reference/init) - Initial setup (also installs Mutagen)
+- [skybox doctor](/reference/doctor) - Diagnose common issues
+- [Installation Guide](/guide/installation) - Install methods

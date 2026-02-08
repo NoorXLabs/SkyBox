@@ -1,8 +1,8 @@
 # SkyBox - Implementation Tracker
 
-> **Version:** 0.7.7
+> **Version:** 0.8.0
 >
-> **Progress:** 0/16 future features | 0/18 checklist items | 0/2 release tasks
+> **Progress:** 1/18 future features | 0/18 checklist items | 0/2 release tasks
 >
 > **Completed work archived:** [`plans/archive/ARCHIVED-IMPLEMENTATION.md`](archive/ARCHIVED-IMPLEMENTATION.md)
 
@@ -106,12 +106,9 @@ Global `--verbose` flag for debugging output across all commands.
 - **Files:** `src/index.ts` (global option), all command files
 - **Notes:** Use environment variable or global flag; conditionally log debug info
 
-- [ ] ### Dry Run Mode
+- [x] ### Dry Run Mode *(Completed in v0.8.0)*
 
 `--dry-run` flag to preview commands without executing them.
-
-- **Files:** `src/index.ts` (global option), command files
-- **Notes:** Print commands that would be executed; useful for debugging
 
 - [ ] ### JSON Output
 
@@ -199,4 +196,4 @@ One-line description of what this feature does and why.
 
 ---
 
-*Last updated: 2026-02-05*
+*Last updated: 2026-02-07*

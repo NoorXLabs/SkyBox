@@ -18,10 +18,12 @@ import { dryRun, error, info, isDryRun, spinner, success } from "@lib/ui.ts";
 import type { SkyboxConfigV2 } from "@typedefs/index.ts";
 import { execa } from "execa";
 
+// build the path to a project's devcontainer.json file
 const getDevcontainerPath = (projectPath: string): string => {
 	return join(projectPath, DEVCONTAINER_DIR_NAME, DEVCONTAINER_CONFIG_NAME);
 };
 
+// open a project's devcontainer.json in the configured editor and push changes to remote
 export const devcontainerEditCommand = async (
 	project: string,
 ): Promise<void> => {
@@ -65,6 +67,7 @@ export const devcontainerEditCommand = async (
 	await pushDevcontainerToRemote(project, projectPath, config);
 };
 
+// reset a project's devcontainer.json from a template and push to remote
 export const devcontainerResetCommand = async (
 	project: string,
 ): Promise<void> => {
@@ -105,6 +108,7 @@ export const devcontainerResetCommand = async (
 	await pushDevcontainerToRemote(project, projectPath, appConfig);
 };
 
+// push the local devcontainer.json to the project's remote server
 const pushDevcontainerToRemote = async (
 	project: string,
 	projectPath: string,

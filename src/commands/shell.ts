@@ -19,6 +19,7 @@ import { ContainerStatus, type ShellOptions } from "@typedefs/index.ts";
 import { execa } from "execa";
 import inquirer from "inquirer";
 
+// open an interactive shell or run a command inside a project container
 export const shellCommand = async (
 	project: string,
 	options: ShellOptions,
@@ -119,6 +120,7 @@ export const shellCommand = async (
 				{ stdio: "inherit" },
 			);
 		} catch (err: unknown) {
+			// exit code
 			const exitCode = (err as { exitCode?: number })?.exitCode;
 			if (exitCode !== undefined) {
 				process.exit(exitCode);

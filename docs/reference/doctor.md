@@ -23,7 +23,7 @@ The `doctor` command runs a series of health checks to verify that SkyBox and it
 | Check | Description |
 |-------|-------------|
 | Docker | Verifies Docker is installed and the daemon is running |
-| Mutagen | Verifies the Mutagen sync binary is installed |
+| Mutagen | Verifies the Mutagen sync binary is installed and up to date; auto-repairs if missing or outdated |
 | Devcontainer CLI | Verifies the devcontainer CLI is installed |
 | Configuration | Verifies SkyBox config exists and is valid |
 | SSH Connectivity | Tests SSH connection to all configured remotes |
@@ -52,7 +52,7 @@ SkyBox Doctor
 ────────────────────────────────────────
 
   ✓ Docker: Docker 24.0 is running
-  ✓ Mutagen: Mutagen 0.17.5
+  ✓ Mutagen: Mutagen v0.18.1
   ✓ Devcontainer CLI: devcontainer 0.62.0
   ✓ Configuration: Config loaded (2 remotes)
   ✓ SSH: work: Connected to work-server
@@ -71,8 +71,7 @@ SkyBox Doctor
 ────────────────────────────────────────
 
   ✓ Docker: Docker 24.0 is running
-  ! Mutagen: Mutagen not installed (will be downloaded on first use)
-      Fix: Run 'skybox init' to download Mutagen
+  ✓ Mutagen: Mutagen v0.18.1 (installed)
   ✓ Devcontainer CLI: devcontainer 0.62.0
   ✓ Configuration: Config loaded (2 remotes)
   ✓ SSH: work: Connected to work-server
@@ -103,14 +102,20 @@ SkyBox Doctor
 
 Start Docker Desktop or run `systemctl start docker` on Linux.
 
-### Mutagen not installed
+### Mutagen not installed or outdated
+
+Doctor automatically detects missing, outdated, or corrupted Mutagen binaries and attempts to repair them by re-extracting from the bundled asset (or downloading as a fallback). If repair succeeds, you'll see:
 
 ```
-! Mutagen: Mutagen not installed (will be downloaded on first use)
-    Fix: Run 'skybox init' to download Mutagen
+✓ Mutagen: Mutagen v0.18.1 (installed)
 ```
 
-Run `skybox init` to download Mutagen automatically.
+If automatic repair fails:
+
+```
+✗ Mutagen: Mutagen not installed — automatic repair failed
+    Fix: Download Mutagen manually and place at ~/.skybox/bin/mutagen
+```
 
 ### Devcontainer CLI not found
 

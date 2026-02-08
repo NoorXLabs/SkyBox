@@ -1,4 +1,4 @@
-/** Local project path resolution and validation. */
+// local project path resolution and validation.
 import { existsSync, readdirSync, realpathSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { getProjectsDir } from "@lib/paths.ts";
@@ -8,6 +8,7 @@ export type SingleProjectResolution =
 	| { project: string }
 	| { reason: "no-projects" | "no-prompt" };
 
+// resolve project from cwd
 export const resolveProjectFromCwd = (): string | null => {
 	const cwd = process.cwd();
 	const projectsDir = getProjectsDir();
@@ -35,6 +36,7 @@ export const resolveProjectFromCwd = (): string | null => {
 	return parts[0] || null;
 };
 
+// get local projects
 export const getLocalProjects = (): string[] => {
 	const projectsDir = getProjectsDir();
 	if (!existsSync(projectsDir)) {
@@ -47,14 +49,17 @@ export const getLocalProjects = (): string[] => {
 	});
 };
 
+// get project path
 export const getProjectPath = (projectName: string): string => {
 	return join(getProjectsDir(), projectName);
 };
 
+// project exists
 export const projectExists = (projectName: string): boolean => {
 	return existsSync(getProjectPath(projectName));
 };
 
+// resolve single project
 export const resolveSingleProject = async (options: {
 	projectArg?: string;
 	noPrompt?: boolean;

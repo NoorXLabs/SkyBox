@@ -48,10 +48,8 @@ import {
 } from "@typedefs/index.ts";
 import inquirer from "inquirer";
 
-/**
- * Encrypt project directory on remote after sync flush.
- * Tars project, downloads tar, encrypts locally, uploads encrypted archive, deletes plaintext on remote.
- */
+// encrypt project directory on remote after sync flush.
+// tars project, downloads tar, encrypts locally, uploads encrypted archive, deletes plaintext on remote.
 const handleEncryption = async (
 	project: string,
 	config: SkyboxConfigV2,
@@ -124,6 +122,7 @@ const handleEncryption = async (
 	return false;
 };
 
+// stop a project container, flush sync, optionally encrypt, and clean up
 export const downCommand = async (
 	projectArg: string | undefined,
 	options: DownOptions,

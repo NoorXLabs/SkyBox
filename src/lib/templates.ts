@@ -1,4 +1,4 @@
-/** Devcontainer template definitions and generation. */
+// devcontainer template definitions and generation.
 import {
 	existsSync,
 	mkdirSync,
@@ -26,12 +26,13 @@ import type {
 import { execa } from "execa";
 
 export interface TemplateSelectorOptions {
-	/** Show "Enter git URL" option in the selector. Default: true */
+	// show "Enter git URL" option in the selector. Default: true
 	allowGitUrl?: boolean;
-	/** Show "Create new template" option in the selector. Default: true */
+	// show "Create new template" option in the selector. Default: true
 	allowCreateTemplate?: boolean;
 }
 
+// build devcontainer config from template
 export const buildDevcontainerConfigFromTemplate = (
 	projectPath: string,
 	templateId: string,
@@ -53,9 +54,7 @@ export const buildDevcontainerConfigFromTemplate = (
 	};
 };
 
-/**
- * Write a DevcontainerConfig to a project's .devcontainer/devcontainer.json.
- */
+// write a DevcontainerConfig to a project's .devcontainer/devcontainer.json.
 export const writeDevcontainerConfig = (
 	projectPath: string,
 	config: DevcontainerConfig,
@@ -66,9 +65,7 @@ export const writeDevcontainerConfig = (
 	writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`);
 };
 
-/**
- * Validate a parsed devcontainer config has required fields.
- */
+// validate a parsed devcontainer config has required fields.
 export const validateTemplate = (config: unknown): ValidationResult => {
 	if (typeof config !== "object" || config === null) {
 		return { valid: false, error: "not a JSON object" };
@@ -83,9 +80,7 @@ export const validateTemplate = (config: unknown): ValidationResult => {
 	return { valid: true };
 };
 
-/**
- * Load user templates from ~/.skybox/templates/*.json.
- */
+// load user templates from ~/.skybox/templates/*.json.
 export const loadUserTemplates = (): UserLocalTemplate[] => {
 	const dir = getUserTemplatesDir();
 	if (!existsSync(dir)) {
@@ -121,9 +116,7 @@ export const loadUserTemplates = (): UserLocalTemplate[] => {
 	return templates;
 };
 
-/**
- * Scaffold a new user template file with required fields pre-filled.
- */
+// scaffold a new user template file with required fields pre-filled.
 export const scaffoldTemplate = (name: string): string => {
 	// Validate template name at sink to prevent path traversal
 	if (
@@ -162,10 +155,8 @@ export const scaffoldTemplate = (name: string): string => {
 	return filePath;
 };
 
-/**
- * Run the "Create new template" sub-flow: name prompt, scaffold, edit prompt.
- * Returns the file path of the created template.
- */
+// run the "Create new template" sub-flow: name prompt, scaffold, edit prompt.
+// returns the file path of the created template.
 const createNewTemplateFlow = async (): Promise<void> => {
 	const existingTemplates = loadUserTemplates();
 	const existingNames = new Set(existingTemplates.map((t) => t.name));
@@ -213,12 +204,10 @@ const createNewTemplateFlow = async (): Promise<void> => {
 	}
 };
 
-/**
- * Unified template selector used by all commands.
- * Shows built-in templates and user local templates, with optional sections
- * (for example, git URL and create-template actions) controlled by options.
- * Returns a TemplateSelection or null if cancelled.
- */
+// unified template selector used by all commands.
+// shows built-in templates and user local templates, with optional sections
+// (for example, git URL and create-template actions) controlled by options.
+// returns a TemplateSelection or null if cancelled.
 export const selectTemplate = async (
 	options: TemplateSelectorOptions = {},
 ): Promise<TemplateSelection | null> => {

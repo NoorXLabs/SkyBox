@@ -76,7 +76,7 @@ skybox clone backend-api
 
 1. **Remote Check** - Verifies the project exists on remote
 2. **Local Directory** - Creates `~/.skybox/Projects/backend-api`
-3. **Sync Session** - Creates Mutagen sync session
+3. **[Sync](/guide/concepts#sync) Session** - Creates Mutagen sync session
 4. **Initial Sync** - Downloads all files from remote
 5. **Optional Start** - Prompts to start the dev container
 
@@ -123,47 +123,25 @@ skybox up new-app
 
 SkyBox detects no `devcontainer.json` and offers templates:
 
-```
-No devcontainer.json found
-? Would you like to create a devcontainer.json from a template? (Y/n)
-? Select a template:
-  1) Node.js - Node.js (latest) with npm/yarn + Docker support
-  2) Python - Python (latest) with pip/venv + Docker support
-  3) Go - Go (latest) + Docker support
-  4) Generic - Debian with basic dev tools + Docker support
-```
+<!--@include: ../../snippets/template-selector-up.md-->
 
 ### Available Templates
 
-| Template | Base Image | Includes |
-|----------|-----------|----------|
-| **Node.js** | Node (latest) | npm, yarn, ESLint extension |
-| **Python** | Python (latest) | pip, venv, Python extension |
-| **Go** | Go (latest) | Go tools, Go extension |
-| **Generic** | Debian | Basic dev tools |
+<!--@include: ../../snippets/templates-table.md-->
 
-You can also use a **custom template** by providing a git URL:
+You can also use a **custom template** by providing a git URL. In the template selector, choose "Enter git URL" under the "Other" section:
 
-```
-? Select a template:
-  1) Node.js
-  2) Python
-  3) Go
-  4) Generic
-  5) Custom (git URL)
-```
+<!--@include: ../../snippets/template-selector-full.md-->
 
-When selecting "Custom", provide a git repository URL containing a `.devcontainer/devcontainer.json`:
+When selecting "Enter git URL", provide a git repository URL:
 
 ```
-? Git URL: https://github.com/my-org/custom-devcontainer.git
+? Git repository URL: https://github.com/my-org/custom-devcontainer.git
 ```
 
-All built-in templates include:
-- Docker-outside-of-Docker (run containers from inside)
-- SSH passthrough (your keys work inside the container)
-- Zsh as default shell
-- Git pre-installed
+All built-in templates include these common features:
+
+<!--@include: ../../snippets/common-template-features.md-->
 
 ### Step 4: Template Creates Configuration
 
@@ -225,7 +203,6 @@ After SkyBox creates the initial configuration, you can customize it:
 For more complex setups (databases, caches), create `.devcontainer/docker-compose.yml`:
 
 ```yaml
-version: '3.8'
 services:
   app:
     build:
@@ -283,28 +260,9 @@ skybox status my-project
 
 Output shows:
 
-```
-Project: my-project
---------------------------------------------------
-
-Container
-  Status:     running
-  Image:      mcr.microsoft.com/devcontainers/base:debian
-  Uptime:     2 hours
-
-Sync
-  Status:     syncing
-  Session:    skybox-my-project
-  Pending:    0 files
-
-Git
-  Branch:     main
-  Status:     clean
-
-Session
-  Status:     active here
-```
+<!--@include: ../../snippets/status-detailed.md-->
 
 ## Next Steps
 
 - [Daily Development](/guide/workflows/daily-development) - Learn the day-to-day workflow
+- [Multi-Machine Workflow](/guide/workflows/multi-machine) - Working across multiple computers

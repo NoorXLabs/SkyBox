@@ -27,10 +27,8 @@ import type { RemoteEntry, SkyboxConfigV2 } from "@typedefs/index.ts";
 import chalk from "chalk";
 import inquirer from "inquirer";
 
-/**
- * Prompt user to select a remote from configured remotes.
- * If only one remote exists, returns it automatically.
- */
+// prompt user to select a remote from configured remotes.
+// if only one remote exists, returns it automatically.
 export const selectRemote = async (
 	config?: SkyboxConfigV2 | null,
 ): Promise<string> => {
@@ -66,10 +64,8 @@ export const selectRemote = async (
 	return selected;
 };
 
-/**
- * Get the remote associated with a project.
- * Returns null if project not found or remote not configured.
- */
+// get the remote associated with a project.
+// returns null if project not found or remote not configured.
 export const getProjectRemote = (
 	projectName: string,
 	config?: SkyboxConfigV2 | null,
@@ -86,17 +82,13 @@ export const getProjectRemote = (
 	return { name: project.remote, remote };
 };
 
-/**
- * Build SSH connection string from remote entry.
- * Returns "user@host" or just "host" if no user specified.
- */
+// build SSH connection string from remote entry.
+// returns "user@host" or just "host" if no user specified.
 export const getRemoteHost = (remote: RemoteEntry): string => {
 	return remote.user ? `${remote.user}@${remote.host}` : remote.host;
 };
 
-/**
- * Build remote path for a project on a given remote.
- */
+// build remote path for a project on a given remote.
 export const getRemotePath = (
 	remote: RemoteEntry,
 	projectName: string,
@@ -104,9 +96,7 @@ export const getRemotePath = (
 	return `${remote.path}/${projectName}`;
 };
 
-/**
- * Parse a remote string in "user@host:path" format
- */
+// parse a remote string in "user@host:path" format
 export const parseRemoteString = (
 	str: string,
 ): { user: string; host: string; path: string } | null => {
@@ -115,9 +105,7 @@ export const parseRemoteString = (
 	return { user: match[1], host: match[2], path: match[3] };
 };
 
-/**
- * Add a remote directly without interaction (for CLI direct mode)
- */
+// add a remote directly without interaction (for CLI direct mode)
 export const addRemoteDirect = async (
 	name: string,
 	remoteStr: string,
@@ -184,9 +172,7 @@ export const addRemoteDirect = async (
 	return { success: true };
 };
 
-/**
- * Interactive wizard for adding a remote
- */
+// interactive wizard for adding a remote
 export const addRemoteInteractive = async (): Promise<void> => {
 	header("Add new remote");
 
@@ -390,9 +376,7 @@ export const addRemoteInteractive = async (): Promise<void> => {
 	success(`Remote "${name}" added`);
 };
 
-/**
- * Display all configured remotes
- */
+// display all configured remotes
 export const listRemotes = (): void => {
 	const config = loadConfig();
 
@@ -412,9 +396,7 @@ export const listRemotes = (): void => {
 	console.log();
 };
 
-/**
- * Remove a remote
- */
+// remove a configured remote, warning if projects reference it
 export const removeRemote = async (name: string): Promise<void> => {
 	const config = loadConfig();
 
@@ -465,9 +447,7 @@ export const removeRemote = async (name: string): Promise<void> => {
 	success(`Remote "${name}" removed`);
 };
 
-/**
- * Rename a remote and update project references
- */
+// rename a remote and update project references
 export const renameRemote = async (
 	oldName: string,
 	newName: string,
@@ -515,9 +495,7 @@ export const renameRemote = async (
 	}
 };
 
-/**
- * Show help for the remote command
- */
+// show help for the remote command
 const showHelp = (): void => {
 	console.log();
 	console.log(`${chalk.bold("Usage:")} skybox remote <subcommand> [options]`);
@@ -544,9 +522,7 @@ const showHelp = (): void => {
 	console.log();
 };
 
-/**
- * Main handler for remote subcommands
- */
+// main handler for remote subcommands
 export const remoteCommand = async (
 	subcommand?: string,
 	arg1?: string,

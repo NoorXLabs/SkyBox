@@ -33,16 +33,19 @@ import {
 import { execa } from "execa";
 import inquirer from "inquirer";
 
+// check whether a directory contains a .git folder
 const isGitRepo = async (path: string): Promise<boolean> => {
 	return existsSync(join(path, ".git"));
 };
 
+// initialize a git repo, stage all files, and create an initial commit
 const initGit = async (path: string): Promise<void> => {
 	await execa("git", ["init"], { cwd: path });
 	await execa("git", ["add", "."], { cwd: path });
 	await execa("git", ["commit", "-m", "Initial commit"], { cwd: path });
 };
 
+// push a local project to a remote server and start a sync session
 export const pushCommand = async (
 	sourcePath: string,
 	name?: string,

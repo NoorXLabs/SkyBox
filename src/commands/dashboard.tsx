@@ -10,28 +10,13 @@ import { getSyncStatus } from "@lib/mutagen.ts";
 import { getProjectsDir } from "@lib/paths.ts";
 import { formatRelativeTime } from "@lib/relative-time.ts";
 import { getMachineName, readSession } from "@lib/session.ts";
+import type { CardField, DashboardProject } from "@typedefs/index.ts";
 import { ContainerStatus } from "@typedefs/index.ts";
 import { Box, render, Text, useApp, useInput, useStdout } from "ink";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-interface DashboardProject {
-	name: string;
-	container: string;
-	sync: string;
-	branch: string;
-	gitStatus: string;
-	ahead: number;
-	behind: number;
-	diskUsage: string;
-	lastActive: string;
-	containerName: string;
-	uptime: string;
-	remote: string;
-	encrypted: boolean;
-	sessionStatus: string; // "active here", "active on <machine>", or "none"
-}
-
+// collect status data for all local projects
 const gatherProjectData = async (): Promise<DashboardProject[]> => {
 	const projectsDir = getProjectsDir();
 	if (!existsSync(projectsDir)) return [];
@@ -104,12 +89,7 @@ const gatherProjectData = async (): Promise<DashboardProject[]> => {
 	return results;
 };
 
-interface CardField {
-	label: string;
-	value: string;
-	color?: string;
-}
-
+// return the compact set of card fields for simple view
 const getSimpleFields = (p: DashboardProject): CardField[] => {
 	return [
 		{
@@ -127,6 +107,7 @@ const getSimpleFields = (p: DashboardProject): CardField[] => {
 	];
 };
 
+// return the full set of card fields for detailed view
 const getDetailedFields = (p: DashboardProject): CardField[] => {
 	const gitLabel = p.gitStatus === "dirty" ? "dirty" : "clean";
 	const gitExtra =
@@ -159,6 +140,7 @@ const getDetailedFields = (p: DashboardProject): CardField[] => {
 	];
 };
 
+// Ink component that renders a single project as a bordered status card
 const ProjectCard = ({
 	project,
 	fields,
@@ -198,7 +180,7 @@ const ProjectCard = ({
 	);
 };
 
-/** Split an array into chunks of size n */
+// split an array into chunks of size n
 const chunk = <T,>(arr: T[], n: number): T[][] => {
 	const result: T[][] = [];
 	for (let i = 0; i < arr.length; i += n) {
@@ -207,6 +189,7 @@ const chunk = <T,>(arr: T[], n: number): T[][] => {
 	return result;
 };
 
+// Ink component for the main dashboard with grid layout and auto-refresh
 const Dashboard = ({
 	initialDetailed,
 }: {
@@ -221,6 +204,7 @@ const Dashboard = ({
 	const [termWidth, setTermWidth] = useState(stdout?.columns ?? 80);
 
 	useEffect(() => {
+		// on resize
 		const onResize = () => {
 			if (stdout) setTermWidth(stdout.columns);
 		};
@@ -329,12 +313,14 @@ const Dashboard = ({
 	);
 };
 
+// map container status to a display color
 const containerColor = (status: string): string | undefined => {
 	if (status === "running") return "green";
 	if (status === "stopped") return "red";
 	return undefined;
 };
 
+// map sync status to a display color
 const syncColor = (status: string): string | undefined => {
 	if (status === "syncing") return "green";
 	if (status === "paused") return "yellow";
@@ -342,6 +328,7 @@ const syncColor = (status: string): string | undefined => {
 	return undefined;
 };
 
+// map session status to a display color
 const sessionColor = (status: string): string | undefined => {
 	if (status === "active here") return "green";
 	if (status.startsWith("active on ")) return "yellow";
@@ -349,6 +336,7 @@ const sessionColor = (status: string): string | undefined => {
 	return undefined;
 };
 
+// render the Ink-based TUI dashboard with optional detailed mode
 export const dashboardCommand = async (options: {
 	detailed?: boolean;
 }): Promise<void> => {

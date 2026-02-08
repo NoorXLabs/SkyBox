@@ -12,6 +12,13 @@ skybox doctor
 
 This checks Docker, Mutagen, SSH connectivity, and configuration in one command. It will identify most common problems and suggest fixes.
 
+::: tip Debug Mode
+For verbose output on any command, prefix with `DEBUG=1`:
+```bash
+DEBUG=1 skybox up myproject
+```
+:::
+
 ## Encryption Issues
 
 ### Forgotten Passphrase
@@ -43,6 +50,8 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
    ```
 3. **Re-encrypt from a clean state** if the encrypted file was corrupted (e.g., partial write during crash).
 
+See also: [Concepts: Encryption](/guide/concepts#encryption), [`skybox encrypt`](/reference/encryption)
+
 ## Selective Sync Issues
 
 ### Sync Path Not Syncing
@@ -59,8 +68,9 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
    - Example: `src/components` (correct), `/src/components` (incorrect), `../other` (incorrect)
 
 2. **Verify configuration:**
+   Open `~/.skybox/config.yaml` and check your project's configuration:
    ```bash
-   skybox config show myproject
+   skybox config
    ```
    Confirm the `sync_paths` entries use the correct relative format.
 
@@ -70,44 +80,52 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
    skybox up myproject
    ```
 
-## Update Issues
+See also: [Concepts: Selective Sync](/guide/concepts#selective-sync), [Configuration: Sync Modes](/reference/configuration#sync-modes)
 
-### Mutagen Download Failures
+## Mutagen Issues
+
+### Mutagen Binary Missing or Corrupted
 
 **Symptoms:**
-- `skybox update` fails during Mutagen binary download
-- Network timeout or checksum mismatch errors
+- Mutagen binary not found after setup
+- Sync operations fail unexpectedly
 
 **Solutions:**
 
-1. **Check network connectivity:**
+1. **Run doctor** to diagnose and repair:
+   ```bash
+   skybox doctor
+   ```
+   Doctor will detect a missing or outdated Mutagen binary and re-extract it automatically.
+
+2. **Re-run init** to re-extract the bundled binary:
+   ```bash
+   skybox init
+   ```
+
+3. **Dev mode only** — if running from source and the download fallback fails, check network connectivity:
    ```bash
    curl -I https://github.com/mutagen-io/mutagen/releases
    ```
 
-2. **Retry the update:**
-   ```bash
-   skybox update
-   ```
-
-3. **Manual download** - if automated download keeps failing, manually download the Mutagen binary and place it at `~/.skybox/bin/mutagen`.
+4. **Manual installation** — download the Mutagen binary and place it at `~/.skybox/bin/mutagen`.
 
 ### Version Mismatches
 
 **Symptoms:**
-- Sync errors after updating
+- Sync errors after updating SkyBox
 - `skybox doctor` reports Mutagen version issues
 
 **Solutions:**
 
-1. **Run the update command** to get the latest compatible version:
+1. **Run doctor** — it will detect the version mismatch and re-extract the correct bundled version:
    ```bash
-   skybox update
+   skybox doctor
    ```
 
-2. **Force re-download:**
+2. **Upgrade SkyBox** — Mutagen is bundled with SkyBox, so upgrading SkyBox brings the correct Mutagen version automatically:
    ```bash
-   skybox update --force
+   skybox update
    ```
 
 ## Batch Operation Issues
@@ -159,7 +177,7 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
 
 **Symptoms:**
 - `skybox init` fails to connect
-- `skybox browse` times out
+- [`skybox browse`](/reference/browse) times out
 
 **Solutions:**
 
@@ -221,7 +239,13 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
    skybox up myproject --rebuild
    ```
 
-3. **Check devcontainer.json:**
+3. **Check container logs for errors:**
+   ```bash
+   skybox logs myproject
+   ```
+   See [`skybox logs`](/reference/logs) for more options.
+
+4. **Check devcontainer.json:**
    ```bash
    cat ~/.skybox/Projects/myproject/.devcontainer/devcontainer.json
    ```
@@ -243,6 +267,8 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
    skybox status myproject
    ```
 
+See also: [Concepts: Containers](/guide/concepts#containers), [`skybox up`](/reference/up)
+
 ## Sync Issues
 
 ### Sync Not Working
@@ -258,13 +284,18 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
    ~/.skybox/bin/mutagen sync list
    ```
 
-2. **Restart sync session:**
+2. **Check container logs** for errors that may indicate sync-related issues:
+   ```bash
+   skybox logs myproject
+   ```
+
+3. **Restart sync session:**
    ```bash
    skybox down myproject
    skybox up myproject
    ```
 
-3. **Check ignored files:**
+4. **Check ignored files:**
    Review `defaults.ignore` in `~/.skybox/config.yaml`
 
 ### Sync Conflicts
@@ -281,6 +312,8 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
 
 2. **Resolve manually:**
    Choose which version to keep and delete the other
+
+See also: [Concepts: Sync](/guide/concepts#sync), [Configuration: Sync Modes](/reference/configuration#sync-modes)
 
 ## Session Issues
 
@@ -324,6 +357,8 @@ Encrypted data **cannot be recovered** without the passphrase. There is no reset
    ```bash
    skybox shell myproject --force
    ```
+
+See also: [Concepts: Session System](/guide/concepts#session-system), [Multi-Machine Workflow](/guide/workflows/multi-machine)
 
 ## Configuration Issues
 
@@ -392,6 +427,94 @@ Remote paths cannot contain shell metacharacters. If you see:
 
 Use a plain path like `~/code` or `/home/user/projects`.
 
+## Security & Integrity Issues
+
+### Config Validation Errors
+
+**Symptoms:**
+- `skybox doctor` reports config validation failure
+- Error message: `Config file exists but failed validation`
+
+```
+✗ Configuration: Config file exists but failed validation
+```
+
+This means your `~/.skybox/config.yaml` doesn't match the expected schema.
+
+**Common causes:**
+
+1. **Invalid field types** — e.g., `auto_up: "yes"` instead of `auto_up: true`
+2. **Unknown fields** — typos in field names
+3. **Missing required fields** — `host` and `path` are required for each remote
+
+**Solutions:**
+
+1. **Open your config and check for YAML syntax errors or invalid values:**
+   ```bash
+   $EDITOR ~/.skybox/config.yaml
+   ```
+
+2. **Validate config:**
+   ```bash
+   skybox config --validate
+   ```
+
+3. **Reset config** if the file is beyond repair:
+   ```bash
+   rm ~/.skybox/config.yaml
+   skybox init
+   ```
+
+### Session Integrity Warning
+
+**Symptoms:**
+- Warning during `skybox up`: `Session file integrity check failed`
+- Session treated as invalid despite existing session file
+
+```
+Warning: Session file integrity check failed
+```
+
+This means a session file was modified outside of SkyBox (the HMAC-SHA256 signature doesn't match). The session will be treated as invalid.
+
+**Common causes:**
+- Manual editing of `.skybox/session.lock` files
+- File corruption during sync
+
+**Solutions:**
+
+1. **Stop and restart the project:**
+   ```bash
+   skybox down myproject
+   skybox up myproject
+   ```
+
+2. **If the project won't stop cleanly**, the session file can be removed manually:
+   ```bash
+   rm ~/.skybox/Projects/myproject/.skybox/session.lock
+   skybox up myproject
+   ```
+
+### Lockfile Verification Failed
+
+**Symptoms:**
+- Error message: `Lockfile integrity check failed`
+- SkyBox refuses to start
+
+This is a supply-chain security check on `bun.lock`. It means the lockfile was modified in a way that doesn't match expected integrity hashes.
+
+**Solutions:**
+
+1. **Reinstall dependencies from a clean state:**
+   ```bash
+   rm bun.lock
+   bun install
+   ```
+
+2. **Verify no unexpected changes** were introduced to your dependencies after reinstalling.
+
+See also: [Concepts: Session System](/guide/concepts#session-system), [Configuration](/reference/configuration)
+
 ## Getting Help
 
 If these solutions don't help:
@@ -408,8 +531,14 @@ If these solutions don't help:
 
 3. **Run with verbose:**
    ```bash
-   SKYBOX_DEBUG=1 skybox up myproject
+   DEBUG=1 skybox up myproject
    ```
 
 4. **Report an issue:**
    [GitHub Issues](https://github.com/NoorXLabs/SkyBox/issues)
+
+## Next Steps
+
+- [Daily Development Workflow](/guide/workflows/daily-development) - Day-to-day patterns for working with SkyBox
+- [Core Concepts](/guide/concepts) - Understand how projects, containers, and sync work together
+- [`skybox doctor`](/reference/doctor) - Built-in diagnostic tool reference

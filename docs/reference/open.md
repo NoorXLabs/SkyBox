@@ -21,6 +21,7 @@ skybox open [project] [options]
 | `-e, --editor` | Open in editor only |
 | `-s, --shell` | Attach to shell only |
 | `--no-prompt` | Non-interactive mode |
+| `--dry-run` | Preview what would happen without executing |
 
 ## Description
 
@@ -51,13 +52,7 @@ Use `skybox up` when:
 
 Without flags, `skybox open` presents the same action menu as `skybox up`:
 
-```
-? What would you like to do?
-  1) Open in editor
-  2) Attach to shell
-  3) Both
-  4) Neither (just exit)
-```
+<!--@include: ../snippets/post-start-action-menu.md-->
 
 ### Container Must Be Running
 

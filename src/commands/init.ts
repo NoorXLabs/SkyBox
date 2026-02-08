@@ -32,6 +32,7 @@ import type { SkyboxConfigV2 } from "@typedefs/index.ts";
 import { execa } from "execa";
 import inquirer from "inquirer";
 
+// verify Docker and Node.js are installed
 const checkDependencies = async (): Promise<boolean> => {
 	header("Checking dependencies...");
 
@@ -58,6 +59,7 @@ const checkDependencies = async (): Promise<boolean> => {
 	return true;
 };
 
+// check if Mutagen is installed and download it if not
 const handleMutagen = async (): Promise<boolean> => {
 	if (await isMutagenInstalled()) {
 		success("Mutagen already installed");
@@ -83,6 +85,7 @@ const handleMutagen = async (): Promise<boolean> => {
 	}
 };
 
+// interactively configure a remote server via SSH host selection and path verification
 const configureRemote = async (): Promise<{
 	name: string;
 	host: string;
@@ -357,6 +360,7 @@ Host ${friendlyName}
 	};
 };
 
+// prompt user to select a preferred editor
 const configureEditor = async (): Promise<string> => {
 	header("Configure editor");
 
@@ -386,6 +390,7 @@ const configureEditor = async (): Promise<string> => {
 	return editor;
 };
 
+// run the first-time SkyBox setup wizard
 export const initCommand = async (): Promise<void> => {
 	console.log();
 	console.log("Welcome to skybox setup!");

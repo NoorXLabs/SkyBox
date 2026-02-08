@@ -20,6 +20,7 @@ skybox rm [project] [options]
 |--------|-------------|
 | `-f, --force` | Skip all confirmation prompts |
 | `-r, --remote` | Also delete the project from the remote server (requires double confirmation) |
+| `--dry-run` | Show what would happen without making changes |
 
 ## Description
 

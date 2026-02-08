@@ -24,11 +24,7 @@ The `editor` command allows you to change the default editor that SkyBox uses wh
 
 SkyBox has built-in support for:
 
-| Editor | Command |
-|--------|---------|
-| Cursor | `cursor` |
-| VS Code | `code` |
-| VS Code Insiders | `code-insiders` |
+<!--@include: ../snippets/editors-list.md-->
 
 You can also specify a custom editor command by selecting "Other (specify command)".
 
@@ -53,7 +49,8 @@ Current default: cursor
   1) Cursor (current)
   2) VS Code
   3) VS Code Insiders
-  4) Other (specify command)
+  4) Zed
+  5) Other (specify command)
 Answer: 2
 
 Default editor updated to code.

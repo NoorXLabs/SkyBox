@@ -25,9 +25,7 @@ import {
 } from "@lib/ui.ts";
 import chalk from "chalk";
 
-/**
- * Enable encryption for a project
- */
+// enable encryption for a project
 const enableEncryption = async (project?: string): Promise<void> => {
 	const config = requireConfig();
 
@@ -130,9 +128,7 @@ const enableEncryption = async (project?: string): Promise<void> => {
 	);
 };
 
-/**
- * Disable encryption for a project
- */
+// disable encryption for a project
 const disableEncryption = async (project?: string): Promise<void> => {
 	const config = requireConfig();
 
@@ -218,9 +214,7 @@ const disableEncryption = async (project?: string): Promise<void> => {
 	success(`Encryption disabled for '${project}'.`);
 };
 
-/**
- * Main handler for encrypt command
- */
+// main handler for encrypt command
 export const encryptCommand = async (
 	subcommand?: string,
 	project?: string,

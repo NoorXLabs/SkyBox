@@ -147,7 +147,7 @@ skybox logs my-project --sync
 # Diagnose common issues
 skybox doctor
 
-# Update Mutagen binary
+# Check for and install updates
 skybox update
 ```
 

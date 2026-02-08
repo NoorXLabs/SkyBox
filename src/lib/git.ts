@@ -1,6 +1,7 @@
 import type { GitDetails } from "@typedefs/index.ts";
 import { execa } from "execa";
 
+// get git branch
 export const getGitBranch = async (projectPath: string): Promise<string> => {
 	try {
 		const result = await execa("git", [
@@ -15,6 +16,7 @@ export const getGitBranch = async (projectPath: string): Promise<string> => {
 	}
 };
 
+// get git info
 export const getGitInfo = async (
 	projectPath: string,
 ): Promise<GitDetails | null> => {

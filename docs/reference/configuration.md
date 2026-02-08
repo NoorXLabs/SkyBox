@@ -24,13 +24,18 @@ SkyBox creates the following directory structure:
 
 ```
 ~/.skybox/
-├── config.yaml      # Main configuration file
-├── Projects/        # Local synced project copies
+├── config.yaml          # Main configuration file
+├── .installed           # First-run telemetry marker
+├── .update-check.json   # Update check cache (24h TTL)
+├── audit.log            # Audit log (when SKYBOX_AUDIT=1)
+├── Projects/            # Local synced project copies
 │   ├── my-app/
 │   └── backend/
-└── bin/
-    ├── mutagen                # Auto-downloaded sync binary
-    └── mutagen-agents.tar.gz  # Mutagen agents archive
+├── bin/
+│   ├── mutagen                # Auto-downloaded sync binary
+│   └── mutagen-agents.tar.gz  # Mutagen agents archive
+├── templates/           # Custom local devcontainer templates
+└── logs/                # Log files (auto-up, etc.)
 ```
 
 ## Configuration Schema
@@ -71,14 +76,11 @@ remotes:
 |--------|------|---------|-------------|
 | `editor` | `string` | - | Command to launch your preferred editor |
 
-Supported editors include:
-- `cursor` - Cursor editor
-- `code` - Visual Studio Code
-- `code-insiders` - VS Code Insiders
-- `zed` - Zed editor
-- `vim` - Vim
-- `nvim` - Neovim
-- Any custom editor command
+Supported editors:
+
+<!--@include: ../snippets/editors-list.md-->
+
+Vim (`vim`), Neovim (`nvim`), and any custom editor command are also supported.
 
 ### `defaults`
 
@@ -95,23 +97,7 @@ Default settings for file synchronization.
 
 The following patterns are ignored by default:
 
-```yaml
-ignore:
-  - ".git/index.lock"
-  - ".git/*.lock"
-  - ".git/hooks/*"
-  - "node_modules"
-  - "venv"
-  - ".venv"
-  - "__pycache__"
-  - "*.pyc"
-  - ".skybox-local"
-  - "dist"
-  - "build"
-  - ".next"
-  - "target"
-  - "vendor"
-```
+<!--@include: ../snippets/default-ignore-patterns.md-->
 
 #### Sync Modes
 
@@ -121,7 +107,6 @@ The `sync_mode` option accepts Mutagen sync mode values:
 |------|-------------|
 | `two-way-resolved` | Bidirectional sync with automatic conflict resolution (recommended) |
 | `two-way-safe` | Bidirectional sync that flags conflicts for manual resolution |
-| `one-way-safe` | One-way sync from alpha (local) to beta (remote) |
 | `one-way-replica` | One-way sync that mirrors alpha exactly on beta |
 
 ### `projects`
@@ -211,30 +196,22 @@ editor: cursor
 # Default sync settings
 defaults:
   sync_mode: two-way-resolved
+  # Default ignore patterns (see above for details)
   ignore:
-    # Git internals
     - ".git/index.lock"
     - ".git/*.lock"
     - ".git/hooks/*"
-
-    # Node.js
     - "node_modules"
-
-    # Python
     - "venv"
     - ".venv"
     - "__pycache__"
     - "*.pyc"
-
-    # Build outputs
+    - ".skybox-local"
     - "dist"
     - "build"
     - ".next"
     - "target"
     - "vendor"
-
-    # SkyBox local files
-    - ".skybox-local"
 
 # Remote server configurations
 remotes:
@@ -295,14 +272,7 @@ templates:
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SKYBOX_HOME` | `~/.skybox` | Override the default SkyBox home directory |
-| `SKYBOX_AUDIT` | `0` | Set to `1` to enable audit logging to `~/.skybox/audit.log` |
-| `SKYBOX_SKIP_GPG` | `0` | Set to `1` to skip GPG signature verification for Mutagen downloads |
-| `SKYBOX_HOOK_WARNINGS` | `1` | Set to `0` to suppress one-time hook security warnings |
-| `HOME` | - | Used for `~` expansion in paths (e.g., remote `path` and `key` fields) |
-| `EDITOR` | - | Fallback editor command if not configured in SkyBox config |
+<!--@include: ../snippets/env-vars-table.md-->
 
 ### Audit Logging
 
@@ -331,6 +301,18 @@ You can also rotate the log manually at any time:
 mv ~/.skybox/audit.log ~/.skybox/audit.log.$(date +%Y%m%d)
 ```
 :::
+
+### Telemetry
+
+SkyBox sends a single anonymous event on first run to help track installation counts. The data includes only the OS, architecture, version, and install method — no personal information is collected.
+
+To opt out, set `SKYBOX_TELEMETRY=0` before running any SkyBox command:
+
+```bash
+export SKYBOX_TELEMETRY=0
+```
+
+The telemetry event fires at most once. After the first run, a marker file (`~/.skybox/.installed`) is written and no further telemetry is sent.
 
 ## Creating Configuration
 
@@ -443,3 +425,10 @@ projects:
 ```
 
 The migration happens automatically and preserves all your existing projects.
+
+## See Also
+
+- [`skybox config`](/reference/config) - View and modify configuration via CLI
+- [`skybox remote`](/reference/remote) - Manage remote server connections
+- [Custom Templates](/reference/custom-templates) - Create reusable devcontainer templates
+- [`skybox hook`](/reference/hook) - Shell hook for auto-starting containers on `cd`

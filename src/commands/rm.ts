@@ -47,10 +47,8 @@ import {
 } from "@typedefs/index.ts";
 import inquirer from "inquirer";
 
-/**
- * Clean up a local project: stop container, terminate sync, remove files, clear session.
- * Logs errors but continues on failure (resilient cleanup).
- */
+// clean up a local project: stop container, terminate sync, remove files, clear session.
+// logs errors but continues on failure (resilient cleanup).
 const cleanupLocalProject = async (
 	project: string,
 	force: boolean,
@@ -131,11 +129,9 @@ const cleanupLocalProject = async (
 	}
 };
 
-/**
- * Delete a single project from a remote server via rm -rf.
- * Does NOT prompt for confirmation — caller is responsible for that.
- * Returns true on success, false on failure (logs error).
- */
+// delete a single project from a remote server via rm -rf.
+// does NOT prompt for confirmation — caller is responsible for that.
+// returns true on success, false on failure (logs error).
 const deleteProjectFromRemote = async (
 	project: string,
 	host: string,
@@ -164,10 +160,8 @@ const deleteProjectFromRemote = async (
 	}
 };
 
-/**
- * Interactive multi-select flow for deleting remote projects.
- * Triggered by `skybox rm --remote` (no project argument).
- */
+// interactive multi-select flow for deleting remote projects.
+// triggered by `skybox rm --remote` (no project argument).
 const rmRemoteInteractive = async (
 	config: SkyboxConfigV2,
 	options: RmOptions,
@@ -278,6 +272,7 @@ const rmRemoteInteractive = async (
 	);
 };
 
+// remove a project locally and/or from remote with interactive multi-select
 export const rmCommand = async (
 	project: string | undefined,
 	options: RmOptions,
@@ -421,6 +416,7 @@ export const rmCommand = async (
 	}
 };
 
+// delete a project from its configured remote server with double-confirmation
 const deleteFromRemote = async (
 	project: string,
 	config: SkyboxConfigV2,
