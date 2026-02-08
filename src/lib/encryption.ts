@@ -134,6 +134,21 @@ export const decryptFile = (
 	writeFileSync(outputPath, decrypted);
 };
 
+// run a decryption operation with current parameters, then retry with legacy parameters on failure
+const withLegacyKeyFallback = async <T>(
+	passphrase: string,
+	salt: string,
+	operation: (key: Buffer) => T,
+): Promise<T> => {
+	const currentKey = await deriveKey(passphrase, salt);
+	try {
+		return operation(currentKey);
+	} catch {
+		const legacyKey = await deriveKeyLegacy(passphrase, salt);
+		return operation(legacyKey);
+	}
+};
+
 // decrypt an `ENC[base64...]` string with automatic legacy parameter fallback.
 // first attempts decryption with the current key. If that fails (e.g., data was
 // encrypted with pre-v0.7.7 Argon2 parameters), re-derives the key using legacy
@@ -143,13 +158,9 @@ export const decryptWithFallback = async (
 	passphrase: string,
 	salt: string,
 ): Promise<string> => {
-	const currentKey = await deriveKey(passphrase, salt);
-	try {
-		return decrypt(ciphertext, currentKey);
-	} catch {
-		const legacyKey = await deriveKeyLegacy(passphrase, salt);
-		return decrypt(ciphertext, legacyKey);
-	}
+	return withLegacyKeyFallback(passphrase, salt, (key) =>
+		decrypt(ciphertext, key),
+	);
 };
 
 // decrypt a file with automatic legacy parameter fallback.
@@ -162,11 +173,7 @@ export const decryptFileWithFallback = async (
 	passphrase: string,
 	salt: string,
 ): Promise<void> => {
-	const currentKey = await deriveKey(passphrase, salt);
-	try {
-		decryptFile(inputPath, outputPath, currentKey);
-	} catch {
-		const legacyKey = await deriveKeyLegacy(passphrase, salt);
-		decryptFile(inputPath, outputPath, legacyKey);
-	}
+	await withLegacyKeyFallback(passphrase, salt, (key) => {
+		decryptFile(inputPath, outputPath, key);
+	});
 };

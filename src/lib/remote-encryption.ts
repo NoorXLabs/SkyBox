@@ -19,6 +19,29 @@ export interface RemoteArchiveResult {
 	cleanupWarning?: boolean;
 }
 
+interface ArchiveTempPaths {
+	tempDir: string;
+	localTarPath: string;
+	localEncPath: string;
+}
+
+// run archive operations with a shared temp directory layout and guaranteed cleanup
+const withArchiveTempPaths = async <T>(
+	fn: (paths: ArchiveTempPaths) => Promise<T>,
+): Promise<T> => {
+	const tempDir = mkdtempSync(join(tmpdir(), "skybox-"));
+	const localTarPath = join(tempDir, "archive.tar");
+	const localEncPath = join(tempDir, "archive.tar.enc");
+
+	try {
+		return await fn({ tempDir, localTarPath, localEncPath });
+	} finally {
+		try {
+			rmSync(tempDir, { recursive: true, force: true });
+		} catch {}
+	}
+};
+
 // create remote archive target
 export const createRemoteArchiveTarget = (
 	project: string,
@@ -52,13 +75,10 @@ export const decryptRemoteArchive = async (
 	key: Buffer,
 	onProgress?: (message: string) => void,
 ): Promise<RemoteArchiveResult> => {
-	const tempDir = mkdtempSync(join(tmpdir(), "skybox-"));
-	const localEncPath = join(tempDir, "archive.tar.enc");
-	const localTarPath = join(tempDir, "archive.tar");
 	const remoteTarName = `${target.project}.tar`;
 	const remoteTarPath = `${target.remotePath}/${remoteTarName}`;
 
-	try {
+	return withArchiveTempPaths(async ({ localEncPath, localTarPath }) => {
 		onProgress?.("Downloading encrypted archive...");
 		await secureScp(`${target.host}:${target.remoteArchivePath}`, localEncPath);
 
@@ -82,11 +102,7 @@ export const decryptRemoteArchive = async (
 		}
 
 		return { success: true };
-	} finally {
-		try {
-			rmSync(tempDir, { recursive: true, force: true });
-		} catch {}
-	}
+	});
 };
 
 // encrypt remote archive
@@ -95,13 +111,10 @@ export const encryptRemoteArchive = async (
 	key: Buffer,
 	onProgress?: (message: string) => void,
 ): Promise<RemoteArchiveResult> => {
-	const tempDir = mkdtempSync(join(tmpdir(), "skybox-"));
-	const localTarPath = join(tempDir, "archive.tar");
-	const localEncPath = join(tempDir, "archive.tar.enc");
 	const remoteTarName = `${target.project}.tar`;
 	const remoteTarPath = `${target.remotePath}/${remoteTarName}`;
 
-	try {
+	return withArchiveTempPaths(async ({ localTarPath, localEncPath }) => {
 		onProgress?.("Creating archive on remote...");
 		const tarResult = await runRemoteCommand(
 			target.host,
@@ -134,9 +147,5 @@ export const encryptRemoteArchive = async (
 			success: true,
 			cleanupWarning: !cleanResult.success,
 		};
-	} finally {
-		try {
-			rmSync(tempDir, { recursive: true, force: true });
-		} catch {}
-	}
+	});
 };
