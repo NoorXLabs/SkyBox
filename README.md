@@ -37,7 +37,7 @@ SkyBox stores your code on a remote server while running containers locally. You
 - Docker
 - SSH access to a remote server
 
-Mutagen is downloaded automatically during setup.
+Mutagen is bundled and extracted automatically during setup.
 
 ## Documentation
 

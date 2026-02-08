@@ -12,7 +12,7 @@ A **project** in SkyBox is a directory containing your source code, managed as a
 
 ### Project Structure
 
-```
+```text
 ~/.skybox/Projects/my-app/
 ├── .devcontainer/
 │   └── devcontainer.json    # Container configuration
@@ -24,7 +24,7 @@ A **project** in SkyBox is a directory containing your source code, managed as a
 
 ### Project Lifecycle
 
-```
+```text
 push/clone          up              down              rm
     │               │                │                │
     ▼               ▼                ▼                ▼
@@ -96,7 +96,7 @@ SkyBox uses **Mutagen** for bidirectional file synchronization between your loca
 
 ### How Sync Works
 
-```
+```text
 Local Machine                    Remote Server
 ~/.skybox/Projects/my-app/      ~/code/my-app/
 ├── src/index.js         ◄────► ├── src/index.js
@@ -120,23 +120,7 @@ SkyBox uses `two-way-resolved` sync mode:
 
 By default, SkyBox excludes certain files from sync:
 
-```yaml
-# Default ignore patterns
-- .git/index.lock
-- .git/*.lock
-- .git/hooks/*
-- node_modules
-- venv
-- .venv
-- __pycache__
-- *.pyc
-- .skybox-local
-- dist
-- build
-- .next
-- target
-- vendor
-```
+<!--@include: ../snippets/default-ignore-patterns.md-->
 
 These patterns prevent syncing:
 - Lock files that cause conflicts
@@ -201,10 +185,8 @@ When git templates are enabled (for example, in `skybox new`), the selector show
 All templates use `mcr.microsoft.com/devcontainers/base:debian` as the base image with language-specific [devcontainer features](https://containers.dev/features) layered on top. This ensures you always get the latest versions without manual updates.
 
 All templates include these common features:
-- **[common-utils](https://github.com/devcontainers/features/tree/main/src/common-utils)** -- zsh (default shell), oh-my-zsh, and essential utilities
-- **[docker-outside-of-docker](https://github.com/devcontainers/features/tree/main/src/docker-outside-of-docker)** -- access the host Docker daemon from inside the container
-- **[git](https://github.com/devcontainers/features/tree/main/src/git)** -- pre-installed for version control
-- **SSH passthrough** -- your host `~/.ssh` directory is bind-mounted read-only, so container Git operations use your existing SSH keys
+
+<!--@include: ../snippets/common-template-features.md-->
 
 ### Custom Local Templates
 
@@ -247,13 +229,19 @@ You will be prompted to set a passphrase. This passphrase is used to derive the 
 
 Encryption protects your project files at rest on the remote server. It does not encrypt sync traffic (sync traffic is protected by SSH) or your local `config.yaml`.
 
+For command details, see [`skybox encrypt`](/reference/encryption).
+
+## Shell Integration
+
+SkyBox can auto-start containers when you `cd` into a project directory. See [Shell Integration](/guide/shell-integration) for setup.
+
 ## Remote Server
 
 The **remote server** stores your project backups and enables multi-machine workflows. SkyBox supports **multiple remotes**, allowing you to organize projects across different servers (e.g., work server, personal server).
 
 ### Server Setup
 
-During `skybox init`, you configure your first remote. You can add more remotes later with `skybox remote add`.
+During `skybox init`, you configure your first remote. You can add more remotes later with [`skybox remote`](/reference/remote).
 
 For each remote, you specify:
 
@@ -289,15 +277,7 @@ When you run `skybox up`:
 
 Session file format (stored as JSON):
 
-```json
-{
-  "machine": "my-laptop",
-  "user": "developer",
-  "timestamp": "2026-02-03T10:30:00Z",
-  "pid": 12345,
-  "expires": "2026-02-04T10:30:00Z"
-}
-```
+<!--@include: ../snippets/session-file-format.md-->
 
 ### Session States
 
@@ -316,7 +296,7 @@ Session files live inside the project directory at `<project>/.skybox/session.lo
 If another machine has an active session:
 
 ```
-This project is running on 'work-laptop' (since 2026-02-03T08:00:00Z)
+This project is running on 'work-laptop' (started 4 days ago)
 ? Continue anyway? (y/N)
 ```
 
@@ -324,6 +304,10 @@ Continuing is safe when:
 - You know the other machine isn't actively editing
 - The other machine is unreachable
 - You want to work from this machine instead
+
+### Session Integrity
+
+Session lock files are protected with HMAC-SHA256 integrity checking to detect tampering. If a session file has been modified outside of SkyBox, it is treated as invalid.
 
 ### Session Expiry
 
@@ -401,23 +385,18 @@ projects:
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `SKYBOX_HOME` | `~/.skybox` | Override the default SkyBox home directory |
-| `SKYBOX_AUDIT` | `0` | Set to `1` to enable audit logging to `~/.skybox/audit.log` |
-| `SKYBOX_SKIP_GPG` | `0` | Set to `1` to skip GPG signature verification for Mutagen downloads |
-| `SKYBOX_HOOK_WARNINGS` | `1` | Set to `0` to suppress one-time hook security warnings |
+<!--@include: ../snippets/env-vars-table.md-->
 
 ## Architecture Summary
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                        Your Machine                          │
 │                                                              │
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │  ~/.skybox/                                           │   │
 │  │  ├── config.yaml        Configuration                │   │
-│  │  ├── bin/mutagen        Sync tool                    │   │
+│  │  ├── bin/mutagen        Sync tool (bundled)           │   │
 │  │  └── projects/                                        │   │
 │  │      └── my-app/        Your code ◄───────────┐      │   │
 │  └──────────────────────────────────────────────│───────┘   │
@@ -446,4 +425,6 @@ projects:
 ## Next Steps
 
 - See the [Command Reference](/reference/) for detailed command documentation
-- Explore [Workflow Tutorials](/guide/workflows/new-project) for step-by-step guides
+- [Daily Development](/guide/workflows/daily-development) - Day-to-day workflow patterns
+- [New Project Setup](/guide/workflows/new-project) - Creating and pushing projects
+- [Multi-Machine Workflow](/guide/workflows/multi-machine) - Working across multiple machines

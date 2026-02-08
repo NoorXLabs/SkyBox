@@ -32,13 +32,7 @@ SkyBox auto-detects the project from your current directory.
 
 After the container starts:
 
-```
-? What would you like to do?
-  1) Open in editor
-  2) Attach to shell
-  3) Both
-  4) Neither (just exit)
-```
+<!--@include: ../../snippets/post-start-action-menu.md-->
 
 **Option 1: Open in Editor**
 
@@ -94,6 +88,8 @@ Projects:
   shared-lib    stopped    syncing   main     none                  1 day ago    48M
 ```
 
+For a live-updating full-screen view, try [`skybox dashboard`](/reference/dashboard).
+
 ### Detailed Project Status
 
 ```bash
@@ -102,39 +98,7 @@ skybox status my-project
 
 Shows comprehensive information:
 
-```
-Project: my-project
---------------------------------------------------
-
-Container
-  Status:     running
-  Image:      mcr.microsoft.com/devcontainers/base:debian
-  Uptime:     2 hours
-  CPU:        0.5%
-  Memory:     256MiB / 8GiB
-
-Sync
-  Status:     syncing
-  Session:    skybox-my-project
-  Pending:    0 files
-  Last sync:  -
-
-Git
-  Branch:     feature/auth
-  Status:     dirty
-  Ahead:      3 commits
-  Behind:     0 commits
-
-Session
-  Status:     active here
-  Machine:    macbook-pro
-  User:       john
-  Started:    2026-02-03T10:30:00Z
-
-Disk Usage
-  Local:      245M
-  Remote:     245M
-```
+<!--@include: ../../snippets/status-detailed.md-->
 
 ## Switching Between Projects
 
@@ -233,7 +197,7 @@ Opens your configured editor pointing to the running container.
 
 ### Multiple Shell Sessions
 
-Open additional shells for a running container:
+Open additional shells for a running container with [`skybox shell`](/reference/shell):
 
 ```bash
 # Terminal 1: Main work
@@ -350,7 +314,7 @@ Sessions track which machine is actively working on a project. When you run `sky
 ### Session Conflict Resolution
 
 ```
-This project is running on work-laptop (since 2026-02-03T10:30:00Z)
+This project is running on work-laptop (started 3 days ago)
 ? Continue anyway? (y/N)
 ```
 
@@ -385,7 +349,7 @@ Follow logs in real time (useful for debugging server processes):
 skybox logs my-project -f
 ```
 
-This streams container output continuously until you press `Ctrl+C`.
+This streams container output continuously until you press `Ctrl+C`. See [`skybox logs`](/reference/logs) for all available options.
 
 ## Diagnosing Issues with Doctor
 
@@ -411,43 +375,15 @@ skybox down --all
 
 If individual projects fail during batch operations, the command continues with the remaining projects and reports failures at the end.
 
-## Troubleshooting Common Issues
+## Troubleshooting
 
-### Container Won't Start
+For solutions to common issues with containers, sync, and sessions, see the [Troubleshooting Guide](/guide/troubleshooting).
 
-```bash
-# Try rebuilding
-skybox up my-project --rebuild
-```
+## See Also
 
-### Sync Stuck
-
-Check Mutagen status directly:
-
-```bash
-~/.skybox/bin/mutagen sync list
-```
-
-### Stale Session After Crash
-
-If your machine crashed without ending the session, the session automatically expires after 24 hours. You can also start the project immediately:
-
-```bash
-skybox up my-project
-# Choose "Continue anyway" if warned about the stale session
-```
-
-### Free Up Disk Space
-
-Remove old containers:
-
-```bash
-skybox down my-project --cleanup
-```
-
-Remove project entirely (keeps remote):
-
-```bash
-skybox rm my-project
-```
+- [Multi-Machine Workflow](/guide/workflows/multi-machine) - Working across multiple machines
+- [`skybox status`](/reference/status) - Detailed project status reference
+- [`skybox open`](/reference/open) - Open project in editor or browser
+- [Troubleshooting](/guide/troubleshooting) - Common issues and solutions
+- [Shell Integration](/guide/shell-integration) - Auto-start containers on `cd`
 

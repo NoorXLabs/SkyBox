@@ -1,4 +1,4 @@
-/** Dependency checks run at CLI startup. */
+// dependency checks run at CLI startup.
 import chalk from "chalk";
 import { execaSync } from "execa";
 
@@ -7,7 +7,8 @@ interface DockerStatus {
 	running: boolean;
 }
 
-function checkDocker(): DockerStatus {
+// check docker
+const checkDocker = (): DockerStatus => {
 	const status: DockerStatus = { installed: false, running: false };
 
 	// Check if Docker is installed
@@ -27,9 +28,10 @@ function checkDocker(): DockerStatus {
 	}
 
 	return status;
-}
+};
 
-function printDockerBanner(status: DockerStatus): void {
+// print docker banner
+const printDockerBanner = (status: DockerStatus): void => {
 	const yellow = chalk.yellow;
 	const dim = chalk.dim;
 	const bold = chalk.bold;
@@ -95,13 +97,11 @@ function printDockerBanner(status: DockerStatus): void {
 		yellow("╰─────────────────────────────────────────────────────────╯"),
 	);
 	console.log();
-}
+};
 
-/**
- * Run startup checks and show banner if Docker is unavailable.
- * Returns true if Docker is ready, false otherwise.
- */
-export function runStartupChecks(): boolean {
+// verify Docker is available at CLI startup and show banner if Docker is unavailable.
+// returns true if Docker is ready, false otherwise.
+export const runStartupChecks = (): boolean => {
 	const dockerStatus = checkDocker();
 
 	if (!dockerStatus.installed || !dockerStatus.running) {
@@ -110,4 +110,4 @@ export function runStartupChecks(): boolean {
 	}
 
 	return true;
-}
+};

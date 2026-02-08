@@ -1,6 +1,4 @@
-/**
- * Runtime schema validation for SkyBox config.
- */
+// runtime schema validation for SkyBox config.
 
 import { VALID_SYNC_MODES } from "@lib/constants.ts";
 import type { SkyboxConfigV2 } from "@typedefs/index.ts";
@@ -12,10 +10,8 @@ export class ConfigValidationError extends Error {
 	}
 }
 
-/**
- * Validate a config object at runtime.
- * Throws ConfigValidationError if invalid.
- */
+// validate a config object at runtime.
+// throws ConfigValidationError if invalid.
 export function validateConfig(
 	config: unknown,
 ): asserts config is SkyboxConfigV2 {

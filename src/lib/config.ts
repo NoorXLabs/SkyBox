@@ -1,4 +1,4 @@
-/** YAML config file operations: load, save, query remotes and projects. */
+// YAML config file operations: load, save, query remotes and projects.
 import {
 	existsSync,
 	mkdirSync,
@@ -20,23 +20,23 @@ import type {
 } from "@typedefs/index.ts";
 import { parse, stringify } from "yaml";
 
-/**
- * Sanitize a path for error messages.
- * Replaces home directory with ~ for privacy.
- */
-function sanitizePath(filePath: string): string {
+// sanitize a path for error messages.
+// replaces home directory with ~ for privacy.
+const sanitizePath = (filePath: string): string => {
 	const home = homedir();
 	if (filePath.startsWith(home)) {
 		return `~${filePath.slice(home.length)}`;
 	}
 	return filePath;
-}
+};
 
-export function configExists(): boolean {
+// check if the SkyBox config file exists on disk
+export const configExists = (): boolean => {
 	return existsSync(getConfigPath());
-}
+};
 
-export function loadConfig(): SkyboxConfigV2 | null {
+// load and parse the SkyBox config from disk
+export const loadConfig = (): SkyboxConfigV2 | null => {
 	const configPath = getConfigPath();
 	if (!existsSync(configPath)) {
 		return null;
@@ -68,22 +68,21 @@ export function loadConfig(): SkyboxConfigV2 | null {
 	validateConfig(rawConfig);
 
 	return rawConfig;
-}
+};
 
-/**
- * Load config or exit if SkyBox is not configured.
- * Combines the common configExists() + loadConfig() pattern.
- */
-export function requireConfig(): SkyboxConfigV2 {
+// load config or exit if SkyBox is not configured.
+// combines the common configExists() + loadConfig() pattern.
+export const requireConfig = (): SkyboxConfigV2 => {
 	const config = loadConfig();
 	if (!config) {
 		error("SkyBox is not configured. Run 'skybox init' first.");
 		process.exit(1);
 	}
 	return config;
-}
+};
 
-export function saveConfig(config: SkyboxConfigV2): void {
+// write the SkyBox config to disk as YAML
+export const saveConfig = (config: SkyboxConfigV2): void => {
 	const configPath = getConfigPath();
 	const dir = dirname(configPath);
 
@@ -113,23 +112,19 @@ export function saveConfig(config: SkyboxConfigV2): void {
 		}
 		throw err;
 	}
-}
+};
 
-/**
- * Get a specific remote by name
- */
-export function getRemote(name: string): RemoteEntry | null {
+// get a specific remote by name
+export const getRemote = (name: string): RemoteEntry | null => {
 	const config = loadConfig();
 	if (!config?.remotes?.[name]) {
 		return null;
 	}
 	return config.remotes[name];
-}
+};
 
-/**
- * List all configured remotes
- */
-export function listRemotes(): Array<{ name: string } & RemoteEntry> {
+// list all configured remotes
+export const listRemotes = (): Array<{ name: string } & RemoteEntry> => {
 	const config = loadConfig();
 	if (!config?.remotes) {
 		return [];
@@ -138,19 +133,17 @@ export function listRemotes(): Array<{ name: string } & RemoteEntry> {
 		name,
 		...remote,
 	}));
-}
+};
 
-/**
- * Check if auto-up is enabled for a project.
- * Resolution order:
- * 1. Per-project auto_up setting (if set)
- * 2. Global defaults.auto_up setting (if set)
- * 3. Default: false (opt-in feature)
- */
-export function isAutoUpEnabled(
+// check if auto-up is enabled for a project.
+// resolution order:
+// 1. Per-project auto_up setting (if set)
+// 2. Global defaults.auto_up setting (if set)
+// 3. Default: false (opt-in feature)
+export const isAutoUpEnabled = (
 	projectName: string,
 	config: SkyboxConfigV2,
-): boolean {
+): boolean => {
 	// Check per-project setting first
 	const projectConfig = config.projects[projectName];
 	if (projectConfig?.auto_up !== undefined) {
@@ -164,4 +157,4 @@ export function isAutoUpEnabled(
 
 	// Default to false (opt-in)
 	return false;
-}
+};

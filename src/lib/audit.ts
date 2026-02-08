@@ -1,9 +1,6 @@
-/**
- * Audit logging for security-sensitive operations.
- *
- * Writes JSON Lines format to ~/.skybox/audit.log.
- * Enabled via SKYBOX_AUDIT=1 environment variable.
- */
+// audit logging for security-sensitive operations.
+// writes JSON Lines format to ~/.skybox/audit.log.
+// enabled via SKYBOX_AUDIT=1 environment variable.
 
 import {
 	appendFileSync,
@@ -18,45 +15,36 @@ import { AUDIT_LOG_MAX_BYTES } from "@lib/constants.ts";
 import { getSkyboxHome } from "@lib/paths.ts";
 import type { AuditEntry } from "@typedefs/index.ts";
 
-/** Cached audit enabled state (can be overridden for testing). */
+// cached audit enabled state (can be overridden for testing).
 let auditEnabledOverride: boolean | null = null;
 
-/**
- * Check if audit logging is enabled.
- * Checks env var on each call to support dynamic configuration.
- */
-function isAuditEnabled(): boolean {
+// check if audit logging is enabled.
+// checks env var on each call to support dynamic configuration.
+const isAuditEnabled = (): boolean => {
 	if (auditEnabledOverride !== null) {
 		return auditEnabledOverride;
 	}
 	return process.env.SKYBOX_AUDIT === "1";
-}
+};
 
-/**
- * Enable or disable audit logging (for testing).
- * Pass null to restore default behavior (check env var).
- */
-export function setAuditEnabled(enabled: boolean | null): void {
+// enable or disable audit logging (for testing).
+// pass null to restore default behavior (check env var).
+export const setAuditEnabled = (enabled: boolean | null): void => {
 	auditEnabledOverride = enabled;
-}
+};
 
-/**
- * Get the audit log file path.
- */
-export function getAuditLogPath(): string {
+// get the audit log file path.
+export const getAuditLogPath = (): string => {
 	return join(getSkyboxHome(), "audit.log");
-}
+};
 
-/**
- * Sanitize audit log details to prevent sensitive data leakage.
- * Replaces home directory paths with ~ and redacts credential patterns.
- *
- * NOTE: Only sanitizes top-level string values. Nested objects are passed
- * through as-is. Callers should ensure sensitive data is in top-level fields.
- */
-function sanitizeDetails(
+// sanitize audit log details to prevent sensitive data leakage.
+// replaces home directory paths with ~ and redacts credential patterns.
+// NOTE: Only sanitizes top-level string values. Nested objects are passed
+// through as-is. Callers should ensure sensitive data is in top-level fields.
+const sanitizeDetails = (
 	details: Record<string, unknown>,
-): Record<string, unknown> {
+): Record<string, unknown> => {
 	const home = homedir();
 	const sanitized: Record<string, unknown> = {};
 	for (const [key, value] of Object.entries(details)) {
@@ -76,22 +64,18 @@ function sanitizeDetails(
 		}
 	}
 	return sanitized;
-}
+};
 
-/**
- * Log a security-relevant event.
- *
- * NOTE: Uses synchronous file append for simplicity and guaranteed ordering.
- * For high-frequency audit scenarios, consider external log aggregation.
- * The audit log should be rotated periodically to prevent unbounded growth.
- *
- * @param action - The action being performed (e.g., "clone", "push", "rm")
- * @param details - Additional context for the action
- */
-export function logAuditEvent(
+// log a security-relevant event.
+// NOTE: Uses synchronous file append for simplicity and guaranteed ordering.
+// for high-frequency audit scenarios, consider external log aggregation.
+// the audit log should be rotated periodically to prevent unbounded growth.
+// @param action - The action being performed (e.g., "clone", "push", "rm")
+// @param details - Additional context for the action
+export const logAuditEvent = (
 	action: string,
 	details: Record<string, unknown>,
-): void {
+): void => {
 	if (!isAuditEnabled()) return;
 
 	const entry: AuditEntry = {
@@ -124,11 +108,9 @@ export function logAuditEvent(
 	// Append JSON line
 	const line = `${JSON.stringify(entry)}\n`;
 	appendFileSync(logPath, line, { encoding: "utf-8", mode: 0o600 });
-}
+};
 
-/**
- * Common audit actions.
- */
+// common audit actions.
 export const AuditActions = {
 	CLONE_START: "clone:start",
 	CLONE_SUCCESS: "clone:success",

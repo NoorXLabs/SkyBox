@@ -2,7 +2,7 @@
 
 // SSH types
 
-/** SSH host entry parsed from ~/.ssh/config */
+// SSH host entry parsed from ~/.ssh/config
 export interface SSHHost {
 	name: string;
 	hostname?: string;
@@ -11,7 +11,7 @@ export interface SSHHost {
 	identityFile?: string;
 }
 
-/** Fully resolved SSH config entry with all required connection fields */
+// fully resolved SSH config entry with all required connection fields
 export interface SSHConfigEntry {
 	name: string;
 	hostname: string;
@@ -20,13 +20,13 @@ export interface SSHConfigEntry {
 	port?: number;
 }
 
-/** V1 remote server configuration (single remote) */
+// v1 remote server configuration (single remote)
 export interface RemoteConfig {
 	host: string;
 	base_path: string;
 }
 
-/** Default sync configuration: mode and ignore patterns */
+// default sync configuration: mode and ignore patterns
 export interface SyncDefaults {
 	sync_mode: "two-way-resolved" | "two-way-safe" | "one-way-replica";
 	ignore: string[];
@@ -34,14 +34,14 @@ export interface SyncDefaults {
 	auto_up?: boolean;
 }
 
-/** V1 per-project configuration with optional overrides */
+// v1 per-project configuration with optional overrides
 export interface ProjectConfig {
 	remote?: string;
 	ignore?: string[];
 	editor?: string;
 }
 
-/** V1 SkyBox configuration (single remote, deprecated) */
+// v1 SkyBox configuration (single remote, deprecated)
 export interface SkyboxConfig {
 	remote: RemoteConfig;
 	editor: string;
@@ -52,7 +52,7 @@ export interface SkyboxConfig {
 
 // Multi-remote support types (V2)
 
-/** Named remote server connection details (V2 multi-remote) */
+// named remote server connection details (V2 multi-remote)
 export interface RemoteEntry {
 	host: string; // SSH host (hostname or IP)
 	user?: string; // SSH username (undefined = use SSH config default)
@@ -60,13 +60,13 @@ export interface RemoteEntry {
 	key?: string; // Path to SSH private key (undefined = use SSH config default)
 }
 
-/** Per-project encryption configuration */
+// per-project encryption configuration
 export interface ProjectEncryption {
 	enabled: boolean;
 	salt?: string;
 }
 
-/** V2 SkyBox configuration with multiple named remotes */
+// v2 SkyBox configuration with multiple named remotes
 export interface SkyboxConfigV2 {
 	editor: string;
 	defaults: SyncDefaults;
@@ -76,7 +76,7 @@ export interface SkyboxConfigV2 {
 	encryption?: ProjectEncryption;
 }
 
-/** V2 per-project configuration referencing a named remote */
+// v2 per-project configuration referencing a named remote
 export interface ProjectConfigV2 {
 	remote: string; // Name of the remote this project belongs to
 	ignore?: string[];
@@ -87,6 +87,7 @@ export interface ProjectConfigV2 {
 	auto_up?: boolean; // Auto-start container when entering project directory
 }
 
+// possible states of a managed Docker container
 export enum ContainerStatus {
 	Running = "running",
 	Stopped = "stopped",
@@ -95,15 +96,17 @@ export enum ContainerStatus {
 	Unknown = "unknown",
 }
 
-/** Valid sync status values */
+// valid sync status values
 export type SyncStatusValue = "syncing" | "paused" | "none" | "error";
 
+// outcome of a Docker container operation
 export interface ContainerResult {
 	success: boolean;
 	error?: string;
 	containerId?: string;
 }
 
+// runtime metadata for a Docker container
 export interface ContainerInfo {
 	id: string;
 	name: string;
@@ -114,7 +117,7 @@ export interface ContainerInfo {
 
 // Status command types
 
-/** Summary view of a local project for the list command */
+// summary view of a local project for the list command
 export interface ProjectSummary {
 	name: string;
 	container: "running" | "stopped" | "unknown";
@@ -126,7 +129,7 @@ export interface ProjectSummary {
 	path: string;
 }
 
-/** Detailed Docker container status and resource usage */
+// detailed Docker container status and resource usage
 export interface ContainerDetails {
 	status: "running" | "stopped" | "unknown";
 	image: string;
@@ -135,7 +138,7 @@ export interface ContainerDetails {
 	memory: string;
 }
 
-/** Mutagen sync session details and current state */
+// Mutagen sync session details and current state
 export interface SyncDetails {
 	status: "syncing" | "paused" | "no session" | "error" | "unknown";
 	session: string;
@@ -143,7 +146,7 @@ export interface SyncDetails {
 	lastSync: string;
 }
 
-/** Git repository status: branch, clean/dirty, ahead/behind */
+// git repository status: branch, clean/dirty, ahead/behind
 export interface GitDetails {
 	branch: string;
 	status: "clean" | "dirty";
@@ -151,11 +154,13 @@ export interface GitDetails {
 	behind: number;
 }
 
+// local and remote disk usage for a project
 export interface DiskDetails {
 	local: string;
 	remote: string;
 }
 
+// full detailed status for the status command output
 export interface DetailedStatus {
 	name: string;
 	path: string;
@@ -168,17 +173,19 @@ export interface DetailedStatus {
 
 // Project types
 
-/** Result of project resolution phase (used by up command). */
+// result of project resolution phase (used by up command).
 export interface ResolvedProject {
 	project: string;
 	projectPath: string;
 }
 
+// project found on a remote server
 export interface RemoteProject {
 	name: string;
 	branch: string;
 }
 
+// project cloned to the local machine
 export interface LocalProject {
 	name: string;
 	branch: string;
@@ -186,6 +193,7 @@ export interface LocalProject {
 }
 
 // Command options types
+// CLI options for the down command
 export interface DownOptions {
 	cleanup?: boolean;
 	force?: boolean;
@@ -193,6 +201,7 @@ export interface DownOptions {
 	all?: boolean;
 }
 
+// CLI options for the up command
 export interface UpOptions {
 	editor?: boolean;
 	attach?: boolean;
@@ -202,6 +211,7 @@ export interface UpOptions {
 	all?: boolean;
 }
 
+// CLI options for the rm command
 export interface RmOptions {
 	force?: boolean;
 	remote?: boolean;
@@ -209,10 +219,8 @@ export interface RmOptions {
 
 // Template types
 
-/**
- * Devcontainer configuration structure.
- * Based on the devcontainer.json specification.
- */
+// devcontainer configuration structure.
+// based on the devcontainer.json specification.
 export interface DevcontainerConfig {
 	name?: string;
 	image?: string;
@@ -230,6 +238,7 @@ export interface DevcontainerConfig {
 	workspaceMount?: string;
 }
 
+// built-in devcontainer template definition
 export interface Template {
 	id: string;
 	name: string;
@@ -258,6 +267,7 @@ export type TemplateSelection =
 	| { source: "git"; url: string };
 
 // Sync types
+// current state of a Mutagen sync session
 export interface SyncStatus {
 	exists: boolean;
 	paused: boolean;
@@ -265,11 +275,13 @@ export interface SyncStatus {
 }
 
 // Shell command types
+// CLI options for the shell command
 export interface ShellOptions {
 	command?: string;
 	force?: boolean;
 }
 
+// CLI options for the open command
 export interface OpenOptions {
 	editor?: boolean;
 	shell?: boolean;
@@ -277,28 +289,29 @@ export interface OpenOptions {
 }
 
 // Ownership types
-/** Project ownership metadata stored in .skybox-owner */
+// project ownership metadata stored in .skybox-owner
 export interface OwnershipInfo {
 	owner: string; // Local OS username who created the project
 	created: string; // ISO 8601 timestamp
 	machine: string; // Hostname where project was created
 }
 
-/** Result of ownership check */
+// result of ownership check
 export type OwnershipStatus =
 	| { hasOwner: false }
 	| { hasOwner: true; isOwner: boolean; info: OwnershipInfo };
 
-/** Result of setting ownership */
+// result of setting ownership
 export interface SetOwnershipResult {
 	success: boolean;
 	error?: string;
 }
 
 // Doctor command types
+// severity level for a doctor diagnostic check
 export type DoctorCheckStatus = "pass" | "warn" | "fail";
 
-/** Result of a single doctor diagnostic check */
+// result of a single doctor diagnostic check
 export interface DoctorCheckResult {
 	name: string;
 	status: DoctorCheckStatus;
@@ -306,6 +319,7 @@ export interface DoctorCheckResult {
 	fix?: string; // Suggested fix for warn/fail
 }
 
+// aggregated results of all doctor diagnostic checks
 export interface DoctorReport {
 	checks: DoctorCheckResult[];
 	passed: number;
@@ -315,34 +329,31 @@ export interface DoctorReport {
 
 // Hook types
 
-/** Valid lifecycle hook event names */
+// valid lifecycle hook event names
 export type HookEvent = "pre-up" | "post-up" | "pre-down" | "post-down";
 
-/** Single hook definition: a shell command with optional context */
+// single hook definition: a shell command with optional context
 export interface HookEntry {
 	command: string;
 	context?: "host" | "container"; // default: "host"
 }
 
-/** Per-project hooks configuration */
+// per-project hooks configuration
 export type HooksConfig = Partial<Record<HookEvent, string | HookEntry[]>>;
 
 // Session types
 
-/**
- * Information stored in a local session file.
- */
+// information stored in a local session file.
 export interface SessionInfo {
 	machine: string; // hostname of machine holding session
 	user: string; // username
 	timestamp: string; // ISO 8601 datetime when session was created
 	pid: number; // process ID
 	expires: string; // ISO 8601 datetime when session expires
+	hash?: string; // HMAC-SHA256 integrity hash (set by SkyBox, verified on read)
 }
 
-/**
- * Result of checking for session conflicts.
- */
+// result of checking for session conflicts.
 export interface SessionConflictResult {
 	hasConflict: boolean;
 	existingSession?: SessionInfo;
@@ -350,15 +361,27 @@ export interface SessionConflictResult {
 
 // Validation types
 
-/** Result of input validation functions. Discriminated union for type safety. */
+// result of input validation functions. Discriminated union for type safety.
 export type ValidationResult =
 	| { valid: true }
 	| { valid: false; error: string };
 
+// Telemetry types
+
+// metadata stored in the .installed marker file
+export interface InstalledMarker {
+	version: string;
+	installedAt: string; // ISO 8601
+	installMethod: InstallMethod;
+	platform: string; // e.g., "darwin-arm64"
+}
+
 // Install method types
-export type InstallMethod = "homebrew" | "github-release" | "npm" | "source";
+// method used to install SkyBox, determines upgrade command
+export type InstallMethod = "homebrew" | "github-release" | "source";
 
 // Version update check types
+// cached metadata from the last version update check
 export interface UpdateCheckMetadata {
 	lastCheck: string; // ISO 8601 datetime of last check
 	latestVersion: string | null; // Latest version found, or null if check failed
@@ -367,7 +390,7 @@ export interface UpdateCheckMetadata {
 
 // Audit types
 
-/** Audit log entry structure */
+// audit log entry structure
 export interface AuditEntry {
 	timestamp: string;
 	action: string;
@@ -376,23 +399,34 @@ export interface AuditEntry {
 	details: Record<string, unknown>;
 }
 
-// GPG types
-
-/** Result of GPG signature verification */
-export interface GpgVerifyResult {
-	verified: boolean;
-	error?: string;
-	gpgUnavailable?: boolean;
-}
-
-/** Result of GPG key fingerprint verification */
-export interface KeyFingerprintResult {
-	matches: boolean;
-	actualFingerprint?: string;
-	error?: string;
-}
-
-/** Narrow devcontainer config used when reading workspace folder from existing config. */
+// narrow devcontainer config used when reading workspace folder from existing config.
 export interface DevcontainerWorkspaceConfig {
 	workspaceFolder?: string;
+}
+
+// Dashboard types
+
+// project status data collected for the dashboard TUI
+export interface DashboardProject {
+	name: string;
+	container: string;
+	sync: string;
+	branch: string;
+	gitStatus: string;
+	ahead: number;
+	behind: number;
+	diskUsage: string;
+	lastActive: string;
+	containerName: string;
+	uptime: string;
+	remote: string;
+	encrypted: boolean;
+	sessionStatus: string; // "active here", "active on <machine>", or "none"
+}
+
+// single field displayed on a dashboard project card
+export interface CardField {
+	label: string;
+	value: string;
+	color?: string;
 }

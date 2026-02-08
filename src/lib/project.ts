@@ -1,4 +1,4 @@
-/** Local project path resolution and validation. */
+// local project path resolution and validation.
 import { existsSync, readdirSync, realpathSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { getProjectsDir } from "@lib/paths.ts";
@@ -8,7 +8,8 @@ export type SingleProjectResolution =
 	| { project: string }
 	| { reason: "no-projects" | "no-prompt" };
 
-export function resolveProjectFromCwd(): string | null {
+// resolve project from cwd
+export const resolveProjectFromCwd = (): string | null => {
 	const cwd = process.cwd();
 	const projectsDir = getProjectsDir();
 
@@ -33,9 +34,10 @@ export function resolveProjectFromCwd(): string | null {
 	// Get the first directory component (the project name)
 	const parts = rel.split(sep);
 	return parts[0] || null;
-}
+};
 
-export function getLocalProjects(): string[] {
+// get local projects
+export const getLocalProjects = (): string[] => {
 	const projectsDir = getProjectsDir();
 	if (!existsSync(projectsDir)) {
 		return [];
@@ -45,21 +47,24 @@ export function getLocalProjects(): string[] {
 		const fullPath = join(projectsDir, entry);
 		return statSync(fullPath).isDirectory();
 	});
-}
+};
 
-export function getProjectPath(projectName: string): string {
+// get project path
+export const getProjectPath = (projectName: string): string => {
 	return join(getProjectsDir(), projectName);
-}
+};
 
-export function projectExists(projectName: string): boolean {
+// project exists
+export const projectExists = (projectName: string): boolean => {
 	return existsSync(getProjectPath(projectName));
-}
+};
 
-export async function resolveSingleProject(options: {
+// resolve single project
+export const resolveSingleProject = async (options: {
 	projectArg?: string;
 	noPrompt?: boolean;
 	promptMessage: string;
-}): Promise<SingleProjectResolution> {
+}): Promise<SingleProjectResolution> => {
 	let project = options.projectArg;
 
 	if (!project) {
@@ -89,4 +94,4 @@ export async function resolveSingleProject(options: {
 	]);
 
 	return { project: selectedProject };
-}
+};

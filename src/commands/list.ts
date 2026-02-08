@@ -9,7 +9,8 @@ import { getProjectsDir } from "@lib/paths.ts";
 import { error, header, info } from "@lib/ui.ts";
 import type { LocalProject } from "@typedefs/index.ts";
 
-async function getLocalProjects(): Promise<LocalProject[]> {
+// scan the projects directory and return local project names with git branch info
+const getLocalProjects = async (): Promise<LocalProject[]> => {
 	const projectsDir = getProjectsDir();
 	if (!existsSync(projectsDir)) {
 		return [];
@@ -40,9 +41,10 @@ async function getLocalProjects(): Promise<LocalProject[]> {
 	}
 
 	return projects;
-}
+};
 
-function printProjects(projects: LocalProject[]): void {
+// display a formatted list of local projects with branch and path info
+const printProjects = (projects: LocalProject[]): void => {
 	header("Local projects:");
 	console.log();
 
@@ -54,15 +56,17 @@ function printProjects(projects: LocalProject[]): void {
 	}
 
 	info("Run 'skybox up <project>' to start working.");
-}
+};
 
-function printEmpty(): void {
+// display a message when no local projects are found
+const printEmpty = (): void => {
 	console.log();
 	console.log("No local projects yet.");
 	info("Run 'skybox clone <project>' or 'skybox push ./path' to get started.");
-}
+};
 
-export async function listCommand(): Promise<void> {
+// list all locally cloned projects with branch information
+export const listCommand = async (): Promise<void> => {
 	if (!configExists()) {
 		error("skybox not configured. Run 'skybox init' first.");
 		process.exit(1);
@@ -75,4 +79,4 @@ export async function listCommand(): Promise<void> {
 	} else {
 		printProjects(projects);
 	}
-}
+};

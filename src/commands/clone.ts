@@ -33,15 +33,13 @@ import {
 import type { SkyboxConfigV2 } from "@typedefs/index.ts";
 import inquirer from "inquirer";
 
-/**
- * Clone a single project from remote. This is the core clone logic
- * used by both direct invocation and interactive multi-clone.
- */
-export async function cloneSingleProject(
+// clone a single project from remote. This is the core clone logic
+// used by both direct invocation and interactive multi-clone.
+export const cloneSingleProject = async (
 	project: string,
 	remoteName: string,
 	config: SkyboxConfigV2,
-): Promise<boolean> {
+): Promise<boolean> => {
 	const remote = config.remotes[remoteName];
 	const host = getRemoteHost(remote);
 	const remotePath = getRemotePath(remote, project);
@@ -95,7 +93,6 @@ export async function cloneSingleProject(
 	checkSpin.succeed("Project found on remote");
 
 	// Check local doesn't exist
-
 	if (existsSync(localPath)) {
 		const confirmed = await confirmDestructiveAction({
 			firstPrompt: "Project already exists locally. Overwrite?",
@@ -187,9 +184,10 @@ export async function cloneSingleProject(
 
 	logAuditEvent(AuditActions.CLONE_SUCCESS, { project, remote: remoteName });
 	return true;
-}
+};
 
-export async function cloneCommand(project?: string): Promise<void> {
+// clone one or more remote projects locally with sync and optional container start
+export const cloneCommand = async (project?: string): Promise<void> => {
 	const config = requireConfig();
 
 	// If project provided directly, use single-clone flow
@@ -336,4 +334,4 @@ export async function cloneCommand(project?: string): Promise<void> {
 			console.log(`  - ${name}`);
 		}
 	}
-}
+};

@@ -53,7 +53,7 @@ Currently supported configuration keys:
 
 | Key | Description | Example Values |
 |-----|-------------|----------------|
-| `editor` | Default editor command | `cursor`, `code`, `vim`, `nvim`, `zed` |
+| `editor` | Default editor command | `cursor`, `code`, `code-insiders`, `vim`, `nvim`, `zed` |
 
 ### Validate Configuration
 

@@ -14,7 +14,9 @@ This command takes no arguments. It runs interactively.
 
 ## Options
 
-This command has no options. All configuration is done through interactive prompts.
+| Option | Description |
+|--------|-------------|
+| `--dry-run` | Preview what would happen without executing |
 
 ## Description
 
@@ -40,7 +42,7 @@ Project names must:
 
 The unified template selector offers three types of templates:
 
-- **Built-in templates** (Node.js, Python, Go, Generic) — creates an empty project with a devcontainer.json using that template's configuration
+- **Built-in templates** (Node.js, Bun, Python, Go, Generic) — creates an empty project with a devcontainer.json using that template's configuration
 - **Your custom templates** — local devcontainer.json files stored in `~/.skybox/templates/`. See [Custom Templates](/reference/custom-templates) for details
 - **Git URL** — clones a git repository to the remote as the project
 
@@ -61,22 +63,16 @@ skybox new
 ? Select remote: production
 ? Project name: my-new-api
   Checking remote... Name available
-? Select a template:
-── Built-in ──
-  Node.js — Node.js (latest) with npm/yarn + Docker support
-  Python — Python (latest) with pip/venv + Docker support
-  Go — Go (latest) + Docker support
-  Generic — Debian with basic dev tools + Docker support
-── Other ──
-  Enter git URL
-── Your Templates ──
-  bun
-  Create new template
-
+? Select a template: (use arrow keys)
+  ...template options shown...
 Creating project on remote... done
 
 ? Clone this project locally now? (Y/n)
 ```
+
+The template selector shows all available options:
+
+<!--@include: ../snippets/template-selector-full.md-->
 
 ### Using Custom Git URL
 

@@ -240,7 +240,7 @@ This looks like it needs a broader audit. Consider running `skybox-audit-docs` f
 
 ## Key Rules
 
-- **Parallel subagents** — Phase 1 and Phase 2 MUST run as parallel subagents via the Task tool for speed
+- **Parallel subagents** — Phase 1 and Phase 2 MUST run as parallel subagents via the Task tool for speed. Launch both in a single message but do NOT use `run_in_background: true` — wait for both to complete before proceeding
 - **Never skip interactive triage** — always present findings for user review before generating the report
 - **Concrete suggestions only** — every finding must include a specific, actionable fix with file paths
 - **No false positives** — if unsure whether something is a gap, verify by reading both the source code and the docs before flagging

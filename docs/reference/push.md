@@ -17,7 +17,9 @@ skybox push <path> [name]
 
 ## Options
 
-This command has no additional options.
+| Option | Description |
+|--------|-------------|
+| `--dry-run` | Show what would happen without making changes |
 
 ## Description
 

@@ -20,10 +20,11 @@ import { dryRun, header, isDryRun, success } from "@lib/ui.ts";
 import { ContainerStatus, type OpenOptions } from "@typedefs/index.ts";
 import inquirer from "inquirer";
 
-export async function openCommand(
+// open an editor or shell for an already-running project container
+export const openCommand = async (
 	projectArg: string | undefined,
 	options: OpenOptions,
-): Promise<void> {
+): Promise<void> => {
 	const config = requireLoadedConfigOrExit();
 
 	// Step 2: Resolve project
@@ -107,4 +108,4 @@ export async function openCommand(
 	}
 
 	await executePostStartAction(projectPath, action, editor);
-}
+};

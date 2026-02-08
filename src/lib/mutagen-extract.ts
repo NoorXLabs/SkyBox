@@ -1,4 +1,4 @@
-/** Bundled Mutagen binary extraction and version management. */
+// bundled Mutagen binary extraction and version management.
 import {
 	chmodSync,
 	existsSync,
@@ -16,11 +16,9 @@ import {
 } from "@lib/paths.ts";
 import { extract } from "tar";
 
-/**
- * Check if Mutagen needs to be extracted from the bundle.
- * Returns true if binary is missing or version doesn't match.
- */
-export function needsMutagenExtraction(): boolean {
+// check if Mutagen needs to be extracted from the bundle.
+// returns true if binary is missing or version doesn't match.
+export const needsMutagenExtraction = (): boolean => {
 	const mutagenPath = getMutagenPath();
 	const versionPath = getMutagenVersionPath();
 
@@ -33,36 +31,30 @@ export function needsMutagenExtraction(): boolean {
 	} catch {
 		return true;
 	}
-}
+};
 
-/**
- * Record the currently extracted Mutagen version.
- */
-export function recordMutagenVersion(): void {
+// record the currently extracted Mutagen version.
+export const recordMutagenVersion = (): void => {
 	const binDir = getBinDir();
 	if (!existsSync(binDir)) {
 		mkdirSync(binDir, { recursive: true });
 	}
 	writeFileSync(getMutagenVersionPath(), MUTAGEN_VERSION);
-}
+};
 
-/**
- * Get the expected asset filename for the current platform.
- */
-function getBundledAssetName(): string {
+// get the expected asset filename for the current platform.
+const getBundledAssetName = (): string => {
 	const os = process.platform === "darwin" ? "darwin" : "linux";
 	const cpu = process.arch === "arm64" ? "arm64" : "amd64";
 	return `mutagen_${os}_${cpu}_v${MUTAGEN_VERSION}.tar.gz`;
-}
+};
 
-/**
- * Extract the bundled Mutagen binary.
- * Looks for the tarball in the compiled binary's asset directory.
- * Returns { success, error? }.
- */
-export async function extractBundledMutagen(
+// extract the bundled Mutagen binary.
+// looks for the tarball in the compiled binary's asset directory.
+// returns { success, error? }.
+export const extractBundledMutagen = async (
 	onProgress?: (message: string) => void,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string }> => {
 	const binDir = getBinDir();
 	const assetName = getBundledAssetName();
 
@@ -85,7 +77,7 @@ export async function extractBundledMutagen(
 		if (!existsSync(assetPath)) {
 			return {
 				success: false,
-				error: `Bundled Mutagen asset not found at ${assetPath}. Run 'skybox update' to download.`,
+				error: `Bundled Mutagen asset not found at ${assetPath}. Run 'skybox doctor' to diagnose.`,
 			};
 		}
 
@@ -103,17 +95,15 @@ export async function extractBundledMutagen(
 	} catch (error: unknown) {
 		return { success: false, error: getErrorMessage(error) };
 	}
-}
+};
 
-/**
- * Ensure Mutagen is extracted and ready. Call before any Mutagen operation.
- * In bundled mode, extracts from asset. In dev mode, falls through to download flow.
- */
-export async function ensureMutagenExtracted(
+// ensure Mutagen is extracted and ready. Call before any Mutagen operation.
+// in bundled mode, extracts from asset. In dev mode, falls through to download flow.
+export const ensureMutagenExtracted = async (
 	onProgress?: (message: string) => void,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string }> => {
 	if (!needsMutagenExtraction()) {
 		return { success: true };
 	}
 	return extractBundledMutagen(onProgress);
-}
+};

@@ -50,7 +50,7 @@ This document explains the key architectural decisions in SkyBox and the reasoni
 **Configuration:**
 
 ```yaml
-# Sync mode: two-way-resolved means remote wins on conflict
+# Sync mode: two-way-resolved means local (alpha) wins on conflict
 sync_mode: two-way-resolved
 
 # Ignore patterns to reduce sync overhead
@@ -191,15 +191,7 @@ Session file writes use atomic write-then-rename to prevent corruption if two pr
 
 **Session File Format:**
 
-```json
-{
-  "machine": "macbook-pro",
-  "user": "noor",
-  "timestamp": "2026-02-03T10:30:00Z",
-  "pid": 12345,
-  "expires": "2026-02-04T10:30:00Z"
-}
-```
+<!--@include: ../../snippets/session-file-format.md-->
 
 **Alternatives Considered:**
 

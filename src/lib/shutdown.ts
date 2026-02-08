@@ -1,8 +1,5 @@
-/**
- * Graceful shutdown and cleanup handler management.
- *
- * Ensures resources are released even on unexpected exit.
- */
+// graceful shutdown and cleanup handler management.
+// ensures resources are released even on unexpected exit.
 
 type CleanupHandler = () => void | Promise<void>;
 
@@ -10,29 +7,25 @@ const cleanupHandlers: CleanupHandler[] = [];
 let cleanupRan = false;
 let installed = false;
 
-/** Timeout for async cleanup handlers (ms) */
+// timeout for async cleanup handlers (ms)
 const CLEANUP_TIMEOUT_MS = 3000;
 
-function getCleanupHandlersInReverse(): CleanupHandler[] {
+// get cleanup handlers in reverse
+const getCleanupHandlersInReverse = (): CleanupHandler[] => {
 	return [...cleanupHandlers].reverse();
-}
+};
 
-/**
- * Register a cleanup handler to run on process exit.
- * Handlers run in reverse order (LIFO).
- */
-export function registerCleanupHandler(handler: CleanupHandler): void {
+// register a cleanup handler to run on process exit.
+// handlers run in reverse order (LIFO).
+export const registerCleanupHandler = (handler: CleanupHandler): void => {
 	cleanupHandlers.push(handler);
-}
+};
 
-/**
- * Run all registered cleanup handlers.
- * Handlers are run in reverse order and only once.
- *
- * Returns a promise that resolves when all handlers (including async ones)
- * have completed or timed out.
- */
-export async function runCleanupHandlers(): Promise<void> {
+// run all registered cleanup handlers.
+// handlers are run in reverse order and only once.
+// returns a promise that resolves when all handlers (including async ones)
+// have completed or timed out.
+export const runCleanupHandlers = async (): Promise<void> => {
 	if (cleanupRan) return;
 	cleanupRan = true;
 
@@ -50,25 +43,22 @@ export async function runCleanupHandlers(): Promise<void> {
 			// Continue running other handlers even if one fails
 		}
 	}
-}
+};
 
-/**
- * Reset cleanup handlers (for testing).
- */
-export function resetCleanupHandlers(): void {
+// reset cleanup handlers (for testing).
+export const resetCleanupHandlers = (): void => {
 	cleanupHandlers.length = 0;
 	cleanupRan = false;
 	installed = false;
-}
+};
 
-/**
- * Install process exit handlers.
- * Should be called once at startup. Subsequent calls are no-ops.
- */
-export function installShutdownHandlers(): void {
+// install process exit handlers.
+// should be called once at startup. Subsequent calls are no-ops.
+export const installShutdownHandlers = (): void => {
 	if (installed) return;
 	installed = true;
 
+	// handle signal
 	const handleSignal = (_signal: string, code: number) => {
 		runCleanupHandlers()
 			.then(() => process.exit(code))
@@ -106,4 +96,4 @@ export function installShutdownHandlers(): void {
 			.then(() => process.exit(1))
 			.catch(() => process.exit(1));
 	});
-}
+};

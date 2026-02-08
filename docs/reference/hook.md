@@ -5,14 +5,14 @@ Output shell hook code for auto-starting containers when entering project direct
 ## Usage
 
 ```bash
-skybox hook <shell>
+skybox hook [shell]
 ```
 
 ## Arguments
 
 | Argument | Required | Description |
 |----------|----------|-------------|
-| `shell` | Yes | Shell type: `bash` or `zsh` |
+| `shell` | No | Shell type: `bash` or `zsh` |
 
 ## Description
 
@@ -44,17 +44,22 @@ source ~/.zshrc
 
 ## Configuration
 
-The hook only auto-starts containers for projects with `auto_up` enabled. Enable it per-project:
+The hook only auto-starts containers for projects with `auto_up` enabled.
 
-```bash
-skybox config set my-project auto_up true
-```
-
-Or globally in `~/.skybox/config.yaml`:
+Enable it globally in `~/.skybox/config.yaml`:
 
 ```yaml
 defaults:
   auto_up: true
+```
+
+Or per-project by editing `~/.skybox/config.yaml` directly:
+
+```yaml
+projects:
+  my-project:
+    remote: my-server
+    auto_up: true
 ```
 
 See [Shell Integration](/guide/shell-integration) for detailed configuration options.

@@ -39,11 +39,7 @@ The shell hook only auto-starts containers for projects with `auto_up` enabled. 
 
 ### Enable for a Specific Project
 
-```bash
-skybox config set my-project auto_up true
-```
-
-Or edit `~/.skybox/config.yaml` directly:
+Edit `~/.skybox/config.yaml` directly:
 
 ```yaml
 projects:
@@ -138,11 +134,10 @@ typeset -f _skybox_hook
 
 1. **Check if auto_up is enabled:**
 
+   Check your `~/.skybox/config.yaml` and look for `auto_up: true` under your project:
    ```bash
-   skybox config show my-project
+   skybox config
    ```
-
-   Look for `auto_up: true` in the output.
 
 2. **Verify you are in a SkyBox project directory:**
 

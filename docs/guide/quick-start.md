@@ -4,7 +4,7 @@ This guide walks you through the typical SkyBox workflow: from setting up your f
 
 ## Workflow Overview
 
-```
+```text
 skybox init          Set up SkyBox (one-time)
       │
       ├── skybox push ./project    Push existing project to remote
@@ -109,15 +109,10 @@ Starting 'my-project'...
   Sync is active
   No devcontainer.json found
 
-Would you like to create a devcontainer.json from a template? (Y/n)
-
-Select a template:
-  1) Node.js - Node.js development environment
-  2) Python - Python development environment
-  3) Go - Go development environment
-  4) Rust - Rust development environment
-  5) Generic - Basic development container
+? Would you like to create a devcontainer.json from a template? (Y/n)
 ```
+
+<!--@include: ../snippets/template-selector-up.md-->
 
 ### Container Startup
 
@@ -125,13 +120,9 @@ Once the devcontainer is configured:
 
 ```
   Container started
-
-What would you like to do?
-  1) Open in editor
-  2) Attach to shell
-  3) Both
-  4) Neither (just exit)
 ```
+
+<!--@include: ../snippets/post-start-action-menu.md-->
 
 ## Step 4: Develop in Your Editor
 
@@ -169,40 +160,8 @@ skybox status my-project
 ```
 
 Output:
-```
-Project: my-project
-──────────────────────────────────────────────────
 
-Container
-  Status:     running
-  Image:      mcr.microsoft.com/devcontainers/base:debian
-  Uptime:     2 hours
-  CPU:        0.5%
-  Memory:     256M / 4G
-
-Sync
-  Status:     syncing
-  Session:    skybox-my-project
-  Pending:    0 files
-  Last sync:  -
-
-Git
-  Branch:     main
-  Status:     clean
-  Ahead:      0 commits
-  Behind:     0 commits
-
-Session
-  Status:     active here
-  Machine:    my-laptop
-  User:       me
-  Started:    2026-02-03T10:30:00Z
-  PID:        12345
-
-Disk Usage
-  Local:      45M
-  Remote:     44M
-```
+<!--@include: ../snippets/status-detailed.md-->
 
 ## Step 6: Stop When Done
 
@@ -235,7 +194,7 @@ When moving from one machine to another:
    skybox up my-project
    ```
 
-SkyBox's session system will warn you if you try to start on a new machine while another machine has an active session.
+SkyBox's [session system](/guide/concepts#session-system) will warn you if you try to start on a new machine while another machine has an active session.
 
 ### Quick Container Access
 
@@ -268,26 +227,13 @@ If you need to rebuild the container from scratch:
 skybox up my-project --rebuild
 ```
 
-## Command Reference
-
-| Command | Description |
-|---------|-------------|
-| `skybox init` | Set up SkyBox |
-| `skybox browse` | List projects on remote |
-| `skybox list` | List local projects |
-| `skybox push <path>` | Push local project to remote |
-| `skybox clone <project>` | Clone remote project locally |
-| `skybox new` | Create new project on remote |
-| `skybox up [project]` | Start development container |
-| `skybox down [project]` | Stop development container |
-| `skybox shell <project>` | Access shell inside container |
-| `skybox status [project]` | Show project status |
-| `skybox remote <subcommand>` | Manage remote servers |
-| `skybox config` | View/modify configuration |
-| `skybox editor` | Change default editor |
-| `skybox rm <project>` | Remove local project |
-
 ## Next Steps
 
 - Learn about [Core Concepts](/guide/concepts) to understand projects, containers, and sync
-- See the [Command Reference](/reference/) for detailed command documentation
+- See the [Command Reference](/reference/) for the full list of commands
+
+### Workflows
+
+- [Daily Development](/guide/workflows/daily-development) - Day-to-day patterns for starting, switching, and stopping projects
+- [New Project Setup](/guide/workflows/new-project) - Creating and pushing projects to SkyBox
+- [Multi-Machine Workflow](/guide/workflows/multi-machine) - Working across multiple computers

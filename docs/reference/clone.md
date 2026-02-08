@@ -16,7 +16,9 @@ skybox clone [project]
 
 ## Options
 
-This command has no additional options.
+| Option | Description |
+|--------|-------------|
+| `--dry-run` | Show what would happen without making changes |
 
 ## Description
 
@@ -56,7 +58,7 @@ Projects are cloned to `~/.skybox/Projects/<project-name>`.
 The sync session uses "two-way-resolved" mode, meaning:
 
 - Changes on either side are synced to the other
-- Conflicts are automatically resolved (favoring the most recent change)
+- Conflicts are automatically resolved (local changes win)
 - Default ignore patterns exclude node_modules, .git, build artifacts, etc.
 
 ### Encrypted Projects

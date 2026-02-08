@@ -1,4 +1,4 @@
-/** Docker container operations: query, start, stop, inspect. */
+// Docker container operations: query, start, stop, inspect.
 
 import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { join } from "node:path";
@@ -15,15 +15,16 @@ import { execa } from "execa";
 
 // Normalize path to real case (important for macOS case-insensitive filesystem)
 // Docker labels use exact string match, so paths must match exactly
-function normalizePath(path: string): string {
+const normalizePath = (path: string): string => {
 	try {
 		return realpathSync(path);
 	} catch {
 		return path;
 	}
-}
+};
 
-function resolveDevcontainerConfigPath(projectPath: string): string | null {
+// resolve devcontainer config path
+const resolveDevcontainerConfigPath = (projectPath: string): string | null => {
 	const configPath = join(
 		projectPath,
 		DEVCONTAINER_DIR_NAME,
@@ -33,18 +34,21 @@ function resolveDevcontainerConfigPath(projectPath: string): string | null {
 	if (existsSync(configPath)) return configPath;
 	if (existsSync(altConfigPath)) return altConfigPath;
 	return null;
-}
+};
 
-function parseContainerStatus(rawStatus: string | undefined): ContainerStatus {
+// parse container status
+const parseContainerStatus = (
+	rawStatus: string | undefined,
+): ContainerStatus => {
 	return rawStatus?.toLowerCase().startsWith("up")
 		? ContainerStatus.Running
 		: ContainerStatus.Stopped;
-}
+};
 
-/** Validate a Docker container ID (short or full hex format). */
-function isValidContainerId(id: string): boolean {
+// validate a Docker container ID (short or full hex format).
+const isValidContainerId = (id: string): boolean => {
 	return /^[a-f0-9]{12,64}$/.test(id);
-}
+};
 
 import { getExecaErrorMessage, hasExitCode } from "@lib/errors.ts";
 import {
@@ -56,16 +60,14 @@ import {
 
 export type EditorId = (typeof SUPPORTED_EDITORS)[number]["id"] | string;
 
-/**
- * Query Docker for containers matching a label filter.
- * Centralizes the common Docker query pattern used throughout the codebase.
- */
-async function queryDockerContainers(options: {
+// query Docker for containers matching a label filter.
+// centralizes the common Docker query pattern used throughout the codebase.
+const queryDockerContainers = async (options: {
 	projectPath?: string;
 	includeAll?: boolean; // Include stopped containers (-a)
 	idsOnly?: boolean; // Return only container IDs (-q)
 	format?: string; // Custom format string
-}): Promise<string> {
+}): Promise<string> => {
 	const { projectPath, includeAll = false, idsOnly = false, format } = options;
 
 	const args = ["ps"];
@@ -86,12 +88,12 @@ async function queryDockerContainers(options: {
 
 	const result = await execa("docker", args);
 	return result.stdout.trim();
-}
+};
 
 // Read devcontainer.json configuration
-export function getDevcontainerConfig(
+export const getDevcontainerConfig = (
 	projectPath: string,
-): DevcontainerWorkspaceConfig | null {
+): DevcontainerWorkspaceConfig | null => {
 	let content: string;
 	try {
 		const configPath = resolveDevcontainerConfigPath(projectPath);
@@ -101,12 +103,12 @@ export function getDevcontainerConfig(
 	} catch {
 		return null;
 	}
-}
+};
 
 // Get container ID for a local project
-export async function getContainerId(
+export const getContainerId = async (
 	projectPath: string,
-): Promise<string | null> {
+): Promise<string | null> => {
 	try {
 		const containerId = await queryDockerContainers({
 			projectPath,
@@ -117,12 +119,12 @@ export async function getContainerId(
 	} catch {
 		return null;
 	}
-}
+};
 
 // Get container status for a local project
-export async function getContainerStatus(
+export const getContainerStatus = async (
 	projectPath: string,
-): Promise<ContainerStatus> {
+): Promise<ContainerStatus> => {
 	try {
 		const status = await queryDockerContainers({
 			projectPath,
@@ -137,12 +139,12 @@ export async function getContainerStatus(
 	} catch {
 		return ContainerStatus.Error;
 	}
-}
+};
 
 // Get container info for a local project
-export async function getContainerInfo(
+export const getContainerInfo = async (
 	projectPath: string,
-): Promise<ContainerInfo | null> {
+): Promise<ContainerInfo | null> => {
 	try {
 		const line = await queryDockerContainers({
 			projectPath,
@@ -159,13 +161,13 @@ export async function getContainerInfo(
 	} catch {
 		return null;
 	}
-}
+};
 
 // Start a devcontainer locally
-export async function startContainer(
+export const startContainer = async (
 	projectPath: string,
 	options?: { rebuild?: boolean },
-): Promise<ContainerResult> {
+): Promise<ContainerResult> => {
 	const args = ["up", "--workspace-folder", projectPath];
 
 	if (options?.rebuild) {
@@ -181,12 +183,12 @@ export async function startContainer(
 	} catch (error: unknown) {
 		return { success: false, error: getExecaErrorMessage(error) };
 	}
-}
+};
 
 // Stop a devcontainer
-export async function stopContainer(
+export const stopContainer = async (
 	projectPath: string,
-): Promise<ContainerResult> {
+): Promise<ContainerResult> => {
 	try {
 		const containerId = await queryDockerContainers({
 			projectPath,
@@ -202,13 +204,13 @@ export async function stopContainer(
 	} catch (error: unknown) {
 		return { success: false, error: getExecaErrorMessage(error) };
 	}
-}
+};
 
 // Remove a devcontainer and its volumes
-export async function removeContainer(
+export const removeContainer = async (
 	projectPath: string,
 	options?: { removeVolumes?: boolean },
-): Promise<ContainerResult> {
+): Promise<ContainerResult> => {
 	try {
 		// Get container ID
 		const containerId = await queryDockerContainers({
@@ -235,10 +237,10 @@ export async function removeContainer(
 	} catch (error: unknown) {
 		return { success: false, error: getExecaErrorMessage(error) };
 	}
-}
+};
 
 // Get all skybox-related containers
-export async function listSkyboxContainers(): Promise<ContainerInfo[]> {
+export const listSkyboxContainers = async (): Promise<ContainerInfo[]> => {
 	try {
 		const output = await queryDockerContainers({
 			includeAll: true,
@@ -255,13 +257,13 @@ export async function listSkyboxContainers(): Promise<ContainerInfo[]> {
 	} catch {
 		return [];
 	}
-}
+};
 
 // Open project in editor with devcontainer
-export async function openInEditor(
+export const openInEditor = async (
 	projectPath: string,
 	editor: EditorId,
-): Promise<ContainerResult> {
+): Promise<ContainerResult> => {
 	const normalizedPath = normalizePath(projectPath);
 	try {
 		// Get the container ID for this project
@@ -300,12 +302,12 @@ export async function openInEditor(
 	} catch (error: unknown) {
 		return { success: false, error: getExecaErrorMessage(error) };
 	}
-}
+};
 
 // Attach to shell inside devcontainer
-export async function attachToShell(
+export const attachToShell = async (
 	projectPath: string,
-): Promise<ContainerResult> {
+): Promise<ContainerResult> => {
 	try {
 		await execa(
 			"devcontainer",
@@ -322,9 +324,9 @@ export async function attachToShell(
 		}
 		return { success: false, error: getExecaErrorMessage(error) };
 	}
-}
+};
 
 // Check if devcontainer.json exists locally
-export function hasLocalDevcontainerConfig(projectPath: string): boolean {
+export const hasLocalDevcontainerConfig = (projectPath: string): boolean => {
 	return resolveDevcontainerConfigPath(projectPath) !== null;
-}
+};

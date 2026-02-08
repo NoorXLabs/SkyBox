@@ -62,11 +62,11 @@ export interface DockerTestContext {
  * Generates a unique project name for tests.
  * Format: test-{name}-{timestamp}-{random}
  */
-function generateTestProjectName(name: string): string {
+const generateTestProjectName = (name: string): string => {
 	const timestamp = Date.now();
 	const random = Math.random().toString(36).substring(2, 8);
 	return `test-${name}-${timestamp}-${random}`;
-}
+};
 
 /**
  * Creates an isolated Docker test context with a unique project name,
@@ -75,7 +75,7 @@ function generateTestProjectName(name: string): string {
  * @param name - Base name for the test (will be made unique)
  * @returns DockerTestContext with project info and cleanup function
  */
-export function createDockerTestContext(name: string): DockerTestContext {
+export const createDockerTestContext = (name: string): DockerTestContext => {
 	const projectName = generateTestProjectName(name);
 	const testDir = join(tmpdir(), `skybox-integration-${projectName}`);
 	const projectDir = join(testDir, "Projects", projectName);
@@ -121,7 +121,7 @@ export function createDockerTestContext(name: string): DockerTestContext {
 		normalizedProjectDir,
 		cleanup,
 	};
-}
+};
 
 /**
  * Creates a Docker test context with standard test config and devcontainer setup.
@@ -130,10 +130,10 @@ export function createDockerTestContext(name: string): DockerTestContext {
  * @param templateId - Devcontainer template id (default: node)
  * @returns Configured DockerTestContext
  */
-export function createDockerProjectTestContext(
+export const createDockerProjectTestContext = (
 	name: string,
 	templateId = "node",
-): DockerTestContext {
+): DockerTestContext => {
 	const ctx = createDockerTestContext(name);
 	const config = createTestConfig({
 		remotes: { test: createTestRemote("test") },
@@ -142,19 +142,19 @@ export function createDockerProjectTestContext(
 	writeTestConfig(ctx.testDir, config);
 	createMinimalDevcontainer(ctx.projectDir, templateId);
 	return ctx;
-}
+};
 
 /**
  * Boots a configured test project container and waits for it to be running.
  *
  * @param ctx - Docker test context for the project
  */
-export async function startDockerProjectContainer(
+export const startDockerProjectContainer = async (
 	ctx: DockerTestContext,
-): Promise<void> {
+): Promise<void> => {
 	await execa("devcontainer", ["up", "--workspace-folder", ctx.projectDir]);
 	await waitForContainer(ctx.normalizedProjectDir);
-}
+};
 
 /**
  * Finds a container ID by the devcontainer.local_folder label.
@@ -163,9 +163,9 @@ export async function startDockerProjectContainer(
  * @param projectPath - Normalized project path to search for
  * @returns Container ID if found, null otherwise
  */
-export async function getContainerIdByProjectPath(
+export const getContainerIdByProjectPath = async (
 	projectPath: string,
-): Promise<string | null> {
+): Promise<string | null> => {
 	try {
 		const result = await execa("docker", [
 			"ps",
@@ -178,7 +178,7 @@ export async function getContainerIdByProjectPath(
 	} catch {
 		return null;
 	}
-}
+};
 
 /**
  * Waits for a container to be in the running state.
@@ -188,10 +188,10 @@ export async function getContainerIdByProjectPath(
  * @param timeout - Maximum time to wait in milliseconds (default: 30000)
  * @throws Error if timeout is exceeded before container is running
  */
-export async function waitForContainer(
+export const waitForContainer = async (
 	projectPath: string,
 	timeout = DEFAULT_CONTAINER_TIMEOUT,
-): Promise<void> {
+): Promise<void> => {
 	const startTime = Date.now();
 
 	while (Date.now() - startTime < timeout) {
@@ -220,7 +220,7 @@ export async function waitForContainer(
 	throw new Error(
 		`Timeout waiting for container at "${projectPath}" to be running after ${timeout}ms`,
 	);
-}
+};
 
 /**
  * Gets the current status of a container by project path.
@@ -229,9 +229,9 @@ export async function waitForContainer(
  * @param projectPath - Normalized project path to find container for
  * @returns "running" if running, "exited" if stopped, or null if not found
  */
-export async function getContainerStatus(
+export const getContainerStatus = async (
 	projectPath: string,
-): Promise<ContainerState> {
+): Promise<ContainerState> => {
 	try {
 		const containerId = await getContainerIdByProjectPath(projectPath);
 		if (!containerId) {
@@ -261,7 +261,7 @@ export async function getContainerStatus(
 		// Container not found or other error
 		return null;
 	}
-}
+};
 
 /**
  * Removes all Docker containers with the skybox-test=true label.
@@ -269,7 +269,7 @@ export async function getContainerStatus(
  *
  * @returns Number of containers removed
  */
-export async function cleanupTestContainers(): Promise<number> {
+export const cleanupTestContainers = async (): Promise<number> => {
 	try {
 		// Find all containers with the test label
 		const listResult = await execa("docker", [
@@ -295,7 +295,7 @@ export async function cleanupTestContainers(): Promise<number> {
 	} catch {
 		return 0;
 	}
-}
+};
 
 /**
  * Prunes Docker volumes with the skybox-test=true label.
@@ -303,7 +303,7 @@ export async function cleanupTestContainers(): Promise<number> {
  *
  * @returns Number of volumes removed
  */
-export async function cleanupTestVolumes(): Promise<number> {
+export const cleanupTestVolumes = async (): Promise<number> => {
 	try {
 		// Find all volumes with the test label
 		const listResult = await execa("docker", [
@@ -330,7 +330,7 @@ export async function cleanupTestVolumes(): Promise<number> {
 	} catch {
 		return 0;
 	}
-}
+};
 
 /**
  * Creates a minimal devcontainer.json in the specified project directory.
@@ -340,10 +340,10 @@ export async function cleanupTestVolumes(): Promise<number> {
  * @param templateId - Template ID to use (default: "node")
  * @returns Path to the created devcontainer.json
  */
-export function createMinimalDevcontainer(
+export const createMinimalDevcontainer = (
 	projectDir: string,
 	templateId = "node",
-): string {
+): string => {
 	const devcontainerDir = join(projectDir, DEVCONTAINER_DIR_NAME);
 	const configPath = join(devcontainerDir, DEVCONTAINER_CONFIG_NAME);
 
@@ -384,11 +384,11 @@ export function createMinimalDevcontainer(
 	writeFileSync(configPath, JSON.stringify(config, null, "\t"));
 
 	return configPath;
-}
+};
 
 /**
  * Sleep utility for polling operations.
  */
-function sleep(ms: number): Promise<void> {
+const sleep = (ms: number): Promise<void> => {
 	return new Promise((resolve) => setTimeout(resolve, ms));
-}
+};

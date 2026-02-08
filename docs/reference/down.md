@@ -22,6 +22,7 @@ skybox down [project] [options]
 | `-f, --force` | Force stop even on errors |
 | `--no-prompt` | Non-interactive mode (fails if input would be required) |
 | `-A, --all` | Stop all local projects in batch mode (tallies success/failure counts) |
+| `--dry-run` | Show what would happen without making changes |
 
 ## Description
 

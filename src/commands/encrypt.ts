@@ -25,10 +25,8 @@ import {
 } from "@lib/ui.ts";
 import chalk from "chalk";
 
-/**
- * Enable encryption for a project
- */
-async function enableEncryption(project?: string): Promise<void> {
+// enable encryption for a project
+const enableEncryption = async (project?: string): Promise<void> => {
 	const config = requireConfig();
 
 	const projectNames = Object.keys(config.projects);
@@ -128,12 +126,10 @@ async function enableEncryption(project?: string): Promise<void> {
 	success(
 		`Encryption enabled for '${project}'. Keep your passphrase safe — it cannot be recovered.`,
 	);
-}
+};
 
-/**
- * Disable encryption for a project
- */
-async function disableEncryption(project?: string): Promise<void> {
+// disable encryption for a project
+const disableEncryption = async (project?: string): Promise<void> => {
 	const config = requireConfig();
 
 	// Filter to only projects with encryption enabled
@@ -216,15 +212,13 @@ async function disableEncryption(project?: string): Promise<void> {
 
 	console.log();
 	success(`Encryption disabled for '${project}'.`);
-}
+};
 
-/**
- * Main handler for encrypt command
- */
-export async function encryptCommand(
+// main handler for encrypt command
+export const encryptCommand = async (
 	subcommand?: string,
 	project?: string,
-): Promise<void> {
+): Promise<void> => {
 	if (isDryRun()) {
 		if (subcommand === "enable") {
 			dryRun(`Would enable encryption for project '${project}'`);
@@ -264,4 +258,4 @@ export async function encryptCommand(
 
 	error(`Unknown subcommand: ${subcommand}`);
 	info("Available subcommands: enable, disable");
-}
+};

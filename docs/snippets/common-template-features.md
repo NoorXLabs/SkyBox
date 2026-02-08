@@ -1,0 +1,4 @@
+- **[common-utils](https://github.com/devcontainers/features/tree/main/src/common-utils)** -- zsh (default shell), oh-my-zsh, and essential utilities
+- **[docker-outside-of-docker](https://github.com/devcontainers/features/tree/main/src/docker-outside-of-docker)** -- access the host Docker daemon from inside the container
+- **[git](https://github.com/devcontainers/features/tree/main/src/git)** -- pre-installed for version control
+- **SSH passthrough** -- your host `~/.ssh` directory is bind-mounted read-only, so container Git operations use your existing SSH keys

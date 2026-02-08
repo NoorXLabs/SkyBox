@@ -1,17 +1,15 @@
-/** Operations for interacting with remote servers. */
+// operations for interacting with remote servers.
 
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import { validateRemoteProjectPath } from "@lib/validation.ts";
 
-/**
- * Check if a project directory exists on the remote server.
- */
-export async function checkRemoteProjectExists(
+// check if a project directory exists on the remote server.
+export const checkRemoteProjectExists = async (
 	host: string,
 	basePath: string,
 	project: string,
-): Promise<boolean> {
+): Promise<boolean> => {
 	const pathCheck = validateRemoteProjectPath(project);
 	if (!pathCheck.valid) {
 		return false;
@@ -22,4 +20,4 @@ export async function checkRemoteProjectExists(
 		`test -d ${escapeShellArg(fullPath)} && echo "EXISTS" || echo "NOT_FOUND"`,
 	);
 	return result.stdout?.includes("EXISTS") ?? false;
-}
+};

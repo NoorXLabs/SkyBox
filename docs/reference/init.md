@@ -14,14 +14,16 @@ This command takes no arguments.
 
 ## Options
 
-This command has no options. It runs interactively and guides you through the setup process.
+| Option | Description |
+|--------|-------------|
+| `--dry-run` | Preview what would happen without executing |
 
 ## Description
 
 The `init` command walks you through the initial SkyBox configuration:
 
 1. **Dependency Check** - Verifies Docker and Node.js are installed
-2. **Mutagen Installation** - Downloads and installs Mutagen for file synchronization (if not already installed)
+2. **Mutagen Installation** - Extracts the bundled Mutagen binary for file synchronization (if not already installed)
 3. **Remote Server Configuration** - Sets up SSH connection to your remote server
 4. **Editor Selection** - Configures your preferred code editor
 5. **Encryption Default** - Optionally enable encryption for new projects by default
@@ -33,14 +35,11 @@ If SkyBox is already configured, you'll be asked whether to reconfigure.
 - **Docker** - Required for running containers
 - **Node.js** - Required for the SkyBox CLI and devcontainer-cli
 
-### Mutagen Download Verification
+### Mutagen Installation
 
-When Mutagen is downloaded, SkyBox verifies the binary's integrity:
+Mutagen is bundled with SkyBox and extracted automatically during setup. In development mode (running from source), SkyBox falls back to downloading from GitHub if the bundled asset is not found.
 
-1. **SHA256 checksum** — The download is verified against the official `SHA256SUMS` file before writing to disk
-2. **GPG signature** — If `gpg` is available on your system, the `SHA256SUMS` file itself is verified against Mutagen's GPG signature
-
-If GPG is not installed, SkyBox falls back to checksum-only verification. To skip GPG verification entirely (e.g., in air-gapped environments), set `SKYBOX_SKIP_GPG=1`.
+When downloading (dev mode only), SkyBox verifies the binary's integrity using **SHA256 checksum** — the download is verified against the official `SHA256SUMS` file before writing to disk.
 
 ### Remote Configuration
 
@@ -59,14 +58,11 @@ SSH fields are validated as you enter them. Hostnames, usernames, key paths, and
 
 ### Editor Options
 
-Built-in support for:
+SkyBox has built-in support for these editors:
 
-- Cursor
-- VS Code
-- Zed
-- Vim
-- Neovim
-- Custom editor command
+<!--@include: ../snippets/editors-list.md-->
+
+Vim (`vim`), Neovim (`nvim`), and any custom editor command are also supported.
 
 ## Examples
 

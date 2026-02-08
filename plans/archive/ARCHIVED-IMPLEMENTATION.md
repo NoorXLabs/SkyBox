@@ -445,4 +445,57 @@ Comprehensive security remediation across 5 batches (CRITICAL → LOW), plus cod
 
 ---
 
-*Archived: 2026-02-05*
+## Docs Snippet Consolidation (2026-02-07)
+
+- [x] **Docs Snippet Consolidation** — Extracted repeated content across VitePress docs into 10 reusable `<!--@include:-->` snippets in `docs/snippets/` — *uncommitted*
+  - `editors-list.md`, `default-ignore-patterns.md`, `post-start-action-menu.md`, `common-template-features.md`, `env-vars-table.md`, `session-file-format.md`, `status-detailed.md`, `template-selector-full.md`, `template-selector-up.md`, `templates-table.md`
+  - Wired into guide, reference, and architecture docs to eliminate drift
+
+### Archived Plans
+
+- `plans/archive/docs-snippet-consolidation.md` — Docs snippet consolidation implementation plan
+
+---
+
+## First-Run Telemetry (2026-02-07)
+
+- [x] **First-Run Install Tracking** — Rybbit analytics on first CLI invocation with opt-out via `SKYBOX_TELEMETRY=0` — *uncommitted*
+  - New `src/lib/telemetry.ts` with `shouldTrackInstall()` and `trackInstall()`
+  - Marker file `~/.skybox/.installed` prevents repeat sends
+  - Fire-and-forget with zero latency impact
+  - Unit tests in `tests/unit/lib/telemetry.test.ts`
+
+### Archived Plans
+
+- `plans/archive/first-run-telemetry.md` — First-run telemetry implementation plan
+
+---
+
+## Robust Self-Update (2026-02-07)
+
+- [x] **Robust Self-Update** — Hardened `skybox update` with integrity verification, rollback, permission pre-checks, and post-update confirmation — *uncommitted*
+  - SHA-256 checksum verification against `checksums.txt` release asset
+  - Backup current binary before replacement with automatic rollback on failure
+  - Permission pre-check before download
+  - Post-update version verification (`--version` smoke test)
+  - macOS Gatekeeper quarantine attribute removal
+
+### Archived Plans
+
+- `plans/archive/robust-self-update.md` — Robust self-update implementation plan
+
+---
+
+## Arrow Function Refactor (2026-02-07)
+
+- [x] **Arrow Function Convention** — Converted all exported functions to arrow syntax across `src/` and `tests/` — `1957894`
+
+---
+
+## GPG Removal (2026-02-07)
+
+- [x] **Remove GPG Verification** — Deleted `src/lib/gpg.ts` and `tests/unit/lib/gpg.test.ts`, simplified download to checksum-only verification — *uncommitted*
+
+---
+
+*Archived: 2026-02-07*

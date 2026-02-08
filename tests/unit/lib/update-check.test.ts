@@ -67,8 +67,7 @@ describe("update-check", () => {
 	test("getUpgradeCommand returns correct command per install method", async () => {
 		const { getUpgradeCommand } = await import("@lib/update-check.ts");
 		expect(getUpgradeCommand("homebrew")).toBe("brew upgrade skybox");
-		expect(getUpgradeCommand("npm")).toBe("npm update -g skybox");
-		expect(getUpgradeCommand("github-release")).toContain("github.com");
+		expect(getUpgradeCommand("github-release")).toBe("skybox update");
 		expect(getUpgradeCommand("source")).toBe("git pull && bun install");
 	});
 

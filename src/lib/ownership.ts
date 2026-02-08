@@ -1,4 +1,4 @@
-/** Resource ownership verification for remote projects. */
+// resource ownership verification for remote projects.
 
 import { hostname, userInfo } from "node:os";
 import { OWNERSHIP_FILE_NAME } from "@lib/constants.ts";
@@ -11,11 +11,9 @@ import type {
 	SetOwnershipResult,
 } from "@typedefs/index.ts";
 
-/**
- * Parse ownership info from JSON string.
- * Returns null if invalid or incomplete.
- */
-export function parseOwnershipInfo(json: string): OwnershipInfo | null {
+// parse ownership info from JSON string.
+// returns null if invalid or incomplete.
+export const parseOwnershipInfo = (json: string): OwnershipInfo | null => {
 	try {
 		const data = JSON.parse(json);
 		if (
@@ -33,45 +31,36 @@ export function parseOwnershipInfo(json: string): OwnershipInfo | null {
 	} catch {
 		return null;
 	}
-}
+};
 
-/**
- * Create ownership info for the current user.
- *
- * NOTE: Uses the local OS username (userInfo().username), not the SSH remote user.
- * This means ownership is tied to the local account name, which works well when:
- * - Same user uses consistent local username across machines
- * - SSH user differs from local user (e.g., deploy@server) but local user is consistent
- *
- * Limitation: If two different people have the same local username on different
- * machines, they would both be considered "owners". This is a known trade-off
- * for simplicity in typical single-user scenarios.
- */
-export function createOwnershipInfo(): OwnershipInfo {
+// create ownership info for the current user.
+// NOTE: Uses the local OS username (userInfo().username), not the SSH remote user.
+// this means ownership is tied to the local account name, which works well when:
+// - Same user uses consistent local username across machines
+// - SSH user differs from local user (e.g., deploy@server) but local user is consistent
+// limitation: If two different people have the same local username on different
+// machines, they would both be considered "owners". This is a known trade-off
+// for simplicity in typical single-user scenarios.
+export const createOwnershipInfo = (): OwnershipInfo => {
 	return {
 		owner: userInfo().username,
 		created: new Date().toISOString(),
 		machine: hostname(),
 	};
-}
+};
 
-/**
- * Check if the current user is the owner.
- *
- * Compares local OS username against the stored owner field.
- * See createOwnershipInfo() for username semantics.
- */
-export function isOwner(info: OwnershipInfo): boolean {
+// check if the current user is the owner.
+// compares local OS username against the stored owner field.
+// see createOwnershipInfo() for username semantics.
+export const isOwner = (info: OwnershipInfo): boolean => {
 	return info.owner === userInfo().username;
-}
+};
 
-/**
- * Get ownership status for a project on the remote.
- */
-export async function getOwnershipStatus(
+// read the .skybox-owner file from a remote project status for a project on the remote.
+export const getOwnershipStatus = async (
 	host: string,
 	projectPath: string,
-): Promise<OwnershipStatus> {
+): Promise<OwnershipStatus> => {
 	const pathCheck = validateRemotePath(projectPath);
 	if (!pathCheck.valid) {
 		return { hasOwner: false };
@@ -95,16 +84,14 @@ export async function getOwnershipStatus(
 		isOwner: isOwner(info),
 		info,
 	};
-}
+};
 
-/**
- * Set ownership for a project on the remote.
- * Creates the .skybox-owner file with current user's info.
- */
-export async function setOwnership(
+// write a .skybox-owner file to a remote project for a project on the remote.
+// creates the .skybox-owner file with current user's info.
+export const setOwnership = async (
 	host: string,
 	projectPath: string,
-): Promise<SetOwnershipResult> {
+): Promise<SetOwnershipResult> => {
 	const pathCheck = validateRemotePath(projectPath);
 	if (!pathCheck.valid) {
 		return { success: false, error: pathCheck.error };
@@ -125,16 +112,18 @@ export async function setOwnership(
 	}
 
 	return { success: true };
-}
+};
 
-/**
- * Check if user is authorized to perform a write operation on a project.
- * Returns true if: no ownership file exists OR current user is the owner.
- */
-export async function checkWriteAuthorization(
+// check if user is authorized to perform a write operation on a project.
+// returns true if: no ownership file exists OR current user is the owner.
+export const checkWriteAuthorization = async (
 	host: string,
 	projectPath: string,
-): Promise<{ authorized: boolean; error?: string; ownerInfo?: OwnershipInfo }> {
+): Promise<{
+	authorized: boolean;
+	error?: string;
+	ownerInfo?: OwnershipInfo;
+}> => {
 	const status = await getOwnershipStatus(host, projectPath);
 
 	if (!status.hasOwner) {
@@ -151,4 +140,4 @@ export async function checkWriteAuthorization(
 		error: `Project owned by '${status.info.owner}' (created on ${status.info.machine})`,
 		ownerInfo: status.info,
 	};
-}
+};

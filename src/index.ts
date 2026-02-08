@@ -21,10 +21,12 @@ import { shellCommand } from "@commands/shell.ts";
 import { statusCommand } from "@commands/status.ts";
 import { upCommand } from "@commands/up.ts";
 import { updateCommand } from "@commands/update.ts";
+
 import { INSTALL_METHOD } from "@lib/constants.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { installShutdownHandlers } from "@lib/shutdown.ts";
 import { runStartupChecks } from "@lib/startup.ts";
+import { shouldTrackInstall, trackInstall } from "@lib/telemetry.ts";
 import { checkForUpdate, getUpgradeCommand } from "@lib/update-check.ts";
 import chalk from "chalk";
 import { program } from "commander";
@@ -174,7 +176,7 @@ program
 
 program
 	.command("update")
-	.description("Update Mutagen binary to latest bundled version")
+	.description("Check for and install SkyBox updates")
 	.action(updateCommand);
 
 program
@@ -202,19 +204,29 @@ program.command("hook-check", { hidden: true }).action(hookCheckCommand);
 		process.exit(1);
 	}
 
-	try {
-		const currentVersion: string = pkg.version;
-		const isBeta = currentVersion.includes("-");
-		const newerVersion = await checkForUpdate(currentVersion, isBeta);
-		if (newerVersion) {
-			const cmd = getUpgradeCommand(INSTALL_METHOD);
-			console.log();
-			console.log(
-				chalk.yellow(`Update available: ${currentVersion} → ${newerVersion}.`),
-			);
-			console.log(chalk.dim(`Run: ${cmd}`));
+	// First-run telemetry (fire-and-forget, non-blocking)
+	if (shouldTrackInstall()) {
+		trackInstall(pkg.version);
+	}
+
+	// Skip passive update check for commands that handle updates themselves
+	if (command !== "update") {
+		try {
+			const currentVersion: string = pkg.version;
+			const isBeta = currentVersion.includes("-");
+			const newerVersion = await checkForUpdate(currentVersion, isBeta);
+			if (newerVersion) {
+				const cmd = getUpgradeCommand(INSTALL_METHOD);
+				console.log();
+				console.log(
+					chalk.yellow(
+						`Update available: ${currentVersion} → ${newerVersion}.`,
+					),
+				);
+				console.log(chalk.dim(`Run: ${cmd}`));
+			}
+		} catch {
+			// Update check is non-critical — never crash the CLI
 		}
-	} catch {
-		// Update check is non-critical — never crash the CLI
 	}
 })();

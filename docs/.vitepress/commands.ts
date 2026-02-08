@@ -31,6 +31,6 @@ export const commands: CommandEntry[] = [
   { text: "skybox doctor", link: "/reference/doctor", description: "Diagnose common issues" },
   { text: "skybox logs", link: "/reference/logs", description: "Show container or sync logs" },
   { text: "skybox encrypt", link: "/reference/encryption", description: "Manage project encryption" },
-  { text: "skybox update", link: "/reference/update", description: "Update Mutagen binary" },
+  { text: "skybox update", link: "/reference/update", description: "Check for and install SkyBox updates" },
   { text: "skybox hook", link: "/reference/hook", description: "Shell integration for auto-starting containers" },
 ];

@@ -6,7 +6,7 @@ import type { HookEntry, HookEvent, HooksConfig } from "@typedefs/index.ts";
 
 const execFileAsync = promisify(execFile);
 
-/** Track whether the hook security warning has been shown this session. */
+// track whether the hook security warning has been shown this session.
 const hookState = { warningShown: false };
 
 interface HookResult {
@@ -14,12 +14,10 @@ interface HookResult {
 	errors: string[];
 }
 
-/**
- * Normalize a hook config value (string or HookEntry[]) into HookEntry[].
- */
-function normalizeHookEntries(
+// normalize a hook config value (string or HookEntry[]) into HookEntry[].
+const normalizeHookEntries = (
 	value: string | HookEntry[] | undefined,
-): HookEntry[] {
+): HookEntry[] => {
 	if (!value) return [];
 	if (typeof value === "string") {
 		return [{ command: value, context: "host" }];
@@ -28,21 +26,18 @@ function normalizeHookEntries(
 		command: entry.command,
 		context: entry.context ?? "host",
 	}));
-}
+};
 
-/**
- * Run all hooks for a given lifecycle event.
- * Hooks are non-fatal: failures are reported but do not stop the parent operation.
- *
- * SECURITY NOTE: Hook commands execute with full shell access.
- * Users are responsible for securing their hook configurations.
- * Hooks should only be defined in trusted config files.
- */
-export async function runHooks(
+// run all hooks for a given lifecycle event.
+// hooks are non-fatal: failures are reported but do not stop the parent operation.
+// SECURITY NOTE: Hook commands execute with full shell access.
+// users are responsible for securing their hook configurations.
+// hooks should only be defined in trusted config files.
+export const runHooks = async (
 	event: HookEvent,
 	hooks: HooksConfig | undefined,
 	cwd: string,
-): Promise<HookResult> {
+): Promise<HookResult> => {
 	if (!hooks) return { success: true, errors: [] };
 
 	const entries = normalizeHookEntries(hooks[event]);
@@ -75,12 +70,10 @@ export async function runHooks(
 	}
 
 	return { success: errors.length === 0, errors };
-}
+};
 
-/**
- * Reset hook warning state (for testing purposes).
- * @internal
- */
-export function resetHookWarningState(): void {
+// reset hook warning state (for testing purposes).
+// @internal
+export const resetHookWarningState = (): void => {
 	hookState.warningShown = false;
-}
+};

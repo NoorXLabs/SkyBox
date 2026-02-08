@@ -117,15 +117,7 @@ If two people try to work on the same SkyBox project simultaneously, you will ha
 
 The session file contains:
 
-```json
-{
-  "machine": "macbook-pro",
-  "user": "alice",
-  "timestamp": "2026-02-04T10:00:00Z",
-  "pid": 12345,
-  "expires": "2026-02-05T10:00:00Z"
-}
-```
+<!--@include: ../../snippets/session-file-format.md-->
 
 - **machine**: Hostname of the machine that started the session
 - **user**: Username who started it
