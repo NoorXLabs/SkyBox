@@ -11,15 +11,16 @@ import {
 import { upCommand } from "@commands/up.ts";
 import { checkbox, select } from "@inquirer/prompts";
 import { AuditActions, logAuditEvent } from "@lib/audit.ts";
-import { requireConfig, saveConfig } from "@lib/config.ts";
-import { getSyncStatus, terminateSession, waitForSync } from "@lib/mutagen.ts";
+import { requireConfig } from "@lib/config.ts";
+import { offerStartContainer } from "@lib/container-start.ts";
+import { getSyncStatus, terminateSession } from "@lib/mutagen.ts";
 import { getProjectsDir } from "@lib/paths.ts";
 import { getLocalProjects } from "@lib/project.ts";
+import { finalizeProjectSync } from "@lib/project-sync.ts";
 import { validateProjectName } from "@lib/projectTemplates.ts";
 import { checkRemoteProjectExists } from "@lib/remote.ts";
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
-import { createProjectSyncSession } from "@lib/sync-session.ts";
 import {
 	confirmDestructiveAction,
 	dryRun,
@@ -31,7 +32,6 @@ import {
 	success,
 } from "@lib/ui.ts";
 import type { SkyboxConfigV2 } from "@typedefs/index.ts";
-import inquirer from "inquirer";
 
 // clone a single project from remote. This is the core clone logic
 // used by both direct invocation and interactive multi-clone.
@@ -124,51 +124,40 @@ export const cloneSingleProject = async (
 	syncSpin.text = "Creating sync session...";
 	const projectConfig = config.projects[project];
 	const ignores = config.defaults.ignore;
-	const createResult = await createProjectSyncSession({
-		project,
+	const syncSetupResult = await finalizeProjectSync({
+		projectName: project,
 		localPath,
 		remoteHost: host,
 		remotePath,
 		ignores,
 		syncPaths: projectConfig?.sync_paths,
+		config,
+		remoteName,
+		onProgress: (message) => {
+			syncSpin.text = message;
+		},
 	});
 
-	if (!createResult.success) {
-		syncSpin.fail("Failed to create sync session");
+	if (!syncSetupResult.success) {
+		const failMessage =
+			syncSetupResult.stage === "create"
+				? "Failed to create sync session"
+				: "Sync failed";
+		syncSpin.fail(failMessage);
+		if (syncSetupResult.stage === "sync") {
+			await terminateSession(project);
+		}
 		rmSync(localPath, { recursive: true, force: true });
-		error(createResult.error || "Unknown error");
+		error(syncSetupResult.error);
 		logAuditEvent(AuditActions.CLONE_FAIL, {
 			project,
 			remote: remoteName,
-			error: createResult.error || "Failed to create sync session",
-		});
-		return false;
-	}
-
-	// Wait for initial sync
-	syncSpin.text = "Syncing files from remote...";
-	const syncResult = await waitForSync(project, (msg) => {
-		syncSpin.text = msg;
-	});
-
-	if (!syncResult.success) {
-		syncSpin.fail("Sync failed");
-		await terminateSession(project);
-		rmSync(localPath, { recursive: true, force: true });
-		error(syncResult.error || "Unknown error");
-		logAuditEvent(AuditActions.CLONE_FAIL, {
-			project,
-			remote: remoteName,
-			error: syncResult.error || "Sync failed",
+			error: syncSetupResult.error,
 		});
 		return false;
 	}
 
 	syncSpin.succeed("Initial sync complete");
-
-	// Register in config with remote reference
-	config.projects[project] = { remote: remoteName };
-	saveConfig(config);
 
 	// Check if project is encrypted on remote
 	const encArchivePath = `${remotePath}/${project}.tar.enc`;
@@ -206,22 +195,11 @@ export const cloneCommand = async (project?: string): Promise<void> => {
 
 		if (isDryRun()) return;
 
-		// Offer to start container (existing behavior)
-		console.log();
-		const { startContainer } = await inquirer.prompt([
-			{
-				type: "confirm",
-				name: "startContainer",
-				message: "Start dev container now?",
-				default: true,
-			},
-		]);
-
-		if (startContainer) {
-			await upCommand(project, {});
-		} else {
-			info(`Run 'skybox up ${project}' when ready to start working.`);
-		}
+		await offerStartContainer({
+			projectName: project,
+			defaultStart: true,
+			onStart: async (selectedProject) => upCommand(selectedProject, {}),
+		});
 		return;
 	}
 
@@ -291,20 +269,11 @@ export const cloneCommand = async (project?: string): Promise<void> => {
 
 	if (cloned.length === 1) {
 		// Single clone — offer to start container (same as direct invocation)
-		const { startContainer } = await inquirer.prompt([
-			{
-				type: "confirm",
-				name: "startContainer",
-				message: "Start dev container now?",
-				default: true,
-			},
-		]);
-
-		if (startContainer) {
-			await upCommand(cloned[0], {});
-		} else {
-			info(`Run 'skybox up ${cloned[0]}' when ready to start working.`);
-		}
+		await offerStartContainer({
+			projectName: cloned[0],
+			defaultStart: true,
+			onStart: async (selectedProject) => upCommand(selectedProject, {}),
+		});
 		return;
 	}
 

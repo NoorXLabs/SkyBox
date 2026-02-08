@@ -5,14 +5,7 @@
  * Provides isolated test contexts, container management, and cleanup functions.
  */
 
-import {
-	existsSync,
-	mkdirSync,
-	realpathSync,
-	rmSync,
-	writeFileSync,
-} from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdirSync, realpathSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
 	CONTAINER_POLL_INTERVAL,
@@ -25,6 +18,7 @@ import {
 } from "@lib/constants.ts";
 import {
 	createTestConfig,
+	createTestContext,
 	createTestRemote,
 	writeTestConfig,
 } from "@tests/helpers/test-utils.ts";
@@ -36,7 +30,6 @@ export {
 	isDevcontainerCliAvailable,
 	isDockerAvailable,
 } from "@tests/helpers/test-utils.ts";
-
 /**
  * Container state as reported by Docker inspect.
  */
@@ -77,14 +70,12 @@ const generateTestProjectName = (name: string): string => {
  */
 export const createDockerTestContext = (name: string): DockerTestContext => {
 	const projectName = generateTestProjectName(name);
-	const testDir = join(tmpdir(), `skybox-integration-${projectName}`);
+	const baseContext = createTestContext(`integration-${projectName}`);
+	const testDir = baseContext.testDir;
 	const projectDir = join(testDir, "Projects", projectName);
-
-	const originalEnv = process.env.SKYBOX_HOME;
 
 	// Create directory structure
 	mkdirSync(projectDir, { recursive: true });
-	process.env.SKYBOX_HOME = testDir;
 
 	// Normalize path for container label matching (macOS symlinks like /var -> /private/var)
 	const normalizedProjectDir = realpathSync(projectDir);
@@ -101,17 +92,7 @@ export const createDockerTestContext = (name: string): DockerTestContext => {
 			// Ignore errors - container may not exist
 		}
 
-		// Remove the temp directory
-		if (existsSync(testDir)) {
-			rmSync(testDir, { recursive: true, force: true });
-		}
-
-		// Restore original SKYBOX_HOME
-		if (originalEnv) {
-			process.env.SKYBOX_HOME = originalEnv;
-		} else {
-			delete process.env.SKYBOX_HOME;
-		}
+		baseContext.cleanup();
 	};
 
 	return {

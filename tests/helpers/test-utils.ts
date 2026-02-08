@@ -40,7 +40,7 @@ export const createTestContext = (name: string): TestContext => {
 		testDir,
 		cleanup: () => {
 			if (existsSync(testDir)) {
-				rmSync(testDir, { recursive: true });
+				rmSync(testDir, { recursive: true, force: true });
 			}
 			if (originalEnv) {
 				process.env.SKYBOX_HOME = originalEnv;

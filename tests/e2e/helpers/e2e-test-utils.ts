@@ -4,12 +4,10 @@
  */
 
 import { expect } from "bun:test";
-import { mkdirSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import { getTestRemoteConfig } from "@tests/e2e/helpers/test-config.ts";
+import { createTestContext } from "@tests/helpers/test-utils.ts";
 import type { RemoteEntry } from "@typedefs/index.ts";
 import { execa } from "execa";
 
@@ -112,10 +110,8 @@ export const createE2ETestContext = (name: string): E2ETestContext => {
 	const testRemote = getTestRemoteConfig();
 	const projectName = `test-${name}-${runId}`;
 	const remotePath = `~/skybox-e2e-tests/run-${runId}`;
-	const testDir = join(tmpdir(), `skybox-e2e-${runId}`);
-
-	// Store original SKYBOX_HOME for restoration
-	const originalSkyboxHome = process.env.SKYBOX_HOME;
+	const baseContext = createTestContext(`e2e-${runId}`);
+	const testDir = baseContext.testDir;
 
 	return {
 		runId,
@@ -125,12 +121,6 @@ export const createE2ETestContext = (name: string): E2ETestContext => {
 		testDir,
 
 		async setup(): Promise<void> {
-			// Create local test directory
-			mkdirSync(testDir, { recursive: true });
-
-			// Set SKYBOX_HOME for test isolation
-			process.env.SKYBOX_HOME = testDir;
-
 			// Create remote test directory
 			const host = getRemoteHost(testRemote);
 
@@ -160,16 +150,9 @@ export const createE2ETestContext = (name: string): E2ETestContext => {
 			}
 
 			try {
-				rmSync(testDir, { recursive: true, force: true });
+				baseContext.cleanup();
 			} catch {
 				// Local cleanup failure — continue
-			}
-
-			// Restore original SKYBOX_HOME
-			if (originalSkyboxHome) {
-				process.env.SKYBOX_HOME = originalSkyboxHome;
-			} else {
-				delete process.env.SKYBOX_HOME;
 			}
 		},
 	};

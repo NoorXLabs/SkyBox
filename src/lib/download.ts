@@ -15,14 +15,34 @@ import { getBinDir, getMutagenPath } from "@lib/paths.ts";
 import { execa } from "execa";
 import { extract } from "tar";
 
+interface MutagenPlatformInfo {
+	os: "darwin" | "linux";
+	cpu: "arm64" | "amd64";
+	filename: string;
+}
+
+// normalize platform/arch into mutagen release naming components
+export const getMutagenPlatformInfo = (
+	platform: string,
+	arch: string,
+	version: string,
+): MutagenPlatformInfo => {
+	const os = platform === "darwin" ? "darwin" : "linux";
+	const cpu = arch === "arm64" ? "arm64" : "amd64";
+	return {
+		os,
+		cpu,
+		filename: `mutagen_${os}_${cpu}_v${version}.tar.gz`,
+	};
+};
+
 // get mutagen download url
 export const getMutagenDownloadUrl = (
 	platform: string,
 	arch: string,
 	version: string,
 ): string => {
-	const os = platform === "darwin" ? "darwin" : "linux";
-	const cpu = arch === "arm64" ? "arm64" : "amd64";
+	const { os, cpu } = getMutagenPlatformInfo(platform, arch, version);
 	return `https://github.com/${MUTAGEN_REPO}/releases/download/v${version}/mutagen_${os}_${cpu}_v${version}.tar.gz`;
 };
 
@@ -104,9 +124,7 @@ export const downloadMutagen = async (
 		return { success: false, error: `Unsupported platform: ${platform}` };
 	}
 
-	const os = platform === "darwin" ? "darwin" : "linux";
-	const cpu = arch === "arm64" ? "arm64" : "amd64";
-	const filename = `mutagen_${os}_${cpu}_v${MUTAGEN_VERSION}.tar.gz`;
+	const { filename } = getMutagenPlatformInfo(platform, arch, MUTAGEN_VERSION);
 	const url = getMutagenDownloadUrl(platform, arch, MUTAGEN_VERSION);
 	const binDir = getBinDir();
 	const tarPath = join(binDir, "mutagen.tar.gz");

@@ -9,16 +9,16 @@ import {
 } from "@commands/remote.ts";
 import { upCommand } from "@commands/up.ts";
 import { AuditActions, logAuditEvent } from "@lib/audit.ts";
-import { configExists, loadConfig, saveConfig } from "@lib/config.ts";
+import { configExists, loadConfig } from "@lib/config.ts";
+import { offerStartContainer } from "@lib/container-start.ts";
 import { getErrorMessage } from "@lib/errors.ts";
-import { waitForSync } from "@lib/mutagen.ts";
 import { checkWriteAuthorization, setOwnership } from "@lib/ownership.ts";
 import { getProjectsDir } from "@lib/paths.ts";
+import { finalizeProjectSync } from "@lib/project-sync.ts";
 import { validateProjectName } from "@lib/projectTemplates.ts";
 import { checkRemoteProjectExists } from "@lib/remote.ts";
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
-import { createProjectSyncSession } from "@lib/sync-session.ts";
 import {
 	confirmDestructiveAction,
 	dryRun,
@@ -222,39 +222,31 @@ export const pushCommand = async (
 
 	const projectConfig = config.projects[projectName];
 	const ignores = config.defaults.ignore;
-	const createResult = await createProjectSyncSession({
-		project: projectName,
+	const syncSetupResult = await finalizeProjectSync({
+		projectName,
 		localPath,
 		remoteHost: host,
 		remotePath,
 		ignores,
 		syncPaths: projectConfig?.sync_paths,
+		config,
+		remoteName,
+		onProgress: (message) => {
+			syncSpin.text = message;
+		},
 	});
 
-	if (!createResult.success) {
-		syncSpin.fail("Failed to create sync session");
-		error(createResult.error || "Unknown error");
+	if (!syncSetupResult.success) {
+		const failMessage =
+			syncSetupResult.stage === "create"
+				? "Failed to create sync session"
+				: "Sync failed";
+		syncSpin.fail(failMessage);
+		error(syncSetupResult.error);
 		logAuditEvent(AuditActions.PUSH_FAIL, {
 			project: projectName,
 			remote: remoteName,
-			error: createResult.error || "Failed to create sync session",
-		});
-		process.exit(1);
-	}
-
-	// Wait for initial sync
-	syncSpin.text = "Syncing files...";
-	const syncResult = await waitForSync(projectName, (msg) => {
-		syncSpin.text = msg;
-	});
-
-	if (!syncResult.success) {
-		syncSpin.fail("Sync failed");
-		error(syncResult.error || "Unknown error");
-		logAuditEvent(AuditActions.PUSH_FAIL, {
-			project: projectName,
-			remote: remoteName,
-			error: syncResult.error || "Sync failed",
+			error: syncSetupResult.error,
 		});
 		process.exit(1);
 	}
@@ -267,30 +259,19 @@ export const pushCommand = async (
 		warn(`Could not set ownership: ${ownerResult.error}`);
 	}
 
-	// Register in config with remote reference
-	config.projects[projectName] = { remote: remoteName };
-	saveConfig(config);
-
 	logAuditEvent(AuditActions.PUSH_SUCCESS, {
 		project: projectName,
 		remote: remoteName,
 	});
 
 	// Offer to start container
-	console.log();
-	const { startContainer } = await inquirer.prompt([
-		{
-			type: "confirm",
-			name: "startContainer",
-			message: "Start dev container now?",
-			default: false,
-		},
-	]);
-
-	if (startContainer) {
-		await upCommand(projectName, {});
-	} else {
-		info(`Project saved to ${localPath}`);
-		info(`Run 'skybox up ${projectName}' when ready to start working.`);
-	}
+	await offerStartContainer({
+		projectName,
+		defaultStart: false,
+		onStart: async (selectedProject) => upCommand(selectedProject, {}),
+		onDeclineMessages: [
+			`Project saved to ${localPath}`,
+			`Run 'skybox up ${projectName}' when ready to start working.`,
+		],
+	});
 };

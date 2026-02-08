@@ -12,6 +12,7 @@ import {
 	WORKSPACE_PATH_PREFIX,
 } from "@lib/constants.ts";
 import { hasLocalDevcontainerConfig } from "@lib/container.ts";
+import { offerStartContainer } from "@lib/container-start.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { getProjectPath } from "@lib/project.ts";
 import { validateProjectName } from "@lib/projectTemplates.ts";
@@ -348,19 +349,9 @@ const offerClone = async (
 		}
 	}
 
-	console.log();
-	const { startContainer } = await inquirer.prompt([
-		{
-			type: "confirm",
-			name: "startContainer",
-			message: "Start dev container now?",
-			default: true,
-		},
-	]);
-
-	if (startContainer) {
-		await upCommand(projectName, {});
-	} else {
-		info(`Run 'skybox up ${projectName}' when ready to start working.`);
-	}
+	await offerStartContainer({
+		projectName,
+		defaultStart: true,
+		onStart: async (selectedProject) => upCommand(selectedProject, {}),
+	});
 };

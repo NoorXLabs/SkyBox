@@ -1,6 +1,6 @@
 // src/commands/status.ts
 
-import { existsSync, readdirSync, statSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { getProjectRemote, getRemoteHost } from "@commands/remote.ts";
 import { requireConfig } from "@lib/config.ts";
@@ -8,6 +8,7 @@ import { getContainerInfo, getContainerStatus } from "@lib/container.ts";
 import { getGitInfo as getSharedGitInfo } from "@lib/git.ts";
 import { getSyncStatus, sessionName } from "@lib/mutagen.ts";
 import { getProjectsDir } from "@lib/paths.ts";
+import { getLocalProjects } from "@lib/project.ts";
 import { formatRelativeTime as formatRelativeTimeShared } from "@lib/relative-time.ts";
 import {
 	checkSessionConflict,
@@ -339,24 +340,13 @@ export const statusCommand = async (project?: string): Promise<void> => {
 const showOverview = async (): Promise<void> => {
 	const projectsDir = getProjectsDir();
 	if (!existsSync(projectsDir)) {
-		console.log();
-		console.log(
-			"No projects found. Use 'skybox clone' or 'skybox push' to get started.",
-		);
+		printNoProjectsMessage();
 		return;
 	}
 
-	const entries = readdirSync(projectsDir);
-	const projectDirs = entries.filter((entry) => {
-		const fullPath = join(projectsDir, entry);
-		return statSync(fullPath).isDirectory();
-	});
-
+	const projectDirs = getLocalProjects();
 	if (projectDirs.length === 0) {
-		console.log();
-		console.log(
-			"No projects found. Use 'skybox clone' or 'skybox push' to get started.",
-		);
+		printNoProjectsMessage();
 		return;
 	}
 
@@ -369,6 +359,14 @@ const showOverview = async (): Promise<void> => {
 	console.log();
 	formatOverviewTable(summaries);
 	console.log();
+};
+
+// print the shared empty-state message when no local projects are available
+const printNoProjectsMessage = (): void => {
+	console.log();
+	console.log(
+		"No projects found. Use 'skybox clone' or 'skybox push' to get started.",
+	);
 };
 
 // display detailed status for a single project
