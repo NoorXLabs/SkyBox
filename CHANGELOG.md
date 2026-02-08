@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Internal Refactor**: Consolidated shared sync finalization and start-container prompt flows across `clone`, `push`, and `new` for consistency, without changing CLI behavior.
+- **Internal Refactor**: Reduced duplication in encryption/archive/download internals and test context lifecycle helpers, with no user-facing behavior changes.
+
 ## [0.8.0] - 2026-02-07
 
 ### Added
