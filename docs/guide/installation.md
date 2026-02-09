@@ -26,7 +26,7 @@ The devcontainer CLI requires Node.js. Make sure Node.js is installed before ins
 Install the following tools from their official sources before continuing:
 
 - **Docker Desktop** (20.10+) — [Get Docker](https://docs.docker.com/get-started/get-docker/)
-- **Devcontainer CLI** (0.50+) — [Installation instructions](https://github.com/devcontainers/cli#npm-install)
+- **Devcontainer CLI** (0.50+) — [Installation instructions](https://github.com/devcontainers/cli#install-script)
 - **SSH** — Pre-installed on macOS and Linux. Windows users need [WSL 2](https://learn.microsoft.com/en-us/windows/wsl/install).
 
 ## Install SkyBox
@@ -156,7 +156,7 @@ If `skybox init` reports Docker is not found:
 If `devcontainer --version` fails:
 
 1. Ensure Node.js is installed first
-2. Install the devcontainer CLI from the [official instructions](https://github.com/devcontainers/cli#npm-install)
+2. Install the devcontainer CLI from the [official instructions](https://github.com/devcontainers/cli#install-script)
 
 ### SSH Connection Failed
 
