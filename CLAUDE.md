@@ -4,7 +4,7 @@
 
 SkyBox is a CLI tool for managing local-first development containers with remote synchronization. It solves disk bloat, latency, and multi-machine workflow complexity by running containers locally while syncing code bidirectionally with a remote server using Mutagen.
 
-**Version:** 0.7.7
+**Version:** 0.8.0
 **Runtime:** Bun (TypeScript)
 **License:** Apache 2.0
 
