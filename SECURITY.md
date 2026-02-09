@@ -17,6 +17,10 @@ Use GitHub Private Vulnerability Reporting:
 
 - [Report a vulnerability](https://github.com/NoorXLabs/SkyBox/security/advisories/new)
 
+If that link is unavailable, report privately by email:
+
+- [info@noorxlabs.com](mailto:info@noorxlabs.com?subject=SkyBox%20Security%20Vulnerability%20Report)
+
 Include as much detail as possible:
 
 - Affected version(s)
@@ -32,4 +36,3 @@ Include as much detail as possible:
 
 After validation, maintainers will coordinate remediation and release timing.
 We will credit reporters who want public acknowledgment.
-

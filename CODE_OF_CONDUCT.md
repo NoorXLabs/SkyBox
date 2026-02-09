@@ -59,8 +59,8 @@ appointed representative at an online or offline event.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders through a private report at
-[SkyBox private reporting](https://github.com/NoorXLabs/SkyBox/security/advisories/new).
+reported to the community leaders privately at
+[info@noorxlabs.com](mailto:info@noorxlabs.com?subject=SkyBox%20Code%20of%20Conduct%20Report).
 All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the
