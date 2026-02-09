@@ -1,3 +1,8 @@
+---
+title: Configuration Reference
+description: SkyBox YAML configuration file reference. Configure remotes, sync modes, ignore patterns, editors, and project-specific settings.
+---
+
 # Configuration Reference
 
 SkyBox uses a YAML configuration file to store global settings, remote server connections, sync preferences, and project-specific configurations.

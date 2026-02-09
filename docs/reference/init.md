@@ -1,3 +1,8 @@
+---
+title: skybox init
+description: Interactive setup wizard for configuring SkyBox. Set up remotes, SSH keys, and install dependencies with skybox init.
+---
+
 # skybox init
 
 Interactive setup wizard for configuring SkyBox.

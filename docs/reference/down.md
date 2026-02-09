@@ -1,3 +1,8 @@
+---
+title: skybox down
+description: Stop a development container with skybox down. Shut down running containers and release local session locks.
+---
+
 # skybox down
 
 Stop a development container.

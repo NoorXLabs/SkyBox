@@ -1,3 +1,8 @@
+---
+title: Hooks
+description: Run custom shell commands before and after SkyBox lifecycle operations. Configure pre/post hooks for up, down, sync, and other events.
+---
+
 # Hooks
 
 Run custom shell commands before and after lifecycle operations.

@@ -2,7 +2,7 @@
 
 > **Version:** 0.8.0
 >
-> **Progress:** 1/18 future features | 0/18 checklist items | 0/2 release tasks
+> **Progress:** 1/19 future features | 0/18 checklist items | 0/2 release tasks
 >
 > **Completed work archived:** [`plans/archive/ARCHIVED-IMPLEMENTATION.md`](archive/ARCHIVED-IMPLEMENTATION.md)
 
@@ -61,12 +61,21 @@ Short aliases for frequently used projects (e.g., `skybox up web` instead of `sk
 - **Files:** `src/types/index.ts` (add `aliases` to config), `src/lib/project.ts` (resolve aliases)
 - **Notes:** Stored in config.yaml under `aliases` section
 
-- [ ] ### Export/Import Config
+- [ ] ### Backup & Restore (Export/Import)
 
-Share config between machines easily via encrypted export/import.
+`skybox export` / `skybox import <file>` — Export all SkyBox settings to a password-protected encrypted file for machine migration. Backs up config.yaml (remotes, projects, defaults, editor, encryption settings) and custom templates. On a new machine, `skybox import` restores everything so you can immediately `skybox clone` your projects.
 
-- **Files:** New `src/commands/export.ts`, `src/commands/import.ts`
-- **Notes:** Export as encrypted JSON/YAML bundle; import with validation
+- **Files:** New `src/commands/export.ts`, `src/commands/import.ts`, `src/lib/backup.ts`
+- **Dependencies:** None (uses existing AES-256-GCM + Argon2 from `src/lib/encryption.ts`)
+- **Notes:** Output is encrypted JSON (e.g., `skybox-backup-2026-02-09.json.enc`). Excludes ephemeral data (Mutagen binary, logs, local project files). Import validates config schema before writing and warns if config already exists. Full plan: [`plans/export-import.md`](export-import.md)
+
+- [ ] ### Git Worktree Support
+
+Allow multiple worktrees of the same repo to operate as related SkyBox projects with independent containers and sync sessions.
+
+- **Files:** `src/lib/paths.ts`, `src/lib/project.ts`, `src/lib/container.ts`, `src/lib/mutagen.ts`, `src/lib/session.ts`, `src/lib/sync-session.ts`, `src/commands/up.ts`, `src/types/index.ts`
+- **Config:** Add optional `local_path` to project config; support worktree-aware session naming
+- **Notes:** Requires decoupling project identity from filesystem path. Current architecture hardcodes `~/.skybox/Projects/<name>` as the single source of truth for local path, Mutagen session name, container label lookup, and session file location. Key changes: (1) add custom Docker label instead of relying on `devcontainer.local_folder` path matching, (2) support multiple Mutagen sessions per logical project (e.g., `skybox-myapp-main`, `skybox-myapp-feature`), (3) move session files out of synced directory to `~/.skybox/sessions/`, (4) make `resolveProjectFromCwd()` config-aware instead of purely path-based. ~15 files affected.
 
 - [ ] ### Encryption Migration & Legacy Deprecation
 
@@ -196,4 +205,4 @@ One-line description of what this feature does and why.
 
 ---
 
-*Last updated: 2026-02-07*
+*Last updated: 2026-02-09*

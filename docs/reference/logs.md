@@ -1,3 +1,8 @@
+---
+title: skybox logs
+description: Show container or sync logs for a project with skybox logs. Stream Docker and Mutagen output for debugging.
+---
+
 # skybox logs
 
 Show container or sync logs for a project.

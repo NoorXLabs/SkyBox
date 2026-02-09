@@ -1,3 +1,8 @@
+---
+title: Daily Development Workflow
+description: Day-to-day patterns for working with SkyBox. Start containers, switch between projects, manage sync, and shut down cleanly.
+---
+
 # Daily Development Workflow
 
 This guide covers the day-to-day patterns for working with SkyBox: starting your work, switching between projects, and shutting down cleanly.

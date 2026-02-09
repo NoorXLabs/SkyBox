@@ -1,3 +1,8 @@
+---
+title: skybox encrypt
+description: Manage project encryption at rest with skybox encrypt. Encrypt and decrypt remote project files using AES-256-GCM.
+---
+
 # skybox encrypt
 
 Manage project encryption at rest.

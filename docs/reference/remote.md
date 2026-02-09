@@ -1,3 +1,8 @@
+---
+title: skybox remote
+description: Manage remote server configurations with skybox remote. Add, edit, remove, and list configured remote servers.
+---
+
 # skybox remote
 
 Manage remote server configurations.

@@ -1,3 +1,8 @@
+---
+title: skybox status
+description: Show status of projects or detailed information about a specific project with skybox status. View container and sync state.
+---
+
 # skybox status
 
 Show status of projects or detailed information about a specific project.

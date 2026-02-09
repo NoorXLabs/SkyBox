@@ -1,3 +1,8 @@
+---
+title: Command Reference
+description: Complete reference for all SkyBox CLI commands. Manage containers, sync, remotes, projects, and configuration from the terminal.
+---
+
 # Command Reference
 
 SkyBox provides a set of commands for managing your local-first development environments with remote sync.

@@ -1,3 +1,8 @@
+---
+title: Core Concepts
+description: Understand SkyBox projects, containers, bidirectional sync via Mutagen, remote server architecture, and session-based multi-machine coordination.
+---
+
 # Core Concepts
 
 This page explains the key concepts behind SkyBox: how projects, containers, sync, and the remote server work together.

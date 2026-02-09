@@ -1,3 +1,8 @@
+---
+title: Custom Templates
+description: Create and manage reusable devcontainer templates in SkyBox. Store templates locally for consistent container configurations across projects.
+---
+
 # Custom Templates
 
 Create and manage reusable devcontainer templates stored locally on your machine.

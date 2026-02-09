@@ -1,3 +1,8 @@
+---
+title: skybox list
+description: List projects available on your local machine with skybox list. View local project names, paths, and container status.
+---
+
 # skybox list
 
 List projects available on your local machine.

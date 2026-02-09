@@ -1,3 +1,8 @@
+---
+title: skybox browse
+description: List projects available on the remote server with skybox browse. View and select remote projects for cloning.
+---
+
 # skybox browse
 
 List projects available on the remote server.

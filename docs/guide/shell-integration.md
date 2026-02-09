@@ -1,3 +1,8 @@
+---
+title: Shell Integration
+description: Automatically start SkyBox containers when you cd into a project directory. Configure shell hooks for Bash, Zsh, and Fish.
+---
+
 # Shell Integration
 
 Automatically start SkyBox containers when you `cd` into a project directory.

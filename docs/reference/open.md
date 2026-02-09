@@ -1,3 +1,8 @@
+---
+title: skybox open
+description: Open editor or shell for a running container without restarting it using skybox open. Attach to active dev environments.
+---
+
 # skybox open
 
 Open editor or shell for a running container without restarting it.
