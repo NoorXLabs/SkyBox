@@ -1,0 +1,34 @@
+area:cli:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/commands/**"
+          - "src/index.ts"
+
+area:core:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "src/lib/**"
+          - "src/types/**"
+
+area:docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+
+area:tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "tests/**"
+
+area:ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+
+area:release:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "scripts/release.sh"
+          - ".github/workflows/release.yml"
+          - "CHANGELOG.md"
+

@@ -45,6 +45,16 @@ For installation, quick start, commands, and configuration:
 
 **[Please visit the documentation](https://skybox.noorxlabs.com)**
 
+## Contributing
+
+If you want to contribute to SkyBox, start here:
+
+- [Contributing Guide](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Security Policy](SECURITY.md)
+- [Support Guidelines](SUPPORT.md)
+- [GitHub Discussions](https://github.com/NoorXLabs/SkyBox/discussions)
+
 ## License
 
 Apache License 2.0
