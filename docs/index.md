@@ -1,4 +1,6 @@
 ---
+title: SkyBox - Local-First Dev Containers with Remote Sync
+description: Run development containers locally with native performance. Sync code bidirectionally to remote servers. Switch between machines seamlessly.
 layout: home
 
 hero:

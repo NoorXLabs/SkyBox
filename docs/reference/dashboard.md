@@ -1,3 +1,8 @@
+---
+title: skybox dashboard
+description: Full-screen status dashboard for all SkyBox projects. Monitor containers, sync status, and resources in real time.
+---
+
 # skybox dashboard
 
 Full-screen status dashboard for all projects.

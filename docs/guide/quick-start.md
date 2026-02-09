@@ -1,3 +1,8 @@
+---
+title: Quick Start
+description: Get started with SkyBox in minutes. Walk through initializing, pushing a project, starting a container, and syncing code to your remote server.
+---
+
 # Quick Start
 
 This guide walks you through the typical SkyBox workflow: from setting up your first project to developing inside a container.

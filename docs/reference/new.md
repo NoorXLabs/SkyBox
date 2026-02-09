@@ -1,3 +1,8 @@
+---
+title: skybox new
+description: Create a new project on the remote server with skybox new. Scaffold projects from built-in or custom templates.
+---
+
 # skybox new
 
 Create a new project on the remote server.

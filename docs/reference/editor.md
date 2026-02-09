@@ -1,3 +1,8 @@
+---
+title: skybox editor
+description: Change the default editor for opening projects with skybox editor. Supports VS Code, Cursor, Zed, and custom editors.
+---
+
 # skybox editor
 
 Change the default editor for opening projects.

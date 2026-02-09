@@ -1,3 +1,8 @@
+---
+title: skybox clone
+description: Clone a remote project to your local machine with skybox clone. Download and set up remote projects locally.
+---
+
 # skybox clone
 
 Clone a remote project to your local machine.

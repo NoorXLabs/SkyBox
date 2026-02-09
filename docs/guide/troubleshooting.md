@@ -1,3 +1,8 @@
+---
+title: Troubleshooting
+description: Resolve common SkyBox issues with Docker, sync, SSH connections, and container startup. Run skybox doctor for automated diagnostics.
+---
+
 # Troubleshooting
 
 Common issues and solutions for SkyBox.

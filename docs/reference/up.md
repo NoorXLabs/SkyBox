@@ -1,3 +1,8 @@
+---
+title: skybox up
+description: Start a development container for a project with skybox up. Launch containers with bidirectional file sync.
+---
+
 # skybox up
 
 Start a development container for a project.

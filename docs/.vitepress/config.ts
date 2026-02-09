@@ -23,7 +23,8 @@ if (env.VITE_RYBBIT_SRC && env.VITE_RYBBIT_SITE_ID) {
 
 export default defineConfig({
   title: 'SkyBox',
-  description: 'Development environment management CLI',
+  description: 'Local-first development containers with remote sync. Run containers locally, sync code bidirectionally, and switch between machines seamlessly.',
+  lang: 'en-US',
   srcExclude: ['**/architecture/**', '**/snippets/**'],
 
   sitemap: {
@@ -35,6 +36,31 @@ export default defineConfig({
   },
 
   head,
+
+  transformHead({ pageData }) {
+    const head: HeadConfig[] = []
+    const siteUrl = 'https://skybox.noorxlabs.com'
+    const pagePath = pageData.relativePath
+      .replace(/index\.md$/, '')
+      .replace(/\.md$/, '')
+    const pageUrl = `${siteUrl}/${pagePath}`
+    const title = pageData.frontmatter.title || pageData.title
+    const description = pageData.frontmatter.description || 'Local-first development containers with remote sync.'
+
+    head.push(['meta', { property: 'og:title', content: title }])
+    head.push(['meta', { property: 'og:description', content: description }])
+    head.push(['meta', { property: 'og:type', content: 'website' }])
+    head.push(['meta', { property: 'og:url', content: pageUrl }])
+    head.push(['meta', { property: 'og:site_name', content: 'SkyBox' }])
+    head.push(['meta', { property: 'og:image', content: `${siteUrl}/og-image.png` }])
+    head.push(['meta', { name: 'twitter:card', content: 'summary_large_image' }])
+    head.push(['meta', { name: 'twitter:image', content: `${siteUrl}/og-image.png` }])
+    head.push(['meta', { name: 'twitter:title', content: title }])
+    head.push(['meta', { name: 'twitter:description', content: description }])
+    head.push(['link', { rel: 'canonical', href: pageUrl }])
+
+    return head
+  },
 
   themeConfig: {
     logo: '/skybox-logo-grey.svg',

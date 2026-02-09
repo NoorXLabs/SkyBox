@@ -1,3 +1,8 @@
+---
+title: Multi-Machine Workflow
+description: Work across multiple machines with SkyBox. Session-based coordination prevents sync conflicts when switching between laptop and desktop.
+---
+
 # Multi-Machine Workflow
 
 This guide covers working with SkyBox across multiple machines, such as a laptop and desktop. Sessions prevent sync conflicts when you switch between machines.

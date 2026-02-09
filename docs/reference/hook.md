@@ -1,3 +1,8 @@
+---
+title: skybox hook
+description: Output shell hook code for auto-starting containers when entering project directories with skybox hook.
+---
+
 # skybox hook
 
 Output shell hook code for auto-starting containers when entering project directories.

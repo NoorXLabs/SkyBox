@@ -1,3 +1,8 @@
+---
+title: skybox push
+description: Push a local project to the remote server with skybox push. Upload project files via SCP to your configured remote.
+---
+
 # skybox push
 
 Push a local project to the remote server.

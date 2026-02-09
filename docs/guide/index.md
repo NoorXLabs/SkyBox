@@ -1,3 +1,8 @@
+---
+title: Introduction
+description: Learn what SkyBox is and how it manages local-first development containers with remote sync, multi-machine workflows, and editor integration.
+---
+
 # Introduction
 
 SkyBox is a CLI tool for local-first development containers with remote sync. It provides the best of both worlds: run your containers locally for speed and full resource access while automatically syncing your code to a remote server for backup and multi-machine workflows.

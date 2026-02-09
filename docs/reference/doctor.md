@@ -1,3 +1,8 @@
+---
+title: skybox doctor
+description: Diagnose common issues with your SkyBox setup, dependencies, and configuration using skybox doctor.
+---
+
 # skybox doctor
 
 Diagnose common issues with your SkyBox setup, dependencies, and configuration.

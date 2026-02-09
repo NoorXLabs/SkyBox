@@ -1,3 +1,8 @@
+---
+title: skybox config
+description: View and modify SkyBox configuration with skybox config. Manage settings for remotes, defaults, and projects.
+---
+
 # skybox config
 
 View and modify SkyBox configuration.

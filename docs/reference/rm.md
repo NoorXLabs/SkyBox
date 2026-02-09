@@ -1,3 +1,8 @@
+---
+title: skybox rm
+description: Remove a project from your local machine with skybox rm, with optional remote deletion. Clean up containers and files.
+---
+
 # skybox rm
 
 Remove a project from your local machine, with optional remote deletion.

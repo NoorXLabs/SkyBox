@@ -1,3 +1,8 @@
+---
+title: Creating a New Project
+description: Create new SkyBox projects from scratch or bring an existing codebase. Push local code to remote servers and scaffold devcontainer configs.
+---
+
 # Creating a New Project
 
 This guide walks through creating projects with SkyBox, whether starting from scratch or bringing an existing codebase.

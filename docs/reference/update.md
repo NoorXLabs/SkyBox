@@ -1,3 +1,8 @@
+---
+title: skybox update
+description: Check for and install SkyBox updates with skybox update. Download the latest version from GitHub releases.
+---
+
 # skybox update
 
 Check for and install SkyBox updates.

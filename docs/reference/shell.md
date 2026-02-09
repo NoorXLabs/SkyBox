@@ -1,3 +1,8 @@
+---
+title: skybox shell
+description: Access an interactive shell inside a running container with skybox shell. Execute commands in your dev environment.
+---
+
 # skybox shell
 
 Access an interactive shell inside a running container.
