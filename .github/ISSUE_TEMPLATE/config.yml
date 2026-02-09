@@ -1,0 +1,9 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and Community Support
+    url: https://github.com/NoorXLabs/SkyBox/discussions
+    about: Ask usage questions, share ideas, and discuss workflows.
+  - name: Security Policy
+    url: https://github.com/NoorXLabs/SkyBox/blob/main/SECURITY.md
+    about: Please report vulnerabilities using private security reporting.
+

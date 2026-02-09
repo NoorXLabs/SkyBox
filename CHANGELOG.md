@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Open Source Contribution Framework**: Added GitHub issue forms (bug/feature/docs), pull request template, governance docs (`CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `SUPPORT.md`), CODEOWNERS, and label taxonomy/automation workflows for triage and path-based PR auto-labeling.
+
 ### Changed
 
 - **Internal Refactor**: Consolidated shared sync finalization and start-container prompt flows across `clone`, `push`, and `new` for consistency, without changing CLI behavior.
