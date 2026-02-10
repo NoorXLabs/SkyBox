@@ -11,6 +11,7 @@ import {
 	VSCODE_REMOTE_URI_PREFIX,
 	WORKSPACE_PATH_PREFIX,
 } from "@lib/constants.ts";
+import { launchProjectInEditor } from "@lib/editor-launch.ts";
 import { execa } from "execa";
 
 // Normalize path to real case (important for macOS case-insensitive filesystem)
@@ -287,16 +288,16 @@ export const openInEditor = async (
 		const hexPath = Buffer.from(normalizedPath).toString("hex");
 		const devcontainerUri = `${VSCODE_REMOTE_URI_PREFIX}${hexPath}${workspaceFolder}`;
 
-		// Use the editor to open the devcontainer URI
-		if (
-			editor === "cursor" ||
-			editor === "code" ||
-			editor === "code-insiders"
-		) {
-			await execa(editor, ["--folder-uri", devcontainerUri]);
-		} else {
-			// Fallback: just open the folder directly
-			await execa(editor, [normalizedPath]);
+		const openResult = await launchProjectInEditor(
+			editor,
+			normalizedPath,
+			devcontainerUri,
+		);
+		if (!openResult.success) {
+			return {
+				success: false,
+				error: openResult.error || "Failed to open editor.",
+			};
 		}
 		return { success: true };
 	} catch (error: unknown) {

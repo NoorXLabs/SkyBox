@@ -15,6 +15,7 @@ import {
 	TEMPLATES,
 	WORKSPACE_PATH_PREFIX,
 } from "@lib/constants.ts";
+import { launchFileInEditor } from "@lib/editor-launch.ts";
 import { getUserTemplatesDir } from "@lib/paths.ts";
 import { error, info, success, warn } from "@lib/ui.ts";
 import type {
@@ -187,9 +188,8 @@ const createNewTemplateFlow = async (): Promise<void> => {
 	if (editChoice === "editor") {
 		const config = loadConfig();
 		const editorCmd = config?.editor || "code";
-		try {
-			await execa(editorCmd, [filePath]);
-		} catch {
+		const openResult = await launchFileInEditor(editorCmd, filePath);
+		if (!openResult.success) {
 			warn(`Failed to open ${editorCmd}. Edit the file manually: ${filePath}`);
 		}
 	} else if (editChoice === "terminal") {

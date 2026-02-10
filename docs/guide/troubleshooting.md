@@ -15,7 +15,7 @@ Before diving into specific issues, run the built-in diagnostic tool:
 skybox doctor
 ```
 
-This checks Docker, Mutagen, SSH connectivity, and configuration in one command. It will identify most common problems and suggest fixes.
+This checks Docker, Mutagen, editor setup, SSH connectivity, and configuration in one command. It will identify most common problems and suggest fixes.
 
 ::: tip Debug Mode
 For verbose output on any command, prefix with `DEBUG=1`:
@@ -23,6 +23,33 @@ For verbose output on any command, prefix with `DEBUG=1`:
 DEBUG=1 skybox up myproject
 ```
 :::
+
+## Editor Issues
+
+### Editor Command Not Found (for example `zed`)
+
+**Symptoms:**
+- `skybox up --editor` or `skybox open --editor` fails to launch your editor
+- Error mentions command not found (`ENOENT`)
+
+**Solutions:**
+
+1. **Run doctor** to inspect editor setup:
+   ```bash
+   skybox doctor
+   ```
+
+2. **Set an explicit editor command** that works on your machine:
+   ```bash
+   skybox config set editor "open -a Zed"
+   ```
+   Other examples:
+   - `skybox config set editor "code --reuse-window"`
+   - `skybox config set editor "cursor"`
+
+3. **Install editor CLI tools** if you prefer direct commands (`zed`, `code`, `cursor`) instead of `open -a`.
+
+On macOS, SkyBox automatically tries a built-in app fallback for supported GUI editors (Cursor, VS Code, VS Code Insiders, Zed) when the CLI command is missing from `PATH`.
 
 ## Encryption Issues
 

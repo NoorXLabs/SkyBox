@@ -9,6 +9,7 @@ import {
 	DEVCONTAINER_DIR_NAME,
 	WORKSPACE_PATH_PREFIX,
 } from "@lib/constants.ts";
+import { launchFileInEditor } from "@lib/editor-launch.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { getProjectPath, projectExists } from "@lib/project.ts";
 import { escapeRemotePath, escapeShellArg } from "@lib/shell.ts";
@@ -16,7 +17,6 @@ import { runRemoteCommand } from "@lib/ssh.ts";
 import { selectTemplate, writeDevcontainerConfig } from "@lib/templates.ts";
 import { dryRun, error, info, isDryRun, spinner, success } from "@lib/ui.ts";
 import type { SkyboxConfigV2 } from "@typedefs/index.ts";
-import { execa } from "execa";
 
 // build the path to a project's devcontainer.json file
 const getDevcontainerPath = (projectPath: string): string => {
@@ -50,16 +50,11 @@ export const devcontainerEditCommand = async (
 	const config = loadConfig();
 	const editor = config?.editor || process.env.EDITOR || "vim";
 
-	try {
-		const result = await execa(editor, [configPath], { stdio: "inherit" });
-		if (result.exitCode !== 0) {
-			error(
-				`Editor exited with code ${result.exitCode}. Skipping push to remote.`,
-			);
-			return;
-		}
-	} catch (err) {
-		error(`Editor failed: ${getErrorMessage(err)}`);
+	const openResult = await launchFileInEditor(editor, configPath, {
+		inheritStdio: true,
+	});
+	if (!openResult.success) {
+		error(`Editor failed: ${openResult.error || "Unknown error"}`);
 		return;
 	}
 

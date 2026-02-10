@@ -16,13 +16,13 @@ const mockExeca = mock(() =>
 mock.module("execa", () => ({ execa: mockExeca }));
 
 // Now import the module under test
-import { getContainerId } from "@lib/container.ts";
+import { getContainerId, openInEditor } from "@lib/container.ts";
 
 // Detect if container module was already mocked by another test file
 // shell-docker-isolated.test.ts mocks getContainerId to always return "container-abc123"
 const isModuleMocked = (): boolean => {
-	// If the function isn't what we expect, it's been replaced by a mock
-	return !getContainerId.toString().includes("execa");
+	// Real implementation closes over queryDockerContainers; mocked versions won't.
+	return !getContainerId.toString().includes("queryDockerContainers");
 };
 
 describe("getContainerId", () => {
@@ -53,6 +53,59 @@ describe("getContainerId", () => {
 			mockExeca.mockResolvedValueOnce({ stdout: "", stderr: "", exitCode: 0 });
 			const result = await getContainerId("/path/to/project");
 			expect(result).toBeNull();
+		},
+	);
+});
+
+describe("openInEditor", () => {
+	beforeEach(() => {
+		mockExeca.mockReset();
+	});
+
+	afterEach(() => {
+		mockExeca.mockClear();
+	});
+
+	test.skipIf(isModuleMocked())(
+		"opens VS Code-family editors using --folder-uri",
+		async () => {
+			mockExeca.mockResolvedValueOnce({
+				stdout: "abc123def456\n",
+				stderr: "",
+				exitCode: 0,
+			});
+			mockExeca.mockResolvedValueOnce({
+				stdout: "",
+				stderr: "",
+				exitCode: 0,
+			});
+
+			const projectPath = "/tmp/my-project";
+			const expectedUri = `vscode-remote://dev-container+${Buffer.from(projectPath).toString("hex")}/workspaces/my-project`;
+
+			const result = await openInEditor(projectPath, "code");
+			const calls = mockExeca.mock.calls as unknown as Array<
+				[string, string[], Record<string, unknown> | undefined]
+			>;
+			expect(result.success).toBe(true);
+			expect(calls[1]?.[0]).toBe("code");
+			expect(calls[1]?.[1]).toEqual(["--folder-uri", expectedUri]);
+		},
+	);
+
+	test.skipIf(isModuleMocked())(
+		"returns error when editor command is missing",
+		async () => {
+			mockExeca.mockResolvedValueOnce({
+				stdout: "abc123def456\n",
+				stderr: "",
+				exitCode: 0,
+			});
+			mockExeca.mockRejectedValueOnce({ code: "ENOENT", message: "ENOENT" });
+
+			const result = await openInEditor("/tmp/my-project", "custom-editor");
+			expect(result.success).toBe(false);
+			expect(result.error).toContain("custom-editor");
 		},
 	);
 });
