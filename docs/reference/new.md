@@ -32,8 +32,13 @@ The command walks you through:
 1. **Remote Selection** - Choose which remote server to create the project on
 2. **Project Name** - Enter a valid project name
 3. **Template Selection** - Choose a devcontainer template from the unified selector (built-in, git URL, or your custom templates)
-4. **Clone Option** - Optionally clone the new project locally
-5. **Encryption** - If default encryption is enabled, optionally enable encryption for the new project
+4. **Encryption** - If default encryption is enabled, optionally enable encryption for the new project
+5. **Clone Option** - Optionally clone the new project locally
+
+When encryption is enabled in this flow, SkyBox requires passphrase confirmation by prompting:
+
+- `Enter encryption passphrase:`
+- `Confirm passphrase:`
 
 ### Project Naming Rules
 

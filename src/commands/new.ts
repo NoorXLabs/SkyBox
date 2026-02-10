@@ -25,6 +25,7 @@ import {
 	header,
 	info,
 	isDryRun,
+	promptPassphraseWithConfirmation,
 	spinner,
 	success,
 	warn,
@@ -130,9 +131,7 @@ export const newCommand = async (): Promise<void> => {
 
 	// Prompt for encryption if default is enabled
 	if (config.defaults.encryption) {
-		const { confirm: confirmPrompt, password: passwordPrompt } = await import(
-			"@inquirer/prompts"
-		);
+		const { confirm: confirmPrompt } = await import("@inquirer/prompts");
 		const { randomBytes } = await import("node:crypto");
 
 		const enableEnc = await confirmPrompt({
@@ -151,24 +150,20 @@ export const newCommand = async (): Promise<void> => {
 			});
 
 			if (understood) {
-				const passphrase = await passwordPrompt({
-					message: "Enter encryption passphrase:",
-				});
+				await promptPassphraseWithConfirmation("Enter encryption passphrase:");
 
-				if (passphrase) {
-					const salt = randomBytes(16).toString("hex");
-					const currentConfig = loadConfig();
-					if (currentConfig) {
-						if (!currentConfig.projects[projectName]) {
-							currentConfig.projects[projectName] = { remote: remoteName };
-						}
-						currentConfig.projects[projectName].encryption = {
-							enabled: true,
-							salt,
-						};
-						saveConfig(currentConfig);
-						success("Encryption enabled for this project.");
+				const salt = randomBytes(16).toString("hex");
+				const currentConfig = loadConfig();
+				if (currentConfig) {
+					if (!currentConfig.projects[projectName]) {
+						currentConfig.projects[projectName] = { remote: remoteName };
 					}
+					currentConfig.projects[projectName].encryption = {
+						enabled: true,
+						salt,
+					};
+					saveConfig(currentConfig);
+					success("Encryption enabled for this project.");
 				}
 			}
 		}
