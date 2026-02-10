@@ -1,6 +1,6 @@
 // operations for interacting with remote servers.
 
-import { escapeShellArg } from "@lib/shell.ts";
+import { escapeRemotePath } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import { validateRemoteProjectPath } from "@lib/validation.ts";
 
@@ -17,7 +17,7 @@ export const checkRemoteProjectExists = async (
 	const fullPath = `${basePath}/${project}`;
 	const result = await runRemoteCommand(
 		host,
-		`test -d ${escapeShellArg(fullPath)} && echo "EXISTS" || echo "NOT_FOUND"`,
+		`test -d ${escapeRemotePath(fullPath)} && echo "EXISTS" || echo "NOT_FOUND"`,
 	);
 	return result.stdout?.includes("EXISTS") ?? false;
 };

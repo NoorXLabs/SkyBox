@@ -11,7 +11,7 @@ import {
 } from "@lib/constants.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { getProjectPath, projectExists } from "@lib/project.ts";
-import { escapeShellArg } from "@lib/shell.ts";
+import { escapeRemotePath, escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import { selectTemplate, writeDevcontainerConfig } from "@lib/templates.ts";
 import { dryRun, error, info, isDryRun, spinner, success } from "@lib/ui.ts";
@@ -144,7 +144,7 @@ const pushDevcontainerToRemote = async (
 		const encoded = Buffer.from(configContent).toString("base64");
 		const result = await runRemoteCommand(
 			remoteHost,
-			`mkdir -p ${escapeShellArg(`${remotePath}/${DEVCONTAINER_DIR_NAME}`)} && echo ${escapeShellArg(encoded)} | base64 -d > ${escapeShellArg(`${remotePath}/${DEVCONTAINER_DIR_NAME}/${DEVCONTAINER_CONFIG_NAME}`)}`,
+			`mkdir -p ${escapeRemotePath(`${remotePath}/${DEVCONTAINER_DIR_NAME}`)} && echo ${escapeShellArg(encoded)} | base64 -d > ${escapeRemotePath(`${remotePath}/${DEVCONTAINER_DIR_NAME}/${DEVCONTAINER_CONFIG_NAME}`)}`,
 			remote.key ?? undefined,
 		);
 		if (result.success) {

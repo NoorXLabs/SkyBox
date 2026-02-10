@@ -171,7 +171,7 @@ export const startContainer = async (
 	const args = ["up", "--workspace-folder", projectPath];
 
 	if (options?.rebuild) {
-		args.push("--rebuild-if-exists");
+		args.push("--remove-existing-container");
 	}
 
 	try {

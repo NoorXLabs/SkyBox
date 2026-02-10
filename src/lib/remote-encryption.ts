@@ -64,7 +64,7 @@ export const remoteArchiveExists = async (
 ): Promise<boolean> => {
 	const checkResult = await runRemoteCommand(
 		target.host,
-		`test -f ${escapeShellArg(target.remoteArchivePath)} && echo "EXISTS" || echo "NOT_FOUND"`,
+		`test -f ${escapeRemotePath(target.remoteArchivePath)} && echo "EXISTS" || echo "NOT_FOUND"`,
 	);
 	return checkResult.success && checkResult.stdout?.includes("EXISTS") === true;
 };
@@ -91,7 +91,7 @@ export const decryptRemoteArchive = async (
 		onProgress?.("Extracting...");
 		const extractResult = await runRemoteCommand(
 			target.host,
-			`cd ${escapeShellArg(target.remotePath)} && tar xf ${escapeShellArg(remoteTarName)} && rm -f ${escapeShellArg(remoteTarName)} ${escapeShellArg(target.archiveName)}`,
+			`cd ${escapeRemotePath(target.remotePath)} && tar xf ${escapeShellArg(remoteTarName)} && rm -f ${escapeShellArg(remoteTarName)} ${escapeShellArg(target.archiveName)}`,
 		);
 
 		if (!extractResult.success) {

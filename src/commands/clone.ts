@@ -19,7 +19,7 @@ import { getLocalProjects } from "@lib/project.ts";
 import { finalizeProjectSync } from "@lib/project-sync.ts";
 import { validateProjectName } from "@lib/projectTemplates.ts";
 import { checkRemoteProjectExists } from "@lib/remote.ts";
-import { escapeShellArg } from "@lib/shell.ts";
+import { escapeRemotePath } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import {
 	confirmDestructiveAction,
@@ -163,7 +163,7 @@ export const cloneSingleProject = async (
 	const encArchivePath = `${remotePath}/${project}.tar.enc`;
 	const encCheck = await runRemoteCommand(
 		host,
-		`test -f ${escapeShellArg(encArchivePath)} && echo "ENCRYPTED" || echo "PLAIN"`,
+		`test -f ${escapeRemotePath(encArchivePath)} && echo "ENCRYPTED" || echo "PLAIN"`,
 	);
 
 	if (encCheck.stdout?.includes("ENCRYPTED")) {

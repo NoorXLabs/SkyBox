@@ -73,6 +73,10 @@ bun run src/index.ts <command>
 | `bun run format` | Format code with Biome |
 | `bun run lint` | Lint code with Biome |
 | `bun run docs:dev` | Start VitePress dev server |
+| `bun run docs:build` | Build VitePress docs for production |
+| `bun run docs:preview` | Preview VitePress production build |
+| `bun run build:bundle` | Build with vendored Mutagen binaries |
+| `bun run vendor:mutagen` | Download Mutagen binaries for bundling |
 
 ## Code Conventions
 
@@ -221,6 +225,7 @@ describe("feature name", () => {
 ### Pre-commit Hooks (Lefthook)
 
 Commits automatically run these checks in order:
+0. **lockfile** (priority 0): Verify bun.lock integrity
 1. **check** (priority 1): Biome format + lint on `*.{js,ts,json}`
 2. **typecheck** (priority 2): TypeScript strict checking
 3. **test** (priority 3): Full test suite
@@ -381,6 +386,9 @@ Uses Docker with devcontainer spec:
 | `src/lib/templates.ts` | Template selection UI for up, new, and config devcontainer |
 | `src/lib/update-check.ts` | Version update check with 24h cache via GitHub API |
 | `src/lib/verify-lockfile.ts` | Verify bun.lock integrity (supply chain security) |
+| `src/lib/container-start.ts` | Container startup orchestration (devcontainer up + lifecycle hooks) |
+| `src/lib/project-sync.ts` | Project sync session orchestration (Mutagen + selective sync) |
+| `src/lib/projectTemplates.ts` | Template resolution: `getBuiltInTemplates()` returns `TEMPLATES` from constants |
 
 ## Documentation
 
@@ -410,41 +418,27 @@ Note: `bun run check` is enforced automatically by a native Stop hook — no man
 
 ## Known Gotchas
 
+### Architecture Decisions
+
 - **Single source of truth for constants**: ALL constants — including single-use, private, and structured data — must be defined in `src/lib/constants.ts`. Never define constants in other files. Import from `constants.ts` always. Enums stay in `src/types/index.ts` (they are type definitions). Duplicates drift and cause subtle bugs.
-
-- **macOS path normalization**: Always normalize paths with `realpathSync()` BEFORE passing to `devcontainer` CLI or Docker queries. macOS symlinks (e.g., `/var` → `/private/var`) cause label mismatches between container creation and lookup.
-
-- **Inquirer v13 list prompts**: The legacy `inquirer.prompt()` with `type: "list"` doesn't render choices. Use `select()` from `@inquirer/prompts` or `type: "rawlist"` instead.
-
-- **`getLocalProjects()` returns `string[]`**: Project names only, not objects. No `.name` property.
-
-- **`normalizePath` in container.ts is private**: Cannot be imported. Define locally if needed in other modules.
 
 - **`TEMPLATES` is the single built-in template constant**: Defined in `src/lib/constants.ts`, includes all templates (node, bun, python, go, generic) with inline devcontainer configs. There is no separate `BUILT_IN_TEMPLATES` — it was consolidated. `projectTemplates.ts` `getBuiltInTemplates()` returns `TEMPLATES` directly.
 
-- **Dashboard uses Ink (React)**: `src/commands/dashboard.tsx` uses `ink` for TUI rendering, not `blessed`. File must be `.tsx` for JSX support.
+- **Ownership uses local OS username**: The `.skybox-owner` system uses `userInfo().username` (local OS username), not the SSH remote user. This means ownership is consistent for a user across machines but could conflict if different people share the same local username. This is a deliberate trade-off for simplicity.
 
-- **`@inquirer/prompts` is transitive**: Available via `inquirer` dependency. Exports: `select`, `checkbox`, `password`, `confirm`, `input`.
-
-- **`exactOptionalPropertyTypes` not viable**: Causes 70+ errors across the codebase. Do not enable in tsconfig.json.
+- **Project resolution pattern for commands**: `resolveSingleProject()` in `project.ts` handles single-select (rawlist). For multi-select, commands define their own resolution function using `checkbox` from `@inquirer/prompts` and `resolveProjectFromCwd()` — see `up.ts` `resolveProjects()` and `down.ts` `resolveProjectsForDown()`. Don't modify `project.ts` for command-specific resolution logic.
 
 - **`process.exit()` in commands breaks batch patterns**: Commands call `process.exit(1)` on errors, which kills the entire process. `try/catch` won't catch it. Known limitation for batch iteration (`--all`).
 
-- **Shell injection in remote commands**: Always use `escapeShellArg()` from `src/lib/shell.ts` when interpolating user input into SSH commands via `runRemoteCommand()`. For remote directory paths that may start with `~/`, use `escapeRemotePath()` instead — it preserves tilde expansion while quoting the rest.
+- **`enableEncryption` passphrase is not stored**: The passphrase prompt in `encrypt enable` is solely for user memorization — the passphrase is not saved or used at that point. It's only used later during `up`/`down` operations. Don't try to "fix" the unused variable.
 
-- **`mock.module("execa")` is global in bun test**: Several test files (`shell-docker-isolated`, `rm-remote`, `container-id-isolated`) mock `execa` at module level. This contaminates all test files in the same `bun test` run. New modules that need reliable subprocess execution in tests should use `node:child_process` instead of `execa`.
-
-- **Lefthook `biome check --write` reverts edits on failed commits**: When a pre-commit hook fails after the `check` stage, biome has already rewritten staged files. The working tree ends up with biome's version, not yours. Re-apply edits after any failed commit.
-
-- **Biome lint for shell variable strings**: When testing shell scripts containing `${VAR}` syntax, biome reports `noTemplateCurlyInString`. Add `// biome-ignore lint/suspicious/noTemplateCurlyInString: <reason>` before the string literal.
+- **`promptPassphraseWithConfirmation` in ui.ts**: Reusable double-prompt helper for passphrase entry. Use this for any encryption flow where the user sets or enters a passphrase (not for decryption, where wrong input fails via GCM tag mismatch).
 
 - **Background process spawning**: For detached background processes, use `spawn("cmd", args, { detached: true, stdio: [...] })` followed by `child.unref()` to allow parent to exit. See `src/commands/hook.ts` for example.
 
-- **`@tests/*` alias is test-only**: The `@tests/*` path alias must NEVER be imported from production code in `src/`. It exists solely for test-to-test imports. Biome cannot enforce this, so treat it as a convention.
+### Security Patterns
 
-- **Ownership uses local OS username**: The `.skybox-owner` system uses `userInfo().username` (local OS username), not the SSH remote user. This means ownership is consistent for a user across machines but could conflict if different people share the same local username. This is a deliberate trade-off for simplicity.
-
-- **`ValidationResult` type for all validators**: All validation functions must return `ValidationResult` (from `src/types/index.ts`), not inline `{ valid: true } | { valid: false; error: string }`. Use the shared type for consistency.
+- **Shell injection in remote commands**: Always use `escapeShellArg()` from `src/lib/shell.ts` when interpolating user input into SSH commands via `runRemoteCommand()`. For remote directory paths that may start with `~/`, use `escapeRemotePath()` instead — it preserves tilde expansion while quoting the rest. **Rule of thumb:** Any path derived from `remote.path` or `getRemotePath()` MUST use `escapeRemotePath()`. Only use `escapeShellArg()` for non-path values (base64 data, filenames without directory prefix, URLs, temp paths).
 
 - **SCP calls must use `secureScp()` or `--` separator**: Never call `execa("scp", [source, dest])` directly. Use `secureScp()` from `src/lib/ssh.ts` or manually add `"--"` before positional args to prevent option injection via crafted hostnames.
 
@@ -452,13 +446,47 @@ Note: `bun run check` is enforced automatically by a native Stop hook — no man
 
 - **Inquirer validator adapter**: Use `toInquirerValidator()` from `src/lib/validation.ts` to convert any `(input: string) => ValidationResult` function into inquirer's `(input: string) => true | string` format. Use `sshFieldValidator(fieldName)` for SSH-specific fields.
 
-- **`isValidContainerId` in container.ts is private**: Like `normalizePath`, it cannot be imported. Validates Docker container IDs as 12-64 hex chars. Applied in both `getContainerId()` and `getContainerInfo()`.
+- **`ValidationResult` type for all validators**: All validation functions must return `ValidationResult` (from `src/types/index.ts`), not inline `{ valid: true } | { valid: false; error: string }`. Use the shared type for consistency.
 
 - **Audit log auto-rotates at 10 MB**: `AUDIT_LOG_MAX_BYTES` in constants.ts. Rotation renames to `audit.log.YYYY-MM-DD`. Details are sanitized: home paths replaced with `~`, credential patterns redacted.
+
+### API & Type Quirks
+
+- **`getLocalProjects()` returns `string[]`**: Project names only, not objects. No `.name` property.
+
+- **`normalizePath` in container.ts is private**: Cannot be imported. Define locally if needed in other modules.
+
+- **`isValidContainerId` in container.ts is private**: Like `normalizePath`, it cannot be imported. Validates Docker container IDs as 12-64 hex chars. Applied in both `getContainerId()` and `getContainerInfo()`.
 
 - **`requireConfig()` never returns null**: It calls `process.exit(1)` on failure. All commands should use `requireConfig()` instead of the manual `configExists()` + `loadConfig()` + null-check pattern.
 
 - **`isMutagenInstalled()` is async**: Returns `Promise<boolean>`, not `boolean`. All callers must `await` it. Changed during security audit to use `execa` instead of `Bun.spawnSync`.
+
+- **`@inquirer/prompts` is transitive**: Available via `inquirer` dependency. Exports: `select`, `checkbox`, `password`, `confirm`, `input`.
+
+- **`exactOptionalPropertyTypes` not viable**: Causes 70+ errors across the codebase. Do not enable in tsconfig.json.
+
+### Testing Pitfalls
+
+- **`bun test` vs `bun run test`**: Bare `bun test` discovers ALL `.test.ts` files (including integration/e2e). Always use `bun run test` to run only unit tests via the npm script, which scopes to `tests/unit`.
+
+- **`mock.module("execa")` is global in bun test**: Several test files (`shell-docker-isolated`, `rm-remote`, `container-id-isolated`) mock `execa` at module level. This contaminates all test files in the same `bun test` run. New modules that need reliable subprocess execution in tests should use `node:child_process` instead of `execa`.
+
+- **`@tests/*` alias is test-only**: The `@tests/*` path alias must NEVER be imported from production code in `src/`. It exists solely for test-to-test imports. Biome cannot enforce this, so treat it as a convention.
+
+- **Biome lint for shell variable strings**: When testing shell scripts containing `${VAR}` syntax, biome reports `noTemplateCurlyInString`. Add `// biome-ignore lint/suspicious/noTemplateCurlyInString: <reason>` before the string literal.
+
+### Tooling & Build
+
+- **macOS path normalization**: Always normalize paths with `realpathSync()` BEFORE passing to `devcontainer` CLI or Docker queries. macOS symlinks (e.g., `/var` → `/private/var`) cause label mismatches between container creation and lookup.
+
+- **Inquirer v13 list prompts**: The legacy `inquirer.prompt()` with `type: "list"` doesn't render choices. Use `select()` from `@inquirer/prompts` or `type: "rawlist"` instead.
+
+- **Dashboard uses Ink (React)**: `src/commands/dashboard.tsx` uses `ink` for TUI rendering, not `blessed`. File must be `.tsx` for JSX support.
+
+- **Lefthook `biome check --write` reverts edits on failed commits**: When a pre-commit hook fails after the `check` stage, biome has already rewritten staged files. The working tree ends up with biome's version, not yours. Re-apply edits after any failed commit.
+
+- **`devcontainer up` has no `--rebuild-if-exists` flag**: The correct flag to remove and recreate an existing container is `--remove-existing-container`. To also rebuild the image without cache, add `--build-no-cache`. Always verify flags against `devcontainer up --help`.
 
 ## Environment Variables
 
@@ -474,6 +502,8 @@ SkyBox respects the following environment variables:
 | `RYBBIT_SITE_ID` | unset | Rybbit site identifier for first-run telemetry (set at build time) |
 | `RYBBIT_API_KEY` | unset | Rybbit API key for authenticating telemetry requests (set at build time) |
 | `DEBUG` | unset | Set to any value to enable debug output in list command |
+| `SKYBOX_INSTALL_METHOD` | unset | Set at build time to identify installation source (npm, brew, binary) |
+| `EDITOR` | unset | Fallback editor for devcontainer config editing (standard Unix) |
 
 ### Audit Logging
 
