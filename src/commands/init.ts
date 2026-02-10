@@ -9,8 +9,11 @@ import { getErrorMessage } from "@lib/errors.ts";
 import { getBinDir, getProjectsDir, getSkyboxHome } from "@lib/paths.ts";
 import { escapeRemotePath } from "@lib/shell.ts";
 import {
+	addKeyToAgent,
 	copyKey,
+	ensureKeyInAgent,
 	findSSHKeys,
+	isKeyPassphraseProtected,
 	parseSSHConfig,
 	runRemoteCommand,
 	testConnection,
@@ -121,6 +124,7 @@ const configureRemote = async (): Promise<{
 	user?: string;
 	basePath: string;
 	key?: string;
+	useKeychain?: boolean;
 } | null> => {
 	header("Configure remote server");
 
@@ -147,6 +151,7 @@ const configureRemote = async (): Promise<{
 	let remoteUser: string | undefined; // The SSH username (undefined = use SSH config default)
 	let sshConnectString: string; // The actual connection string for SSH commands
 	let identityFile: string | undefined; // SSH key path (undefined = use SSH config default)
+	let useKeychain: boolean | undefined; // macOS Keychain persistence (set in new server flow)
 
 	if (hostChoice === "__new__") {
 		const { hostname, username, friendlyName } = await inquirer.prompt([
@@ -207,7 +212,49 @@ const configureRemote = async (): Promise<{
 			identityFile = keyChoice as string;
 		}
 
-		// Test connection with the specified key
+		// If key is passphrase-protected, load it into the agent before testing
+		if (identityFile) {
+			// Check once — reuse for Keychain prompt and Linux info below
+			const keyIsProtected = await isKeyPassphraseProtected(identityFile);
+
+			if (keyIsProtected) {
+				const keyReady = await ensureKeyInAgent(identityFile);
+				if (!keyReady) {
+					error("Could not load SSH key into agent.");
+					info("Run 'ssh-add <keypath>' manually or check your key.");
+					return null;
+				}
+
+				// On macOS, ask about Keychain persistence for passphrase keys
+				if (process.platform === "darwin") {
+					const { saveToKeychain } = await inquirer.prompt([
+						{
+							type: "confirm",
+							name: "saveToKeychain",
+							message:
+								"Save passphrase to macOS Keychain? (won't need to enter it again after reboot)",
+							default: true,
+						},
+					]);
+					if (saveToKeychain) {
+						const keychainResult = addKeyToAgent(identityFile, true);
+						if (keychainResult.success) {
+							useKeychain = true;
+						} else {
+							warn(
+								"Could not save passphrase to Keychain. You'll be prompted again after reboot.",
+							);
+						}
+					}
+				} else {
+					info(
+						"Passphrase loaded for this session. You'll need to enter it again after reboot.",
+					);
+				}
+			}
+		}
+
+		// Test connection with the specified key (now succeeds because key is in agent)
 		const spin = spinner("Testing SSH connection...");
 		const connResult = await testConnection(
 			sshConnectString,
@@ -346,6 +393,7 @@ const configureRemote = async (): Promise<{
 		user: remoteUser,
 		basePath,
 		key: identityFile,
+		useKeychain,
 	};
 };
 
@@ -493,6 +541,7 @@ export const initCommand = async (): Promise<void> => {
 				user: remote.user,
 				path: remote.basePath,
 				key: remote.key,
+				...(remote.useKeychain && { useKeychain: true }),
 			},
 		},
 		projects: {},

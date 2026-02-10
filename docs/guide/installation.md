@@ -27,7 +27,7 @@ Install the following tools from their official sources before continuing:
 
 - **Docker Desktop** (20.10+) — [Get Docker](https://docs.docker.com/get-started/get-docker/)
 - **Devcontainer CLI** (0.50+) — [Installation instructions](https://github.com/devcontainers/cli#install-script)
-- **SSH** — Pre-installed on macOS and Linux. Windows users need [WSL 2](https://learn.microsoft.com/en-us/windows/wsl/install).
+- **SSH** — Pre-installed on macOS and Linux. Windows users need [WSL 2](https://learn.microsoft.com/en-us/windows/wsl/install). SkyBox supports both passwordless and passphrase-protected SSH keys. If your key has a passphrase, SkyBox will prompt you to load it into `ssh-agent` during setup.
 
 ## Install SkyBox
 
@@ -165,6 +165,10 @@ If the SSH connection test fails:
 1. Verify you can connect manually: `ssh your-server`
 2. Check your SSH key is added: `ssh-add -l`
 3. Ensure the server is reachable: `ping your-server`
+4. If you see "Could not open a connection to your authentication agent", start the agent first:
+   ```bash
+   eval $(ssh-agent)
+   ```
 
 ### Mutagen Installation Failed
 

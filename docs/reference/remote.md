@@ -152,6 +152,9 @@ Each remote is stored in the configuration with these fields:
 | `user` | SSH username (or null to use SSH config default) |
 | `path` | Base directory for projects on the remote |
 | `key` | Path to SSH private key (or null to use SSH config default) |
+| `useKeychain` | macOS only: persist SSH key passphrase in Keychain (default: `false`) |
+
+Both passwordless and passphrase-protected SSH keys are supported. If you select a passphrase-protected key, SkyBox will prompt to load it into `ssh-agent` so you only enter the passphrase once. On macOS, you can set `useKeychain: true` to persist the passphrase across reboots.
 
 Example in `~/.skybox/config.yaml`:
 
@@ -162,6 +165,7 @@ remotes:
     user: deploy
     path: ~/code
     key: ~/.ssh/id_ed25519
+    useKeychain: true   # macOS only: persist passphrase in Keychain
 
   personal:
     host: home-server
@@ -171,6 +175,10 @@ remotes:
 ```
 
 ## SSH Key Setup
+
+SkyBox supports both passwordless and passphrase-protected SSH keys when adding a remote.
+
+If a passphrase-protected key is selected, SkyBox loads it into `ssh-agent` so you only need to enter the passphrase once. On macOS, you can enable `useKeychain: true` to persist the passphrase in the Keychain across reboots.
 
 When adding a remote, if the connection test fails, you'll be offered to copy your SSH key:
 

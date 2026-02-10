@@ -46,6 +46,7 @@ import {
 	readSession,
 	writeSession,
 } from "@lib/session.ts";
+import { ensureRemoteKeyReady } from "@lib/ssh.ts";
 import { selectTemplate, writeDevcontainerConfig } from "@lib/templates.ts";
 import {
 	dryRun,
@@ -521,6 +522,17 @@ const startSingleProject = async (
 ): Promise<void> => {
 	logAuditEvent(AuditActions.UP_START, { project });
 	header(`Starting '${project}'...`);
+
+	// Ensure SSH key is loaded for remote operations
+	const projectRemote = getProjectRemote(project, config);
+	if (projectRemote) {
+		const keyReady = await ensureRemoteKeyReady(projectRemote.remote);
+		if (!keyReady) {
+			error("Could not authenticate SSH key.");
+			info("Run 'ssh-add <keypath>' manually or check your key.");
+			throw new Error("SSH key authentication failed");
+		}
+	}
 
 	if (isDryRun()) {
 		const projectConfig = config.projects[project];
