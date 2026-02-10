@@ -205,6 +205,12 @@ export const ENCRYPTION_CHECK_CONTENT = "skybox-encryption-verify";
 // default timeout for SSH operations in milliseconds.
 export const SSH_TIMEOUT_MS = 10_000;
 
+// timeout for ssh-keygen operations (fingerprint, passphrase check) in milliseconds.
+export const SSH_KEYGEN_TIMEOUT_MS = 5_000;
+
+// timeout for interactive ssh-add passphrase entry in milliseconds.
+export const SSH_ADD_TIMEOUT_MS = 60_000;
+
 // SSH config keyword prefixes with their lengths for parsing.
 export const SSH_KEYWORDS = {
 	HOST: { prefix: "host ", length: 5 },

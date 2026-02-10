@@ -61,6 +61,25 @@ The wizard allows you to:
 
 SSH fields are validated as you enter them. Hostnames, usernames, key paths, and remote paths are checked for invalid characters (such as newlines or shell metacharacters) and will prompt you to re-enter if invalid.
 
+### SSH Key Authentication
+
+SkyBox supports both **passwordless** and **passphrase-protected** SSH keys.
+
+When you select a passphrase-protected key during setup, SkyBox loads it into `ssh-agent` so you only need to enter your passphrase once per session. The behavior varies by platform:
+
+- **macOS** — You are offered the option to save the passphrase to the macOS Keychain. When enabled (`useKeychain: true` in config), the passphrase persists across reboots and you won't be prompted again.
+- **Linux** — The passphrase is held in `ssh-agent` for the duration of your current login session. You will need to re-enter it after logging out or rebooting.
+
+If no `ssh-agent` is running, SkyBox will inform you and provide instructions to start one:
+
+```bash
+eval $(ssh-agent)
+```
+
+::: tip
+If you already have your key loaded in `ssh-agent` (check with `ssh-add -l`), SkyBox will detect it and skip the passphrase prompt.
+:::
+
 ### Editor Options
 
 SkyBox has built-in support for these editors:

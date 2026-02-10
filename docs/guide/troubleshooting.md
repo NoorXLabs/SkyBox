@@ -234,6 +234,36 @@ See also: [Concepts: Selective Sync](/guide/concepts#selective-sync), [Configura
    chmod 644 ~/.ssh/id_rsa.pub
    ```
 
+### Passphrase-Protected Keys
+
+**Symptoms:**
+- SkyBox prompts for a passphrase during commands
+- SSH key is not loaded in `ssh-agent`
+
+**Solutions:**
+
+1. **On macOS** — Enable `useKeychain: true` in your remote configuration to persist the passphrase across reboots:
+   ```yaml
+   remotes:
+     myserver:
+       host: example.com
+       user: deploy
+       path: ~/code
+       key: ~/.ssh/id_ed25519
+       useKeychain: true
+   ```
+
+2. **On Linux** — Load your key into `ssh-agent` before starting SkyBox, or add it to your shell profile (e.g., `~/.bashrc`):
+   ```bash
+   ssh-add ~/.ssh/your_key
+   ```
+
+3. **If `ssh-add` fails** with "Could not open a connection to your authentication agent", start the agent first:
+   ```bash
+   eval $(ssh-agent)
+   ssh-add ~/.ssh/your_key
+   ```
+
 ### Permission Denied
 
 **Symptoms:**
@@ -241,7 +271,7 @@ See also: [Concepts: Selective Sync](/guide/concepts#selective-sync), [Configura
 
 **Solutions:**
 
-1. **Add key to SSH agent:**
+1. **Add key to SSH agent** (both passwordless and passphrase-protected keys are supported):
    ```bash
    ssh-add ~/.ssh/id_rsa
    ```
@@ -250,6 +280,8 @@ See also: [Concepts: Selective Sync](/guide/concepts#selective-sync), [Configura
    ```bash
    skybox remote add myserver user@host --key ~/.ssh/specific_key
    ```
+
+3. **For passphrase-protected keys**, ensure the key is loaded in `ssh-agent` (see [Passphrase-Protected Keys](#passphrase-protected-keys) above).
 
 ## Container Issues
 

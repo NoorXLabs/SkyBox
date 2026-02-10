@@ -17,7 +17,7 @@ import { getProjectsDir } from "@lib/paths.ts";
 import { finalizeProjectSync } from "@lib/project-sync.ts";
 import { checkRemoteProjectExists } from "@lib/remote.ts";
 import { escapeRemotePath } from "@lib/shell.ts";
-import { runRemoteCommand } from "@lib/ssh.ts";
+import { ensureRemoteKeyReady, runRemoteCommand } from "@lib/ssh.ts";
 import {
 	confirmDestructiveAction,
 	dryRun,
@@ -77,6 +77,14 @@ export const pushCommand = async (
 	// Select which remote to push to
 	const remoteName = await selectRemote(config);
 	const remote = config.remotes[remoteName];
+
+	const keyReady = await ensureRemoteKeyReady(remote);
+	if (!keyReady) {
+		error("Could not authenticate SSH key.");
+		info("Run 'ssh-add <keypath>' manually or check your key.");
+		process.exit(1);
+	}
+
 	const host = getRemoteHost(remote);
 	const remotePath = getRemotePath(remote, projectName);
 

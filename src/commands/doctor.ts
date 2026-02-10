@@ -12,7 +12,7 @@ import {
 	needsMutagenExtraction,
 } from "@lib/mutagen-extract.ts";
 import { getMutagenPath } from "@lib/paths.ts";
-import { testConnection } from "@lib/ssh.ts";
+import { ensureRemoteKeyReady, testConnection } from "@lib/ssh.ts";
 import type {
 	DoctorCheckResult,
 	DoctorCheckStatus,
@@ -270,6 +270,21 @@ const checkSSHConnectivity = async (): Promise<DoctorCheckResult[]> => {
 		for (const [remoteName, remote] of Object.entries(config.remotes)) {
 			const name = `SSH: ${remoteName}`;
 			try {
+				// Ensure passphrase key is loaded before testing
+				if (remote.key) {
+					const keyReady = await ensureRemoteKeyReady(remote);
+					if (!keyReady) {
+						results.push({
+							name,
+							status: "warn",
+							message:
+								"SSH key requires passphrase but could not be loaded into agent",
+							fix: `Run 'ssh-add ${remote.key}' manually`,
+						});
+						continue;
+					}
+				}
+
 				const host = getRemoteHost(remote);
 				const result = await testConnection(host, remote.key);
 

@@ -57,6 +57,9 @@ A map of named remote server configurations. Each remote represents a server whe
 | `user` | `string` | No | SSH username (null to use SSH config default) |
 | `path` | `string` | Yes | Base directory for projects on the remote |
 | `key` | `string` | No | Path to SSH private key (null to use SSH config default) |
+| `useKeychain` | `boolean` | No | macOS only: persist SSH key passphrase in Keychain (default: `false`) |
+
+The `useKeychain` field is optional and defaults to `false`. When set to `true` on macOS, SkyBox uses the Keychain to store the passphrase for the SSH key, so you don't need to re-enter it after reboots. This setting is ignored on Linux and has no effect on passwordless keys.
 
 Example:
 
@@ -67,6 +70,7 @@ remotes:
     user: deploy
     path: ~/code
     key: ~/.ssh/id_ed25519
+    useKeychain: true   # macOS only: persist passphrase in Keychain
 
   personal:
     host: home-server
@@ -225,6 +229,7 @@ remotes:
     user: deploy
     path: ~/code
     key: ~/.ssh/id_ed25519
+    useKeychain: true     # macOS only: persist passphrase in Keychain
 
   staging:
     host: staging.example.com

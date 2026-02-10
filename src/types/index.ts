@@ -58,6 +58,7 @@ export interface RemoteEntry {
 	user?: string; // SSH username (undefined = use SSH config default)
 	path: string; // Remote projects directory
 	key?: string; // Path to SSH private key (undefined = use SSH config default)
+	useKeychain?: boolean; // macOS only: persist passphrase in Keychain
 }
 
 // per-project encryption configuration

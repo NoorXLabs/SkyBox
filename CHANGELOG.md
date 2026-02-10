@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **SSH Passphrase-Protected Key Support**: Automatic ssh-agent integration detects passphrase-protected keys and prompts users to load them before SSH operations. Includes macOS Keychain persistence (`useKeychain` config option), no-agent detection with helpful guidance, and guards on all 8 SSH-dependent commands (up, down, clone, browse, push, status, rm, doctor).
 - **Open Source Contribution Framework**: Added GitHub issue forms (bug/feature/docs), pull request template, governance docs (`CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `SUPPORT.md`), CODEOWNERS, and label taxonomy/automation workflows for triage and path-based PR auto-labeling.
 - **Multi-Select Down**: `skybox down` now supports checkbox multi-select when run without arguments, with batch stop and batch cleanup prompts
 

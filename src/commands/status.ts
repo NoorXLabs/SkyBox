@@ -17,8 +17,8 @@ import {
 	type SessionInfo,
 } from "@lib/session.ts";
 import { escapeRemotePath } from "@lib/shell.ts";
-import { runRemoteCommand } from "@lib/ssh.ts";
-import { error, header } from "@lib/ui.ts";
+import { ensureRemoteKeyReady, runRemoteCommand } from "@lib/ssh.ts";
+import { error, header, info } from "@lib/ui.ts";
 import {
 	type ContainerDetails,
 	ContainerStatus,
@@ -378,6 +378,17 @@ const showDetailed = async (projectName: string): Promise<void> => {
 			`Project '${projectName}' not found. Run 'skybox list' to see available projects.`,
 		);
 		process.exit(1);
+	}
+
+	// Ensure SSH key is loaded for remote disk usage query
+	const projectRemote = getProjectRemote(projectName);
+	if (projectRemote) {
+		const keyReady = await ensureRemoteKeyReady(projectRemote.remote);
+		if (!keyReady) {
+			error("Could not authenticate SSH key.");
+			info("Run 'ssh-add <keypath>' manually or check your key.");
+			process.exit(1);
+		}
 	}
 
 	// Gather all details

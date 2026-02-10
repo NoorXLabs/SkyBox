@@ -70,6 +70,13 @@ export function validateConfig(
 					"Must have a valid host",
 				);
 			}
+
+			if (r.useKeychain !== undefined && typeof r.useKeychain !== "boolean") {
+				throw new ConfigValidationError(
+					`remotes.${name}.useKeychain`,
+					"Must be a boolean",
+				);
+			}
 		}
 	}
 

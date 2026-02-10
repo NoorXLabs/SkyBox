@@ -25,7 +25,7 @@ import {
 } from "@lib/project.ts";
 import { deleteSession, readSession } from "@lib/session.ts";
 import { escapeRemotePath } from "@lib/shell.ts";
-import { runRemoteCommand } from "@lib/ssh.ts";
+import { ensureRemoteKeyReady, runRemoteCommand } from "@lib/ssh.ts";
 import {
 	confirmDestructiveAction,
 	dryRun,
@@ -210,6 +210,14 @@ const rmRemoteInteractive = async (
 	// Select which remote to delete from
 	const remoteName = await selectRemote(config);
 	const remote = config.remotes[remoteName];
+
+	const keyReady = await ensureRemoteKeyReady(remote);
+	if (!keyReady) {
+		error("Could not authenticate SSH key.");
+		info("Run 'ssh-add <keypath>' manually or check your key.");
+		return;
+	}
+
 	const host = getRemoteHost(remote);
 
 	// Fetch remote project list
@@ -442,6 +450,14 @@ const deleteFromRemote = async (
 	}
 
 	const { remote } = projectRemote;
+
+	const keyReady = await ensureRemoteKeyReady(remote);
+	if (!keyReady) {
+		error("Could not authenticate SSH key.");
+		info("Run 'ssh-add <keypath>' manually or check your key.");
+		process.exit(1);
+	}
+
 	const remotePath = `${remote.path}/${project}`;
 	const host = getRemoteHost(remote);
 

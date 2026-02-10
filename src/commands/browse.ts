@@ -4,7 +4,7 @@ import { getRemoteHost, selectRemote } from "@commands/remote.ts";
 import { requireConfig } from "@lib/config.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { escapeRemotePath } from "@lib/shell.ts";
-import { runRemoteCommand } from "@lib/ssh.ts";
+import { ensureRemoteKeyReady, runRemoteCommand } from "@lib/ssh.ts";
 import { error, header, info, spinner } from "@lib/ui.ts";
 import type { RemoteProject } from "@typedefs/index.ts";
 import chalk from "chalk";
@@ -79,6 +79,14 @@ export const browseCommand = async (): Promise<void> => {
 	// Select which remote to browse
 	const remoteName = await selectRemote(config);
 	const remote = config.remotes[remoteName];
+
+	const keyReady = await ensureRemoteKeyReady(remote);
+	if (!keyReady) {
+		error("Could not authenticate SSH key.");
+		info("Run 'ssh-add <keypath>' manually or check your key.");
+		process.exit(1);
+	}
+
 	const host = getRemoteHost(remote);
 
 	const spin = spinner(`Fetching projects from ${remoteName}...`);

@@ -254,7 +254,9 @@ For each remote, you specify:
 - **SSH Host** - The server to connect to
 - **SSH User** - Username for SSH connection
 - **Base Path** - Directory where projects are stored (e.g., `~/code`)
-- **SSH Key** - Optional path to SSH private key
+- **SSH Key** - Optional path to SSH private key (both passwordless and passphrase-protected keys are supported)
+
+SkyBox supports passphrase-protected SSH keys via `ssh-agent` integration. When a passphrase-protected key is used, SkyBox loads it into `ssh-agent` so you only enter the passphrase once. On macOS, passphrases can optionally be persisted in the Keychain by setting `useKeychain: true` in the remote configuration.
 
 ### Remote Directory Structure
 

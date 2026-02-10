@@ -2,7 +2,7 @@
 
 > **Version:** 0.8.0
 >
-> **Progress:** 2/19 future features | 0/18 checklist items | 1/1 release tasks
+> **Progress:** 0/17 future features | 0/18 checklist items | 0/0 release tasks
 >
 > **Completed work archived:** [`plans/archive/ARCHIVED-IMPLEMENTATION.md`](archive/ARCHIVED-IMPLEMENTATION.md)
 
@@ -10,23 +10,11 @@
 
 ## Table of Contents
 
-1. [Future Features — High Priority](#future-features--high-priority)
-2. [Future Features — Medium Priority](#future-features--medium-priority)
-3. [Future Features — Lower Priority](#future-features--lower-priority)
-4. [Future Features — Exploratory](#future-features--exploratory)
-5. [Pre-Production Checklist](#pre-production-checklist)
-6. [Release Preparation](#release-preparation)
-
----
-
-## Future Features — High Priority
-
-- [x] ### Create Template Repositories *(Completed in v0.8.0)*
-
-Built-in templates (Node.js, Bun, Python, Go) reference non-existent GitHub repos at `skybox-templates/*-starter`. Either create these repos or replace with working alternatives (e.g., official devcontainer templates).
-
-- **Files:** `src/lib/projectTemplates.ts` (placeholder URLs)
-- **Notes:** Could use official `devcontainers/templates` or create minimal starter repos under a SkyBox GitHub org
+1. [Future Features — Medium Priority](#future-features--medium-priority)
+2. [Future Features — Lower Priority](#future-features--lower-priority)
+3. [Future Features — Exploratory](#future-features--exploratory)
+4. [Pre-Production Checklist](#pre-production-checklist)
+5. [Release Preparation](#release-preparation)
 
 ---
 
@@ -115,10 +103,6 @@ Global `--verbose` flag for debugging output across all commands.
 - **Files:** `src/index.ts` (global option), all command files
 - **Notes:** Use environment variable or global flag; conditionally log debug info
 
-- [x] ### Dry Run Mode *(Completed in v0.8.0)*
-
-`--dry-run` flag to preview commands without executing them.
-
 - [ ] ### JSON Output
 
 `--json` flag for scriptable/machine-readable output.
@@ -183,7 +167,7 @@ bash/zsh/fish completion scripts for all commands and options.
 
 ## Release Preparation
 
-- [x] Homebrew formula updated
+*(No pending tasks)*
 
 ---
 
@@ -204,4 +188,4 @@ One-line description of what this feature does and why.
 
 ---
 
-*Last updated: 2026-02-09*
+*Last updated: 2026-02-10*

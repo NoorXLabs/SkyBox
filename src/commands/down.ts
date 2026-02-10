@@ -31,6 +31,7 @@ import {
 	encryptRemoteArchive,
 } from "@lib/remote-encryption.ts";
 import { deleteSession } from "@lib/session.ts";
+import { ensureRemoteKeyReady } from "@lib/ssh.ts";
 import {
 	dryRun,
 	error,
@@ -179,6 +180,17 @@ const stopSingleProject = async (
 
 	const projectPath = getProjectPath(project);
 	header(`Stopping '${project}'...`);
+
+	// Ensure SSH key is loaded for remote operations (encryption)
+	const projectRemote = getProjectRemote(project, config);
+	if (projectRemote) {
+		const keyReady = await ensureRemoteKeyReady(projectRemote.remote);
+		if (!keyReady) {
+			error("Could not authenticate SSH key.");
+			info("Run 'ssh-add <keypath>' manually or check your key.");
+			return false;
+		}
+	}
 
 	if (isDryRun()) {
 		const projectConfig = config.projects[project];
