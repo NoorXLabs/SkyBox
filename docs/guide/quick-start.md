@@ -182,6 +182,17 @@ Or with cleanup to remove the container:
 skybox down my-project --cleanup
 ```
 
+## Need Help?
+
+If you hit issues during setup or first run:
+
+```bash
+skybox doctor
+```
+
+- See [Troubleshooting](/guide/troubleshooting) for common fixes and recovery steps
+- Use [`skybox logs`](/reference/logs) to inspect container or sync output while debugging
+
 ## Common Workflows
 
 ### Switching Machines

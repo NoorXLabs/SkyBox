@@ -81,6 +81,12 @@ If the Mutagen sync session exists but is paused (e.g., from a previous `skybox 
 
 If the container fails to start on the first attempt, SkyBox automatically retries with a full rebuild. If the rebuild also fails, the error is displayed. Use `--verbose` to see the full error output.
 
+### Devcontainer CLI Flag Note
+
+SkyBox handles rebuild behavior internally when you pass `--rebuild`.
+
+If you run `devcontainer up` manually, note that `--rebuild-if-exists` is not a supported flag. Use supported flags such as `--remove-existing-container` (and `--build-no-cache` for a full rebuild).
+
 ### Devcontainer Templates
 
 If no `.devcontainer/devcontainer.json` exists, SkyBox offers to create one using the unified template selector. You can choose from built-in templates and your custom local templates stored in `~/.skybox/templates/`.

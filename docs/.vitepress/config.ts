@@ -25,7 +25,7 @@ export default defineConfig({
   title: 'SkyBox',
   description: 'Local-first development containers with remote sync. Run containers locally, sync code bidirectionally, and switch between machines seamlessly.',
   lang: 'en-US',
-  srcExclude: ['**/architecture/**', '**/snippets/**'],
+  srcExclude: ['**/snippets/**'],
 
   sitemap: {
     hostname: 'https://skybox.noorxlabs.com'
