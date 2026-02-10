@@ -68,31 +68,26 @@ export const getMutagenChecksumUrl = (version: string): string => {
 	return `https://github.com/${MUTAGEN_REPO}/releases/download/v${version}/SHA256SUMS`;
 };
 
-// is mutagen installed
-export const isMutagenInstalled = async (): Promise<boolean> => {
-	const mutagenPath = getMutagenPath();
-	if (!existsSync(mutagenPath)) {
-		return false;
-	}
-
-	try {
-		await execa(mutagenPath, ["version"]);
-		return true;
-	} catch {
-		return false;
-	}
-};
-
-// get installed mutagen version
-export const getInstalledMutagenVersion = async (): Promise<string | null> => {
+const probeInstalledMutagenVersion = async (): Promise<string | null> => {
 	const mutagenPath = getMutagenPath();
 	if (!existsSync(mutagenPath)) return null;
+
 	try {
 		const result = await execa(mutagenPath, ["version"]);
 		return result.stdout.trim();
 	} catch {
 		return null;
 	}
+};
+
+// is mutagen installed
+export const isMutagenInstalled = async (): Promise<boolean> => {
+	return (await probeInstalledMutagenVersion()) !== null;
+};
+
+// get installed mutagen version
+export const getInstalledMutagenVersion = async (): Promise<string | null> => {
+	return probeInstalledMutagenVersion();
 };
 
 // download and install the Mutagen binary with checksum verification

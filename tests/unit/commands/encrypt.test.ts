@@ -1,27 +1,8 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { mkdirSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { describe, expect, test } from "bun:test";
+import { setupTestContext } from "@tests/helpers/test-utils.ts";
 
 describe("encrypt command", () => {
-	let testDir: string;
-	let originalEnv: string | undefined;
-
-	beforeEach(() => {
-		testDir = join(tmpdir(), `skybox-encrypt-test-${Date.now()}`);
-		mkdirSync(testDir, { recursive: true });
-		originalEnv = process.env.SKYBOX_HOME;
-		process.env.SKYBOX_HOME = testDir;
-	});
-
-	afterEach(() => {
-		rmSync(testDir, { recursive: true, force: true });
-		if (originalEnv) {
-			process.env.SKYBOX_HOME = originalEnv;
-		} else {
-			delete process.env.SKYBOX_HOME;
-		}
-	});
+	setupTestContext("encrypt");
 
 	test("encrypt command module exports encryptCommand", async () => {
 		const mod = await import("@commands/encrypt.ts");

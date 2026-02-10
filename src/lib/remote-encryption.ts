@@ -2,6 +2,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { decryptFile, encryptFile } from "@lib/encryption.ts";
+import { runRemotePathTest } from "@lib/remote.ts";
 import { escapeRemotePath, escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand, secureScp } from "@lib/ssh.ts";
 
@@ -62,11 +63,7 @@ export const createRemoteArchiveTarget = (
 export const remoteArchiveExists = async (
 	target: RemoteArchiveTarget,
 ): Promise<boolean> => {
-	const checkResult = await runRemoteCommand(
-		target.host,
-		`test -f ${escapeRemotePath(target.remoteArchivePath)} && echo "EXISTS" || echo "NOT_FOUND"`,
-	);
-	return checkResult.success && checkResult.stdout?.includes("EXISTS") === true;
+	return runRemotePathTest(target.host, target.remoteArchivePath, "-f");
 };
 
 // decrypt remote archive

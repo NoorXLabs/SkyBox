@@ -1,14 +1,7 @@
 // YAML config file operations: load, save, query remotes and projects.
-import {
-	existsSync,
-	mkdirSync,
-	readFileSync,
-	renameSync,
-	unlinkSync,
-	writeFileSync,
-} from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { dirname } from "node:path";
+import { writeFileAtomic } from "@lib/atomic-write.ts";
 import { validateConfig } from "@lib/config-schema.ts";
 import { migrateConfig, needsMigration } from "@lib/migration.ts";
 import { getConfigPath } from "@lib/paths.ts";
@@ -28,6 +21,19 @@ const sanitizePath = (filePath: string): string => {
 		return `~${filePath.slice(home.length)}`;
 	}
 	return filePath;
+};
+
+// create the default config shape used when no config file exists yet.
+export const createDefaultConfig = (): SkyboxConfigV2 => {
+	return {
+		editor: "cursor",
+		defaults: {
+			sync_mode: "two-way-resolved",
+			ignore: [],
+		},
+		remotes: {},
+		projects: {},
+	};
 };
 
 // check if the SkyBox config file exists on disk
@@ -84,34 +90,8 @@ export const requireConfig = (): SkyboxConfigV2 => {
 // write the SkyBox config to disk as YAML
 export const saveConfig = (config: SkyboxConfigV2): void => {
 	const configPath = getConfigPath();
-	const dir = dirname(configPath);
-
-	// Create directory with secure permissions
-	if (!existsSync(dir)) {
-		mkdirSync(dir, { recursive: true, mode: 0o700 });
-	}
-
 	const content = stringify(config);
-
-	// Atomic write: create temp file with secure permissions, then rename
-	// This eliminates the race condition window where config could be readable
-	const tempPath = `${configPath}.tmp.${process.pid}`;
-
-	try {
-		// Write to temp file with secure permissions from the start
-		writeFileSync(tempPath, content, { encoding: "utf-8", mode: 0o600 });
-
-		// Atomic rename to final location (rename is atomic on POSIX systems)
-		renameSync(tempPath, configPath);
-	} catch (err) {
-		// Clean up temp file on error
-		try {
-			unlinkSync(tempPath);
-		} catch {
-			// Ignore cleanup errors
-		}
-		throw err;
-	}
+	writeFileAtomic(configPath, content, { dirMode: 0o700, fileMode: 0o600 });
 };
 
 // get a specific remote by name

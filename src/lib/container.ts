@@ -61,6 +61,22 @@ import {
 
 export type EditorId = (typeof SUPPORTED_EDITORS)[number]["id"] | string;
 
+// parse one docker --format container line into a ContainerInfo.
+const parseContainerLine = (
+	line: string,
+	options: { validateId?: boolean } = {},
+): ContainerInfo | null => {
+	const trimmed = line.trim();
+	if (!trimmed) return null;
+
+	const [id, name, rawStatus = "", image = ""] = trimmed.split("\t");
+	if (!id || !name) return null;
+	if (options.validateId && !isValidContainerId(id)) return null;
+
+	const status = parseContainerStatus(rawStatus);
+	return { id, name, status, rawStatus, image };
+};
+
 // query Docker for containers matching a label filter.
 // centralizes the common Docker query pattern used throughout the codebase.
 const queryDockerContainers = async (options: {
@@ -154,11 +170,7 @@ export const getContainerInfo = async (
 		});
 
 		if (!line) return null;
-
-		const [id, name, rawStatus, image] = line.split("\t");
-		if (!isValidContainerId(id)) return null;
-		const status = parseContainerStatus(rawStatus);
-		return { id, name, status, rawStatus: rawStatus || "", image };
+		return parseContainerLine(line, { validateId: true });
 	} catch {
 		return null;
 	}
@@ -249,12 +261,10 @@ export const listSkyboxContainers = async (): Promise<ContainerInfo[]> => {
 		});
 
 		if (!output) return [];
-
-		return output.split("\n").map((line) => {
-			const [id, name, rawStatus, image] = line.split("\t");
-			const status = parseContainerStatus(rawStatus);
-			return { id, name, status, rawStatus: rawStatus || "", image };
-		});
+		return output
+			.split("\n")
+			.map((line) => parseContainerLine(line))
+			.filter((container): container is ContainerInfo => container !== null);
 	} catch {
 		return [];
 	}

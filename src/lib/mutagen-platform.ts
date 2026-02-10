@@ -1,8 +1,4 @@
-export interface MutagenPlatformInfo {
-	os: "darwin" | "linux";
-	cpu: "arm64" | "amd64";
-	filename: string;
-}
+import type { MutagenPlatformInfo } from "@typedefs/index.ts";
 
 // normalize platform/arch into mutagen release naming components.
 export const getMutagenPlatformInfo = (

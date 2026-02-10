@@ -371,6 +371,15 @@ export interface SessionConflictResult {
 	existingSession?: SessionInfo;
 }
 
+// Mutagen types
+
+// normalized platform/arch identifiers used for Mutagen release assets.
+export interface MutagenPlatformInfo {
+	os: "darwin" | "linux";
+	cpu: "arm64" | "amd64";
+	filename: string;
+}
+
 // Validation types
 
 // result of input validation functions. Discriminated union for type safety.
@@ -398,6 +407,17 @@ export interface UpdateCheckMetadata {
 	lastCheck: string; // ISO 8601 datetime of last check
 	latestVersion: string | null; // Latest version found, or null if check failed
 	latestStableVersion: string | null; // Latest non-prerelease version
+}
+
+// Error types
+
+// execa-like errors with commonly inspected process fields.
+export interface ExecaLikeError {
+	exitCode?: number;
+	stderr?: string;
+	stdout?: string;
+	command?: string;
+	message?: string;
 }
 
 // Audit types

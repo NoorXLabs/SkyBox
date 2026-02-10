@@ -26,8 +26,9 @@ export const resolveProjectFromCwd = (): string | null => {
 
 	const rel = relative(realProjectsDir, realCwd);
 
-	// If relative path starts with "..", we're not in PROJECTS_DIR
-	if (rel.startsWith("..") || rel === cwd) {
+	// If relative path starts with "..", we're not in PROJECTS_DIR.
+	// rel === "" means cwd is the projects root itself, not a project.
+	if (rel.startsWith("..") || rel === "") {
 		return null;
 	}
 

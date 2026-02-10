@@ -137,27 +137,61 @@ const assertValidHost = (
 	return null;
 };
 
+const runValidatedSsh = async (
+	host: string,
+	execute: () => Promise<void>,
+	formatError: (error: unknown) => string,
+): Promise<{ success: boolean; error?: string }> => {
+	const hostError = assertValidHost(host);
+	if (hostError) return hostError;
+
+	try {
+		await execute();
+		return { success: true };
+	} catch (error: unknown) {
+		return {
+			success: false,
+			error: sanitizeSshError(formatError(error)),
+		};
+	}
+};
+
+const runValidatedSshWithStdout = async <T>(
+	host: string,
+	execute: () => Promise<T>,
+	formatError: (error: unknown) => string,
+): Promise<{ success: boolean; stdout?: T; error?: string }> => {
+	const hostError = assertValidHost(host);
+	if (hostError) return hostError;
+
+	try {
+		const output = await execute();
+		return { success: true, stdout: output };
+	} catch (error: unknown) {
+		return {
+			success: false,
+			error: sanitizeSshError(formatError(error)),
+		};
+	}
+};
+
 // test connection
 export const testConnection = async (
 	host: string,
 	identityFile?: string,
 ): Promise<{ success: boolean; error?: string }> => {
-	const hostError = assertValidHost(host);
-	if (hostError) return hostError;
-	try {
-		const args = ["-o", "BatchMode=yes", "-o", "ConnectTimeout=5"];
-		if (identityFile) {
-			args.push("-i", identityFile);
-		}
-		args.push("--", host, "echo", "ok");
-		await execa("ssh", args, { timeout: SSH_TIMEOUT_MS });
-		return { success: true };
-	} catch (error: unknown) {
-		return {
-			success: false,
-			error: sanitizeSshError(getExecaErrorMessage(error)),
-		};
-	}
+	return runValidatedSsh(
+		host,
+		async () => {
+			const args = ["-o", "BatchMode=yes", "-o", "ConnectTimeout=5"];
+			if (identityFile) {
+				args.push("-i", identityFile);
+			}
+			args.push("--", host, "echo", "ok");
+			await execa("ssh", args, { timeout: SSH_TIMEOUT_MS });
+		},
+		getExecaErrorMessage,
+	);
 };
 
 // copy key
@@ -165,16 +199,15 @@ export const copyKey = async (
 	host: string,
 	keyPath: string,
 ): Promise<{ success: boolean; error?: string }> => {
-	const hostError = assertValidHost(host);
-	if (hostError) return hostError;
-	try {
-		await execa("ssh-copy-id", ["-i", keyPath, "--", host], {
-			stdio: "inherit",
-		});
-		return { success: true };
-	} catch (error: unknown) {
-		return { success: false, error: sanitizeSshError(getErrorMessage(error)) };
-	}
+	return runValidatedSsh(
+		host,
+		async () => {
+			await execa("ssh-copy-id", ["-i", keyPath, "--", host], {
+				stdio: "inherit",
+			});
+		},
+		getErrorMessage,
+	);
 };
 
 // run remote command
@@ -183,22 +216,19 @@ export const runRemoteCommand = async (
 	command: string,
 	identityFile?: string,
 ): Promise<{ success: boolean; stdout?: string; error?: string }> => {
-	const hostError = assertValidHost(host);
-	if (hostError) return hostError;
-	try {
-		const args: string[] = [];
-		if (identityFile) {
-			args.push("-i", identityFile);
-		}
-		args.push("--", host, command);
-		const result = await execa("ssh", args);
-		return { success: true, stdout: result.stdout };
-	} catch (error: unknown) {
-		return {
-			success: false,
-			error: sanitizeSshError(getExecaErrorMessage(error)),
-		};
-	}
+	return runValidatedSshWithStdout(
+		host,
+		async () => {
+			const args: string[] = [];
+			if (identityFile) {
+				args.push("-i", identityFile);
+			}
+			args.push("--", host, command);
+			const result = await execa("ssh", args);
+			return result.stdout;
+		},
+		getExecaErrorMessage,
+	);
 };
 
 // copy files via SCP with argument injection prevention.

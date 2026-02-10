@@ -1,27 +1,10 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { describe, expect, test } from "bun:test";
+import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { setupTestContext } from "@tests/helpers/test-utils.ts";
 
 describe("update-check", () => {
-	let testDir: string;
-	let originalEnv: string | undefined;
-
-	beforeEach(() => {
-		testDir = join(tmpdir(), `skybox-test-update-${Date.now()}`);
-		mkdirSync(testDir, { recursive: true });
-		originalEnv = process.env.SKYBOX_HOME;
-		process.env.SKYBOX_HOME = testDir;
-	});
-
-	afterEach(() => {
-		rmSync(testDir, { recursive: true, force: true });
-		if (originalEnv !== undefined) {
-			process.env.SKYBOX_HOME = originalEnv;
-		} else {
-			delete process.env.SKYBOX_HOME;
-		}
-	});
+	const getCtx = setupTestContext("update-check");
 
 	test("shouldCheckForUpdate returns true when no metadata file exists", async () => {
 		const { shouldCheckForUpdate } = await import("@lib/update-check.ts");
@@ -30,6 +13,7 @@ describe("update-check", () => {
 
 	test("shouldCheckForUpdate returns false when checked less than 24h ago", async () => {
 		const { shouldCheckForUpdate } = await import("@lib/update-check.ts");
+		const testDir = getCtx().testDir;
 		const metadataPath = join(testDir, ".update-check.json");
 		const metadata = {
 			lastCheck: new Date().toISOString(),
@@ -42,6 +26,7 @@ describe("update-check", () => {
 
 	test("shouldCheckForUpdate returns true when checked more than 24h ago", async () => {
 		const { shouldCheckForUpdate } = await import("@lib/update-check.ts");
+		const testDir = getCtx().testDir;
 		const metadataPath = join(testDir, ".update-check.json");
 		const yesterday = new Date(Date.now() - 25 * 60 * 60 * 1000);
 		const metadata = {
@@ -55,6 +40,7 @@ describe("update-check", () => {
 
 	test("saveUpdateCheckMetadata writes valid JSON", async () => {
 		const { saveUpdateCheckMetadata } = await import("@lib/update-check.ts");
+		const testDir = getCtx().testDir;
 		saveUpdateCheckMetadata("1.0.0", "0.9.0");
 		const metadataPath = join(testDir, ".update-check.json");
 		const raw = readFileSync(metadataPath, "utf-8");

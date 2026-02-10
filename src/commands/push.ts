@@ -9,7 +9,7 @@ import {
 } from "@commands/remote.ts";
 import { upCommand } from "@commands/up.ts";
 import { AuditActions, logAuditEvent } from "@lib/audit.ts";
-import { configExists, loadConfig } from "@lib/config.ts";
+import { requireConfig } from "@lib/config.ts";
 import { offerStartContainer } from "@lib/container-start.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { checkWriteAuthorization, setOwnership } from "@lib/ownership.ts";
@@ -55,16 +55,7 @@ export const pushCommand = async (
 		process.exit(1);
 	}
 
-	if (!configExists()) {
-		error("skybox not configured. Run 'skybox init' first.");
-		process.exit(1);
-	}
-
-	const config = loadConfig();
-	if (!config) {
-		error("Failed to load config.");
-		process.exit(1);
-	}
+	const config = requireConfig();
 
 	// Resolve path
 	const absolutePath = resolve(sourcePath);
