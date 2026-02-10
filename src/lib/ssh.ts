@@ -1,6 +1,6 @@
 // SSH operations: parse config, test connections, run remote commands.
 
-import { spawnSync } from "node:child_process";
+import { execFile as execFileCb, spawnSync } from "node:child_process";
 import {
 	appendFileSync,
 	existsSync,
@@ -10,6 +10,7 @@ import {
 } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { promisify } from "node:util";
 import {
 	SSH_ADD_TIMEOUT_MS,
 	SSH_KEYGEN_TIMEOUT_MS,
@@ -312,7 +313,11 @@ Host ${entry.name}
 	}
 };
 
-// SSH agent functions for passphrase-protected key support
+// SSH agent functions for passphrase-protected key support.
+// Uses node:child_process instead of execa to avoid mock contamination in tests
+// (see CLAUDE.md "mock.module('execa') is global in bun test").
+
+const execFile = promisify(execFileCb);
 
 // check if a key file requires a passphrase to use.
 // runs ssh-keygen -y with an empty passphrase — exits non-zero if protected.
@@ -320,7 +325,7 @@ export const isKeyPassphraseProtected = async (
 	keyPath: string,
 ): Promise<boolean> => {
 	try {
-		await execa("ssh-keygen", ["-y", "-P", "", "-f", keyPath], {
+		await execFile("ssh-keygen", ["-y", "-P", "", "-f", keyPath], {
 			timeout: SSH_KEYGEN_TIMEOUT_MS,
 		});
 		return false; // Empty passphrase succeeded — key is not protected
@@ -338,7 +343,7 @@ export const getKeyFingerprint = async (
 	keyPath: string,
 ): Promise<string | null> => {
 	try {
-		const result = await execa("ssh-keygen", ["-lf", keyPath], {
+		const result = await execFile("ssh-keygen", ["-lf", keyPath], {
 			timeout: SSH_KEYGEN_TIMEOUT_MS,
 		});
 		// Output format: "256 SHA256:abc123... comment (ED25519)"
@@ -355,7 +360,7 @@ export const isKeyInAgent = async (keyPath: string): Promise<boolean> => {
 	if (!fingerprint) return false;
 
 	try {
-		const result = await execa("ssh-add", ["-l"], {
+		const result = await execFile("ssh-add", ["-l"], {
 			timeout: SSH_KEYGEN_TIMEOUT_MS,
 		});
 		return result.stdout.includes(fingerprint);
@@ -398,13 +403,13 @@ export const addKeyToAgent = (
 // returns true if ssh-add -l exits with 0 or 1 (agent running), false for exit code 2 (no agent).
 export const isAgentRunning = async (): Promise<boolean> => {
 	try {
-		await execa("ssh-add", ["-l"], { timeout: SSH_KEYGEN_TIMEOUT_MS });
+		await execFile("ssh-add", ["-l"], { timeout: SSH_KEYGEN_TIMEOUT_MS });
 		return true; // Exit code 0: agent running with keys
 	} catch (err: unknown) {
 		// Exit code 1 = agent running but no keys (still available)
 		// Exit code 2 = no agent running
-		const e = err as { exitCode?: number };
-		return e.exitCode === 1;
+		const e = err as { code?: number };
+		return e.code === 1;
 	}
 };
 
