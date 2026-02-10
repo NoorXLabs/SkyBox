@@ -9,7 +9,6 @@ import { getErrorMessage } from "@lib/errors.ts";
 import { getBinDir, getProjectsDir, getSkyboxHome } from "@lib/paths.ts";
 import { escapeRemotePath } from "@lib/shell.ts";
 import {
-	addKeyToAgent,
 	copyKey,
 	ensureKeyInAgent,
 	findSSHKeys,
@@ -218,14 +217,9 @@ const configureRemote = async (): Promise<{
 			const keyIsProtected = await isKeyPassphraseProtected(identityFile);
 
 			if (keyIsProtected) {
-				const keyReady = await ensureKeyInAgent(identityFile);
-				if (!keyReady) {
-					error("Could not load SSH key into agent.");
-					info("Run 'ssh-add <keypath>' manually or check your key.");
-					return null;
-				}
-
-				// On macOS, ask about Keychain persistence for passphrase keys
+				// On macOS, ask about Keychain persistence before loading the key
+				// so we can pass the flag to ensureKeyInAgent and avoid a double prompt
+				let wantsKeychain = false;
 				if (process.platform === "darwin") {
 					const { saveToKeychain } = await inquirer.prompt([
 						{
@@ -236,17 +230,22 @@ const configureRemote = async (): Promise<{
 							default: true,
 						},
 					]);
-					if (saveToKeychain) {
-						const keychainResult = addKeyToAgent(identityFile, true);
-						if (keychainResult.success) {
-							useKeychain = true;
-						} else {
-							warn(
-								"Could not save passphrase to Keychain. You'll be prompted again after reboot.",
-							);
-						}
-					}
-				} else {
+					wantsKeychain = saveToKeychain;
+				}
+
+				const keyReady = await ensureKeyInAgent(
+					identityFile,
+					wantsKeychain || undefined,
+				);
+				if (!keyReady) {
+					error("Could not load SSH key into agent.");
+					info("Run 'ssh-add <keypath>' manually or check your key.");
+					return null;
+				}
+
+				if (wantsKeychain) {
+					useKeychain = true;
+				} else if (process.platform !== "darwin") {
 					info(
 						"Passphrase loaded for this session. You'll need to enter it again after reboot.",
 					);

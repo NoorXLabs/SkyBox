@@ -498,4 +498,12 @@ Comprehensive security remediation across 5 batches (CRITICAL → LOW), plus cod
 
 ---
 
-*Archived: 2026-02-07*
+## v0.8.0 Features
+
+- [x] **Create Template Repositories** — Unified devcontainer templates to feature-based architecture, replacing placeholder GitHub repo URLs — `a4e634d`
+- [x] **Dry Run Mode** — `--dry-run` flag to preview commands without executing them — `87106fb`
+- [x] **Homebrew Formula** — Homebrew formula updated for release distribution
+
+---
+
+*Archived: 2026-02-10*
