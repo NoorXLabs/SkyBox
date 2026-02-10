@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **CLI Help UX**: `skybox help <command>` now includes practical descriptions, examples, and notes; top-level `skybox help` now includes a quick-start command sequence.
 - **Documentation SEO**: Added frontmatter metadata, Open Graph/Twitter Card meta tags, canonical URLs, and social sharing images across all documentation pages
 - Removed "From Source" installation method from documentation; updated devcontainer CLI link to official install script
 - **Internal Refactor**: Consolidated shared sync finalization and start-container prompt flows across `clone`, `push`, and `new` for consistency, without changing CLI behavior.
