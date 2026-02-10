@@ -1,5 +1,5 @@
 // tests/unit/commands/remote.test.ts
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
 	addRemoteDirect,
 	parseRemoteString,
@@ -7,21 +7,10 @@ import {
 	renameRemote,
 } from "@commands/remote.ts";
 import { loadConfig, saveConfig } from "@lib/config.ts";
-import {
-	createTestContext,
-	type TestContext,
-} from "@tests/helpers/test-utils.ts";
+import { setupTestContext } from "@tests/helpers/test-utils.ts";
 
 describe("remote command", () => {
-	let ctx: TestContext;
-
-	beforeEach(() => {
-		ctx = createTestContext("remote");
-	});
-
-	afterEach(() => {
-		ctx.cleanup();
-	});
+	setupTestContext("remote");
 
 	describe("parseRemoteString", () => {
 		test("parses valid user@host:path format", async () => {

@@ -7,8 +7,10 @@ import {
 	DEVCONTAINER_DIR_NAME,
 } from "@lib/constants.ts";
 import {
+	createTestConfig,
 	createTestContext,
 	type TestContext,
+	writeTestConfig,
 } from "@tests/helpers/test-utils.ts";
 import type { ShellOptions } from "@typedefs/index.ts";
 
@@ -22,19 +24,7 @@ describe("shell command", () => {
 			recursive: true,
 		});
 
-		// Write config
-		writeFileSync(
-			join(ctx.testDir, "config.yaml"),
-			`remote:
-  host: skybox-server
-  base_path: ~/code
-editor: cursor
-defaults:
-  sync_mode: two-way-resolved
-  ignore: []
-Projects: {}
-`,
-		);
+		writeTestConfig(ctx.testDir, createTestConfig({ editor: "cursor" }));
 
 		// Write devcontainer.json
 		writeFileSync(

@@ -85,6 +85,35 @@ const handleMutagen = async (): Promise<boolean> => {
 	}
 };
 
+// write an SSH host entry and print fallback instructions when automatic write fails.
+const persistSSHConfig = (
+	name: string,
+	hostname: string,
+	user: string,
+	identityFile: string | undefined,
+): void => {
+	const writeResult = writeSSHConfigEntry({
+		name,
+		hostname,
+		user,
+		identityFile: identityFile ?? "",
+	});
+
+	if (writeResult.success) {
+		success(`Added "${name}" to ~/.ssh/config`);
+		return;
+	}
+
+	warn(`Could not update SSH config: ${writeResult.error}`);
+	info("Add this to ~/.ssh/config manually:");
+	console.log(`
+Host ${name}
+  HostName ${hostname}
+  User ${user}
+  IdentityFile ${identityFile}
+`);
+};
+
 // interactively configure a remote server via SSH host selection and path verification
 const configureRemote = async (): Promise<{
 	name: string;
@@ -187,27 +216,7 @@ const configureRemote = async (): Promise<{
 
 		if (connResult.success) {
 			spin.succeed("SSH connection successful");
-
-			// Write SSH config entry
-			const writeResult = writeSSHConfigEntry({
-				name: friendlyName,
-				hostname,
-				user: username,
-				identityFile: identityFile ?? "",
-			});
-
-			if (writeResult.success) {
-				success(`Added "${friendlyName}" to ~/.ssh/config`);
-			} else {
-				warn(`Could not update SSH config: ${writeResult.error}`);
-				info(`Add this to ~/.ssh/config manually:`);
-				console.log(`
-Host ${friendlyName}
-  HostName ${hostname}
-  User ${username}
-  IdentityFile ${identityFile}
-`);
-			}
+			persistSSHConfig(friendlyName, hostname, username, identityFile);
 		} else {
 			spin.fail("SSH connection failed - key may not be on server");
 
@@ -237,27 +246,7 @@ Host ${friendlyName}
 						return null;
 					}
 					success("SSH connection now working");
-
-					// Write SSH config entry
-					const writeResult = writeSSHConfigEntry({
-						name: friendlyName,
-						hostname,
-						user: username,
-						identityFile: identityFile ?? "",
-					});
-
-					if (writeResult.success) {
-						success(`Added "${friendlyName}" to ~/.ssh/config`);
-					} else {
-						warn(`Could not update SSH config: ${writeResult.error}`);
-						info(`Add this to ~/.ssh/config manually:`);
-						console.log(`
-Host ${friendlyName}
-  HostName ${hostname}
-  User ${username}
-  IdentityFile ${identityFile}
-`);
-					}
+					persistSSHConfig(friendlyName, hostname, username, identityFile);
 				} else {
 					error("Failed to install SSH key");
 					info(

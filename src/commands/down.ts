@@ -256,208 +256,113 @@ const stopSingleProject = async (
 	return true;
 };
 
-// handle cleanup prompts and actions for a set of stopped projects.
-// asks once, applies to all.
-const handleBatchCleanup = async (
+type CleanupMode = "single" | "multi";
+
+interface CleanupTarget {
+	project: string;
+	projectPath: string;
+	hasContainer: boolean;
+}
+
+// collect cleanup targets and whether each has a container.
+const resolveCleanupTargets = async (
+	projects: string[],
+	includeContainerless: boolean,
+): Promise<CleanupTarget[]> => {
+	const targets: CleanupTarget[] = [];
+	for (const project of projects) {
+		const projectPath = getProjectPath(project);
+		const hasContainer = Boolean(await getContainerInfo(projectPath));
+		if (hasContainer || includeContainerless) {
+			targets.push({ project, projectPath, hasContainer });
+		}
+	}
+	return targets;
+};
+
+// handle cleanup prompts and actions for stopped projects.
+// single mode keeps prior behavior where --cleanup can still remove local files
+// even if no container exists.
+const handleCleanupForProjects = async (
 	projects: string[],
 	config: SkyboxConfigV2,
 	options: DownOptions,
+	mode: CleanupMode,
 ): Promise<void> => {
-	// Determine which projects have containers to clean up
-	const projectsWithContainers: Array<{
-		project: string;
-		projectPath: string;
-	}> = [];
-	for (const project of projects) {
-		const projectPath = getProjectPath(project);
-		const containerInfo = await getContainerInfo(projectPath);
-		if (containerInfo) {
-			projectsWithContainers.push({ project, projectPath });
-		}
-	}
+	const targets = await resolveCleanupTargets(projects, mode === "single");
+	const targetsWithContainers = targets.filter((t) => t.hasContainer);
 
-	// Ask about cleanup (once for all)
 	let shouldCleanup = options.cleanup;
-
 	if (
 		!options.noPrompt &&
 		shouldCleanup === undefined &&
-		projectsWithContainers.length > 0
+		targetsWithContainers.length > 0
 	) {
 		const { cleanup } = await inquirer.prompt([
 			{
 				type: "confirm",
 				name: "cleanup",
-				message: `Remove containers for ${projectsWithContainers.length} project(s) to free up resources?`,
+				message:
+					mode === "single"
+						? "Remove the container to free up resources?"
+						: `Remove containers for ${targetsWithContainers.length} project(s) to free up resources?`,
 				default: false,
 			},
 		]);
 		shouldCleanup = cleanup;
 	}
 
-	if (shouldCleanup && projectsWithContainers.length > 0) {
-		for (const { project, projectPath } of projectsWithContainers) {
-			const removeSpin = spinner(`Removing container for '${project}'...`);
-			const removeResult = await removeContainer(projectPath, {
+	if (shouldCleanup && targetsWithContainers.length > 0) {
+		for (const target of targetsWithContainers) {
+			const removeSpin =
+				mode === "single"
+					? spinner("Removing container...")
+					: spinner(`Removing container for '${target.project}'...`);
+			const removeResult = await removeContainer(target.projectPath, {
 				removeVolumes: true,
 			});
 			if (removeResult.success) {
-				removeSpin.succeed(`Container removed for '${project}'`);
+				removeSpin.succeed(
+					mode === "single"
+						? "Container removed"
+						: `Container removed for '${target.project}'`,
+				);
 			} else {
-				removeSpin.fail(`Failed to remove container for '${project}'`);
+				removeSpin.fail(
+					mode === "single"
+						? "Failed to remove container"
+						: `Failed to remove container for '${target.project}'`,
+				);
 				warn(removeResult.error || "Unknown error");
 			}
 		}
 	}
 
-	// Ask about local files cleanup (once for all)
 	let shouldRemoveLocal = false;
-
-	if (!options.noPrompt && shouldCleanup && projectsWithContainers.length > 0) {
-		const { removeLocal } = await inquirer.prompt([
-			{
-				type: "confirm",
-				name: "removeLocal",
-				message: `Also remove local project files for ${projectsWithContainers.length} project(s) with containers? (Remote copies will be preserved)`,
-				default: false,
-			},
-		]);
-		shouldRemoveLocal = removeLocal;
-
-		if (shouldRemoveLocal) {
-			const projectNames = projectsWithContainers
-				.map(({ project }) => project)
-				.join(", ");
-			const { confirmRemove } = await inquirer.prompt([
-				{
-					type: "confirm",
-					name: "confirmRemove",
-					message: `Are you sure? This will delete local files for: ${projectNames}`,
-					default: false,
-				},
-			]);
-			shouldRemoveLocal = confirmRemove;
-		}
-	}
-
-	if (shouldRemoveLocal) {
-		for (const { project, projectPath } of projectsWithContainers) {
-			// Pause sync first
-			const syncSpin = spinner(`Stopping sync for '${project}'...`);
-			await pauseSync(project);
-			syncSpin.succeed(`Sync paused for '${project}'`);
-
-			// Remove local files
-			const rmSpin = spinner(`Removing local files for '${project}'...`);
-			try {
-				if (existsSync(projectPath)) {
-					rmSync(projectPath, { recursive: true });
-				}
-				rmSpin.succeed(`Local files removed for '${project}'`);
-
-				const projectRemoteInfo = getProjectRemote(project, config);
-
-				if (config.projects?.[project]) {
-					delete config.projects[project];
-					saveConfig(config);
-				}
-
-				if (projectRemoteInfo) {
-					const host = getRemoteHost(projectRemoteInfo.remote);
-					const remotePath = getRemotePath(projectRemoteInfo.remote, project);
-					info(`Remote copy preserved at ${host}:${remotePath}`);
-				}
-				info(`Run 'skybox clone ${project}' to restore locally.`);
-			} catch (err: unknown) {
-				rmSpin.fail(`Failed to remove local files for '${project}'`);
-				error(getErrorMessage(err));
-			}
-		}
-	} else if (!shouldCleanup) {
-		// Ask about pausing sync (once for all)
-		if (!options.noPrompt) {
-			const { pauseSyncSession } = await inquirer.prompt([
-				{
-					type: "confirm",
-					name: "pauseSyncSession",
-					message: "Pause background sync for all stopped projects?",
-					default: false,
-				},
-			]);
-
-			if (pauseSyncSession) {
-				for (const project of projects) {
-					const syncSpin = spinner(`Pausing sync for '${project}'...`);
-					const pauseResult = await pauseSync(project);
-					if (pauseResult.success) {
-						syncSpin.succeed(`Sync paused for '${project}'`);
-					} else {
-						syncSpin.warn(`Could not pause sync for '${project}'`);
-					}
-				}
-			}
-		}
-	}
-};
-
-// handle cleanup prompts and actions for a single project (original interactive flow).
-const handleSingleCleanup = async (
-	project: string,
-	config: SkyboxConfigV2,
-	options: DownOptions,
-): Promise<void> => {
-	const projectPath = getProjectPath(project);
-	const containerInfo = await getContainerInfo(projectPath);
-
-	// Ask about cleanup
-	let shouldCleanup = options.cleanup;
-
-	if (!options.noPrompt && shouldCleanup === undefined && containerInfo) {
-		const { cleanup } = await inquirer.prompt([
-			{
-				type: "confirm",
-				name: "cleanup",
-				message: "Remove the container to free up resources?",
-				default: false,
-			},
-		]);
-		shouldCleanup = cleanup;
-	}
-
-	if (shouldCleanup && containerInfo) {
-		const removeSpin = spinner("Removing container...");
-		const removeResult = await removeContainer(projectPath, {
-			removeVolumes: true,
-		});
-		if (removeResult.success) {
-			removeSpin.succeed("Container removed");
-		} else {
-			removeSpin.fail("Failed to remove container");
-			warn(removeResult.error || "Unknown error");
-		}
-	}
-
-	// Ask about local files cleanup
-	let shouldRemoveLocal = false;
-
-	if (!options.noPrompt && shouldCleanup) {
+	if (!options.noPrompt && shouldCleanup && targets.length > 0) {
 		const { removeLocal } = await inquirer.prompt([
 			{
 				type: "confirm",
 				name: "removeLocal",
 				message:
-					"Also remove local project files? (Remote copy will be preserved)",
+					mode === "single"
+						? "Also remove local project files? (Remote copy will be preserved)"
+						: `Also remove local project files for ${targets.length} project(s) with containers? (Remote copies will be preserved)`,
 				default: false,
 			},
 		]);
 		shouldRemoveLocal = removeLocal;
 
 		if (shouldRemoveLocal) {
+			const projectNames = targets.map((target) => target.project).join(", ");
 			const { confirmRemove } = await inquirer.prompt([
 				{
 					type: "confirm",
 					name: "confirmRemove",
-					message: `Are you sure? This will delete ${projectPath}`,
+					message:
+						mode === "single"
+							? `Are you sure? This will delete ${targets[0].projectPath}`
+							: `Are you sure? This will delete local files for: ${projectNames}`,
 					default: false,
 				},
 			]);
@@ -466,61 +371,94 @@ const handleSingleCleanup = async (
 	}
 
 	if (shouldRemoveLocal) {
-		// Pause sync first
-		const syncSpin = spinner("Stopping sync...");
-		await pauseSync(project);
-		syncSpin.succeed("Sync paused");
+		for (const target of targets) {
+			const syncSpin =
+				mode === "single"
+					? spinner("Stopping sync...")
+					: spinner(`Stopping sync for '${target.project}'...`);
+			await pauseSync(target.project);
+			syncSpin.succeed(
+				mode === "single"
+					? "Sync paused"
+					: `Sync paused for '${target.project}'`,
+			);
 
-		// Remove local files
-		const rmSpin = spinner("Removing local files...");
-		try {
-			if (existsSync(projectPath)) {
-				rmSync(projectPath, { recursive: true });
+			const rmSpin =
+				mode === "single"
+					? spinner("Removing local files...")
+					: spinner(`Removing local files for '${target.project}'...`);
+			try {
+				if (existsSync(target.projectPath)) {
+					rmSync(target.projectPath, { recursive: true });
+				}
+				rmSpin.succeed(
+					mode === "single"
+						? "Local files removed"
+						: `Local files removed for '${target.project}'`,
+				);
+
+				const projectRemoteInfo = getProjectRemote(target.project, config);
+				if (config.projects?.[target.project]) {
+					delete config.projects[target.project];
+					saveConfig(config);
+				}
+
+				if (projectRemoteInfo) {
+					const host = getRemoteHost(projectRemoteInfo.remote);
+					const remotePath = getRemotePath(
+						projectRemoteInfo.remote,
+						target.project,
+					);
+					info(`Remote copy preserved at ${host}:${remotePath}`);
+				}
+				info(`Run 'skybox clone ${target.project}' to restore locally.`);
+			} catch (err: unknown) {
+				rmSpin.fail(
+					mode === "single"
+						? "Failed to remove local files"
+						: `Failed to remove local files for '${target.project}'`,
+				);
+				error(getErrorMessage(err));
 			}
-			rmSpin.succeed("Local files removed");
-
-			const projectRemoteInfo = getProjectRemote(project, config);
-
-			if (config.projects?.[project]) {
-				delete config.projects[project];
-				saveConfig(config);
-			}
-
-			if (projectRemoteInfo) {
-				const host = getRemoteHost(projectRemoteInfo.remote);
-				const remotePath = getRemotePath(projectRemoteInfo.remote, project);
-				info(`Remote copy preserved at ${host}:${remotePath}`);
-			}
-			info(`Run 'skybox clone ${project}' to restore locally.`);
-		} catch (err: unknown) {
-			rmSpin.fail("Failed to remove local files");
-			error(getErrorMessage(err));
 		}
-	} else if (!shouldCleanup) {
-		// Ask about pausing sync
-		if (!options.noPrompt) {
-			const { pauseSyncSession } = await inquirer.prompt([
-				{
-					type: "confirm",
-					name: "pauseSyncSession",
-					message: "Pause background sync to save resources?",
-					default: false,
-				},
-			]);
+	} else if (!shouldCleanup && !options.noPrompt) {
+		const { pauseSyncSession } = await inquirer.prompt([
+			{
+				type: "confirm",
+				name: "pauseSyncSession",
+				message:
+					mode === "single"
+						? "Pause background sync to save resources?"
+						: "Pause background sync for all stopped projects?",
+				default: false,
+			},
+		]);
 
-			if (pauseSyncSession) {
-				const syncSpin = spinner("Pausing sync...");
+		if (pauseSyncSession) {
+			for (const project of projects) {
+				const syncSpin =
+					mode === "single"
+						? spinner("Pausing sync...")
+						: spinner(`Pausing sync for '${project}'...`);
 				const pauseResult = await pauseSync(project);
 				if (pauseResult.success) {
-					syncSpin.succeed("Sync paused");
+					syncSpin.succeed(
+						mode === "single" ? "Sync paused" : `Sync paused for '${project}'`,
+					);
 				} else {
-					syncSpin.warn("Could not pause sync");
+					syncSpin.warn(
+						mode === "single"
+							? "Could not pause sync"
+							: `Could not pause sync for '${project}'`,
+					);
 				}
 			}
 		}
 	}
 
-	success(`'${project}' stopped.`);
+	if (mode === "single") {
+		success(`'${projects[0]}' stopped.`);
+	}
 };
 
 // stop project containers, flush sync, optionally encrypt, and clean up
@@ -556,7 +494,7 @@ export const downCommand = async (
 			}
 		}
 		if (stoppedProjects.length > 0) {
-			await handleBatchCleanup(stoppedProjects, config, options);
+			await handleCleanupForProjects(stoppedProjects, config, options, "multi");
 		}
 		info(`\nDone: ${succeeded} stopped, ${failed} failed.`);
 		return;
@@ -577,7 +515,7 @@ export const downCommand = async (
 		if (!ok && !options.force) {
 			process.exit(1);
 		}
-		await handleSingleCleanup(project, config, options);
+		await handleCleanupForProjects([project], config, options, "single");
 		return;
 	}
 
@@ -601,7 +539,7 @@ export const downCommand = async (
 	}
 
 	if (stoppedProjects.length > 0) {
-		await handleBatchCleanup(stoppedProjects, config, options);
+		await handleCleanupForProjects(stoppedProjects, config, options, "multi");
 	}
 
 	info(`\nDone: ${succeeded} stopped, ${failed} failed.`);

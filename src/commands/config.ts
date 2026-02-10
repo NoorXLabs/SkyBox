@@ -4,7 +4,7 @@ import {
 	devcontainerEditCommand,
 	devcontainerResetCommand,
 } from "@commands/config-devcontainer.ts";
-import { loadConfig, saveConfig } from "@lib/config.ts";
+import { requireConfig, saveConfig } from "@lib/config.ts";
 import { testConnection } from "@lib/ssh.ts";
 import {
 	dryRun,
@@ -20,11 +20,7 @@ import chalk from "chalk";
 
 // display all configuration settings including remotes
 export const showConfig = async (): Promise<void> => {
-	const config = loadConfig();
-	if (!config) {
-		error("skybox not configured. Run 'skybox init' first.");
-		process.exit(1);
-	}
+	const config = requireConfig();
 
 	console.log();
 	header("Remotes:");
@@ -51,11 +47,7 @@ export const showConfig = async (): Promise<void> => {
 
 // test SSH connection to all configured remotes and show project counts
 export const validateConfig = async (): Promise<void> => {
-	const config = loadConfig();
-	if (!config) {
-		error("skybox not configured. Run 'skybox init' first.");
-		process.exit(1);
-	}
+	const config = requireConfig();
 
 	console.log();
 	header("Testing remotes...");
@@ -107,11 +99,7 @@ export const setConfigValue = async (
 	key: string,
 	value: string,
 ): Promise<void> => {
-	const config = loadConfig();
-	if (!config) {
-		error("skybox not configured. Run 'skybox init' first.");
-		process.exit(1);
-	}
+	const config = requireConfig();
 
 	// Currently only 'editor' is supported as a settable config value
 	const allowedKeys = ["editor"];
@@ -212,11 +200,7 @@ export const configCommand = async (
 	}
 
 	if (subcommand === "sync-paths") {
-		const config = loadConfig();
-		if (!config) {
-			error("skybox not configured. Run 'skybox init' first.");
-			process.exit(1);
-		}
+		const config = requireConfig();
 
 		if (!arg1) {
 			error(

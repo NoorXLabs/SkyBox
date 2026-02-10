@@ -592,6 +592,66 @@ const startSingleProject = async (
 
 // handle post-start behavior when multiple projects were started.
 // offers to open all/some/none in editor.
+const resolveEditorForPostStart = async (
+	configuredEditor: string | undefined,
+): Promise<string | undefined> => {
+	if (configuredEditor) {
+		return configuredEditor;
+	}
+
+	const { selectedEditor } = await inquirer.prompt([
+		{
+			type: "rawlist",
+			name: "selectedEditor",
+			message: "Which editor would you like to use?",
+			choices: [
+				...SUPPORTED_EDITORS.map((e) => ({ name: e.name, value: e.id })),
+				{ name: "Other (specify command)", value: "other" },
+			],
+		},
+	]);
+
+	if (selectedEditor !== "other") {
+		return selectedEditor;
+	}
+
+	const { customEditor } = await inquirer.prompt([
+		{
+			type: "input",
+			name: "customEditor",
+			message: "Enter editor command:",
+		},
+	]);
+	return customEditor;
+};
+
+// optionally persist an interactively selected editor as default.
+const maybeSaveDefaultEditor = async (
+	config: SkyboxConfigV2,
+	editor: string | undefined,
+): Promise<void> => {
+	if (config.editor || !editor) {
+		return;
+	}
+
+	const { makeDefault } = await inquirer.prompt([
+		{
+			type: "confirm",
+			name: "makeDefault",
+			message: `Make ${editor} your default editor for future sessions?`,
+			default: true,
+		},
+	]);
+
+	if (makeDefault) {
+		config.editor = editor;
+		saveConfig(config);
+		success(`Set ${editor} as default editor.`);
+	}
+};
+
+// handle post-start behavior when multiple projects were started.
+// offers to open all/some/none in editor.
 const handleMultiPostStart = async (
 	succeeded: ResolvedProject[],
 	config: SkyboxConfigV2,
@@ -617,34 +677,7 @@ const handleMultiPostStart = async (
 		return;
 	}
 
-	// Resolve editor
-	let editor = config.editor;
-	if (!editor) {
-		const { selectedEditor } = await inquirer.prompt([
-			{
-				type: "rawlist",
-				name: "selectedEditor",
-				message: "Which editor would you like to use?",
-				choices: [
-					...SUPPORTED_EDITORS.map((e) => ({ name: e.name, value: e.id })),
-					{ name: "Other (specify command)", value: "other" },
-				],
-			},
-		]);
-
-		if (selectedEditor === "other") {
-			const { customEditor } = await inquirer.prompt([
-				{
-					type: "input",
-					name: "customEditor",
-					message: "Enter editor command:",
-				},
-			]);
-			editor = customEditor;
-		} else {
-			editor = selectedEditor;
-		}
-	}
+	const editor = await resolveEditorForPostStart(config.editor);
 
 	const choice = await select({
 		message: "What would you like to do?",
@@ -682,23 +715,7 @@ const handleMultiPostStart = async (
 		}
 	}
 
-	// Save editor preference if newly selected
-	if (!config.editor && editor) {
-		const { makeDefault } = await inquirer.prompt([
-			{
-				type: "confirm",
-				name: "makeDefault",
-				message: `Make ${editor} your default editor for future sessions?`,
-				default: true,
-			},
-		]);
-
-		if (makeDefault) {
-			config.editor = editor;
-			saveConfig(config);
-			success(`Set ${editor} as default editor.`);
-		}
-	}
+	await maybeSaveDefaultEditor(config, editor);
 };
 
 // stage and commit the devcontainer.json file to git
@@ -774,35 +791,7 @@ export const determinePostStartAction = async (
 		return { action: "none", editor: undefined };
 	}
 
-	// Interactive mode - may need to select editor
-	let editor = config.editor;
-
-	if (!editor) {
-		const { selectedEditor } = await inquirer.prompt([
-			{
-				type: "rawlist",
-				name: "selectedEditor",
-				message: "Which editor would you like to use?",
-				choices: [
-					...SUPPORTED_EDITORS.map((e) => ({ name: e.name, value: e.id })),
-					{ name: "Other (specify command)", value: "other" },
-				],
-			},
-		]);
-
-		if (selectedEditor === "other") {
-			const { customEditor } = await inquirer.prompt([
-				{
-					type: "input",
-					name: "customEditor",
-					message: "Enter editor command:",
-				},
-			]);
-			editor = customEditor;
-		} else {
-			editor = selectedEditor;
-		}
-	}
+	const editor = await resolveEditorForPostStart(config.editor);
 
 	// Ask what to do
 	const { action } = await inquirer.prompt([
@@ -868,27 +857,8 @@ const handlePostStart = async (
 	const { action, editor } = await determinePostStartAction(config, options);
 
 	// Handle editor preference saving (only in interactive mode)
-	if (
-		!options.noPrompt &&
-		!options.editor &&
-		!options.attach &&
-		!config.editor &&
-		editor
-	) {
-		const { makeDefault } = await inquirer.prompt([
-			{
-				type: "confirm",
-				name: "makeDefault",
-				message: `Make ${editor} your default editor for future sessions?`,
-				default: true,
-			},
-		]);
-
-		if (makeDefault) {
-			config.editor = editor;
-			saveConfig(config);
-			success(`Set ${editor} as default editor.`);
-		}
+	if (!options.noPrompt && !options.editor && !options.attach) {
+		await maybeSaveDefaultEditor(config, editor);
 	}
 
 	await executePostStartAction(projectPath, action, editor);

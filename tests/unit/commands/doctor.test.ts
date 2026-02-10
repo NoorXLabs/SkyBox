@@ -1,24 +1,23 @@
 // tests/unit/commands/doctor.test.ts
 
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { checkEditor } from "@commands/doctor.ts";
 import {
-	createTestContext,
-	type TestContext,
+	createTestConfig,
+	setupTestContext,
+	writeTestConfig,
 } from "@tests/helpers/test-utils.ts";
 
 describe("doctor command", () => {
-	let ctx: TestContext;
+	const getCtx = setupTestContext("doctor");
 
-	beforeEach(() => {
-		ctx = createTestContext("doctor");
-	});
-
-	afterEach(() => {
-		ctx.cleanup();
-	});
+	const writeDoctorConfig = (
+		overrides: Parameters<typeof createTestConfig>[0] = {},
+	): void => {
+		writeTestConfig(getCtx().testDir, createTestConfig(overrides));
+	};
 
 	test("should detect missing config", async () => {
 		const { configExists } = await import("@lib/config.ts");
@@ -26,20 +25,14 @@ describe("doctor command", () => {
 	});
 
 	test("should detect valid config", async () => {
-		// Create minimal config
-		writeFileSync(
-			join(ctx.testDir, "config.yaml"),
-			`editor: cursor
-defaults:
-  sync_mode: two-way-resolved
-  ignore: []
-remotes:
-  work:
-    host: work-server
-    path: ~/code
-projects: {}
-`,
-		);
+		writeDoctorConfig({
+			remotes: {
+				work: {
+					host: "work-server",
+					path: "~/code",
+				},
+			},
+		});
 
 		const { configExists, loadConfig } = await import("@lib/config.ts");
 		expect(configExists()).toBe(true);
@@ -51,23 +44,17 @@ projects: {}
 
 	test("should throw on invalid YAML config", async () => {
 		// Create invalid YAML
-		writeFileSync(join(ctx.testDir, "config.yaml"), "invalid: yaml: syntax:");
+		writeFileSync(
+			join(getCtx().testDir, "config.yaml"),
+			"invalid: yaml: syntax:",
+		);
 
 		const { loadConfig } = await import("@lib/config.ts");
 		expect(() => loadConfig()).toThrow();
 	});
 
 	test("checkEditor returns pass when editor command is available", async () => {
-		writeFileSync(
-			join(ctx.testDir, "config.yaml"),
-			`editor: zed
-defaults:
-  sync_mode: two-way-resolved
-  ignore: []
-remotes: {}
-projects: {}
-`,
-		);
+		writeDoctorConfig({ editor: "zed" });
 
 		const result = await checkEditor(async () => ({
 			status: "available",
@@ -79,16 +66,7 @@ projects: {}
 	});
 
 	test("checkEditor warns when fallback app will be used", async () => {
-		writeFileSync(
-			join(ctx.testDir, "config.yaml"),
-			`editor: zed
-defaults:
-  sync_mode: two-way-resolved
-  ignore: []
-remotes: {}
-projects: {}
-`,
-		);
+		writeDoctorConfig({ editor: "zed" });
 
 		const result = await checkEditor(async () => ({
 			status: "fallback",
@@ -101,16 +79,7 @@ projects: {}
 	});
 
 	test("checkEditor warns when editor command is missing", async () => {
-		writeFileSync(
-			join(ctx.testDir, "config.yaml"),
-			`editor: unknown-editor
-defaults:
-  sync_mode: two-way-resolved
-  ignore: []
-remotes: {}
-projects: {}
-`,
-		);
+		writeDoctorConfig({ editor: "unknown-editor" });
 
 		const result = await checkEditor(async () => ({
 			status: "missing",
