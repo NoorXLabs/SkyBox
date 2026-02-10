@@ -1,6 +1,6 @@
 // src/commands/remote.ts
 
-import { loadConfig, saveConfig } from "@lib/config.ts";
+import { createDefaultConfig, loadConfig, saveConfig } from "@lib/config.ts";
 import { escapeRemotePath } from "@lib/shell.ts";
 import {
 	copyKey,
@@ -105,6 +105,34 @@ export const parseRemoteString = (
 	return { user: match[1], host: match[2], path: match[3] };
 };
 
+const loadConfigForRemoteUpdate = (): SkyboxConfigV2 | null => {
+	const config = loadConfig();
+	if (!config) {
+		error("No configuration found");
+		return null;
+	}
+	return config;
+};
+
+const ensureRemoteExists = (config: SkyboxConfigV2, name: string): boolean => {
+	if (!config.remotes[name]) {
+		error(`Remote "${name}" not found`);
+		return false;
+	}
+	return true;
+};
+
+const ensureRemoteDoesNotExist = (
+	config: SkyboxConfigV2,
+	name: string,
+): boolean => {
+	if (config.remotes[name]) {
+		error(`Remote "${name}" already exists`);
+		return false;
+	}
+	return true;
+};
+
 // add a remote directly without interaction (for CLI direct mode)
 export const addRemoteDirect = async (
 	name: string,
@@ -131,16 +159,7 @@ export const addRemoteDirect = async (
 
 	let config = loadConfig();
 	if (!config) {
-		// Create default config if none exists
-		config = {
-			editor: "cursor",
-			defaults: {
-				sync_mode: "two-way-resolved",
-				ignore: [],
-			},
-			remotes: {},
-			projects: {},
-		};
+		config = createDefaultConfig();
 	}
 
 	// Check for duplicate name
@@ -352,15 +371,7 @@ export const addRemoteInteractive = async (): Promise<void> => {
 	// Save remote
 	let config = loadConfig();
 	if (!config) {
-		config = {
-			editor: "cursor",
-			defaults: {
-				sync_mode: "two-way-resolved",
-				ignore: [],
-			},
-			remotes: {},
-			projects: {},
-		};
+		config = createDefaultConfig();
 	}
 
 	const newRemote: RemoteEntry = {
@@ -398,15 +409,12 @@ export const listRemotes = (): void => {
 
 // remove a configured remote, warning if projects reference it
 export const removeRemote = async (name: string): Promise<void> => {
-	const config = loadConfig();
-
+	const config = loadConfigForRemoteUpdate();
 	if (!config) {
-		error("No configuration found");
 		return;
 	}
 
-	if (!config.remotes[name]) {
-		error(`Remote "${name}" not found`);
+	if (!ensureRemoteExists(config, name)) {
 		return;
 	}
 
@@ -452,20 +460,16 @@ export const renameRemote = async (
 	oldName: string,
 	newName: string,
 ): Promise<void> => {
-	const config = loadConfig();
-
+	const config = loadConfigForRemoteUpdate();
 	if (!config) {
-		error("No configuration found");
 		return;
 	}
 
-	if (!config.remotes[oldName]) {
-		error(`Remote "${oldName}" not found`);
+	if (!ensureRemoteExists(config, oldName)) {
 		return;
 	}
 
-	if (config.remotes[newName]) {
-		error(`Remote "${newName}" already exists`);
+	if (!ensureRemoteDoesNotExist(config, newName)) {
 		return;
 	}
 

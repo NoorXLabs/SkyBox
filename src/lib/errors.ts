@@ -1,4 +1,5 @@
 // error handling utilities: safe message extraction and type guards.
+import type { ExecaLikeError } from "@typedefs/index.ts";
 
 // safely extract an error message from an unknown error type.
 // use this in catch blocks for general errors.
@@ -31,15 +32,6 @@ export const getExecaErrorMessage = (error: unknown): string => {
 	}
 	return "Unknown error";
 };
-
-// type for execa-like errors with common properties.
-export interface ExecaLikeError {
-	exitCode?: number;
-	stderr?: string;
-	stdout?: string;
-	command?: string;
-	message?: string;
-}
 
 // type guard to check if an error is an execa-like error.
 // narrows the type for safe property access.

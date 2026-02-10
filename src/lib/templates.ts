@@ -208,6 +208,117 @@ const createNewTemplateFlow = async (): Promise<void> => {
 // shows built-in templates and user local templates, with optional sections
 // (for example, git URL and create-template actions) controlled by options.
 // returns a TemplateSelection or null if cancelled.
+type TemplateChoiceItem =
+	| { name: string; value: string; disabled?: string }
+	| InstanceType<typeof Separator>;
+
+type TemplateChoiceResult = TemplateSelection | "continue";
+
+const buildBuiltInTemplateChoices = (): TemplateChoiceItem[] => {
+	return [
+		new Separator("── Built-in ──"),
+		...TEMPLATES.map((template) => ({
+			name: `${template.name} — ${template.description}`,
+			value: `builtin:${template.id}`,
+		})),
+	];
+};
+
+const buildOtherTemplateChoices = (
+	allowGitUrl: boolean,
+): TemplateChoiceItem[] => {
+	if (!allowGitUrl) {
+		return [];
+	}
+
+	return [
+		new Separator("── Other ──"),
+		{ name: "Enter git URL", value: "git-url" },
+	];
+};
+
+const buildUserTemplateChoices = (
+	userTemplates: UserLocalTemplate[],
+	allowCreateTemplate: boolean,
+): TemplateChoiceItem[] => {
+	const choices: TemplateChoiceItem[] = [new Separator("── Your Templates ──")];
+
+	for (const template of userTemplates) {
+		if (template.valid) {
+			choices.push({
+				name: template.name,
+				value: `user:${template.name}`,
+			});
+		} else {
+			choices.push({
+				name: `${template.name} ⚠ ${template.error}`,
+				value: `user-invalid:${template.name}`,
+			});
+		}
+	}
+
+	if (allowCreateTemplate) {
+		choices.push({ name: "Create new template", value: "create-new" });
+	}
+
+	return choices;
+};
+
+const resolveTemplateChoice = async (
+	choice: string,
+	userTemplates: UserLocalTemplate[],
+	options: { allowGitUrl: boolean; allowCreateTemplate: boolean },
+): Promise<TemplateChoiceResult> => {
+	if (options.allowGitUrl && choice === "git-url") {
+		const url = await input({
+			message: "Git repository URL:",
+			validate: (val: string) => {
+				if (!val.trim()) return "URL cannot be empty";
+				if (!val.startsWith("https://") && !val.startsWith("git@"))
+					return "URL must start with https:// or git@";
+				return true;
+			},
+		});
+		return { source: "git", url };
+	}
+
+	if (options.allowCreateTemplate && choice === "create-new") {
+		await createNewTemplateFlow();
+		return "continue";
+	}
+
+	if (choice.startsWith("user-invalid:")) {
+		const name = choice.replace("user-invalid:", "");
+		const template = userTemplates.find((item) => item.name === name);
+		error(`Template "${name}" is invalid: ${template?.error}`);
+		info("Fix the template file and try again.");
+		return "continue";
+	}
+
+	if (choice.startsWith("builtin:")) {
+		const id = choice.replace("builtin:", "");
+		const template = TEMPLATES.find((item) => item.id === id);
+		if (!template) {
+			error("Template not found");
+			return "continue";
+		}
+		return { source: "builtin", config: template.config };
+	}
+
+	if (choice.startsWith("user:")) {
+		const name = choice.replace("user:", "");
+		const template = userTemplates.find((item) => item.name === name);
+		if (!template) {
+			error("Template was deleted. Please select another.");
+			return "continue";
+		}
+		return { source: "user", config: template.config };
+	}
+
+	error("Invalid template selection");
+	return "continue";
+};
+
 export const selectTemplate = async (
 	options: TemplateSelectorOptions = {},
 ): Promise<TemplateSelection | null> => {
@@ -216,96 +327,23 @@ export const selectTemplate = async (
 	try {
 		while (true) {
 			const userTemplates = loadUserTemplates();
-
-			type ChoiceItem =
-				| { name: string; value: string; disabled?: string }
-				| InstanceType<typeof Separator>;
-			const choices: ChoiceItem[] = [];
-
-			// Built-in section
-			choices.push(new Separator("── Built-in ──"));
-			for (const t of TEMPLATES) {
-				choices.push({
-					name: `${t.name} — ${t.description}`,
-					value: `builtin:${t.id}`,
-				});
-			}
-
-			// Other section
-			if (allowGitUrl) {
-				choices.push(new Separator("── Other ──"));
-				choices.push({ name: "Enter git URL", value: "git-url" });
-			}
-
-			// User templates section
-			choices.push(new Separator("── Your Templates ──"));
-			for (const t of userTemplates) {
-				if (t.valid) {
-					choices.push({ name: t.name, value: `user:${t.name}` });
-				} else {
-					choices.push({
-						name: `${t.name} ⚠ ${t.error}`,
-						value: `user-invalid:${t.name}`,
-					});
-				}
-			}
-			if (allowCreateTemplate) {
-				choices.push({ name: "Create new template", value: "create-new" });
-			}
+			const choices: TemplateChoiceItem[] = [
+				...buildBuiltInTemplateChoices(),
+				...buildOtherTemplateChoices(allowGitUrl),
+				...buildUserTemplateChoices(userTemplates, allowCreateTemplate),
+			];
 
 			const choice = await select({
 				message: "Select a template:",
 				choices,
 				loop: false,
 			});
-
-			if (allowGitUrl && choice === "git-url") {
-				const url = await input({
-					message: "Git repository URL:",
-					validate: (val: string) => {
-						if (!val.trim()) return "URL cannot be empty";
-						if (!val.startsWith("https://") && !val.startsWith("git@"))
-							return "URL must start with https:// or git@";
-						return true;
-					},
-				});
-				return { source: "git", url };
-			}
-
-			if (allowCreateTemplate && choice === "create-new") {
-				await createNewTemplateFlow();
-				// Loop back to selector so user can pick the new template
-				continue;
-			}
-
-			if (choice.startsWith("user-invalid:")) {
-				const name = choice.replace("user-invalid:", "");
-				const t = userTemplates.find((u) => u.name === name);
-				error(`Template "${name}" is invalid: ${t?.error}`);
-				info("Fix the template file and try again.");
-				// Loop back to selector
-				continue;
-			}
-
-			if (choice.startsWith("builtin:")) {
-				const id = choice.replace("builtin:", "");
-				const template = TEMPLATES.find((t) => t.id === id);
-				if (!template) {
-					error("Template not found");
-					continue;
-				}
-				return { source: "builtin", config: template.config };
-			}
-
-			if (choice.startsWith("user:")) {
-				const name = choice.replace("user:", "");
-				const template = userTemplates.find((t) => t.name === name);
-				if (!template) {
-					error("Template was deleted. Please select another.");
-					continue;
-				}
-				return { source: "user", config: template.config };
-			}
+			const result = await resolveTemplateChoice(choice, userTemplates, {
+				allowGitUrl,
+				allowCreateTemplate,
+			});
+			if (result === "continue") continue;
+			return result;
 		}
 	} catch {
 		// User cancelled with Ctrl+C

@@ -1,17 +1,10 @@
 // local session management for multi-machine conflict detection.
 
 import { createHmac } from "node:crypto";
-import {
-	chmodSync,
-	existsSync,
-	mkdirSync,
-	readFileSync,
-	renameSync,
-	unlinkSync,
-	writeFileSync,
-} from "node:fs";
+import { chmodSync, existsSync, readFileSync, unlinkSync } from "node:fs";
 import { hostname, userInfo } from "node:os";
-import { basename, dirname, join } from "node:path";
+import { join } from "node:path";
+import { writeFileAtomic } from "@lib/atomic-write.ts";
 import {
 	SESSION_FILE,
 	SESSION_FILE_MODE,
@@ -97,12 +90,6 @@ export const readSession = (projectPath: string): SessionInfo | null => {
 // @param projectPath - Absolute path to the project directory
 export const writeSession = (projectPath: string): void => {
 	const sessionPath = getSessionFilePath(projectPath);
-	const sessionDir = dirname(sessionPath);
-
-	// Ensure .skybox directory exists
-	if (!existsSync(sessionDir)) {
-		mkdirSync(sessionDir, { recursive: true });
-	}
 
 	const session: SessionInfo = {
 		machine: getMachineName(),
@@ -115,13 +102,8 @@ export const writeSession = (projectPath: string): void => {
 	// Compute integrity hash before writing
 	session.hash = computeSessionHash(session);
 
-	// Atomic write: write to temp file in same directory, then rename
-	const tempPath = join(
-		sessionDir,
-		`.${basename(sessionPath)}.tmp.${process.pid}`,
-	);
-	writeFileSync(tempPath, JSON.stringify(session, null, 2), "utf-8");
-	renameSync(tempPath, sessionPath);
+	// Atomic write to avoid partial session files during crashes/interruption.
+	writeFileAtomic(sessionPath, JSON.stringify(session, null, 2));
 
 	// Set read-only to prevent accidental edits
 	chmodSync(sessionPath, SESSION_FILE_MODE);
