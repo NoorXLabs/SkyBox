@@ -17,7 +17,7 @@ skybox down [project] [options]
 
 | Argument | Description |
 |----------|-------------|
-| `[project]` | Name of the project to stop. If omitted, SkyBox will try to detect the project from the current directory or prompt for selection. |
+| `[project]` | Name of the project to stop. If omitted, SkyBox resolves from the current directory or prompts with a checkbox to select one or more projects. |
 
 ## Options
 
@@ -43,6 +43,18 @@ The `down` command stops a running development container. It performs the follow
 8. **Optional Cleanup** - Removes container and volumes if requested
 9. **Optional Local File Removal** - With cleanup, offers to delete local project files (double confirmation required)
 10. **Sync Pause** - If not cleaning up, offers to pause background sync to save resources
+
+### Multi-Select Workflow
+
+When you run `skybox down` without a project name:
+
+1. SkyBox first checks whether your current directory maps to a known project.
+2. If not, it shows a checkbox list so you can select one or more local projects to stop.
+3. Selected projects are stopped sequentially, with a final success/failure summary.
+
+If `--no-prompt` is set and no project can be resolved from the current directory, the command exits with an error.
+
+Use `--all` if you want to stop every local project without selecting from the checkbox list.
 
 ### Sync Safety
 

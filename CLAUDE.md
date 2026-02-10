@@ -502,7 +502,7 @@ SkyBox respects the following environment variables:
 | `RYBBIT_SITE_ID` | unset | Rybbit site identifier for first-run telemetry (set at build time) |
 | `RYBBIT_API_KEY` | unset | Rybbit API key for authenticating telemetry requests (set at build time) |
 | `DEBUG` | unset | Set to any value to enable debug output in list command |
-| `SKYBOX_INSTALL_METHOD` | unset | Set at build time to identify installation source (npm, brew, binary) |
+| `SKYBOX_INSTALL_METHOD` | unset | Set at build time to identify installation source (`homebrew` or `github-release` for direct download) |
 | `EDITOR` | unset | Fallback editor for devcontainer config editing (standard Unix) |
 
 ### Audit Logging

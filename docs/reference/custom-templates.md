@@ -23,6 +23,14 @@ Custom templates are `.json` files stored in `~/.skybox/templates/`. Each file i
 
 The templates directory is created automatically the first time you create a template through the CLI.
 
+## Built-In Templates
+
+SkyBox ships with built-in templates that are always available in the template selector, even if you have no local custom templates:
+
+<!--@include: ../snippets/templates-table.md-->
+
+These built-ins include the same core quality-of-life features used by the recommended custom template setup below (SSH passthrough, common utilities, and Docker access in-container).
+
 ## Required Fields
 
 Every custom template must contain these fields:

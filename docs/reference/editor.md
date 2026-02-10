@@ -82,6 +82,13 @@ Default editor updated to open -a Zed.
 
 The editor setting is stored in `~/.skybox/config.yaml`. You can also set it during initial setup with `skybox init`.
 
+## Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success |
+| 1 | Error (SkyBox not configured or interactive prompt failure) |
+
 ## See Also
 
 - [skybox init](/reference/init) - Initial setup (also sets editor)

@@ -14,6 +14,10 @@ skybox dashboard [options]
 skybox dash [options]
 ```
 
+## Arguments
+
+This command takes no arguments.
+
 ## Options
 
 | Option | Description |
