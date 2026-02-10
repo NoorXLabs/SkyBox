@@ -19,6 +19,7 @@ import {
 	error,
 	info,
 	isDryRun,
+	promptPassphraseWithConfirmation,
 	spinner,
 	success,
 	warn,
@@ -107,15 +108,8 @@ const enableEncryption = async (project?: string): Promise<void> => {
 		return;
 	}
 
-	// Prompt for passphrase
-	const passphrase = await password({
-		message: "Enter encryption passphrase:",
-	});
-
-	if (!passphrase) {
-		error("Passphrase is required.");
-		return;
-	}
+	// Prompt for passphrase with confirmation (not stored — user must remember it)
+	await promptPassphraseWithConfirmation("Enter encryption passphrase:");
 
 	// Generate salt and save
 	const salt = randomBytes(16).toString("hex");

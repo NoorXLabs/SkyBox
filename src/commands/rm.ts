@@ -25,7 +25,7 @@ import {
 } from "@lib/project.ts";
 import { validateProjectName } from "@lib/projectTemplates.ts";
 import { deleteSession, readSession } from "@lib/session.ts";
-import { escapeShellArg } from "@lib/shell.ts";
+import { escapeRemotePath } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import {
 	confirmDestructiveAction,
@@ -142,7 +142,7 @@ const deleteProjectFromRemote = async (
 	try {
 		const result = await runRemoteCommand(
 			host,
-			`rm -rf ${escapeShellArg(remotePath)}`,
+			`rm -rf ${escapeRemotePath(remotePath)}`,
 			remote.key,
 		);
 

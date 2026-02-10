@@ -2,7 +2,7 @@
 
 import { hostname, userInfo } from "node:os";
 import { OWNERSHIP_FILE_NAME } from "@lib/constants.ts";
-import { escapeShellArg } from "@lib/shell.ts";
+import { escapeRemotePath, escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import { validateRemotePath } from "@lib/validation.ts";
 import type {
@@ -66,7 +66,7 @@ export const getOwnershipStatus = async (
 		return { hasOwner: false };
 	}
 	const ownershipFile = `${projectPath}/${OWNERSHIP_FILE_NAME}`;
-	const command = `cat ${escapeShellArg(ownershipFile)} 2>/dev/null`;
+	const command = `cat ${escapeRemotePath(ownershipFile)} 2>/dev/null`;
 
 	const result = await runRemoteCommand(host, command);
 
@@ -104,7 +104,7 @@ export const setOwnership = async (
 	const jsonBase64 = Buffer.from(json).toString("base64");
 
 	// Write ownership file using base64 decode (avoids shell escaping issues)
-	const command = `echo ${escapeShellArg(jsonBase64)} | base64 -d > ${escapeShellArg(ownershipFile)}`;
+	const command = `echo ${escapeShellArg(jsonBase64)} | base64 -d > ${escapeRemotePath(ownershipFile)}`;
 	const result = await runRemoteCommand(host, command);
 
 	if (!result.success) {

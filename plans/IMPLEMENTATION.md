@@ -2,7 +2,7 @@
 
 > **Version:** 0.8.0
 >
-> **Progress:** 1/19 future features | 0/18 checklist items | 0/2 release tasks
+> **Progress:** 2/19 future features | 0/18 checklist items | 1/1 release tasks
 >
 > **Completed work archived:** [`plans/archive/ARCHIVED-IMPLEMENTATION.md`](archive/ARCHIVED-IMPLEMENTATION.md)
 
@@ -21,7 +21,7 @@
 
 ## Future Features — High Priority
 
-- [ ] ### Create Template Repositories
+- [x] ### Create Template Repositories *(Completed in v0.8.0)*
 
 Built-in templates (Node.js, Bun, Python, Go) reference non-existent GitHub repos at `skybox-templates/*-starter`. Either create these repos or replace with working alternatives (e.g., official devcontainer templates).
 
@@ -183,8 +183,7 @@ bash/zsh/fish completion scripts for all commands and options.
 
 ## Release Preparation
 
-- [ ] npm registry publication configured
-- [ ] Homebrew formula updated
+- [x] Homebrew formula updated
 
 ---
 

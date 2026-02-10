@@ -1,4 +1,5 @@
 // terminal UI helpers: colored output, spinners, headers.
+import { password } from "@inquirer/prompts";
 import chalk from "chalk";
 import { program } from "commander";
 import inquirer from "inquirer";
@@ -90,6 +91,30 @@ export const confirmDestructiveAction = async (options: {
 	}
 
 	return true;
+};
+
+// prompt for a passphrase with confirmation (re-enter to verify match).
+// loops until both entries match. rejects empty passphrases.
+export const promptPassphraseWithConfirmation = async (
+	message: string,
+): Promise<string> => {
+	for (;;) {
+		const passphrase = await password({ message });
+
+		if (!passphrase) {
+			warn("Passphrase cannot be empty. Try again.");
+			continue;
+		}
+
+		const confirmation = await password({ message: "Confirm passphrase:" });
+
+		if (passphrase !== confirmation) {
+			warn("Passphrases do not match. Try again.");
+			continue;
+		}
+
+		return passphrase;
+	}
 };
 
 // check if --dry-run flag was passed to the CLI
