@@ -2,31 +2,25 @@
 //
 // Tests for list command. Some tests require real git commands.
 
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { beforeEach, describe, expect, test } from "bun:test";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import {
-	createTestContext,
 	createTestGitRepo,
 	isExecaMocked,
-	type TestContext,
+	setupTestContext,
 } from "@tests/helpers/test-utils.ts";
 import { execa } from "execa";
 
 const execaMocked = await isExecaMocked();
 
 describe("list command", () => {
-	let ctx: TestContext;
+	const getCtx = setupTestContext("list");
 	let projectsDir: string;
 
 	beforeEach(() => {
-		ctx = createTestContext("list");
-		projectsDir = join(ctx.testDir, "Projects");
+		projectsDir = join(getCtx().testDir, "Projects");
 		mkdirSync(projectsDir, { recursive: true });
-	});
-
-	afterEach(() => {
-		ctx.cleanup();
 	});
 
 	test("returns empty array when projects dir is empty", async () => {

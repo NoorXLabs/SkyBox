@@ -15,7 +15,6 @@ import { getErrorMessage } from "@lib/errors.ts";
 import { checkWriteAuthorization, setOwnership } from "@lib/ownership.ts";
 import { getProjectsDir } from "@lib/paths.ts";
 import { finalizeProjectSync } from "@lib/project-sync.ts";
-import { validateProjectName } from "@lib/projectTemplates.ts";
 import { checkRemoteProjectExists } from "@lib/remote.ts";
 import { escapeRemotePath } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
@@ -30,6 +29,7 @@ import {
 	success,
 	warn,
 } from "@lib/ui.ts";
+import { validateProjectName } from "@lib/validation.ts";
 import { execa } from "execa";
 import inquirer from "inquirer";
 

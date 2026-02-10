@@ -9,6 +9,7 @@ import {
 import { join } from "node:path";
 import { MUTAGEN_VERSION } from "@lib/constants.ts";
 import { getErrorMessage } from "@lib/errors.ts";
+import { getMutagenPlatformInfo } from "@lib/mutagen-platform.ts";
 import {
 	getBinDir,
 	getMutagenPath,
@@ -44,9 +45,8 @@ export const recordMutagenVersion = (): void => {
 
 // get the expected asset filename for the current platform.
 const getBundledAssetName = (): string => {
-	const os = process.platform === "darwin" ? "darwin" : "linux";
-	const cpu = process.arch === "arm64" ? "arm64" : "amd64";
-	return `mutagen_${os}_${cpu}_v${MUTAGEN_VERSION}.tar.gz`;
+	return getMutagenPlatformInfo(process.platform, process.arch, MUTAGEN_VERSION)
+		.filename;
 };
 
 // extract the bundled Mutagen binary.

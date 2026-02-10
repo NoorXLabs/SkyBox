@@ -17,7 +17,6 @@ import { getSyncStatus, terminateSession } from "@lib/mutagen.ts";
 import { getProjectsDir } from "@lib/paths.ts";
 import { getLocalProjects } from "@lib/project.ts";
 import { finalizeProjectSync } from "@lib/project-sync.ts";
-import { validateProjectName } from "@lib/projectTemplates.ts";
 import { checkRemoteProjectExists } from "@lib/remote.ts";
 import { escapeRemotePath } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
@@ -31,6 +30,7 @@ import {
 	spinner,
 	success,
 } from "@lib/ui.ts";
+import { validateProjectName } from "@lib/validation.ts";
 import type { SkyboxConfigV2 } from "@typedefs/index.ts";
 
 // clone a single project from remote. This is the core clone logic

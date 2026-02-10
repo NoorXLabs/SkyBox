@@ -23,7 +23,6 @@ import {
 	getProjectPath,
 	projectExists,
 } from "@lib/project.ts";
-import { validateProjectName } from "@lib/projectTemplates.ts";
 import { deleteSession, readSession } from "@lib/session.ts";
 import { escapeRemotePath } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
@@ -38,6 +37,7 @@ import {
 	success,
 	warn,
 } from "@lib/ui.ts";
+import { validateProjectName } from "@lib/validation.ts";
 import {
 	ContainerStatus,
 	type RemoteEntry,
@@ -160,6 +160,47 @@ const deleteProjectFromRemote = async (
 	}
 };
 
+type LocalCleanupMode = "prompt" | "skip";
+
+// apply shared cleanup after successful remote deletion.
+const handlePostRemoteDeletion = async (
+	project: string,
+	config: SkyboxConfigV2,
+	options: RmOptions,
+	localCleanupMode: LocalCleanupMode,
+): Promise<void> => {
+	if (config.projects?.[project]) {
+		delete config.projects[project];
+		saveConfig(config);
+	}
+
+	if (localCleanupMode === "skip" || !projectExists(project) || options.force) {
+		return;
+	}
+
+	const { removeLocal } = await inquirer.prompt([
+		{
+			type: "confirm",
+			name: "removeLocal",
+			message: `'${project}' also exists locally. Remove local copy too?`,
+			default: false,
+		},
+	]);
+
+	if (!removeLocal) {
+		return;
+	}
+
+	header(`Removing '${project}' locally...`);
+	try {
+		await cleanupLocalProject(project, false);
+	} catch (err: unknown) {
+		error(
+			`Failed to clean up local project '${project}': ${getErrorMessage(err)}`,
+		);
+	}
+};
+
 // interactive multi-select flow for deleting remote projects.
 // triggered by `skybox rm --remote` (no project argument).
 const rmRemoteInteractive = async (
@@ -233,38 +274,7 @@ const rmRemoteInteractive = async (
 		}
 
 		deletedCount++;
-
-		// Remove project from config
-		if (config.projects?.[projectName]) {
-			delete config.projects[projectName];
-			saveConfig(config);
-		}
-
-		// Check if project also exists locally and offer to remove
-		if (projectExists(projectName)) {
-			if (!options.force) {
-				const { removeLocal } = await inquirer.prompt([
-					{
-						type: "confirm",
-						name: "removeLocal",
-						message: `'${projectName}' also exists locally. Remove local copy too?`,
-						default: false,
-					},
-				]);
-
-				if (removeLocal) {
-					header(`Removing '${projectName}' locally...`);
-					try {
-						await cleanupLocalProject(projectName, false);
-					} catch (err: unknown) {
-						error(
-							`Failed to clean up local project '${projectName}': ${getErrorMessage(err)}`,
-						);
-					}
-				}
-			}
-			// --force: default to keeping local copies (user didn't explicitly opt in)
-		}
+		await handlePostRemoteDeletion(projectName, config, options, "prompt");
 	}
 
 	success(
@@ -471,11 +481,7 @@ const deleteFromRemote = async (
 		return;
 	}
 
-	// Remove project from config after successful remote deletion
-	if (config.projects?.[project]) {
-		delete config.projects[project];
-		saveConfig(config);
-	}
+	await handlePostRemoteDeletion(project, config, options, "skip");
 
 	logAuditEvent(AuditActions.RM_REMOTE, {
 		project,

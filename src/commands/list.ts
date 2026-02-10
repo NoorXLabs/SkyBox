@@ -2,11 +2,11 @@
 
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { configExists } from "@lib/config.ts";
+import { requireConfig } from "@lib/config.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { getGitBranch } from "@lib/git.ts";
 import { getProjectsDir } from "@lib/paths.ts";
-import { error, header, info } from "@lib/ui.ts";
+import { header, info } from "@lib/ui.ts";
 import type { LocalProject } from "@typedefs/index.ts";
 
 // scan the projects directory and return local project names with git branch info
@@ -67,10 +67,7 @@ const printEmpty = (): void => {
 
 // list all locally cloned projects with branch information
 export const listCommand = async (): Promise<void> => {
-	if (!configExists()) {
-		error("skybox not configured. Run 'skybox init' first.");
-		process.exit(1);
-	}
+	requireConfig();
 
 	const projects = await getLocalProjects();
 

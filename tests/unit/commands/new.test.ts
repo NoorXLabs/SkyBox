@@ -1,12 +1,13 @@
 // tests/unit/commands/new.test.ts
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { writeFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
+	createTestConfig,
 	createTestContext,
 	type TestContext,
+	writeTestConfig,
 } from "@tests/helpers/test-utils.ts";
-import { stringify } from "yaml";
 
 describe("new command", () => {
 	let ctx: TestContext;
@@ -27,18 +28,20 @@ describe("new command", () => {
 		});
 
 		test("config can be loaded when exists", () => {
-			const config = {
-				remote: { host: "test-server", base_path: "~/code" },
-				editor: "code",
-				defaults: { sync_mode: "two-way-resolved", ignore: [] },
-				projects: {},
-			};
-			writeFileSync(join(ctx.testDir, "config.yaml"), stringify(config));
-
-			const content = require("node:fs").readFileSync(
-				join(ctx.testDir, "config.yaml"),
-				"utf-8",
+			writeTestConfig(
+				ctx.testDir,
+				createTestConfig({
+					editor: "code",
+					remotes: {
+						default: {
+							host: "test-server",
+							path: "~/code",
+						},
+					},
+				}),
 			);
+
+			const content = readFileSync(join(ctx.testDir, "config.yaml"), "utf-8");
 			expect(content).toContain("test-server");
 		});
 	});

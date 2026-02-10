@@ -4,8 +4,7 @@
 // Tests that need execa mocking are in container-id-isolated.test.ts
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
 	DEVCONTAINER_CONFIG_NAME,
@@ -21,9 +20,24 @@ import {
 	startContainer,
 	stopContainer,
 } from "@lib/container.ts";
-import { isExecaMocked } from "@tests/helpers/test-utils.ts";
+import {
+	createTestContext,
+	isExecaMocked,
+	type TestContext,
+} from "@tests/helpers/test-utils.ts";
 
 const execaMocked = await isExecaMocked();
+let ctx: TestContext;
+let testDir: string;
+
+beforeEach(() => {
+	ctx = createTestContext("container");
+	testDir = ctx.testDir;
+});
+
+afterEach(() => {
+	ctx.cleanup();
+});
 
 describe("container module exports", () => {
 	test("removeContainer is a function", () => {
@@ -53,19 +67,6 @@ describe("container module exports", () => {
 });
 
 describe("hasLocalDevcontainerConfig", () => {
-	let testDir: string;
-
-	beforeEach(() => {
-		testDir = join(tmpdir(), `skybox-container-test-${Date.now()}`);
-		mkdirSync(testDir, { recursive: true });
-	});
-
-	afterEach(() => {
-		if (existsSync(testDir)) {
-			rmSync(testDir, { recursive: true });
-		}
-	});
-
 	test.skipIf(execaMocked)(
 		"returns false when no devcontainer.json exists",
 		() => {
@@ -84,19 +85,6 @@ describe("hasLocalDevcontainerConfig", () => {
 });
 
 describe("getDevcontainerConfig", () => {
-	let testDir: string;
-
-	beforeEach(() => {
-		testDir = join(tmpdir(), `skybox-container-test-${Date.now()}`);
-		mkdirSync(testDir, { recursive: true });
-	});
-
-	afterEach(() => {
-		if (existsSync(testDir)) {
-			rmSync(testDir, { recursive: true });
-		}
-	});
-
 	test.skipIf(execaMocked)(
 		"reads workspaceFolder from devcontainer.json",
 		() => {

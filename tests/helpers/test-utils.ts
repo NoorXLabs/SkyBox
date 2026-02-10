@@ -4,7 +4,7 @@
  * @description Shared utilities for test setup and teardown.
  */
 
-import { spyOn } from "bun:test";
+import { afterEach, beforeEach, spyOn } from "bun:test";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -48,6 +48,30 @@ export const createTestContext = (name: string): TestContext => {
 				delete process.env.SKYBOX_HOME;
 			}
 		},
+	};
+};
+
+/**
+ * Registers beforeEach/afterEach hooks and returns a getter for current context.
+ * Useful for reducing repeated create/cleanup wiring across test files.
+ */
+export const setupTestContext = (name: string): (() => TestContext) => {
+	let ctx: TestContext | null = null;
+
+	beforeEach(() => {
+		ctx = createTestContext(name);
+	});
+
+	afterEach(() => {
+		ctx?.cleanup();
+		ctx = null;
+	});
+
+	return () => {
+		if (!ctx) {
+			throw new Error("Test context not initialized");
+		}
+		return ctx;
 	};
 };
 

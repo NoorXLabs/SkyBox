@@ -11,30 +11,12 @@ import {
 import { join } from "node:path";
 import { MUTAGEN_REPO, MUTAGEN_VERSION } from "@lib/constants.ts";
 import { getErrorMessage } from "@lib/errors.ts";
+import { getMutagenPlatformInfo } from "@lib/mutagen-platform.ts";
 import { getBinDir, getMutagenPath } from "@lib/paths.ts";
 import { execa } from "execa";
 import { extract } from "tar";
 
-interface MutagenPlatformInfo {
-	os: "darwin" | "linux";
-	cpu: "arm64" | "amd64";
-	filename: string;
-}
-
-// normalize platform/arch into mutagen release naming components
-export const getMutagenPlatformInfo = (
-	platform: string,
-	arch: string,
-	version: string,
-): MutagenPlatformInfo => {
-	const os = platform === "darwin" ? "darwin" : "linux";
-	const cpu = arch === "arm64" ? "arm64" : "amd64";
-	return {
-		os,
-		cpu,
-		filename: `mutagen_${os}_${cpu}_v${version}.tar.gz`,
-	};
-};
+export { getMutagenPlatformInfo } from "@lib/mutagen-platform.ts";
 
 // get mutagen download url
 export const getMutagenDownloadUrl = (
