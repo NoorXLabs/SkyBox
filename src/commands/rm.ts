@@ -23,7 +23,6 @@ import {
 	getProjectPath,
 	projectExists,
 } from "@lib/project.ts";
-import { validateProjectName } from "@lib/projectTemplates.ts";
 import { deleteSession, readSession } from "@lib/session.ts";
 import { escapeRemotePath } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
@@ -38,6 +37,7 @@ import {
 	success,
 	warn,
 } from "@lib/ui.ts";
+import { validateProjectName } from "@lib/validation.ts";
 import {
 	ContainerStatus,
 	type RemoteEntry,

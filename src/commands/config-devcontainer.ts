@@ -10,10 +10,8 @@ import {
 	WORKSPACE_PATH_PREFIX,
 } from "@lib/constants.ts";
 import { launchFileInEditor } from "@lib/editor-launch.ts";
-import { getErrorMessage } from "@lib/errors.ts";
 import { getProjectPath, projectExists } from "@lib/project.ts";
-import { escapeRemotePath, escapeShellArg } from "@lib/shell.ts";
-import { runRemoteCommand } from "@lib/ssh.ts";
+import { pushDevcontainerJsonToRemote } from "@lib/remote-devcontainer.ts";
 import { selectTemplate, writeDevcontainerConfig } from "@lib/templates.ts";
 import { dryRun, error, info, isDryRun, spinner, success } from "@lib/ui.ts";
 import type { SkyboxConfigV2 } from "@typedefs/index.ts";
@@ -135,19 +133,15 @@ const pushDevcontainerToRemote = async (
 	const configContent = readFileSync(configPath, "utf-8");
 
 	const s = spinner("Pushing devcontainer.json to remote...");
-	try {
-		const encoded = Buffer.from(configContent).toString("base64");
-		const result = await runRemoteCommand(
-			remoteHost,
-			`mkdir -p ${escapeRemotePath(`${remotePath}/${DEVCONTAINER_DIR_NAME}`)} && echo ${escapeShellArg(encoded)} | base64 -d > ${escapeRemotePath(`${remotePath}/${DEVCONTAINER_DIR_NAME}/${DEVCONTAINER_CONFIG_NAME}`)}`,
-			remote.key ?? undefined,
-		);
-		if (result.success) {
-			s.succeed("Pushed devcontainer.json to remote.");
-		} else {
-			s.fail(`Failed to push: ${result.error}`);
-		}
-	} catch (err) {
-		s.fail(`Failed to push: ${getErrorMessage(err)}`);
+	const result = await pushDevcontainerJsonToRemote(
+		remoteHost,
+		remotePath,
+		configContent,
+		remote.key ?? undefined,
+	);
+	if (result.success) {
+		s.succeed("Pushed devcontainer.json to remote.");
+	} else {
+		s.fail(`Failed to push: ${result.error}`);
 	}
 };

@@ -1,4 +1,4 @@
-import { configExists, loadConfig } from "@lib/config.ts";
+import { requireConfig } from "@lib/config.ts";
 import { error, info } from "@lib/ui.ts";
 import type { SkyboxConfigV2 } from "@typedefs/index.ts";
 
@@ -21,14 +21,5 @@ export function exitWithErrorAndInfo(
 
 // require loaded config or exit
 export const requireLoadedConfigOrExit = (): SkyboxConfigV2 => {
-	if (!configExists()) {
-		exitWithError("skybox not configured. Run 'skybox init' first.");
-	}
-
-	const config = loadConfig();
-	if (!config) {
-		exitWithError("Failed to load config.");
-	}
-
-	return config as SkyboxConfigV2;
+	return requireConfig();
 };

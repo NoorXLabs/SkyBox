@@ -99,6 +99,18 @@ export enum ContainerStatus {
 // valid sync status values
 export type SyncStatusValue = "syncing" | "paused" | "none" | "error";
 
+// subset of container states used in status output.
+export type ContainerDisplayStatus = Extract<
+	`${ContainerStatus}`,
+	"running" | "stopped" | "unknown"
+>;
+
+// sync states displayed in status output.
+export type SyncDisplayStatus =
+	| Exclude<SyncStatusValue, "none">
+	| "no session"
+	| "unknown";
+
 // outcome of a Docker container operation
 export interface ContainerResult {
 	success: boolean;
@@ -120,8 +132,8 @@ export interface ContainerInfo {
 // summary view of a local project for the list command
 export interface ProjectSummary {
 	name: string;
-	container: "running" | "stopped" | "unknown";
-	sync: "syncing" | "paused" | "no session" | "error" | "unknown";
+	container: ContainerDisplayStatus;
+	sync: SyncDisplayStatus;
 	branch: string;
 	session: string;
 	lastActive: Date | null;
@@ -131,7 +143,7 @@ export interface ProjectSummary {
 
 // detailed Docker container status and resource usage
 export interface ContainerDetails {
-	status: "running" | "stopped" | "unknown";
+	status: ContainerDisplayStatus;
 	image: string;
 	uptime: string;
 	cpu: string;
@@ -140,7 +152,7 @@ export interface ContainerDetails {
 
 // Mutagen sync session details and current state
 export interface SyncDetails {
-	status: "syncing" | "paused" | "no session" | "error" | "unknown";
+	status: SyncDisplayStatus;
 	session: string;
 	pending: string;
 	lastSync: string;

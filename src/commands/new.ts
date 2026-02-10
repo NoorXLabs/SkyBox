@@ -15,7 +15,7 @@ import { hasLocalDevcontainerConfig } from "@lib/container.ts";
 import { offerStartContainer } from "@lib/container-start.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { getProjectPath } from "@lib/project.ts";
-import { validateProjectName } from "@lib/projectTemplates.ts";
+import { pushDevcontainerJsonToRemote } from "@lib/remote-devcontainer.ts";
 import { escapeRemotePath, escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import { selectTemplate, writeDevcontainerConfig } from "@lib/templates.ts";
@@ -29,7 +29,7 @@ import {
 	success,
 	warn,
 } from "@lib/ui.ts";
-import { toInquirerValidator } from "@lib/validation.ts";
+import { toInquirerValidator, validateProjectName } from "@lib/validation.ts";
 import type {
 	DevcontainerConfig,
 	RemoteEntry,
@@ -196,11 +196,11 @@ const createProjectWithConfig = async (
 	const config = withWorkspaceSettings(devcontainerConfig, projectName);
 
 	const devcontainerJson = JSON.stringify(config, null, 2);
-	const encoded = Buffer.from(devcontainerJson).toString("base64");
-
-	const createCmd = `mkdir -p ${escapeRemotePath(`${remotePath}/${DEVCONTAINER_DIR_NAME}`)} && echo ${escapeShellArg(encoded)} | base64 -d > ${escapeRemotePath(`${remotePath}/${DEVCONTAINER_DIR_NAME}/${DEVCONTAINER_CONFIG_NAME}`)}`;
-
-	const createResult = await runRemoteCommand(host, createCmd);
+	const createResult = await pushDevcontainerJsonToRemote(
+		host,
+		remotePath,
+		devcontainerJson,
+	);
 
 	if (!createResult.success) {
 		createSpin.fail("Failed to create project");
@@ -290,12 +290,7 @@ const cloneGitToRemote = async (
 			null,
 			2,
 		);
-		const encoded = Buffer.from(devcontainerJson).toString("base64");
-
-		await runRemoteCommand(
-			host,
-			`mkdir -p ${escapeRemotePath(`${remotePath}/${DEVCONTAINER_DIR_NAME}`)} && echo ${escapeShellArg(encoded)} | base64 -d > ${escapeRemotePath(`${remotePath}/${DEVCONTAINER_DIR_NAME}/${DEVCONTAINER_CONFIG_NAME}`)}`,
-		);
+		await pushDevcontainerJsonToRemote(host, remotePath, devcontainerJson);
 
 		addSpin.succeed("Added devcontainer.json");
 	}
