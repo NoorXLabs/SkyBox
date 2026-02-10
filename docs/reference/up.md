@@ -7,29 +7,38 @@ description: Start a development container for a project with skybox up. Launch 
 
 Start a development container for a project.
 
+<!-- COMMAND-SPEC:START -->
 ## Usage
 
 ```bash
-skybox up [project] [options]
+skybox up [options] [project]
 ```
 
 ## Arguments
 
 | Argument | Description |
 |----------|-------------|
-| `[project]` | Name of the project to start. If omitted, SkyBox will try to detect the project from the current directory or prompt for selection. |
+| `[project]` | Project name. If omitted, resolves from current directory or prompts. |
 
 ## Options
 
 | Option | Description |
 |--------|-------------|
-| `-e, --editor` | Open in editor after container starts |
-| `-a, --attach` | Attach to shell after container starts |
+| `-e, --editor` | Open in editor after start |
+| `-a, --attach` | Attach to shell after start |
 | `-r, --rebuild` | Force container rebuild |
-| `--no-prompt` | Non-interactive mode (errors instead of prompting) |
-| `--verbose` | Show detailed error output on container start failure |
-| `-A, --all` | Start all local projects in batch mode (tallies success/failure counts) |
-| `--dry-run` | Show what would happen without making changes |
+| `--no-prompt` | Non-interactive mode |
+| `--verbose` | Show detailed output |
+| `-A, --all` | Start all local projects |
+
+## Global Options
+
+| Option | Description |
+|--------|-------------|
+| `-h, --help` | display help for command |
+| `-v, --version` | output the version number |
+| `--dry-run` | Preview commands without executing them |
+<!-- COMMAND-SPEC:END -->
 
 ## Description
 

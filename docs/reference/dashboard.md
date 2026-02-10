@@ -7,18 +7,31 @@ description: Full-screen status dashboard for all SkyBox projects. Monitor conta
 
 Full-screen status dashboard for all projects.
 
+<!-- COMMAND-SPEC:START -->
 ## Usage
 
 ```bash
 skybox dashboard [options]
-skybox dash [options]
 ```
+
+## Arguments
+
+None.
 
 ## Options
 
 | Option | Description |
 |--------|-------------|
-| `-d, --detailed` | Start in detailed view showing extra project info |
+| `-d, --detailed` | Show detailed view with extra info |
+
+## Global Options
+
+| Option | Description |
+|--------|-------------|
+| `-h, --help` | display help for command |
+| `-v, --version` | output the version number |
+| `--dry-run` | Preview commands without executing them |
+<!-- COMMAND-SPEC:END -->
 
 ## Description
 

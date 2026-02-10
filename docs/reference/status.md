@@ -7,21 +7,31 @@ description: Show status of projects or detailed information about a specific pr
 
 Show status of projects or detailed information about a specific project.
 
+<!-- COMMAND-SPEC:START -->
 ## Usage
 
 ```bash
-skybox status [project]
+skybox status [options] [project]
 ```
 
 ## Arguments
 
 | Argument | Description |
 |----------|-------------|
-| `[project]` | Name of the project to show detailed status for. If omitted, shows overview of all projects. |
+| `[project]` | Optional project name. Omit to show status overview for all local projects. |
 
 ## Options
 
-This command has no options.
+None.
+
+## Global Options
+
+| Option | Description |
+|--------|-------------|
+| `-h, --help` | display help for command |
+| `-v, --version` | output the version number |
+| `--dry-run` | Preview commands without executing them |
+<!-- COMMAND-SPEC:END -->
 
 ## Description
 

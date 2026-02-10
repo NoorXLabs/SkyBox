@@ -7,18 +7,32 @@ description: Manage project encryption at rest with skybox encrypt. Encrypt and 
 
 Manage project encryption at rest.
 
+<!-- COMMAND-SPEC:START -->
 ## Usage
 
 ```bash
-skybox encrypt <subcommand> [project]
+skybox encrypt [options] [subcommand] [project]
 ```
 
-## Subcommands
+## Arguments
 
-| Subcommand | Description |
-|------------|-------------|
-| `enable [project]` | Enable encryption for a project |
-| `disable [project]` | Disable encryption for a project |
+| Argument | Description |
+|----------|-------------|
+| `[subcommand]` | Encryption subcommand (enable or disable). |
+| `[project]` | Optional project name. If omitted, interactive selection is used. |
+
+## Options
+
+None.
+
+## Global Options
+
+| Option | Description |
+|--------|-------------|
+| `-h, --help` | display help for command |
+| `-v, --version` | output the version number |
+| `--dry-run` | Preview commands without executing them |
+<!-- COMMAND-SPEC:END -->
 
 ## Description
 

@@ -7,27 +7,36 @@ description: Stop a development container with skybox down. Shut down running co
 
 Stop a development container.
 
+<!-- COMMAND-SPEC:START -->
 ## Usage
 
 ```bash
-skybox down [project] [options]
+skybox down [options] [project]
 ```
 
 ## Arguments
 
 | Argument | Description |
 |----------|-------------|
-| `[project]` | Name of the project to stop. If omitted, SkyBox will try to detect the project from the current directory or prompt for selection. |
+| `[project]` | Project name. If omitted, resolves from current directory or prompts. |
 
 ## Options
 
 | Option | Description |
 |--------|-------------|
-| `-c, --cleanup` | Remove container and volumes after stopping |
+| `-c, --cleanup` | Remove container and volumes |
 | `-f, --force` | Force stop even on errors |
-| `--no-prompt` | Non-interactive mode (fails if input would be required) |
-| `-A, --all` | Stop all local projects in batch mode (tallies success/failure counts) |
-| `--dry-run` | Show what would happen without making changes |
+| `--no-prompt` | Non-interactive mode |
+| `-A, --all` | Stop all local projects |
+
+## Global Options
+
+| Option | Description |
+|--------|-------------|
+| `-h, --help` | display help for command |
+| `-v, --version` | output the version number |
+| `--dry-run` | Preview commands without executing them |
+<!-- COMMAND-SPEC:END -->
 
 ## Description
 

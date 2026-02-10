@@ -7,17 +7,18 @@ description: Open editor or shell for a running container without restarting it 
 
 Open editor or shell for a running container without restarting it.
 
+<!-- COMMAND-SPEC:START -->
 ## Usage
 
 ```bash
-skybox open [project] [options]
+skybox open [options] [project]
 ```
 
 ## Arguments
 
 | Argument | Description |
 |----------|-------------|
-| `[project]` | Name of the project (optional, auto-detected from cwd or prompted) |
+| `[project]` | Optional project name. If omitted, resolves from current directory or prompts. |
 
 ## Options
 
@@ -26,7 +27,15 @@ skybox open [project] [options]
 | `-e, --editor` | Open in editor only |
 | `-s, --shell` | Attach to shell only |
 | `--no-prompt` | Non-interactive mode |
-| `--dry-run` | Preview what would happen without executing |
+
+## Global Options
+
+| Option | Description |
+|--------|-------------|
+| `-h, --help` | display help for command |
+| `-v, --version` | output the version number |
+| `--dry-run` | Preview commands without executing them |
+<!-- COMMAND-SPEC:END -->
 
 ## Description
 

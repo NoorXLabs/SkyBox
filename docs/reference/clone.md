@@ -7,10 +7,11 @@ description: Clone a remote project to your local machine with skybox clone. Dow
 
 Clone a remote project to your local machine.
 
+<!-- COMMAND-SPEC:START -->
 ## Usage
 
 ```bash
-skybox clone [project]
+skybox clone [options] [project]
 ```
 
 ## Arguments
@@ -21,9 +22,16 @@ skybox clone [project]
 
 ## Options
 
+None.
+
+## Global Options
+
 | Option | Description |
 |--------|-------------|
-| `--dry-run` | Show what would happen without making changes |
+| `-h, --help` | display help for command |
+| `-v, --version` | output the version number |
+| `--dry-run` | Preview commands without executing them |
+<!-- COMMAND-SPEC:END -->
 
 ## Description
 

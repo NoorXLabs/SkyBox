@@ -7,21 +7,29 @@ description: Create a new project on the remote server with skybox new. Scaffold
 
 Create a new project on the remote server.
 
+<!-- COMMAND-SPEC:START -->
 ## Usage
 
 ```bash
-skybox new
+skybox new [options]
 ```
 
 ## Arguments
 
-This command takes no arguments. It runs interactively.
+None.
 
 ## Options
 
+None.
+
+## Global Options
+
 | Option | Description |
 |--------|-------------|
-| `--dry-run` | Preview what would happen without executing |
+| `-h, --help` | display help for command |
+| `-v, --version` | output the version number |
+| `--dry-run` | Preview commands without executing them |
+<!-- COMMAND-SPEC:END -->
 
 ## Description
 

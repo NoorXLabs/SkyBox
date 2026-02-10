@@ -7,27 +7,35 @@ description: View and modify SkyBox configuration with skybox config. Manage set
 
 View and modify SkyBox configuration.
 
+<!-- COMMAND-SPEC:START -->
 ## Usage
 
 ```bash
-skybox config [subcommand] [options]
+skybox config [options] [subcommand] [arg1] [arg2]
 ```
 
-## Subcommands
+## Arguments
 
-| Subcommand | Description |
-|------------|-------------|
-| (none) | Display current configuration |
-| `set <key> <value>` | Set a configuration value |
-| `sync-paths <project> [paths]` | View or set selective sync paths |
-| `devcontainer edit <project>` | Open devcontainer.json in editor |
-| `devcontainer reset <project>` | Reset devcontainer.json from template |
+| Argument | Description |
+|----------|-------------|
+| `[subcommand]` | Config subcommand (for example: set, sync-paths, devcontainer). |
+| `[arg1]` | First positional argument for the selected subcommand. |
+| `[arg2]` | Second positional argument for the selected subcommand. |
 
 ## Options
 
 | Option | Description |
 |--------|-------------|
-| `--validate` | Test SSH connection to all configured remotes and show project counts |
+| `--validate` | Test connection to all remotes |
+
+## Global Options
+
+| Option | Description |
+|--------|-------------|
+| `-h, --help` | display help for command |
+| `-v, --version` | output the version number |
+| `--dry-run` | Preview commands without executing them |
+<!-- COMMAND-SPEC:END -->
 
 ## Description
 

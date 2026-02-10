@@ -7,19 +7,29 @@ description: List projects available on the remote server with skybox browse. Vi
 
 List projects available on the remote server.
 
+<!-- COMMAND-SPEC:START -->
 ## Usage
 
 ```bash
-skybox browse
+skybox browse [options]
 ```
 
 ## Arguments
 
-This command takes no arguments.
+None.
 
 ## Options
 
-This command has no options.
+None.
+
+## Global Options
+
+| Option | Description |
+|--------|-------------|
+| `-h, --help` | display help for command |
+| `-v, --version` | output the version number |
+| `--dry-run` | Preview commands without executing them |
+<!-- COMMAND-SPEC:END -->
 
 ## Description
 

@@ -5,15 +5,19 @@ pre-commit:
       priority: 0
       run: bun run src/lib/verify-lockfile.ts
       glob: "package.json|bun.lock"
-    check:
+    docs-sync:
       priority: 1
+      glob: "src/lib/command-manifest.ts|docs/reference/*.md|docs/.vitepress/commands.ts|scripts/sync-command-reference.ts"
+      run: bun run docs:sync-commands:check
+    check:
+      priority: 2
       glob: "*.{js,ts,json}"
       run: bun run check
       stage_fixed: true
     typecheck:
-      priority: 2
+      priority: 3
       run: bun run typecheck
     test:
-      priority: 3
+      priority: 4
       glob: "{src,tests}/**/*.{ts,test.ts}"
       run: bun run test

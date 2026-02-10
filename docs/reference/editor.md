@@ -7,19 +7,29 @@ description: Change the default editor for opening projects with skybox editor. 
 
 Change the default editor for opening projects.
 
+<!-- COMMAND-SPEC:START -->
 ## Usage
 
 ```bash
-skybox editor
+skybox editor [options]
 ```
 
 ## Arguments
 
-This command takes no arguments.
+None.
 
 ## Options
 
-This command has no options.
+None.
+
+## Global Options
+
+| Option | Description |
+|--------|-------------|
+| `-h, --help` | display help for command |
+| `-v, --version` | output the version number |
+| `--dry-run` | Preview commands without executing them |
+<!-- COMMAND-SPEC:END -->
 
 ## Description
 

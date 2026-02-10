@@ -7,25 +7,34 @@ description: Remove a project from your local machine with skybox rm, with optio
 
 Remove a project from your local machine, with optional remote deletion.
 
+<!-- COMMAND-SPEC:START -->
 ## Usage
 
 ```bash
-skybox rm [project] [options]
+skybox rm [options] [project]
 ```
 
 ## Arguments
 
 | Argument | Description |
 |----------|-------------|
-| `[project]` | Name of the project to remove. If omitted, shows an interactive multi-select list of all local projects. |
+| `[project]` | Optional project name. If omitted, opens interactive multi-select. |
 
 ## Options
 
 | Option | Description |
 |--------|-------------|
-| `-f, --force` | Skip all confirmation prompts |
-| `-r, --remote` | Also delete the project from the remote server (requires double confirmation) |
-| `--dry-run` | Show what would happen without making changes |
+| `-f, --force` | Skip confirmation prompt |
+| `-r, --remote` | Also delete project from remote server |
+
+## Global Options
+
+| Option | Description |
+|--------|-------------|
+| `-h, --help` | display help for command |
+| `-v, --version` | output the version number |
+| `--dry-run` | Preview commands without executing them |
+<!-- COMMAND-SPEC:END -->
 
 ## Description
 

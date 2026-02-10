@@ -42,9 +42,8 @@ describe("help output", () => {
 		expect(result.output).toContain("init");
 		expect(result.output).toContain("Interactive setup wizard");
 		expect(result.output).toContain("Quick start:");
-		expect(result.output).toContain(
-			"skybox clone <project>          Clone a project locally",
-		);
+		expect(result.output).toContain("skybox clone <project>");
+		expect(result.output).toContain("Clone a project locally");
 		expect(result.output).toContain("Full docs: https://skybox.noorxlabs.com");
 	});
 
@@ -53,11 +52,27 @@ describe("help output", () => {
 		expect(result.exitCode).toBe(0);
 		expect(result.output).toContain("list available projects");
 		expect(result.output).toContain("current git branch");
+		expect(result.output).toContain("Global Options:");
+		expect(result.output).toContain("--dry-run");
 		expect(result.output).toContain("Examples:");
 		expect(result.output).toContain("skybox browse");
 		expect(result.output).toContain(
 			"Use this before 'skybox clone' to discover remote project names.",
 		);
+	});
+
+	test("clone help includes global options and keeps notes/examples", () => {
+		const result = runCli("help", "clone");
+		expect(result.exitCode).toBe(0);
+		expect(result.output).toContain("Usage: skybox clone [options] [project]");
+		expect(result.output).toContain("Options:");
+		expect(result.output).toContain("-h, --help");
+		expect(result.output).toContain("Global Options:");
+		expect(result.output).toContain("-v, --version");
+		expect(result.output).toContain("--dry-run");
+		expect(result.output).toContain("Examples:");
+		expect(result.output).toContain("skybox clone my-api");
+		expect(result.output).toContain("Project names come from 'skybox browse'.");
 	});
 
 	test("up help includes practical examples and notes", () => {
@@ -68,5 +83,15 @@ describe("help output", () => {
 		);
 		expect(result.output).toContain("skybox up my-api --no-prompt");
 		expect(result.output).toContain("Start all local projects");
+	});
+
+	test("representative command help pages include global options", () => {
+		for (const command of ["up", "logs", "remote", "config"]) {
+			const result = runCli("help", command);
+			expect(result.exitCode).toBe(0);
+			expect(result.output).toContain("Global Options:");
+			expect(result.output).toContain("-v, --version");
+			expect(result.output).toContain("--dry-run");
+		}
 	});
 });

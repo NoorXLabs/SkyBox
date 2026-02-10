@@ -7,21 +7,29 @@ description: Interactive setup wizard for configuring SkyBox. Set up remotes, SS
 
 Interactive setup wizard for configuring SkyBox.
 
+<!-- COMMAND-SPEC:START -->
 ## Usage
 
 ```bash
-skybox init
+skybox init [options]
 ```
 
 ## Arguments
 
-This command takes no arguments.
+None.
 
 ## Options
 
+None.
+
+## Global Options
+
 | Option | Description |
 |--------|-------------|
-| `--dry-run` | Preview what would happen without executing |
+| `-h, --help` | display help for command |
+| `-v, --version` | output the version number |
+| `--dry-run` | Preview commands without executing them |
+<!-- COMMAND-SPEC:END -->
 
 ## Description
 

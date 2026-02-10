@@ -35,6 +35,8 @@
     "check:ci": "biome check ./src ./tests",
     "vendor:mutagen": "bash scripts/download-mutagen.sh",
     "build:bundle": "bun run vendor:mutagen && bun build ./src/index.ts --compile --outfile=skybox-bin",
+    "docs:sync-commands": "bun run scripts/sync-command-reference.ts",
+    "docs:sync-commands:check": "bun run scripts/sync-command-reference.ts --check",
     "docs:dev": "cd docs && bun run dev",
     "docs:build": "cd docs && bun run build",
     "docs:preview": "cd docs && bun run preview"

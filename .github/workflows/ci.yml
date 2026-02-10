@@ -24,6 +24,8 @@ jobs:
           sudo apt-get install -y -qq g++-10
           sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 100
       - run: bun install
+      - name: Verify command docs are synchronized
+        run: bun run docs:sync-commands:check
       - name: Lint
         run: bun run check:ci
       - name: Typecheck

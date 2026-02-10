@@ -7,20 +7,35 @@ description: Manage remote server configurations with skybox remote. Add, edit, 
 
 Manage remote server configurations.
 
+<!-- COMMAND-SPEC:START -->
 ## Usage
 
 ```bash
-skybox remote <subcommand> [options]
+skybox remote [options] [subcommand] [arg1] [arg2]
 ```
 
-## Subcommands
+## Arguments
 
-| Subcommand | Description |
-|------------|-------------|
-| `add [name] [user@host:path]` | Add a new remote server |
-| `list` | List all configured remotes |
-| `remove <name>` | Remove a remote server |
-| `rename <old> <new>` | Rename a remote server |
+| Argument | Description |
+|----------|-------------|
+| `[subcommand]` | Remote subcommand (for example: add, list, remove, rename). |
+| `[arg1]` | First positional argument for the selected subcommand. |
+| `[arg2]` | Second positional argument for the selected subcommand. |
+
+## Options
+
+| Option | Description |
+|--------|-------------|
+| `-k, --key <path>` | SSH key path |
+
+## Global Options
+
+| Option | Description |
+|--------|-------------|
+| `-h, --help` | display help for command |
+| `-v, --version` | output the version number |
+| `--dry-run` | Preview commands without executing them |
+<!-- COMMAND-SPEC:END -->
 
 ## Description
 

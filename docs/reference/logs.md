@@ -7,25 +7,35 @@ description: Show container or sync logs for a project with skybox logs. Stream 
 
 Show container or sync logs for a project.
 
+<!-- COMMAND-SPEC:START -->
 ## Usage
 
 ```bash
-skybox logs <project> [options]
+skybox logs [options] <project>
 ```
 
 ## Arguments
 
 | Argument | Description |
 |----------|-------------|
-| `<project>` | Name of the project (required) |
+| `<project>` | Project name. |
 
 ## Options
 
 | Option | Description |
 |--------|-------------|
-| `-f, --follow` | Follow log output in real time |
-| `-n, --lines <number>` | Number of lines to show (default: `50`) |
-| `-s, --sync` | Show sync logs instead of container logs |
+| `-f, --follow` | follow log output |
+| `-n, --lines <number>` | number of lines to show (default: 50) |
+| `-s, --sync` | show sync logs instead of container logs |
+
+## Global Options
+
+| Option | Description |
+|--------|-------------|
+| `-h, --help` | display help for command |
+| `-v, --version` | output the version number |
+| `--dry-run` | Preview commands without executing them |
+<!-- COMMAND-SPEC:END -->
 
 ## Description
 

@@ -7,24 +7,32 @@ description: Push a local project to the remote server with skybox push. Upload 
 
 Push a local project to the remote server.
 
+<!-- COMMAND-SPEC:START -->
 ## Usage
 
 ```bash
-skybox push <path> [name]
+skybox push [options] <path> [name]
 ```
 
 ## Arguments
 
 | Argument | Description |
 |----------|-------------|
-| `<path>` | Path to the local project directory (required) |
-| `[name]` | Name for the project on remote. Defaults to the directory name if not specified. |
+| `<path>` | Path to local project directory to push. |
+| `[name]` | Optional remote project name. If omitted, the local directory name is used. |
 
 ## Options
 
+None.
+
+## Global Options
+
 | Option | Description |
 |--------|-------------|
-| `--dry-run` | Show what would happen without making changes |
+| `-h, --help` | display help for command |
+| `-v, --version` | output the version number |
+| `--dry-run` | Preview commands without executing them |
+<!-- COMMAND-SPEC:END -->
 
 ## Description
 

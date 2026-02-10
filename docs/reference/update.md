@@ -7,11 +7,29 @@ description: Check for and install SkyBox updates with skybox update. Download t
 
 Check for and install SkyBox updates.
 
+<!-- COMMAND-SPEC:START -->
 ## Usage
 
 ```bash
-skybox update
+skybox update [options]
 ```
+
+## Arguments
+
+None.
+
+## Options
+
+None.
+
+## Global Options
+
+| Option | Description |
+|--------|-------------|
+| `-h, --help` | display help for command |
+| `-v, --version` | output the version number |
+| `--dry-run` | Preview commands without executing them |
+<!-- COMMAND-SPEC:END -->
 
 ## Description
 

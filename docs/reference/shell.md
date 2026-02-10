@@ -7,24 +7,34 @@ description: Access an interactive shell inside a running container with skybox 
 
 Access an interactive shell inside a running container.
 
+<!-- COMMAND-SPEC:START -->
 ## Usage
 
 ```bash
-skybox shell <project> [options]
+skybox shell [options] <project>
 ```
 
 ## Arguments
 
 | Argument | Description |
 |----------|-------------|
-| `<project>` | Name of the project to access (required) |
+| `<project>` | Project name. |
 
 ## Options
 
 | Option | Description |
 |--------|-------------|
-| `-c, --command <cmd>` | Run a single command and exit instead of interactive shell |
-| `-f, --force` | Bypass session check (use with caution) |
+| `-c, --command <cmd>` | Run a single command and exit |
+| `-f, --force` | Bypass session check |
+
+## Global Options
+
+| Option | Description |
+|--------|-------------|
+| `-h, --help` | display help for command |
+| `-v, --version` | output the version number |
+| `--dry-run` | Preview commands without executing them |
+<!-- COMMAND-SPEC:END -->
 
 ## Description
 

@@ -7,17 +7,31 @@ description: Output shell hook code for auto-starting containers when entering p
 
 Output shell hook code for auto-starting containers when entering project directories.
 
+<!-- COMMAND-SPEC:START -->
 ## Usage
 
 ```bash
-skybox hook [shell]
+skybox hook [options] [shell]
 ```
 
 ## Arguments
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `shell` | No | Shell type: `bash` or `zsh` |
+| Argument | Description |
+|----------|-------------|
+| `[shell]` | Shell type (bash or zsh). |
+
+## Options
+
+None.
+
+## Global Options
+
+| Option | Description |
+|--------|-------------|
+| `-h, --help` | display help for command |
+| `-v, --version` | output the version number |
+| `--dry-run` | Preview commands without executing them |
+<!-- COMMAND-SPEC:END -->
 
 ## Description
 

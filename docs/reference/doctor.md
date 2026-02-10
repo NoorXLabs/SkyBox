@@ -7,19 +7,29 @@ description: Diagnose common issues with your SkyBox setup, dependencies, and co
 
 Diagnose common issues with your SkyBox setup, dependencies, and configuration.
 
+<!-- COMMAND-SPEC:START -->
 ## Usage
 
 ```bash
-skybox doctor
+skybox doctor [options]
 ```
 
 ## Arguments
 
-This command takes no arguments.
+None.
 
 ## Options
 
-This command has no options.
+None.
+
+## Global Options
+
+| Option | Description |
+|--------|-------------|
+| `-h, --help` | display help for command |
+| `-v, --version` | output the version number |
+| `--dry-run` | Preview commands without executing them |
+<!-- COMMAND-SPEC:END -->
 
 ## Description
 
