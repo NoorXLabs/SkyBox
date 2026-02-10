@@ -32,6 +32,8 @@ import chalk from "chalk";
 import { program } from "commander";
 import pkg from "../package.json";
 
+const DOCS_URL = "https://skybox.noorxlabs.com";
+
 // Install graceful shutdown handlers early
 installShutdownHandlers();
 
@@ -57,7 +59,8 @@ program
 	.name("skybox")
 	.description("Local-first dev containers with remote sync")
 	.version(pkg.version, "-v, --version")
-	.option("--dry-run", "Preview commands without executing them");
+	.option("--dry-run", "Preview commands without executing them")
+	.addHelpText("after", `\nFull docs: ${DOCS_URL}`);
 
 program
 	.command("init")
