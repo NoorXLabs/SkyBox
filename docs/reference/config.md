@@ -58,7 +58,9 @@ Currently supported configuration keys:
 
 | Key | Description | Example Values |
 |-----|-------------|----------------|
-| `editor` | Default editor command | `cursor`, `code`, `code-insiders`, `vim`, `nvim`, `zed` |
+| `editor` | Default editor command (supports command + flags) | `cursor`, `code --reuse-window`, `open -a Zed`, `/usr/local/bin/nvim` |
+
+On macOS, SkyBox will automatically fall back to `open -a <App>` for built-in GUI editors when the CLI command is not on `PATH`.
 
 ### Validate Configuration
 

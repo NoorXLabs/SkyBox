@@ -6,6 +6,7 @@ import { getRemoteHost } from "@commands/remote.ts";
 import { configExists, loadConfig } from "@lib/config.ts";
 import { MUTAGEN_VERSION } from "@lib/constants.ts";
 import { downloadMutagen } from "@lib/download.ts";
+import { checkEditorAvailability } from "@lib/editor-launch.ts";
 import {
 	ensureMutagenExtracted,
 	needsMutagenExtraction,
@@ -178,6 +179,80 @@ const checkConfig = (): DoctorCheckResult => {
 	}
 };
 
+// check whether the configured editor command is launchable.
+export const checkEditor = async (
+	checkAvailability: typeof checkEditorAvailability = checkEditorAvailability,
+): Promise<DoctorCheckResult> => {
+	const name = "Editor";
+
+	try {
+		if (!configExists()) {
+			return {
+				name,
+				status: "warn",
+				message: "SkyBox not configured, editor not checked",
+				fix: "Run 'skybox init' to configure your editor",
+			};
+		}
+
+		const config = loadConfig();
+		const editor = config?.editor;
+		if (!editor) {
+			return {
+				name,
+				status: "warn",
+				message: "No default editor configured",
+				fix: "Run 'skybox editor' to choose a default editor",
+			};
+		}
+
+		const availability = await checkAvailability(editor);
+		if (availability.status === "available") {
+			return {
+				name,
+				status: "pass",
+				message: `'${editor}' is available`,
+			};
+		}
+
+		if (
+			availability.status === "fallback" &&
+			availability.command &&
+			availability.fallbackApp
+		) {
+			return {
+				name,
+				status: "warn",
+				message: `'${availability.command}' is not on PATH; using macOS fallback app '${availability.fallbackApp}'`,
+				fix: `Install the '${availability.command}' CLI command or keep using fallback.`,
+			};
+		}
+
+		if (availability.status === "invalid") {
+			return {
+				name,
+				status: "warn",
+				message: availability.error || "Editor command is invalid",
+				fix: "Run 'skybox editor' to set a valid editor command",
+			};
+		}
+
+		return {
+			name,
+			status: "warn",
+			message: `'${editor}' was not found`,
+			fix: `Install '${editor}' or set a command like 'open -a Zed' with 'skybox config set editor "open -a Zed"'.`,
+		};
+	} catch (err) {
+		return {
+			name,
+			status: "warn",
+			message: `Editor check failed: ${err instanceof Error ? err.message : "unknown"}`,
+			fix: "Run 'skybox editor' to reconfigure your editor command",
+		};
+	}
+};
+
 // test SSH connectivity to all configured remotes
 const checkSSHConnectivity = async (): Promise<DoctorCheckResult[]> => {
 	const results: DoctorCheckResult[] = [];
@@ -320,6 +395,7 @@ export const doctorCommand = async (): Promise<void> => {
 	checks.push(await checkMutagen());
 	checks.push(checkDevcontainerCLI());
 	checks.push(checkConfig());
+	checks.push(await checkEditor());
 
 	// Run async checks
 	const sshChecks = await checkSSHConnectivity();

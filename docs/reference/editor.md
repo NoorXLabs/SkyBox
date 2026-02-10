@@ -32,10 +32,18 @@ SkyBox has built-in support for:
 <!--@include: ../snippets/editors-list.md-->
 
 You can also specify a custom editor command by selecting "Other (specify command)".
+Custom editor values can include flags, for example:
+
+- `code --reuse-window`
+- `open -a Zed`
 
 ### How Editors Are Opened
 
-When you run `skybox up --editor`, SkyBox uses the devcontainer CLI to open the project in your configured editor. This ensures the editor connects to the running container with proper devcontainer integration.
+When you run `skybox up --editor`, SkyBox launches your configured editor command directly.
+
+- For `cursor`, `code`, and `code-insiders`, SkyBox opens the Dev Container URI with `--folder-uri`.
+- For other editors, SkyBox opens the local project folder path.
+- On macOS, if a built-in editor command is missing from `PATH` (for example `zed`), SkyBox automatically falls back to `open -a <App>`.
 
 ## Examples
 
@@ -65,9 +73,9 @@ Default editor updated to code.
 
 ```
 ? Select default editor: Other (specify command)
-? Enter editor command: sublime
+? Enter editor command: open -a Zed
 
-Default editor updated to sublime.
+Default editor updated to open -a Zed.
 ```
 
 ## Configuration
