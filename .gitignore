@@ -16,3 +16,10 @@ skybox-bin
 # Lockfile integrity cache
 .lockfile-integrity
 skybox-bin
+
+/.claude/
+/.codex/
+/.conductor/
+/plans/
+/AGENTS.md
+/CLAUDE.md
