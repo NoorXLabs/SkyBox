@@ -30,7 +30,7 @@ This protects project files on the remote server when not actively working. Duri
 
 - **On `skybox down`:** Project files are tarred, encrypted with AES-256-GCM, and plaintext is deleted from the remote
 - **On `skybox up`:** The encrypted archive is decrypted and extracted before sync starts
-- **Key derivation:** Argon2id (memory-hard KDF) derives a 256-bit key from your passphrase
+- **Key derivation:** scrypt (memory-hard KDF) derives a 256-bit key from your passphrase
 - **Passphrase:** Never stored. You must enter it on every `skybox up` and `skybox down`
 
 ### Enable Encryption
@@ -62,7 +62,7 @@ You must enter your passphrase to disable encryption. If an encrypted archive ex
 
 | Component | Implementation |
 |-----------|---------------|
-| Key derivation | Argon2id (64 MiB memory, 3 iterations, parallelism 4) |
+| Key derivation | scrypt (`N=65536`, `r=8`, `p=1`, `maxmem=128 MiB`) |
 | Encryption | AES-256-GCM via `node:crypto` |
 | Salt | Random 16 bytes per project, stored in config |
 | Passphrase | Never stored — entered on every operation |
@@ -92,6 +92,8 @@ projects:
     encryption:
       enabled: true
       salt: "a1b2c3d4..."
+      kdf: "scrypt"
+      kdfParamsVersion: 1
 ```
 
 ## Error Handling

@@ -171,12 +171,16 @@ projects:
     encryption:
       enabled: true
       salt: "a1b2c3d4e5f6..."
+      kdf: "scrypt"
+      kdfParamsVersion: 1
 ```
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `enabled` | `boolean` | Whether encryption at rest is active |
 | `salt` | `string` | Auto-generated hex salt for key derivation. Do not edit. |
+| `kdf` | `"scrypt"` | Key-derivation function used for passphrase-to-key derivation. |
+| `kdfParamsVersion` | `1` | Parameter profile version for the configured KDF. |
 
 Use `skybox encrypt enable/disable` to manage these settings. See [`skybox encrypt`](/reference/encryption).
 

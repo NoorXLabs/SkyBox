@@ -14,9 +14,13 @@ describe("encrypt command", () => {
 		const encConfig = {
 			enabled: true,
 			salt: "abcdef1234567890abcdef1234567890",
+			kdf: "scrypt" as const,
+			kdfParamsVersion: 1 as const,
 		};
 		expect(encConfig.enabled).toBe(true);
 		expect(encConfig.salt).toHaveLength(32);
+		expect(encConfig.kdf).toBe("scrypt");
+		expect(encConfig.kdfParamsVersion).toBe(1);
 	});
 
 	test("salt generation produces valid hex string", () => {

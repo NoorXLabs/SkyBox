@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Encryption key derivation switched from Argon2id to built-in `node:crypto.scrypt` (`N=65536`, `r=8`, `p=1`, `maxmem=128 MiB`).
+- Project encryption metadata now records `kdf: "scrypt"` and `kdfParamsVersion: 1` when enabling encryption.
+
+### Removed
+
+- Removed the `argon2` runtime dependency and legacy Argon2 fallback decryption paths.
+
 ## [0.8.5] - 2026-02-11
 
 ### Fixed

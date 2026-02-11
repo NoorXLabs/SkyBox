@@ -24,7 +24,7 @@ import {
 	startContainer,
 	stopContainer,
 } from "@lib/container.ts";
-import { deriveKey } from "@lib/encryption.ts";
+import { deriveKey, resolveProjectKdf } from "@lib/encryption.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { runHooks } from "@lib/hooks.ts";
 import { getSyncStatus, resumeSync } from "@lib/mutagen.ts";
@@ -389,6 +389,13 @@ const handleDecryption = async (
 		error(
 			"Encryption enabled but no salt in config. Run 'skybox encrypt disable' then re-enable.",
 		);
+		return false;
+	}
+
+	try {
+		resolveProjectKdf(projectConfig.encryption);
+	} catch (err) {
+		error(getErrorMessage(err));
 		return false;
 	}
 

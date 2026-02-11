@@ -65,6 +65,8 @@ export interface RemoteEntry {
 export interface ProjectEncryption {
 	enabled: boolean;
 	salt?: string;
+	kdf?: "scrypt";
+	kdfParamsVersion?: 1;
 }
 
 // v2 SkyBox configuration with multiple named remotes

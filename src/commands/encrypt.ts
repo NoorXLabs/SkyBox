@@ -8,7 +8,8 @@ import {
 } from "@commands/remote.ts";
 import { confirm, password, select } from "@inquirer/prompts";
 import { requireConfig, saveConfig } from "@lib/config.ts";
-import { deriveKey } from "@lib/encryption.ts";
+import { deriveKey, resolveProjectKdf } from "@lib/encryption.ts";
+import { getErrorMessage } from "@lib/errors.ts";
 import {
 	createRemoteArchiveTarget,
 	decryptRemoteArchive,
@@ -113,7 +114,12 @@ const enableEncryption = async (project?: string): Promise<void> => {
 
 	// Generate salt and save
 	const salt = randomBytes(16).toString("hex");
-	config.projects[project].encryption = { enabled: true, salt };
+	config.projects[project].encryption = {
+		enabled: true,
+		salt,
+		kdf: "scrypt",
+		kdfParamsVersion: 1,
+	};
 	saveConfig(config);
 
 	console.log();
@@ -173,6 +179,13 @@ const disableEncryption = async (project?: string): Promise<void> => {
 
 		if (await remoteArchiveExists(archiveTarget)) {
 			const decryptSpin = spinner("Decrypting remote archive...");
+			try {
+				resolveProjectKdf(projectConfig.encryption);
+			} catch (err) {
+				decryptSpin.fail("Unsupported encryption configuration");
+				error(getErrorMessage(err));
+				return;
+			}
 
 			try {
 				const key = await deriveKey(passphrase, projectConfig.encryption.salt);

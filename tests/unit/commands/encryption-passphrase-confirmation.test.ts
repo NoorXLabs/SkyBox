@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 const COMMANDS_DIR = join(process.cwd(), "src", "commands");
 const ENCRYPTION_SETUP_ASSIGNMENT =
-	/\.encryption\s*=\s*\{\s*enabled:\s*true,\s*salt\s*,?\s*\}/gs;
+	/\.encryption\s*=\s*\{[\s\S]*?enabled:\s*true,[\s\S]*?salt,[\s\S]*?\}/gs;
 const ONE_SHOT_CREATION_PROMPT =
 	/password(?:Prompt)?\s*\(\s*\{\s*message:\s*"Enter encryption passphrase:"/s;
 

@@ -161,6 +161,8 @@ export const newCommand = async (): Promise<void> => {
 					currentConfig.projects[projectName].encryption = {
 						enabled: true,
 						salt,
+						kdf: "scrypt",
+						kdfParamsVersion: 1,
 					};
 					saveConfig(currentConfig);
 					success("Encryption enabled for this project.");

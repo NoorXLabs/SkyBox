@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { ProjectEncryption } from "@typedefs/index.ts";
 
 describe("encryption", () => {
 	let testDir: string;
@@ -166,106 +167,76 @@ describe("encryption", () => {
 		expect(ENCRYPTION_CHECK_CONTENT).toBe("skybox-encryption-verify");
 	});
 
-	test("deriveKeyLegacy produces different key from deriveKey", async () => {
-		const { deriveKey, deriveKeyLegacy } = await import("@lib/encryption.ts");
-		const salt = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4";
-		const currentKey = await deriveKey("test-passphrase", salt);
-		const legacyKey = await deriveKeyLegacy("test-passphrase", salt);
-		expect(currentKey).not.toEqual(legacyKey);
-	});
-
-	test("decryptWithFallback decrypts data encrypted with current params", async () => {
-		const { deriveKey, encrypt, decryptWithFallback } = await import(
-			"@lib/encryption.ts"
+	test("deriveKey returns a 32-byte buffer", async () => {
+		const { deriveKey } = await import("@lib/encryption.ts");
+		const key = await deriveKey(
+			"test-passphrase",
+			"a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4",
 		);
-		const salt = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4";
-		const passphrase = "test-passphrase";
-		const plaintext = "secret value";
-
-		// Encrypt with current params
-		const currentKey = await deriveKey(passphrase, salt);
-		const ciphertext = encrypt(plaintext, currentKey);
-
-		// Decrypt with fallback should succeed on first attempt
-		const result = await decryptWithFallback(ciphertext, passphrase, salt);
-		expect(result).toBe(plaintext);
+		expect(Buffer.isBuffer(key)).toBe(true);
+		expect(key.length).toBe(32);
 	});
 
-	test("decryptWithFallback decrypts data encrypted with legacy params", async () => {
-		const { deriveKeyLegacy, encrypt, decryptWithFallback } = await import(
-			"@lib/encryption.ts"
+	test("resolveProjectKdf defaults to scrypt when kdf is missing", async () => {
+		const { resolveProjectKdf } = await import("@lib/encryption.ts");
+		expect(
+			resolveProjectKdf({
+				enabled: true,
+				salt: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4",
+			}),
+		).toBe("scrypt");
+	});
+
+	test("resolveProjectKdf accepts explicit scrypt metadata", async () => {
+		const { resolveProjectKdf } = await import("@lib/encryption.ts");
+		expect(
+			resolveProjectKdf({
+				enabled: true,
+				kdf: "scrypt",
+				kdfParamsVersion: 1,
+			}),
+		).toBe("scrypt");
+	});
+
+	test("resolveProjectKdf throws for unsupported kdf values", async () => {
+		const { resolveProjectKdf } = await import("@lib/encryption.ts");
+		expect(() =>
+			resolveProjectKdf({ enabled: true, kdf: "legacy-kdf" as "scrypt" }),
+		).toThrow("Unsupported encryption KDF");
+	});
+
+	test("resolveProjectKdf throws when kdf is present but empty", async () => {
+		const { resolveProjectKdf } = await import("@lib/encryption.ts");
+		expect(() =>
+			resolveProjectKdf({ enabled: true, kdf: "" as "scrypt" }),
+		).toThrow("Unsupported encryption KDF");
+	});
+
+	test("resolveProjectKdf throws when kdfParamsVersion is set without kdf", async () => {
+		const { resolveProjectKdf } = await import("@lib/encryption.ts");
+		expect(() =>
+			resolveProjectKdf({
+				enabled: true,
+				kdfParamsVersion: 1,
+			} as unknown as ProjectEncryption),
+		).toThrow("kdfParamsVersion is set but kdf is missing");
+	});
+
+	test("resolveProjectKdf throws when kdfParamsVersion is missing", async () => {
+		const { resolveProjectKdf } = await import("@lib/encryption.ts");
+		expect(() => resolveProjectKdf({ enabled: true, kdf: "scrypt" })).toThrow(
+			"Unsupported encryption KDF params version",
 		);
-		const salt = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4";
-		const passphrase = "test-passphrase";
-		const plaintext = "legacy secret value";
-
-		// Encrypt with legacy params (simulates pre-v0.7.7 data)
-		const legacyKey = await deriveKeyLegacy(passphrase, salt);
-		const ciphertext = encrypt(plaintext, legacyKey);
-
-		// Decrypt with fallback should fail with current params, then succeed with legacy
-		const result = await decryptWithFallback(ciphertext, passphrase, salt);
-		expect(result).toBe(plaintext);
 	});
 
-	test("decryptFileWithFallback decrypts file encrypted with current params", async () => {
-		const { deriveKey, encryptFile, decryptFileWithFallback } = await import(
-			"@lib/encryption.ts"
-		);
-		const { writeFileSync, readFileSync } = await import("node:fs");
-		const { join } = await import("node:path");
-
-		const salt = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4";
-		const passphrase = "test-passphrase";
-		const content = Buffer.from("current params file content");
-
-		const inputPath = join(testDir, "current-input.tar");
-		const encryptedPath = join(testDir, "current-input.tar.enc");
-		const outputPath = join(testDir, "current-output.tar");
-
-		writeFileSync(inputPath, content);
-		const currentKey = await deriveKey(passphrase, salt);
-		encryptFile(inputPath, encryptedPath, currentKey);
-
-		await decryptFileWithFallback(encryptedPath, outputPath, passphrase, salt);
-		expect(readFileSync(outputPath)).toEqual(content);
-	});
-
-	test("decryptFileWithFallback decrypts file encrypted with legacy params", async () => {
-		const { deriveKeyLegacy, encryptFile, decryptFileWithFallback } =
-			await import("@lib/encryption.ts");
-		const { writeFileSync, readFileSync } = await import("node:fs");
-		const { join } = await import("node:path");
-
-		const salt = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4";
-		const passphrase = "test-passphrase";
-		const content = Buffer.from("legacy params file content");
-
-		const inputPath = join(testDir, "legacy-input.tar");
-		const encryptedPath = join(testDir, "legacy-input.tar.enc");
-		const outputPath = join(testDir, "legacy-output.tar");
-
-		writeFileSync(inputPath, content);
-		const legacyKey = await deriveKeyLegacy(passphrase, salt);
-		encryptFile(inputPath, encryptedPath, legacyKey);
-
-		await decryptFileWithFallback(encryptedPath, outputPath, passphrase, salt);
-		expect(readFileSync(outputPath)).toEqual(content);
-	});
-
-	test("decryptWithFallback throws when both params fail", async () => {
-		const { deriveKey, encrypt, decryptWithFallback } = await import(
-			"@lib/encryption.ts"
-		);
-		const salt = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4";
-
-		// Encrypt with one passphrase
-		const key = await deriveKey("correct-passphrase", salt);
-		const ciphertext = encrypt("secret", key);
-
-		// Decrypt with wrong passphrase should fail with both current and legacy params
-		await expect(
-			decryptWithFallback(ciphertext, "wrong-passphrase", salt),
-		).rejects.toThrow();
+	test("resolveProjectKdf throws when kdfParamsVersion is unsupported", async () => {
+		const { resolveProjectKdf } = await import("@lib/encryption.ts");
+		expect(() =>
+			resolveProjectKdf({
+				enabled: true,
+				kdf: "scrypt",
+				kdfParamsVersion: 2 as 1,
+			}),
+		).toThrow("Unsupported encryption KDF params version");
 	});
 });

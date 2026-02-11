@@ -213,7 +213,7 @@ For full details on creating, validating, and managing custom templates, see [Cu
 
 ## Encryption
 
-SkyBox supports **per-project encryption at rest** using **AES-256-GCM** authenticated encryption with **Argon2id** key derivation (64 MiB memory, 3 iterations, parallelism 4).
+SkyBox supports **per-project encryption at rest** using **AES-256-GCM** authenticated encryption with **scrypt** key derivation (`N=65536`, `r=8`, `p=1`, `maxmem=128 MiB`).
 
 ### How It Works
 
@@ -227,7 +227,7 @@ The encrypted payload uses an initialization vector (16 bytes), authentication t
 skybox encrypt enable <project>
 ```
 
-You will be prompted to set a passphrase. This passphrase is used to derive the encryption key via Argon2id.
+You will be prompted to set a passphrase. This passphrase is used to derive the encryption key via scrypt.
 
 ::: warning
 **Your passphrase cannot be recovered if forgotten.** There is no reset mechanism. If you lose your passphrase, your encrypted project data CANNOT be recovered.

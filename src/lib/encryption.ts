@@ -1,56 +1,93 @@
 // encryption utilities for SkyBox.
 // provides AES-256-GCM encryption for both config values (string-based)
 // and project archives (file-based).
-// key derivation uses Argon2id (memory-hard KDF).
+// key derivation uses scrypt (memory-hard KDF).
 
-import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
+import {
+	createCipheriv,
+	createDecipheriv,
+	randomBytes,
+	scrypt as scryptCallback,
+} from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import {
-	ARGON2_LEGACY_PARALLELISM,
-	ARGON2_LEGACY_TIME_COST,
-	ARGON2_MEMORY_COST,
-	ARGON2_PARALLELISM,
-	ARGON2_TIME_COST,
 	ENCRYPTION_ALGORITHM,
 	ENCRYPTION_IV_LENGTH,
 	ENCRYPTION_KEY_LENGTH,
 	ENCRYPTION_TAG_LENGTH,
+	SCRYPT_MAXMEM,
+	SCRYPT_N,
+	SCRYPT_P,
+	SCRYPT_R,
 } from "@lib/constants.ts";
-import argon2 from "argon2";
+import type { ProjectEncryption } from "@typedefs/index.ts";
 
-// derive a 256-bit key from a passphrase using Argon2id.
+const deriveKeyWithScrypt = async (
+	passphrase: string,
+	salt: Buffer,
+): Promise<Buffer> => {
+	return new Promise((resolve, reject) => {
+		scryptCallback(
+			passphrase,
+			salt,
+			ENCRYPTION_KEY_LENGTH,
+			{
+				N: SCRYPT_N,
+				r: SCRYPT_R,
+				p: SCRYPT_P,
+				maxmem: SCRYPT_MAXMEM,
+			},
+			(err, derivedKey) => {
+				if (err) {
+					reject(err);
+					return;
+				}
+				resolve(Buffer.from(derivedKey));
+			},
+		);
+	});
+};
+
+// resolve KDF metadata for a project config.
+// missing kdf defaults to scrypt for backward compatibility.
+export const resolveProjectKdf = (encryption?: ProjectEncryption): "scrypt" => {
+	const metadata = encryption as
+		| { kdf?: string; kdfParamsVersion?: number }
+		| undefined;
+	const configuredKdf = metadata?.kdf;
+	const configuredKdfParamsVersion = metadata?.kdfParamsVersion;
+
+	if (configuredKdf === undefined) {
+		if (configuredKdfParamsVersion !== undefined) {
+			throw new Error(
+				"Invalid encryption metadata: kdfParamsVersion is set but kdf is missing. Disable and re-enable encryption for this project.",
+			);
+		}
+		return "scrypt";
+	}
+
+	if (configuredKdf !== "scrypt") {
+		throw new Error(
+			`Unsupported encryption KDF '${configuredKdf}'. This version supports only 'scrypt'. Disable and re-enable encryption for this project.`,
+		);
+	}
+
+	if (configuredKdfParamsVersion !== 1) {
+		throw new Error(
+			`Unsupported encryption KDF params version '${String(configuredKdfParamsVersion)}'. This version supports only kdfParamsVersion=1 for 'scrypt'. Disable and re-enable encryption for this project.`,
+		);
+	}
+
+	return "scrypt";
+};
+
+// derive a 256-bit key from a passphrase using scrypt.
 // memory-hard KDF for resistance to brute-force attacks.
 export const deriveKey = async (
 	passphrase: string,
 	salt: string,
 ): Promise<Buffer> => {
-	return argon2.hash(passphrase, {
-		type: argon2.argon2id,
-		salt: Buffer.from(salt, "hex"),
-		memoryCost: ARGON2_MEMORY_COST,
-		timeCost: ARGON2_TIME_COST,
-		parallelism: ARGON2_PARALLELISM,
-		hashLength: ENCRYPTION_KEY_LENGTH,
-		raw: true,
-	});
-};
-
-// derive a 256-bit key using legacy Argon2 parameters (pre-v0.7.7).
-// used as a fallback when decryption with current parameters fails,
-// indicating the data was encrypted before the OWASP parameter hardening.
-export const deriveKeyLegacy = async (
-	passphrase: string,
-	salt: string,
-): Promise<Buffer> => {
-	return argon2.hash(passphrase, {
-		type: argon2.argon2id,
-		salt: Buffer.from(salt, "hex"),
-		memoryCost: ARGON2_MEMORY_COST,
-		timeCost: ARGON2_LEGACY_TIME_COST,
-		parallelism: ARGON2_LEGACY_PARALLELISM,
-		hashLength: ENCRYPTION_KEY_LENGTH,
-		raw: true,
-	});
+	return deriveKeyWithScrypt(passphrase, Buffer.from(salt, "hex"));
 };
 
 // encrypt a plaintext string. Returns `ENC[base64...]` format.
@@ -132,48 +169,4 @@ export const decryptFile = (
 		decipher.final(),
 	]);
 	writeFileSync(outputPath, decrypted);
-};
-
-// run a decryption operation with current parameters, then retry with legacy parameters on failure
-const withLegacyKeyFallback = async <T>(
-	passphrase: string,
-	salt: string,
-	operation: (key: Buffer) => T,
-): Promise<T> => {
-	const currentKey = await deriveKey(passphrase, salt);
-	try {
-		return operation(currentKey);
-	} catch {
-		const legacyKey = await deriveKeyLegacy(passphrase, salt);
-		return operation(legacyKey);
-	}
-};
-
-// decrypt an `ENC[base64...]` string with automatic legacy parameter fallback.
-// first attempts decryption with the current key. If that fails (e.g., data was
-// encrypted with pre-v0.7.7 Argon2 parameters), re-derives the key using legacy
-// parameters and retries.
-export const decryptWithFallback = async (
-	ciphertext: string,
-	passphrase: string,
-	salt: string,
-): Promise<string> => {
-	return withLegacyKeyFallback(passphrase, salt, (key) =>
-		decrypt(ciphertext, key),
-	);
-};
-
-// decrypt a file with automatic legacy parameter fallback.
-// first attempts decryption with the current key. If that fails (e.g., file was
-// encrypted with pre-v0.7.7 Argon2 parameters), re-derives the key using legacy
-// parameters and retries. Re-throws if both attempts fail.
-export const decryptFileWithFallback = async (
-	inputPath: string,
-	outputPath: string,
-	passphrase: string,
-	salt: string,
-): Promise<void> => {
-	await withLegacyKeyFallback(passphrase, salt, (key) => {
-		decryptFile(inputPath, outputPath, key);
-	});
 };

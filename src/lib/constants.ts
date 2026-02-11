@@ -179,20 +179,17 @@ export const ENCRYPTION_IV_LENGTH = 16;
 // authentication tag length in bytes.
 export const ENCRYPTION_TAG_LENGTH = 16;
 
-// Argon2 memory cost in KiB (64 MiB).
-export const ARGON2_MEMORY_COST = 65536;
+// scrypt CPU/memory cost parameter (N). 65536 targets ~64 MiB.
+export const SCRYPT_N = 65536;
 
-// Argon2 time cost (iterations). OWASP minimum: 3.
-export const ARGON2_TIME_COST = 3;
+// scrypt block size parameter (r).
+export const SCRYPT_R = 8;
 
-// Argon2 parallelism factor. OWASP minimum: 4.
-export const ARGON2_PARALLELISM = 4;
+// scrypt parallelization parameter (p).
+export const SCRYPT_P = 1;
 
-// legacy Argon2 time cost (pre-v0.7.7, before OWASP hardening).
-export const ARGON2_LEGACY_TIME_COST = 2;
-
-// legacy Argon2 parallelism (pre-v0.7.7, before OWASP hardening).
-export const ARGON2_LEGACY_PARALLELISM = 1;
+// max memory for scrypt in bytes (128 MiB headroom for N/r/p above).
+export const SCRYPT_MAXMEM = 128 * 1024 * 1024;
 
 // filename for the encryption verification marker inside archives.
 export const ENCRYPTION_CHECK_FILENAME = ".skybox-enc-check";
