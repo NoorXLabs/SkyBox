@@ -1,5 +1,12 @@
 <h1>
-	<img src="docs/public/skybox-logo-grey.svg" alt="SkyBox logo" width="32" /> SkyBox
+	<img
+		src="docs/public/skybox-logo-grey.svg"
+		alt="SkyBox logo"
+		width="52"
+		align="absmiddle"
+		style="vertical-align: middle; margin-right: 10px;"
+	/>
+	<span style="vertical-align: middle;">SkyBox</span>
 </h1>
 
 Local-first development containers with remote sync and multi-machine support.
