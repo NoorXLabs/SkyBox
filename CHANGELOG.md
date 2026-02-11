@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.5] - 2026-02-11
+
+### Fixed
+
+- Fixed direct installer checksum verification failures caused by ambiguous checksum matches (for example, `skybox-linux-arm64` also matching `skybox-linux-arm64.tar.gz`).
+- Release packaging now keeps `checksums.txt` binary-only and publishes `checksums-all.txt` for full artifact hashes.
+
 ## [0.8.4] - 2026-02-11
 
 ### Fixed
@@ -46,3 +53,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.8.2]: https://github.com/NoorXLabs/SkyBox/compare/v0.8.1...v0.8.2
 [0.8.3]: https://github.com/NoorXLabs/SkyBox/compare/v0.8.2...v0.8.3
 [0.8.4]: https://github.com/NoorXLabs/SkyBox/compare/v0.8.3...v0.8.4
+[0.8.5]: https://github.com/NoorXLabs/SkyBox/compare/v0.8.4...v0.8.5

@@ -66,9 +66,12 @@ jobs:
       - name: Compute SHA256 hashes
         id: sha
         run: |
-          # Generate checksums.txt for users (both raw binaries and tarballs)
+          # checksums.txt is consumed by install/update flows that download raw binaries.
+          # Keep it binary-only to avoid ambiguous matches against *.tar.gz filenames.
+          shasum -a 256 skybox-darwin-arm64 skybox-darwin-x64 skybox-linux-x64 skybox-linux-arm64 > checksums.txt
+          # Publish a complete checksum list for all release artifacts as a separate file.
           shasum -a 256 skybox-darwin-arm64 skybox-darwin-x64 skybox-linux-x64 skybox-linux-arm64 \
-            skybox-darwin-arm64.tar.gz skybox-darwin-x64.tar.gz skybox-linux-x64.tar.gz skybox-linux-arm64.tar.gz > checksums.txt
+            skybox-darwin-arm64.tar.gz skybox-darwin-x64.tar.gz skybox-linux-x64.tar.gz skybox-linux-arm64.tar.gz > checksums-all.txt
           # Output tarball hashes for Homebrew formula
           echo "darwin_arm64=$(shasum -a 256 skybox-darwin-arm64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
           echo "darwin_x64=$(shasum -a 256 skybox-darwin-x64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
@@ -88,6 +91,7 @@ jobs:
             skybox-linux-x64.tar.gz
             skybox-linux-arm64.tar.gz
             checksums.txt
+            checksums-all.txt
           body_path: release-notes.md
 
       - name: Update Homebrew formula
