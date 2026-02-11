@@ -1,0 +1,25 @@
+.DS_Store
+.env
+.worktrees/
+node_modules/
+dist/
+docs/.vitepress/cache/
+docs/.vitepress/dist/
+
+# Vendored binaries
+vendor/
+
+# Bun build artifacts
+skybox-bin
+*.bun-build
+
+# Lockfile integrity cache
+.lockfile-integrity
+skybox-bin
+
+/.claude/
+/.codex/
+/.conductor/
+/plans/
+/AGENTS.md
+/CLAUDE.md

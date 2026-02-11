@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- 
+    Skybox Logo - Matched Weight Version
+    Isometric cube with terminal icon
+    Stroke weight: 22px (matching original)
+  -->
+  
+  <defs>
+    <style>
+      .stroke { 
+        fill: none; 
+        stroke: #3d3d3d; 
+        stroke-width: 22; 
+        stroke-linecap: round; 
+        stroke-linejoin: round; 
+      }
+      .fill-light { fill: #ffffff; }
+      .fill-dark { fill: #3d3d3d; }
+      .terminal-stroke {
+        fill: none;
+        stroke: #ffffff;
+        stroke-width: 16;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .cursor {
+        stroke: #ffffff;
+        stroke-width: 14;
+        stroke-linecap: round;
+      }
+    </style>
+  </defs>
+
+  <!-- Isometric cube vertices (edge length ~320):
+       T  (top):        512, 172
+       L  (left):       224, 338
+       R  (right):      800, 338
+       F  (front):      512, 504
+       BL (bottom-left): 224, 670
+       BR (bottom-right): 800, 670
+       B  (bottom):     512, 836
+  -->
+
+  <!-- Face fills (drawn first, under strokes) -->
+  <g id="fills">
+    <!-- Top face - white -->
+    <polygon class="fill-light" points="512,172 800,338 512,504 224,338"/>
+    
+    <!-- Left face - white -->
+    <polygon class="fill-light" points="224,338 512,504 512,836 224,670"/>
+    
+    <!-- Right face - dark -->
+    <polygon class="fill-dark" points="512,504 800,338 800,670 512,836"/>
+  </g>
+
+  <!-- Edge strokes -->
+  <g id="strokes">
+    <!-- Top face outline -->
+    <polygon class="stroke" points="512,172 800,338 512,504 224,338"/>
+    
+    <!-- Left face outline -->
+    <polygon class="stroke" points="224,338 512,504 512,836 224,670"/>
+    
+    <!-- Right face outline -->
+    <polygon class="stroke" points="512,504 800,338 800,670 512,836"/>
+  </g>
+
+  <!-- Terminal icon on right face -->
+  <g id="terminal">
+    <!-- Terminal window frame (parallelogram following isometric projection) -->
+    <!-- Inset ~35% from right face edges, centered -->
+    <polygon class="terminal-stroke" points="568,540 728,448 728,614 568,706"/>
+    
+    <!-- Cursor underscore -->
+    <line class="cursor" x1="592" y1="646" x2="654" y2="610"/>
+  </g>
+
+</svg>

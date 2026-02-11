@@ -1,0 +1,47 @@
+// config format migration from V1 (single remote) to V2 (multi-remote).
+import type {
+	RemoteEntry,
+	SkyboxConfig,
+	SkyboxConfigV2,
+} from "@typedefs/index.ts";
+
+// check if config needs migration from old single-remote format
+export const needsMigration = (config: unknown): boolean => {
+	if (!config || typeof config !== "object") return false;
+	const c = config as Record<string, unknown>;
+	// Old format has `remote` object, new format has `remotes` map
+	return "remote" in c && !("remotes" in c);
+};
+
+// migrate old single-remote config to new multi-remote format
+export const migrateConfig = (oldConfig: SkyboxConfig): SkyboxConfigV2 => {
+	const remoteName = oldConfig.remote.host;
+
+	const newRemote: RemoteEntry = {
+		host: oldConfig.remote.host,
+		user: undefined, // Will use SSH config
+		path: oldConfig.remote.base_path,
+		key: undefined, // Will use SSH config
+	};
+
+	// Update all projects to reference the migrated remote
+	const migratedProjects: Record<
+		string,
+		{ remote: string; ignore?: string[]; editor?: string }
+	> = {};
+	for (const [name, project] of Object.entries(oldConfig.projects)) {
+		migratedProjects[name] = {
+			...project,
+			remote: remoteName,
+		};
+	}
+
+	// Return new format without the old `remote` field
+	return {
+		editor: oldConfig.editor,
+		defaults: oldConfig.defaults,
+		remotes: { [remoteName]: newRemote },
+		projects: migratedProjects,
+		templates: oldConfig.templates,
+	};
+};

@@ -1,0 +1,19 @@
+pre-commit:
+  piped: true
+  commands:
+    lockfile:
+      priority: 0
+      run: bun run src/lib/verify-lockfile.ts
+      glob: "package.json|bun.lock"
+    check:
+      priority: 1
+      glob: "*.{js,ts,json}"
+      run: bun run check
+      stage_fixed: true
+    typecheck:
+      priority: 2
+      run: bun run typecheck
+    test:
+      priority: 3
+      glob: "{src,tests}/**/*.{ts,test.ts}"
+      run: bun run test

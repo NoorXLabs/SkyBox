@@ -1,0 +1,204 @@
+---
+title: Installation
+description: Install SkyBox and its prerequisites including Docker and the Devcontainer CLI. Set up your first remote server connection.
+---
+
+# Installation
+
+This guide covers installing SkyBox and its dependencies.
+
+## Prerequisites
+
+SkyBox requires:
+
+| Software | Version | Purpose |
+|----------|---------|---------|
+| Docker | 20.10+ | Running development containers |
+| Devcontainer CLI | 0.50+ | Building and managing dev containers |
+| SSH | - | Remote server connection |
+
+::: tip Note
+The devcontainer CLI requires Node.js. Make sure Node.js is installed before installing the devcontainer CLI.
+:::
+
+### Installing Prerequisites
+
+Install the following tools from their official sources before continuing:
+
+- **Docker Desktop** (20.10+) — [Get Docker](https://docs.docker.com/get-started/get-docker/)
+- **Devcontainer CLI** (0.50+) — [Installation instructions](https://github.com/devcontainers/cli#install-script)
+- **SSH** — Pre-installed on macOS and Linux. Windows users need [WSL 2](https://learn.microsoft.com/en-us/windows/wsl/install). SkyBox supports both passwordless and passphrase-protected SSH keys. If your key has a passphrase, SkyBox will prompt you to load it into `ssh-agent` during setup.
+
+## Install SkyBox
+
+::: code-group
+
+```bash [Homebrew (macOS)]
+brew tap NoorXLabs/homebrew-tap
+brew install skybox
+```
+
+```bash [Direct Download (macOS / Linux / WSL)]
+# Install with one command (auto-detects architecture)
+curl -fsSL https://install.noorxlabs.com/skybox | bash
+```
+
+:::
+
+## Verify Installation
+
+Check that SkyBox and its dependencies are installed correctly:
+
+```bash
+# Check SkyBox
+skybox --version
+
+# Check Docker is installed and running
+docker --version
+docker ps
+
+# Check devcontainer CLI
+devcontainer --version
+```
+
+You should see version numbers for all three tools. If `docker ps` fails, make sure Docker Desktop is running.
+
+## Initial Setup
+
+Run the interactive setup wizard:
+
+```bash
+skybox init
+```
+
+The wizard will:
+
+1. **Check dependencies** - Verify Docker and devcontainer CLI are installed
+2. **Install Mutagen** - Extract the bundled file sync tool automatically
+3. **Configure remote server** - Set up SSH connection to your backup server
+4. **Choose editor** - Select your preferred code editor
+
+### Example Setup Session
+
+```
+Welcome to skybox setup!
+
+Checking dependencies...
+  Docker installed
+  Devcontainer CLI available
+
+Installing mutagen...
+  Mutagen installed
+
+Configure remote server
+Select SSH host:
+  1) my-server (192.168.1.100)
+  2) work-vps (work.example.com)
+  3) + Add new server
+
+Testing SSH connection...
+  SSH connection successful
+
+Remote code directory: ~/code
+  Remote directory exists
+
+Configure editor
+Preferred editor:
+  1) Cursor
+  2) VS Code
+  3) VS Code Insiders
+  4) Zed
+  5) Other (specify command)
+
+Setting up skybox...
+  Created ~/.skybox
+  Saved configuration
+
+skybox is ready!
+
+Next steps:
+  Push a local project: skybox push ./my-project
+  Clone from remote: skybox clone <project-name>
+  Browse remote projects: skybox browse
+```
+
+## Configuration Location
+
+SkyBox stores its configuration and projects in `~/.skybox/`:
+
+```
+~/.skybox/
+├── config.yaml      # Main configuration file
+├── Projects/        # Local synced project copies
+├── bin/             # Bundled tools (mutagen)
+└── logs/            # Log files
+```
+
+You can override this location with the `SKYBOX_HOME` environment variable:
+
+```bash
+export SKYBOX_HOME=/custom/path/.skybox
+```
+
+## Troubleshooting
+
+::: tip Quick Diagnosis
+Run `skybox doctor` to automatically check all dependencies, connectivity, and configuration in one command. It will identify most problems and suggest fixes.
+:::
+
+### Docker Not Found
+
+If `skybox init` reports Docker is not found:
+
+1. Ensure Docker is installed: `docker --version`
+2. Check Docker is running: `docker ps`
+3. On macOS, make sure Docker Desktop is running (check the menu bar icon)
+4. On Linux, ensure your user is in the docker group: `sudo usermod -aG docker $USER` (then log out and back in)
+
+### Devcontainer CLI Not Found
+
+If `devcontainer --version` fails:
+
+1. Ensure Node.js is installed first
+2. Install the devcontainer CLI from the [official instructions](https://github.com/devcontainers/cli#install-script)
+
+### SSH Connection Failed
+
+If the SSH connection test fails:
+
+1. Verify you can connect manually: `ssh your-server`
+2. Check your SSH key is added: `ssh-add -l`
+3. Ensure the server is reachable: `ping your-server`
+4. If you see "Could not open a connection to your authentication agent", start the agent first:
+   ```bash
+   eval $(ssh-agent)
+   ```
+
+### Mutagen Installation Failed
+
+If Mutagen fails to install automatically:
+
+1. Run `skybox doctor` to diagnose and automatically re-extract the bundled Mutagen binary
+2. If running from source (dev mode), SkyBox falls back to downloading from GitHub — check your internet connection
+3. Try manual installation: [Mutagen](https://mutagen.io/documentation/introduction/installation)
+
+### Permission Denied Errors
+
+If you encounter permission issues:
+
+```bash
+# Fix ownership of skybox directory
+sudo chown -R $USER:$USER ~/.skybox
+
+# Ensure SSH key has correct permissions
+chmod 600 ~/.ssh/id_ed25519
+chmod 700 ~/.ssh
+```
+
+## Next Steps
+
+Once installation is complete, follow the **[Quick Start](/guide/quick-start)** to set up your first project and start developing in a container.
+
+Want to learn more first?
+- [Core Concepts](/guide/concepts) - Understand how projects, containers, and sync work together
+- [Workflows](/guide/workflows/daily-development) - Day-to-day development patterns

@@ -1,0 +1,27 @@
+{
+	"files.readonlyInclude": {
+		"**/.tanstack/**/*": true,
+		"**/routeTree.gen.ts": true,
+		"bun.lock": true
+	},
+	"files.watcherExclude": {
+		"**/.tanstack/**/*": true,
+		"**/routeTree.gen.ts": true,
+		"bun.lock": true
+	},
+	"search.exclude": {
+		"**/.tanstack/**/*": true,
+		"**/routeTree.gen.ts": true,
+		"bun.lock": true
+	},
+	"editor.codeActionsOnSave": {
+		"source.organizeImports.biome": "explicit",
+		"source.fixAll.biome": "explicit",
+		"source.quickfix.biome": "explicit",
+		"source.action.useSortedAttributes.biome": "explicit"
+	},
+	"javascript.preferences.importModuleSpecifierEnding": "auto",
+	"typescript.preferences.importModuleSpecifierEnding": "auto",
+	"editor.defaultFormatter": "biomejs.biome",
+	"editor.formatOnSave": true
+}

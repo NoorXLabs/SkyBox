@@ -1,0 +1,59 @@
+/**
+ * SkyBox Documentation Theme
+ *
+ * Customize VitePress default theme variables here.
+ * See: https://vitepress.dev/reference/default-theme-config#customizing-css
+ */
+
+:root {
+  /* Brand colors - customize as needed */
+  --vp-c-brand-1: #5b8def;
+  --vp-c-brand-2: #3a6bc7;
+  --vp-c-brand-3: #2952a3;
+  --vp-c-brand-soft: rgba(91, 141, 239, 0.14);
+
+  /* Hero gradient - customize as needed */
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: -webkit-linear-gradient(
+    120deg,
+    #5b8def 30%,
+    #41d1ff
+  );
+
+  --vp-home-hero-image-background-image: linear-gradient(
+    -45deg,
+    #5b8def 50%,
+    #47caff 50%
+  );
+  --vp-home-hero-image-filter: blur(44px);
+}
+
+.dark {
+  /* Dark mode brand colors */
+  --vp-c-brand-1: #6b9eff;
+  --vp-c-brand-2: #5b8def;
+  --vp-c-brand-3: #4a7cde;
+  --vp-c-brand-soft: rgba(107, 158, 255, 0.16);
+}
+
+/**
+ * Component customizations
+ */
+
+/* Custom code block styling */
+.vp-doc div[class*='language-'] {
+  border-radius: 8px;
+}
+
+/* Custom button styling */
+.VPButton.brand {
+  border-radius: 6px;
+}
+
+/* Larger navbar logo */
+.VPNavBarTitle .logo {
+  height: 32px;
+  width: 32px;
+}
+
+/* Add more custom styles as needed */

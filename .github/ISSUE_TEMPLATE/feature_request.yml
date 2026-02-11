@@ -1,0 +1,40 @@
+name: Feature Request
+description: Propose an improvement or new capability for SkyBox
+title: "[Feature]: "
+labels: ["type:feature", "status:needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea. Focus on the problem first, then propose the solution.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What user problem are you trying to solve?
+      placeholder: I need to ...
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Solution
+      description: Describe the behavior you want
+      placeholder: SkyBox should ...
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered (Optional)
+      description: Other approaches you considered and why they are insufficient
+    validations:
+      required: false
+  - type: textarea
+    id: impact
+    attributes:
+      label: Scope and Impact (Optional)
+      description: Affected commands, workflows, docs, or compatibility concerns
+    validations:
+      required: false
+

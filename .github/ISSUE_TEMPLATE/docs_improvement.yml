@@ -1,0 +1,29 @@
+name: Documentation Improvement
+description: Suggest improvements to docs, examples, or guides
+title: "[Docs]: "
+labels: ["type:docs", "area:docs", "status:needs-triage"]
+body:
+  - type: textarea
+    id: location
+    attributes:
+      label: Affected Page or Section
+      description: Link the page and mention the specific heading or section
+      placeholder: docs/guide/quick-start.md - "Start your first project"
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested Change
+      description: What should be changed and why?
+      placeholder: The command example should use ...
+    validations:
+      required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context (Optional)
+      description: Screenshots, copy suggestions, or related links
+    validations:
+      required: false
+

@@ -1,0 +1,38 @@
+name: Integration Tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  integration:
+    runs-on: self-hosted
+    # Prevent fork PRs from running on self-hosted runner
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 25
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install modern C++ compiler
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq g++-10
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 100
+      - run: bun install
+      - name: Install devcontainer CLI
+        run: npm install -g @devcontainers/cli
+      - name: Check Docker availability
+        run: docker info
+      - name: Run integration tests
+        run: bun test:integration
+      - name: Cleanup test containers
+        if: always()
+        run: |
+          docker ps -aq --filter "label=skybox-test=true" | xargs -r docker rm -f || true
+          docker volume ls -q --filter "label=skybox-test=true" | xargs -r docker volume rm -f || true

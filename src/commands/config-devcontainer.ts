@@ -1,0 +1,147 @@
+// src/commands/config-devcontainer.ts
+
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { exitWithError, exitWithErrorAndInfo } from "@lib/command-guard.ts";
+import { loadConfig } from "@lib/config.ts";
+import {
+	DEVCONTAINER_CONFIG_NAME,
+	DEVCONTAINER_DIR_NAME,
+	WORKSPACE_PATH_PREFIX,
+} from "@lib/constants.ts";
+import { launchFileInEditor } from "@lib/editor-launch.ts";
+import { getProjectPath, projectExists } from "@lib/project.ts";
+import { pushDevcontainerJsonToRemote } from "@lib/remote-devcontainer.ts";
+import { selectTemplate, writeDevcontainerConfig } from "@lib/templates.ts";
+import { dryRun, error, info, isDryRun, spinner, success } from "@lib/ui.ts";
+import type { SkyboxConfigV2 } from "@typedefs/index.ts";
+
+// build the path to a project's devcontainer.json file
+const getDevcontainerPath = (projectPath: string): string => {
+	return join(projectPath, DEVCONTAINER_DIR_NAME, DEVCONTAINER_CONFIG_NAME);
+};
+
+// open a project's devcontainer.json in the configured editor and push changes to remote
+export const devcontainerEditCommand = async (
+	project: string,
+): Promise<void> => {
+	if (!projectExists(project)) {
+		exitWithError(`Project "${project}" not found locally.`);
+	}
+
+	const projectPath = getProjectPath(project);
+	const configPath = getDevcontainerPath(projectPath);
+
+	if (!existsSync(configPath)) {
+		exitWithErrorAndInfo(
+			`No devcontainer.json found for "${project}".`,
+			'Use "skybox config devcontainer reset" to create one from a template.',
+		);
+	}
+
+	if (isDryRun()) {
+		dryRun(`Would open ${configPath} in editor`);
+		dryRun(`Would push devcontainer.json to remote`);
+		return;
+	}
+
+	const config = loadConfig();
+	const editor = config?.editor || process.env.EDITOR || "vim";
+
+	const openResult = await launchFileInEditor(editor, configPath, {
+		inheritStdio: true,
+	});
+	if (!openResult.success) {
+		error(`Editor failed: ${openResult.error || "Unknown error"}`);
+		return;
+	}
+
+	// Push to remote
+	await pushDevcontainerToRemote(project, projectPath, config);
+};
+
+// reset a project's devcontainer.json from a template and push to remote
+export const devcontainerResetCommand = async (
+	project: string,
+): Promise<void> => {
+	if (!projectExists(project)) {
+		exitWithError(`Project "${project}" not found locally.`);
+	}
+
+	const projectPath = getProjectPath(project);
+
+	if (isDryRun()) {
+		dryRun(`Would reset devcontainer.json for '${project}' from template`);
+		dryRun(`Would push devcontainer.json to remote`);
+		return;
+	}
+
+	const selection = await selectTemplate({ allowGitUrl: false });
+	if (!selection) {
+		return;
+	}
+
+	if (selection.source === "git") {
+		error("Git URL templates are not supported for devcontainer reset.");
+		info("Use 'skybox new' to create a project from a git template.");
+		return;
+	}
+
+	const devcontainerConfig = {
+		...selection.config,
+		workspaceFolder: `${WORKSPACE_PATH_PREFIX}/${project}`,
+		workspaceMount: `source=\${localWorkspaceFolder},target=${WORKSPACE_PATH_PREFIX}/${project},type=bind,consistency=cached`,
+	};
+
+	writeDevcontainerConfig(projectPath, devcontainerConfig);
+	success("Reset devcontainer.json from template.");
+
+	// Push to remote
+	const appConfig = loadConfig();
+	await pushDevcontainerToRemote(project, projectPath, appConfig);
+};
+
+// push the local devcontainer.json to the project's remote server
+const pushDevcontainerToRemote = async (
+	project: string,
+	projectPath: string,
+	config: SkyboxConfigV2 | null,
+): Promise<void> => {
+	if (!config) {
+		info("No config found. Skipped pushing to remote.");
+		return;
+	}
+
+	const projectConfig = config.projects?.[project];
+	if (!projectConfig) {
+		info("No remote configured for this project. Skipped pushing to remote.");
+		return;
+	}
+
+	const remoteName = projectConfig.remote;
+	const remote = config.remotes?.[remoteName];
+	if (!remote) {
+		info("No remote configured. Skipped pushing to remote.");
+		return;
+	}
+
+	const remoteHost = remote.user
+		? `${remote.user}@${remote.host}`
+		: remote.host;
+	const remotePath = `${remote.path}/${project}`;
+	const configPath = getDevcontainerPath(projectPath);
+	const configContent = readFileSync(configPath, "utf-8");
+
+	const s = spinner("Pushing devcontainer.json to remote...");
+	const result = await pushDevcontainerJsonToRemote(
+		remoteHost,
+		remotePath,
+		configContent,
+		remote.key ?? undefined,
+	);
+	if (result.success) {
+		s.succeed("Pushed devcontainer.json to remote.");
+	} else {
+		s.fail(`Failed to push: ${result.error}`);
+	}
+};

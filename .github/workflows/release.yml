@@ -1,0 +1,192 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "25"
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Download Mutagen binaries for bundling
+        run: bash scripts/download-mutagen.sh
+
+      - name: Verify lockfile integrity
+        run: bun run src/lib/verify-lockfile.ts
+
+      - name: Build all platforms
+        env:
+          RYBBIT_URL: ${{ secrets.RYBBIT_URL }}
+          RYBBIT_SITE_ID: ${{ secrets.RYBBIT_SITE_ID }}
+          RYBBIT_API_KEY: ${{ secrets.RYBBIT_API_KEY }}
+        run: |
+          bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.SKYBOX_INSTALL_METHOD='github-release'" --define "process.env.RYBBIT_URL='${RYBBIT_URL}'" --define "process.env.RYBBIT_SITE_ID='${RYBBIT_SITE_ID}'" --define "process.env.RYBBIT_API_KEY='${RYBBIT_API_KEY}'" --target=bun-darwin-arm64 --outfile=skybox-darwin-arm64
+          bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.SKYBOX_INSTALL_METHOD='github-release'" --define "process.env.RYBBIT_URL='${RYBBIT_URL}'" --define "process.env.RYBBIT_SITE_ID='${RYBBIT_SITE_ID}'" --define "process.env.RYBBIT_API_KEY='${RYBBIT_API_KEY}'" --target=bun-darwin-x64 --outfile=skybox-darwin-x64
+          bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.SKYBOX_INSTALL_METHOD='github-release'" --define "process.env.RYBBIT_URL='${RYBBIT_URL}'" --define "process.env.RYBBIT_SITE_ID='${RYBBIT_SITE_ID}'" --define "process.env.RYBBIT_API_KEY='${RYBBIT_API_KEY}'" --target=bun-linux-x64 --outfile=skybox-linux-x64
+          bun build ./src/index.ts --compile --minify --sourcemap --define "process.env.SKYBOX_INSTALL_METHOD='github-release'" --define "process.env.RYBBIT_URL='${RYBBIT_URL}'" --define "process.env.RYBBIT_SITE_ID='${RYBBIT_SITE_ID}'" --define "process.env.RYBBIT_API_KEY='${RYBBIT_API_KEY}'" --target=bun-linux-arm64 --outfile=skybox-linux-arm64
+
+      - name: Create tarballs
+        run: |
+          tar -czvf skybox-darwin-arm64.tar.gz skybox-darwin-arm64
+          tar -czvf skybox-darwin-x64.tar.gz skybox-darwin-x64
+          tar -czvf skybox-linux-x64.tar.gz skybox-linux-x64
+          tar -czvf skybox-linux-arm64.tar.gz skybox-linux-arm64
+
+      - name: Get version
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Extract changelog for this version
+        id: changelog
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          # Extract the section between this version's header and the next version header
+          BODY=$(awk "/^## \\[${VERSION}\\]/{found=1; next} /^## \\[/{if(found) exit} found{print}" CHANGELOG.md)
+          # Write to file to preserve newlines
+          echo "$BODY" > release-notes.md
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            skybox-darwin-arm64
+            skybox-darwin-x64
+            skybox-linux-x64
+            skybox-linux-arm64
+            skybox-darwin-arm64.tar.gz
+            skybox-darwin-x64.tar.gz
+            skybox-linux-x64.tar.gz
+            skybox-linux-arm64.tar.gz
+            checksums.txt
+          body_path: release-notes.md
+
+      - name: Compute SHA256 hashes
+        id: sha
+        run: |
+          # Generate checksums.txt for users (both raw binaries and tarballs)
+          shasum -a 256 skybox-darwin-arm64 skybox-darwin-x64 skybox-linux-x64 skybox-linux-arm64 \
+            skybox-darwin-arm64.tar.gz skybox-darwin-x64.tar.gz skybox-linux-x64.tar.gz skybox-linux-arm64.tar.gz > checksums.txt
+          # Output tarball hashes for Homebrew formula
+          echo "darwin_arm64=$(shasum -a 256 skybox-darwin-arm64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "darwin_x64=$(shasum -a 256 skybox-darwin-x64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "linux_x64=$(shasum -a 256 skybox-linux-x64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+          echo "linux_arm64=$(shasum -a 256 skybox-linux-arm64.tar.gz | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+
+      - name: Update Homebrew formula
+        if: ${{ !contains(github.ref, '-') }}
+        env:
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+          SHA_DARWIN_ARM64: ${{ steps.sha.outputs.darwin_arm64 }}
+          SHA_DARWIN_X64: ${{ steps.sha.outputs.darwin_x64 }}
+          SHA_LINUX_X64: ${{ steps.sha.outputs.linux_x64 }}
+          SHA_LINUX_ARM64: ${{ steps.sha.outputs.linux_arm64 }}
+        run: |
+          # Mask the token to prevent exposure in logs on error
+          echo "::add-mask::${HOMEBREW_TAP_TOKEN}"
+
+          # Configure git to use token via credential helper (not in URL)
+          cd ${{ runner.temp }}
+          git config --global credential.helper store
+          echo "https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com" > ~/.git-credentials
+          chmod 600 ~/.git-credentials
+
+          git clone https://github.com/NoorXLabs/homebrew-tap.git
+          cd homebrew-tap
+
+          cat > Formula/skybox.rb << 'FORMULA'
+          class Skybox < Formula
+            desc "Local-first development container manager"
+            homepage "https://github.com/NoorXLabs/SkyBox"
+            version "VERSION_PLACEHOLDER"
+            license "Apache-2.0"
+
+            on_macos do
+              on_arm do
+                url "https://github.com/NoorXLabs/SkyBox/releases/download/vVERSION_PLACEHOLDER/skybox-darwin-arm64.tar.gz"
+                sha256 "SHA_DARWIN_ARM64_PLACEHOLDER"
+              end
+
+              on_intel do
+                url "https://github.com/NoorXLabs/SkyBox/releases/download/vVERSION_PLACEHOLDER/skybox-darwin-x64.tar.gz"
+                sha256 "SHA_DARWIN_X64_PLACEHOLDER"
+              end
+            end
+
+            on_linux do
+              on_intel do
+                url "https://github.com/NoorXLabs/SkyBox/releases/download/vVERSION_PLACEHOLDER/skybox-linux-x64.tar.gz"
+                sha256 "SHA_LINUX_X64_PLACEHOLDER"
+              end
+
+              on_arm do
+                url "https://github.com/NoorXLabs/SkyBox/releases/download/vVERSION_PLACEHOLDER/skybox-linux-arm64.tar.gz"
+                sha256 "SHA_LINUX_ARM64_PLACEHOLDER"
+              end
+            end
+
+            def install
+              if OS.mac? && Hardware::CPU.arm?
+                bin.install "skybox-darwin-arm64" => "skybox"
+              elsif OS.mac? && Hardware::CPU.intel?
+                bin.install "skybox-darwin-x64" => "skybox"
+              elsif OS.linux? && Hardware::CPU.intel?
+                bin.install "skybox-linux-x64" => "skybox"
+              elsif OS.linux? && Hardware::CPU.arm?
+                bin.install "skybox-linux-arm64" => "skybox"
+              end
+            end
+
+            def caveats
+              <<~EOS
+                SkyBox requires Docker Desktop to be running.
+                Start Docker Desktop before using skybox commands.
+
+                Get started:
+                  skybox init
+              EOS
+            end
+
+            test do
+              assert_match version.to_s, shell_output("#{bin}/skybox --version")
+            end
+          end
+          FORMULA
+
+          sed -i'' -e "s/VERSION_PLACEHOLDER/${VERSION}/g" Formula/skybox.rb
+          sed -i'' -e "s/SHA_DARWIN_ARM64_PLACEHOLDER/${SHA_DARWIN_ARM64}/g" Formula/skybox.rb
+          sed -i'' -e "s/SHA_DARWIN_X64_PLACEHOLDER/${SHA_DARWIN_X64}/g" Formula/skybox.rb
+          sed -i'' -e "s/SHA_LINUX_X64_PLACEHOLDER/${SHA_LINUX_X64}/g" Formula/skybox.rb
+          sed -i'' -e "s/SHA_LINUX_ARM64_PLACEHOLDER/${SHA_LINUX_ARM64}/g" Formula/skybox.rb
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/skybox.rb
+          git commit -m "Update skybox to v${VERSION}"
+          git push
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -rf skybox-* homebrew-tap
+          rm -rf ${{ runner.temp }}/homebrew-tap
+          rm -f ~/.git-credentials
+          git config --global --unset credential.helper || true

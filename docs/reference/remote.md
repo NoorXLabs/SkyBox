@@ -1,0 +1,203 @@
+---
+title: skybox remote
+description: Manage remote server configurations with skybox remote. Add, edit, remove, and list configured remote servers.
+---
+
+# skybox remote
+
+Manage remote server configurations.
+
+## Usage
+
+```bash
+skybox remote <subcommand> [options]
+```
+
+## Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| `add [name] [user@host:path]` | Add a new remote server |
+| `list` | List all configured remotes |
+| `remove <name>` | Remove a remote server |
+| `rename <old> <new>` | Rename a remote server |
+
+## Description
+
+The `remote` command manages connections to remote servers where your projects are stored and synced. SkyBox supports multiple remote servers, allowing you to organize projects across different machines (e.g., work server, personal server, client servers).
+
+### Multi-Remote Support
+
+Each project is associated with exactly one remote. When you have multiple remotes configured, commands like `push`, `clone`, and `browse` will prompt you to select which remote to use.
+
+## Subcommand Details
+
+### `skybox remote add`
+
+Add a new remote server configuration.
+
+**Interactive mode:**
+```bash
+skybox remote add
+```
+
+Walks you through:
+1. Remote name (identifier)
+2. Server hostname or IP
+3. SSH username
+4. Remote projects directory
+5. SSH key selection
+6. Connection test
+7. Directory creation (if needed)
+
+All SSH fields are validated as you enter them. Hostnames, usernames, key paths, and remote paths are checked for invalid characters (such as newlines or shell metacharacters) and will prompt you to re-enter if invalid.
+
+**Direct mode:**
+```bash
+skybox remote add <name> <user@host:path> [--key <path>]
+```
+
+| Option | Description |
+|--------|-------------|
+| `-k, --key <path>` | Path to SSH private key |
+
+### `skybox remote list`
+
+Display all configured remotes.
+
+```bash
+skybox remote list
+```
+
+Output:
+```
+  production  deploy@prod.example.com:~/code
+  personal    noor@home-server:~/projects
+```
+
+### `skybox remote remove`
+
+Remove a remote configuration.
+
+```bash
+skybox remote remove <name>
+```
+
+If projects are associated with the remote, you'll be warned:
+
+```
+The following projects use this remote:
+    my-app
+    backend-api
+Remove remote anyway? (projects will need to be reassigned) (y/N)
+```
+
+### `skybox remote rename`
+
+Rename a remote and update all project references.
+
+```bash
+skybox remote rename <old-name> <new-name>
+```
+
+This automatically updates all projects that reference the old name.
+
+## Examples
+
+```bash
+# Interactive wizard to add a remote
+skybox remote add
+
+# Add remote directly
+skybox remote add myserver root@192.168.1.100:~/code
+
+# Add remote with specific SSH key
+skybox remote add myserver root@host:~/code --key ~/.ssh/id_ed25519
+
+# List all remotes
+skybox remote list
+
+# Remove a remote
+skybox remote remove myserver
+
+# Rename a remote
+skybox remote rename myserver production
+```
+
+### Typical Multi-Remote Setup
+
+```bash
+# Add work server
+skybox remote add work deploy@work.example.com:~/projects
+
+# Add personal server
+skybox remote add personal me@home-server:~/code
+
+# Push project to specific remote
+skybox push ./my-project
+# ? Select remote: work
+
+# Clone from specific remote
+skybox clone my-project
+# ? Select remote: personal
+```
+
+## Remote Entry Format
+
+Each remote is stored in the configuration with these fields:
+
+| Field | Description |
+|-------|-------------|
+| `host` | SSH hostname or IP address |
+| `user` | SSH username (or null to use SSH config default) |
+| `path` | Base directory for projects on the remote |
+| `key` | Path to SSH private key (or null to use SSH config default) |
+| `useKeychain` | macOS only: persist SSH key passphrase in Keychain (default: `false`) |
+
+Both passwordless and passphrase-protected SSH keys are supported. If you select a passphrase-protected key, SkyBox will prompt to load it into `ssh-agent` so you only enter the passphrase once. On macOS, you can set `useKeychain: true` to persist the passphrase across reboots.
+
+Example in `~/.skybox/config.yaml`:
+
+```yaml
+remotes:
+  production:
+    host: prod.example.com
+    user: deploy
+    path: ~/code
+    key: ~/.ssh/id_ed25519
+    useKeychain: true   # macOS only: persist passphrase in Keychain
+
+  personal:
+    host: home-server
+    user: null          # Uses SSH config
+    path: ~/projects
+    key: null           # Uses SSH config
+```
+
+## SSH Key Setup
+
+SkyBox supports both passwordless and passphrase-protected SSH keys when adding a remote.
+
+If a passphrase-protected key is selected, SkyBox loads it into `ssh-agent` so you only need to enter the passphrase once. On macOS, you can enable `useKeychain: true` to persist the passphrase in the Keychain across reboots.
+
+When adding a remote, if the connection test fails, you'll be offered to copy your SSH key:
+
+```
+SSH connection failed
+Copy SSH key to server? (requires password) (Y/n)
+```
+
+This runs `ssh-copy-id` to install your public key on the server.
+
+## Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success |
+| 1 | Error (invalid format, remote not found, connection failed) |
+
+## See Also
+
+- [skybox init](/reference/init) - Initial setup (creates first remote)
+- [skybox config](/reference/config) - View/modify configuration
+- [Configuration Reference](/reference/configuration) - Full config file format

@@ -1,0 +1,347 @@
+// src/commands/new.ts
+
+import { cloneSingleProject } from "@commands/clone.ts";
+import { getRemoteHost, selectRemote } from "@commands/remote.ts";
+import { upCommand } from "@commands/up.ts";
+import { select } from "@inquirer/prompts";
+import { loadConfig, requireConfig, saveConfig } from "@lib/config.ts";
+import {
+	DEVCONTAINER_CONFIG_NAME,
+	DEVCONTAINER_DIR_NAME,
+	MAX_NAME_ATTEMPTS,
+	WORKSPACE_PATH_PREFIX,
+} from "@lib/constants.ts";
+import { hasLocalDevcontainerConfig } from "@lib/container.ts";
+import { offerStartContainer } from "@lib/container-start.ts";
+import { getErrorMessage } from "@lib/errors.ts";
+import { getProjectPath } from "@lib/project.ts";
+import { pushDevcontainerJsonToRemote } from "@lib/remote-devcontainer.ts";
+import { escapeRemotePath, escapeShellArg } from "@lib/shell.ts";
+import { runRemoteCommand } from "@lib/ssh.ts";
+import { selectTemplate, writeDevcontainerConfig } from "@lib/templates.ts";
+import {
+	dryRun,
+	error,
+	header,
+	info,
+	isDryRun,
+	promptPassphraseWithConfirmation,
+	spinner,
+	success,
+	warn,
+} from "@lib/ui.ts";
+import { toInquirerValidator, validateProjectName } from "@lib/validation.ts";
+import type {
+	DevcontainerConfig,
+	RemoteEntry,
+	SkyboxConfigV2,
+} from "@typedefs/index.ts";
+import inquirer from "inquirer";
+
+// add workspace folder and mount settings to a devcontainer config
+const withWorkspaceSettings = (
+	config: DevcontainerConfig,
+	projectName: string,
+): DevcontainerConfig => {
+	return {
+		...config,
+		workspaceFolder: `${WORKSPACE_PATH_PREFIX}/${projectName}`,
+		workspaceMount: `source=\${localWorkspaceFolder},target=${WORKSPACE_PATH_PREFIX}/${projectName},type=bind,consistency=cached`,
+	};
+};
+
+// create a new project on remote from a template or git URL
+export const newCommand = async (): Promise<void> => {
+	const config = requireConfig();
+
+	header("Create a new project");
+
+	if (isDryRun()) {
+		dryRun("Would prompt for remote selection");
+		dryRun("Would prompt for project name");
+		dryRun("Would check if project exists on remote via SSH");
+		dryRun("Would prompt for template selection");
+		dryRun("Would create project on remote server");
+		if (config.defaults.encryption) {
+			dryRun("Would prompt for encryption configuration");
+		}
+		dryRun("Would offer to clone project locally");
+		return;
+	}
+
+	// Select which remote to create the project on
+	const remoteName = await selectRemote(config);
+	const remote = config.remotes[remoteName];
+	const host = getRemoteHost(remote);
+
+	// Step 1: Get project name (with retry loop for existing names)
+	let projectName: string;
+	let nameAttempts = 0;
+
+	while (true) {
+		const { name } = await inquirer.prompt([
+			{
+				type: "input",
+				name: "name",
+				message: "Project name:",
+				validate: toInquirerValidator(validateProjectName),
+			},
+		]);
+		projectName = name;
+
+		// Step 2: Check if project exists on remote
+		const checkSpin = spinner("Checking remote...");
+		const checkResult = await runRemoteCommand(
+			host,
+			`test -d ${escapeRemotePath(`${remote.path}/${projectName}`)} && echo "EXISTS" || echo "NOT_FOUND"`,
+		);
+
+		if (checkResult.stdout?.includes("EXISTS")) {
+			checkSpin.fail("Project already exists");
+			nameAttempts++;
+
+			if (nameAttempts >= MAX_NAME_ATTEMPTS) {
+				error("Too many attempts. Please try again later.");
+				process.exit(1);
+			}
+
+			info(
+				`A project named '${projectName}' already exists. Please choose a different name.`,
+			);
+			continue;
+		}
+
+		checkSpin.succeed("Name available");
+		break;
+	}
+
+	// Step 3: Select template using unified selector
+	const selection = await selectTemplate();
+	if (!selection) {
+		return;
+	}
+
+	if (selection.source === "git") {
+		// Git URL: clone the repo to remote
+		await cloneGitToRemote(remote, projectName, selection.url);
+	} else {
+		// Built-in or user template: create empty project with devcontainer config
+		await createProjectWithConfig(remote, projectName, selection.config);
+	}
+
+	// Prompt for encryption if default is enabled
+	if (config.defaults.encryption) {
+		const { confirm: confirmPrompt } = await import("@inquirer/prompts");
+		const { randomBytes } = await import("node:crypto");
+
+		const enableEnc = await confirmPrompt({
+			message: "Enable encryption for this project?",
+			default: true,
+		});
+
+		if (enableEnc) {
+			warn(
+				"Your passphrase is NEVER stored. If you forget it, your encrypted data CANNOT be recovered.",
+			);
+
+			const understood = await confirmPrompt({
+				message: "I understand the risks",
+				default: false,
+			});
+
+			if (understood) {
+				await promptPassphraseWithConfirmation("Enter encryption passphrase:");
+
+				const salt = randomBytes(16).toString("hex");
+				const currentConfig = loadConfig();
+				if (currentConfig) {
+					if (!currentConfig.projects[projectName]) {
+						currentConfig.projects[projectName] = { remote: remoteName };
+					}
+					currentConfig.projects[projectName].encryption = {
+						enabled: true,
+						salt,
+					};
+					saveConfig(currentConfig);
+					success("Encryption enabled for this project.");
+				}
+			}
+		}
+	}
+
+	// For built-in/user templates, pass the config so we can ensure
+	// devcontainer.json exists locally after clone (avoids duplicate prompt)
+	const devcontainerConfig =
+		selection.source !== "git" ? selection.config : undefined;
+	await offerClone(projectName, remoteName, config, devcontainerConfig);
+};
+
+// create a project directory on the remote with devcontainer.json and git init
+const createProjectWithConfig = async (
+	remote: RemoteEntry,
+	projectName: string,
+	devcontainerConfig: DevcontainerConfig,
+): Promise<void> => {
+	const host = getRemoteHost(remote);
+	const remotePath = `${remote.path}/${projectName}`;
+
+	const createSpin = spinner("Creating project on remote...");
+
+	// Add workspace settings to the config
+	const config = withWorkspaceSettings(devcontainerConfig, projectName);
+
+	const devcontainerJson = JSON.stringify(config, null, 2);
+	const createResult = await pushDevcontainerJsonToRemote(
+		host,
+		remotePath,
+		devcontainerJson,
+	);
+
+	if (!createResult.success) {
+		createSpin.fail("Failed to create project");
+		error(createResult.error || "Unknown error");
+		process.exit(1);
+	}
+
+	// Initialize git repo
+	const gitResult = await runRemoteCommand(
+		host,
+		`cd ${escapeRemotePath(remotePath)} && git init`,
+	);
+
+	if (!gitResult.success) {
+		createSpin.warn("Project created but git init failed");
+	} else {
+		createSpin.succeed("Project created on remote");
+	}
+};
+
+// clone a git template URL to the remote server
+const cloneGitToRemote = async (
+	remote: RemoteEntry,
+	projectName: string,
+	templateUrl: string,
+): Promise<void> => {
+	const host = getRemoteHost(remote);
+	const remotePath = `${remote.path}/${projectName}`;
+
+	// Ask about git history
+	const historyChoice = await select({
+		message: "Git history:",
+		choices: [
+			{ name: "Start fresh (recommended)", value: "fresh" },
+			{ name: "Keep original history", value: "keep" },
+		],
+	});
+	const keepHistory = historyChoice === "keep";
+
+	const cloneSpin = spinner("Cloning template to remote...");
+
+	const tempPath = `/tmp/skybox-template-${Date.now()}`;
+
+	let cloneCmd: string;
+	if (keepHistory) {
+		cloneCmd = `git clone ${escapeShellArg(templateUrl)} ${escapeShellArg(tempPath)} && mv ${escapeShellArg(tempPath)} ${escapeRemotePath(remotePath)}`;
+	} else {
+		cloneCmd = `git clone ${escapeShellArg(templateUrl)} ${escapeShellArg(tempPath)} && rm -rf ${escapeShellArg(`${tempPath}/.git`)} && git -C ${escapeShellArg(tempPath)} init && mv ${escapeShellArg(tempPath)} ${escapeRemotePath(remotePath)}`;
+	}
+
+	const cloneResult = await runRemoteCommand(host, cloneCmd);
+
+	if (!cloneResult.success) {
+		cloneSpin.fail("Failed to clone template");
+		error(cloneResult.error || "Unknown error");
+
+		const retryChoice = await select({
+			message: "What would you like to do?",
+			choices: [
+				{ name: "Try again", value: "retry" },
+				{ name: "Cancel", value: "cancel" },
+			],
+		});
+
+		if (retryChoice === "retry") {
+			return cloneGitToRemote(remote, projectName, templateUrl);
+		}
+		process.exit(1);
+	}
+
+	cloneSpin.succeed("Template cloned to remote");
+
+	// Check if devcontainer.json exists, add if not
+	const checkDevcontainer = await runRemoteCommand(
+		host,
+		`test -f ${escapeRemotePath(`${remotePath}/${DEVCONTAINER_DIR_NAME}/${DEVCONTAINER_CONFIG_NAME}`)} && echo "EXISTS" || echo "NOT_FOUND"`,
+	);
+
+	if (checkDevcontainer.stdout?.includes("NOT_FOUND")) {
+		const addSpin = spinner("Adding devcontainer.json...");
+
+		const devcontainerJson = JSON.stringify(
+			{
+				name: projectName,
+				image: "mcr.microsoft.com/devcontainers/base:ubuntu",
+			},
+			null,
+			2,
+		);
+		await pushDevcontainerJsonToRemote(host, remotePath, devcontainerJson);
+
+		addSpin.succeed("Added devcontainer.json");
+	}
+};
+
+// prompt to clone the newly created remote project locally
+const offerClone = async (
+	projectName: string,
+	remoteName: string,
+	config: SkyboxConfigV2,
+	devcontainerConfig?: DevcontainerConfig,
+): Promise<void> => {
+	console.log();
+	const { shouldClone } = await inquirer.prompt([
+		{
+			type: "confirm",
+			name: "shouldClone",
+			message: "Clone this project locally now?",
+			default: true,
+		},
+	]);
+
+	if (!shouldClone) {
+		success(`Project '${projectName}' created on remote`);
+		info(`Run 'skybox clone ${projectName}' to clone locally.`);
+		return;
+	}
+
+	const cloned = await cloneSingleProject(projectName, remoteName, config);
+	if (!cloned) {
+		return;
+	}
+
+	// Ensure devcontainer.json exists locally after sync.
+	// The file was created on the remote but Mutagen may not have synced it yet.
+	if (devcontainerConfig) {
+		const projectPath = getProjectPath(projectName);
+		if (!hasLocalDevcontainerConfig(projectPath)) {
+			try {
+				const fullConfig = withWorkspaceSettings(
+					devcontainerConfig,
+					projectName,
+				);
+				writeDevcontainerConfig(projectPath, fullConfig);
+			} catch (err) {
+				warn(
+					`Clone succeeded but failed to write local devcontainer.json: ${getErrorMessage(err)}`,
+				);
+				info("The file should sync from remote shortly.");
+			}
+		}
+	}
+
+	await offerStartContainer({
+		projectName,
+		defaultStart: true,
+		onStart: async (selectedProject) => upCommand(selectedProject, {}),
+	});
+};

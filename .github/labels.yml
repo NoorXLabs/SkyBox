@@ -1,0 +1,64 @@
+- name: "type:bug"
+  color: "d73a4a"
+  description: "Something is not working."
+
+- name: "type:feature"
+  color: "a2eeef"
+  description: "New feature or enhancement request."
+
+- name: "type:docs"
+  color: "0075ca"
+  description: "Documentation changes."
+
+- name: "type:chore"
+  color: "c5def5"
+  description: "Maintenance, refactor, test, or CI changes."
+
+- name: "area:cli"
+  color: "0e8a16"
+  description: "CLI command surface and entrypoint behavior."
+
+- name: "area:core"
+  color: "1d76db"
+  description: "Core libraries, config, remote/sync logic, and shared types."
+
+- name: "area:docs"
+  color: "5319e7"
+  description: "User or architecture documentation."
+
+- name: "area:tests"
+  color: "fbca04"
+  description: "Unit, integration, or E2E test coverage."
+
+- name: "area:ci"
+  color: "0052cc"
+  description: "GitHub Actions and CI pipeline changes."
+
+- name: "area:release"
+  color: "b60205"
+  description: "Versioning, changelog, release automation, and artifacts."
+
+- name: "priority:p0"
+  color: "b60205"
+  description: "Critical issue requiring immediate attention."
+
+- name: "priority:p1"
+  color: "d93f0b"
+  description: "High priority issue."
+
+- name: "priority:p2"
+  color: "fbca04"
+  description: "Medium priority issue."
+
+- name: "priority:p3"
+  color: "0e8a16"
+  description: "Low priority issue."
+
+- name: "status:needs-triage"
+  color: "ededed"
+  description: "Needs maintainer triage."
+
+- name: "status:ready"
+  color: "0e8a16"
+  description: "Ready for implementation."
+

@@ -1,0 +1,150 @@
+// src/commands/shell.ts
+
+import { upCommand } from "@commands/up.ts";
+import {
+	exitWithError,
+	exitWithErrorAndInfo,
+	requireLoadedConfigOrExit,
+} from "@lib/command-guard.ts";
+import { WORKSPACE_PATH_PREFIX } from "@lib/constants.ts";
+import {
+	getContainerId,
+	getContainerStatus,
+	getDevcontainerConfig,
+} from "@lib/container.ts";
+import { getProjectPath, projectExists } from "@lib/project.ts";
+import { checkSessionConflict, readSession } from "@lib/session.ts";
+import { dryRun, error, header, info, isDryRun, warn } from "@lib/ui.ts";
+import { ContainerStatus, type ShellOptions } from "@typedefs/index.ts";
+import { execa } from "execa";
+import inquirer from "inquirer";
+
+// open an interactive shell or run a command inside a project container
+export const shellCommand = async (
+	project: string,
+	options: ShellOptions,
+): Promise<void> => {
+	// Step 1: Check config exists
+	requireLoadedConfigOrExit();
+
+	// Step 2: Verify project exists locally
+	if (!projectExists(project)) {
+		exitWithError(
+			`Project '${project}' not found locally. Run 'skybox clone ${project}' first.`,
+		);
+	}
+
+	const projectPath = getProjectPath(project);
+
+	if (isDryRun()) {
+		if (options.command) {
+			dryRun(
+				`Would execute command in container for '${project}': ${options.command}`,
+			);
+		} else {
+			dryRun(`Would enter interactive shell for '${project}'`);
+		}
+		return;
+	}
+
+	// Step 3: Check session status
+	if (!options.force) {
+		const sessionConflict = checkSessionConflict(projectPath);
+
+		if (sessionConflict.hasConflict && sessionConflict.existingSession) {
+			exitWithErrorAndInfo(
+				`Project '${project}' has an active session on ${sessionConflict.existingSession.machine} (${sessionConflict.existingSession.user}).`,
+				"Use --force to bypass session check (use with caution).",
+			);
+		}
+
+		const currentSession = readSession(projectPath);
+		if (!currentSession) {
+			warn(
+				"No active session. Consider running 'skybox up' first to prevent sync conflicts across machines.",
+			);
+		}
+	}
+
+	// Step 4: Check container status
+	const containerStatus = await getContainerStatus(projectPath);
+
+	if (containerStatus !== ContainerStatus.Running) {
+		const { startContainer } = await inquirer.prompt([
+			{
+				type: "confirm",
+				name: "startContainer",
+				message: "Container is not running. Start it now?",
+				default: true,
+			},
+		]);
+
+		if (!startContainer) {
+			info("Exiting. Run 'skybox up' to start the container first.");
+			return;
+		}
+
+		// Start the container using skybox up
+		await upCommand(project, { noPrompt: true });
+	}
+
+	// Step 5: Get container ID
+	const containerId = await getContainerId(projectPath);
+	if (!containerId) {
+		exitWithError("Failed to find container. Try running 'skybox up' first.");
+	}
+
+	// Step 6: Get workspace path from devcontainer.json
+	const devcontainerConfig = getDevcontainerConfig(projectPath);
+	const workspacePath =
+		devcontainerConfig?.workspaceFolder ||
+		`${WORKSPACE_PATH_PREFIX}/${project}`;
+
+	// Step 7: Execute docker exec
+	header(`Entering shell for '${project}'...`);
+
+	if (options.command) {
+		// Command mode: run command and exit
+		try {
+			await execa(
+				"docker",
+				[
+					"exec",
+					"-w",
+					workspacePath,
+					containerId,
+					"/bin/sh",
+					"-c",
+					options.command,
+				],
+				{ stdio: "inherit" },
+			);
+		} catch (err: unknown) {
+			// exit code
+			const exitCode = (err as { exitCode?: number })?.exitCode;
+			if (exitCode !== undefined) {
+				process.exit(exitCode);
+			}
+			error("Failed to execute command in container.");
+			process.exit(1);
+		}
+	} else {
+		// Interactive mode
+		info("Attaching to shell (Ctrl+D to exit)...");
+		try {
+			await execa(
+				"docker",
+				["exec", "-it", "-w", workspacePath, containerId, "/bin/sh"],
+				{ stdio: "inherit" },
+			);
+		} catch (err: unknown) {
+			// Exit code 130 is normal Ctrl+C exit
+			const exitCode = (err as { exitCode?: number })?.exitCode;
+			if (exitCode === 130) {
+				return;
+			}
+			error("Failed to enter shell.");
+			process.exit(1);
+		}
+	}
+};
