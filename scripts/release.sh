@@ -49,7 +49,7 @@ git commit -m "chore: bump version to ${VERSION}"
 # Create and push tag
 git tag "$TAG"
 git push
-git push --tags
+git push origin "$TAG"
 
 echo ""
 echo "Released ${TAG}"

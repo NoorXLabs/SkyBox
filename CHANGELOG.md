@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.4] - 2026-02-11
+
+### Fixed
+
+- Release workflow now generates `checksums.txt` before creating the GitHub release so all listed assets upload reliably.
+- `scripts/release.sh` now pushes only the current release tag instead of all tags to ensure tag-triggered release workflows run consistently.
+
 ## [0.8.3] - 2026-02-11
 
 ### Changed
@@ -38,3 +45,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [0.8.2]: https://github.com/NoorXLabs/SkyBox/compare/v0.8.1...v0.8.2
 [0.8.3]: https://github.com/NoorXLabs/SkyBox/compare/v0.8.2...v0.8.3
+[0.8.4]: https://github.com/NoorXLabs/SkyBox/compare/v0.8.3...v0.8.4
