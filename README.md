@@ -1,4 +1,6 @@
-# SkyBox
+<h1>
+	<img src="docs/public/skybox-logo-grey.svg" alt="SkyBox logo" width="32" /> SkyBox
+</h1>
 
 Local-first development containers with remote sync and multi-machine support.
 
