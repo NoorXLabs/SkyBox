@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.7] - 2026-02-11
+
 ### Changed
 
 - Encryption key derivation switched from Argon2id to built-in `node:crypto.scrypt` (`N=65536`, `r=8`, `p=1`, `maxmem=128 MiB`).
@@ -63,3 +65,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.8.3]: https://github.com/NoorXLabs/SkyBox/compare/v0.8.2...v0.8.3
 [0.8.4]: https://github.com/NoorXLabs/SkyBox/compare/v0.8.3...v0.8.4
 [0.8.5]: https://github.com/NoorXLabs/SkyBox/compare/v0.8.4...v0.8.5
+[0.8.7]: https://github.com/NoorXLabs/SkyBox/compare/v0.8.6...v0.8.7
+[Unreleased]: https://github.com/NoorXLabs/SkyBox/compare/v0.8.7...HEAD
