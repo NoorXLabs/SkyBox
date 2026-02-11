@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.8.1] - 2026-02-10
+## [0.8.2] - 2026-02-10
 
 ### Added
 
@@ -30,4 +30,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `skybox new` encryption setup now requires passphrase re-entry confirmation before enabling encryption
 - Unreliable editor launching on macOS — new `editor-launch` module with process management, fallback paths, and `skybox doctor` editor check
 
-[0.8.1]: https://github.com/NoorXLabs/SkyBox/compare/v0.8.0...v0.8.1
+[0.8.2]: https://github.com/NoorXLabs/SkyBox/compare/v0.8.1...v0.8.2
