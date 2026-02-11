@@ -1,6 +1,6 @@
 {
   "name": "skybox",
-  "version": "0.8.6",
+  "version": "0.8.7",
   "description": "Local-first dev containers with remote sync",
   "repository": {
     "type": "git",
