@@ -16,18 +16,23 @@ permissions:
 
 jobs:
   analyze:
-    name: "Analyze (javascript-typescript)"
+    name: "Analyze (${{ matrix.language }})"
     runs-on: self-hosted
     # Prevent untrusted code from running on self-hosted runner.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     strategy:
       fail-fast: false
       matrix:
-        language: ["javascript-typescript"]
+        include:
+          - language: actions
+            build-mode: none
+          - language: javascript-typescript
+            build-mode: none
     steps:
       - uses: actions/checkout@v6
       - uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
           queries: security-extended,security-and-quality
       - uses: github/codeql-action/analyze@v4
