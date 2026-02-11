@@ -34,12 +34,12 @@ skybox down [project] [options]
 The `down` command stops a running development container. It performs the following steps:
 
 1. **Project Resolution** - Determines which project to stop (from argument, current directory, or interactive selection)
-2. **Pre-Down Hooks** - Runs any configured `pre-down` hooks (see [Hooks](/reference/hooks))
+2. **Pre-Down Hooks** - Runs any configured `pre-down` hooks, e.g. `npm run db:dump` (see [Hooks](/reference/hooks))
 3. **Sync Flush** - Waits for pending file changes to sync to remote
 4. **Container Stop** - Stops the running container
 5. **Archive Encryption** - If encryption is enabled, encrypts the project on the remote
 6. **Session End** - Removes the session file so other machines can start without warnings
-7. **Post-Down Hooks** - Runs any configured `post-down` hooks (see [Hooks](/reference/hooks))
+7. **Post-Down Hooks** - Runs any configured `post-down` hooks, e.g. `slack-notify "stopped project"` (see [Hooks](/reference/hooks))
 8. **Optional Cleanup** - Removes container and volumes if requested
 9. **Optional Local File Removal** - With cleanup, offers to delete local project files (double confirmation required)
 10. **Sync Pause** - If not cleaning up, offers to pause background sync to save resources
@@ -51,6 +51,7 @@ When you run `skybox down` without a project name:
 1. SkyBox first checks whether your current directory maps to a known project.
 2. If not, it shows a checkbox list so you can select one or more local projects to stop.
 3. Selected projects are stopped sequentially, with a final success/failure summary.
+4. After all selected projects are stopped, if any had containers running, SkyBox prompts whether to also clean up (remove containers and volumes) for the batch. This is the same as passing `--cleanup` but applied after the fact.
 
 If `--no-prompt` is set and no project can be resolved from the current directory, the command exits with an error.
 

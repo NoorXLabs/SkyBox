@@ -26,6 +26,10 @@ skybox up
 
 SkyBox auto-detects the project from your current directory.
 
+::: tip Skip the Manual Start
+With [shell integration](/guide/shell-integration), containers start automatically when you `cd` into a project directory — no `skybox up` needed.
+:::
+
 ### What Happens on Start
 
 1. **Session Check** - SkyBox checks for an existing session and creates one for your machine
@@ -384,11 +388,23 @@ If individual projects fail during batch operations, the command continues with 
 
 For solutions to common issues with containers, sync, and sessions, see the [Troubleshooting Guide](/guide/troubleshooting).
 
+## Related Commands
+
+| Command | Usage in this workflow |
+|---------|----------------------|
+| [`skybox up`](/reference/up) | Start a project container |
+| [`skybox down`](/reference/down) | Stop a project container |
+| [`skybox open`](/reference/open) | Quick access to running containers |
+| [`skybox shell`](/reference/shell) | Open additional shell sessions |
+| [`skybox status`](/reference/status) | Check project and sync status |
+| [`skybox dashboard`](/reference/dashboard) | Live-updating full-screen view |
+| [`skybox logs`](/reference/logs) | View container or sync logs |
+| [`skybox doctor`](/reference/doctor) | Diagnose common issues |
+| [`skybox list`](/reference/list) | List local projects |
+
 ## See Also
 
 - [Multi-Machine Workflow](/guide/workflows/multi-machine) - Working across multiple machines
-- [`skybox status`](/reference/status) - Detailed project status reference
-- [`skybox open`](/reference/open) - Open project in editor or browser
-- [Troubleshooting](/guide/troubleshooting) - Common issues and solutions
 - [Shell Integration](/guide/shell-integration) - Auto-start containers on `cd`
+- [Troubleshooting](/guide/troubleshooting) - Common issues and solutions
 

@@ -14,14 +14,19 @@ import { data } from './index.data'
 </script>
 
 <table>
-<thead><tr><th>Command</th><th>Description</th></tr></thead>
+<thead><tr><th>Command</th><th>Description</th><th>Common Usage</th></tr></thead>
 <tbody>
 <tr v-for="cmd in data.commands" :key="cmd.link">
   <td><a :href="cmd.link"><code>{{ cmd.text }}</code></a></td>
   <td>{{ cmd.description }}</td>
+  <td><code>{{ cmd.usage }}</code></td>
 </tr>
 </tbody>
 </table>
+
+::: tip Offline Reference
+All commands include built-in help with usage examples. Run `skybox <command> --help` for the same information available on these pages.
+:::
 
 ## Global Options
 

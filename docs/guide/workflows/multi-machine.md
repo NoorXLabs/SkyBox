@@ -102,6 +102,19 @@ skybox status
 
 The table shows session status for each project.
 
+## Recovering from a Crashed Machine
+
+If your laptop died, lost power, or you simply forgot to run `skybox down`:
+
+1. **Wait for session expiry** — sessions automatically expire after 24 hours. After that, `skybox up` on another machine proceeds without any warning.
+2. **Continue past the warning** — if the session hasn't expired yet, `skybox up` will warn you that the project is active on the other machine. Choose "Continue anyway" since you know the machine is offline.
+3. **Force shell access** — if you just need a shell without updating the session:
+   ```bash
+   skybox shell my-project --force
+   ```
+
+Your project files are safe on the remote server regardless. No data is lost when a machine crashes.
+
 ## Session Expiry
 
 Sessions expire after 24 hours. This handles cases where a machine crashed or lost network connectivity before running `skybox down`. Expired sessions are treated as inactive.
@@ -129,6 +142,16 @@ The session file contains:
 - **timestamp**: When the session started
 - **pid**: Process ID (used to detect stale sessions on the same machine)
 - **expires**: When the session automatically expires (24 hours from start)
+
+## Related Commands
+
+| Command | Usage in this workflow |
+|---------|----------------------|
+| [`skybox up`](/reference/up) | Start a project on the current machine |
+| [`skybox down`](/reference/down) | Stop a project before switching machines |
+| [`skybox clone`](/reference/clone) | Clone a project on a new machine |
+| [`skybox status`](/reference/status) | Check session status across machines |
+| [`skybox shell`](/reference/shell) | Access container shell (supports `--force`) |
 
 ## Next Steps
 

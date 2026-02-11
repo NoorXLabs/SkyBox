@@ -36,13 +36,13 @@ skybox up [project] [options]
 The `up` command starts a development container for the specified project. It performs the following steps:
 
 1. **Project Resolution** - Determines which project to start (from argument, current directory, or interactive selection)
-2. **Pre-Up Hooks** - Runs any configured `pre-up` hooks (see [Hooks](/reference/hooks))
+2. **Pre-Up Hooks** - Runs any configured `pre-up` hooks, e.g. `git pull` (see [Hooks](/reference/hooks))
 3. **Session Check** - Creates a session for your machine, warning if the project is active elsewhere
 4. **Archive Decryption** - If encryption is enabled, decrypts the project archive on the remote
 5. **Sync Check** - Ensures the Mutagen sync session is active, resuming it if paused
 6. **Container Management** - Starts the container (or handles existing running containers)
 7. **Devcontainer Setup** - Creates devcontainer.json from templates if needed
-8. **Post-Up Hooks** - Runs any configured `post-up` hooks (see [Hooks](/reference/hooks))
+8. **Post-Up Hooks** - Runs any configured `post-up` hooks, e.g. `npm run db:migrate` (see [Hooks](/reference/hooks))
 9. **Post-Start Actions** - Optionally opens editor or attaches to shell
 
 ### Project Auto-Detection
@@ -81,11 +81,9 @@ If the Mutagen sync session exists but is paused (e.g., from a previous `skybox 
 
 If the container fails to start on the first attempt, SkyBox automatically retries with a full rebuild. If the rebuild also fails, the error is displayed. Use `--verbose` to see the full error output.
 
-### Devcontainer CLI Flag Note
+### Container Rebuild
 
-SkyBox handles rebuild behavior internally when you pass `--rebuild`.
-
-If you run `devcontainer up` manually, note that `--rebuild-if-exists` is not a supported flag. Use supported flags such as `--remove-existing-container` (and `--build-no-cache` for a full rebuild).
+SkyBox handles container rebuilds automatically when you pass `--rebuild`. No manual `devcontainer` CLI flags are needed.
 
 ### Devcontainer Templates
 
