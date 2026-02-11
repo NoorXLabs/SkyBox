@@ -2,7 +2,7 @@
 	<img
 		src="docs/public/skybox-logo-grey.svg"
 		alt="SkyBox logo"
-		width="52"
+		width="64"
 		align="absmiddle"
 		style="vertical-align: middle; margin-right: 10px;"
 	/>
