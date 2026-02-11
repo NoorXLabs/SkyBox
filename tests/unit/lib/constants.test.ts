@@ -1,9 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { TEMPLATES } from "@lib/constants.ts";
+import { INSTALL_METHOD, TEMPLATES } from "@lib/constants.ts";
 
 describe("INSTALL_METHOD", () => {
-	test("defaults to source when env var is not set", async () => {
-		const { INSTALL_METHOD } = await import("@lib/constants.ts");
+	test("defaults to source when env var is not set", () => {
 		// In test/dev environment, env var is not set, so it should be "source"
 		expect(INSTALL_METHOD).toBe("source");
 	});

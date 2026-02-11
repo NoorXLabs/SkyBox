@@ -18,6 +18,7 @@ import { error, info, spinner, success, warn } from "@lib/ui.ts";
 import {
 	fetchLatestVersions,
 	getUpgradeCommand,
+	isHomebrewInstalled,
 	isNewerVersion,
 	saveUpdateCheckMetadata,
 } from "@lib/update-check.ts";
@@ -260,6 +261,11 @@ export const updateCommand = async (): Promise<void> => {
 	}
 
 	info(`Update available: ${currentVersion} → ${targetVersion}\n`);
+
+	if (await isHomebrewInstalled()) {
+		info(`Run: ${getUpgradeCommand("homebrew")}`);
+		return;
+	}
 
 	if (INSTALL_METHOD === "github-release") {
 		const shouldUpdate = await confirm({

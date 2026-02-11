@@ -26,7 +26,11 @@ import { INSTALL_METHOD } from "@lib/constants.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { installShutdownHandlers } from "@lib/shutdown.ts";
 import { runStartupChecks } from "@lib/startup.ts";
-import { checkForUpdate, getUpgradeCommand } from "@lib/update-check.ts";
+import {
+	checkForUpdate,
+	getUpgradeCommand,
+	isHomebrewInstalled,
+} from "@lib/update-check.ts";
 import chalk from "chalk";
 import { type Command, program } from "commander";
 import pkg from "../package.json";
@@ -355,7 +359,9 @@ program.command("hook-check", { hidden: true }).action(hookCheckCommand);
 			const isBeta = currentVersion.includes("-");
 			const newerVersion = await checkForUpdate(currentVersion, isBeta);
 			if (newerVersion) {
-				const cmd = getUpgradeCommand(INSTALL_METHOD);
+				const cmd = (await isHomebrewInstalled())
+					? getUpgradeCommand("homebrew")
+					: getUpgradeCommand(INSTALL_METHOD);
 				console.log();
 				console.log(
 					chalk.yellow(

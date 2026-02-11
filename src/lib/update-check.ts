@@ -3,6 +3,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { CHECK_INTERVAL_MS, GITHUB_API_URL } from "@lib/constants.ts";
 import { getUpdateCheckPath } from "@lib/paths.ts";
 import type { InstallMethod, UpdateCheckMetadata } from "@typedefs/index.ts";
+import { execa } from "execa";
 
 // check if we should query GitHub for updates (24h cooldown).
 export const shouldCheckForUpdate = (): boolean => {
@@ -64,11 +65,21 @@ export const isNewerVersion = (latest: string, current: string): boolean => {
 export const getUpgradeCommand = (method: InstallMethod): string => {
 	switch (method) {
 		case "homebrew":
-			return "brew upgrade skybox";
+			return "brew upgrade noorxlabs/tap/skybox";
 		case "github-release":
 			return "skybox update";
 		case "source":
 			return "git pull && bun install";
+	}
+};
+
+// check whether Homebrew is available on this machine.
+export const isHomebrewInstalled = async (): Promise<boolean> => {
+	try {
+		await execa("brew", ["--version"], { timeout: 2000 });
+		return true;
+	} catch {
+		return false;
 	}
 };
 
