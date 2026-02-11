@@ -223,26 +223,6 @@ export const SSH_CONFIG_MOUNT_PATH = "/var/ssh-config";
 // SSH symlink setup command (runs after container starts).
 export const SSH_SYMLINK_COMMAND = `[ ! -L $HOME/.ssh ] && rm -rf $HOME/.ssh && ln -s ${SSH_CONFIG_MOUNT_PATH} $HOME/.ssh || true`;
 
-// ── Telemetry ──
-
-// Rybbit analytics endpoint for first-run install tracking.
-// set via RYBBIT_URL env var at build time; telemetry is disabled if unset.
-export const RYBBIT_URL = process.env.RYBBIT_URL ?? "";
-
-// public site identifier for Rybbit.
-// set via RYBBIT_SITE_ID env var at build time; telemetry is disabled if unset.
-export const RYBBIT_SITE_ID = process.env.RYBBIT_SITE_ID ?? "";
-
-// Rybbit API key for authenticating track requests.
-// set via RYBBIT_API_KEY env var at build time; telemetry is disabled if unset.
-export const RYBBIT_API_KEY = process.env.RYBBIT_API_KEY ?? "";
-
-// timeout for the telemetry HTTP call in milliseconds.
-export const TELEMETRY_TIMEOUT_MS = 5000;
-
-// marker file name written after first-run telemetry fires.
-export const INSTALLED_MARKER_FILE = ".installed";
-
 // ── Update Check ──
 
 // update check cooldown interval in milliseconds (24 hours).

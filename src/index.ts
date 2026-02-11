@@ -26,7 +26,6 @@ import { INSTALL_METHOD } from "@lib/constants.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { installShutdownHandlers } from "@lib/shutdown.ts";
 import { runStartupChecks } from "@lib/startup.ts";
-import { shouldTrackInstall, trackInstall } from "@lib/telemetry.ts";
 import { checkForUpdate, getUpgradeCommand } from "@lib/update-check.ts";
 import chalk from "chalk";
 import { type Command, program } from "commander";
@@ -347,11 +346,6 @@ program.command("hook-check", { hidden: true }).action(hookCheckCommand);
 		const message = getErrorMessage(err);
 		console.error(chalk.red(`Error: ${message}`));
 		process.exit(1);
-	}
-
-	// First-run telemetry (fire-and-forget, non-blocking)
-	if (shouldTrackInstall()) {
-		trackInstall(pkg.version);
 	}
 
 	// Skip passive update check for commands that handle updates themselves

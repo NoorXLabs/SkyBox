@@ -390,16 +390,6 @@ export type ValidationResult =
 	| { valid: true }
 	| { valid: false; error: string };
 
-// Telemetry types
-
-// metadata stored in the .installed marker file
-export interface InstalledMarker {
-	version: string;
-	installedAt: string; // ISO 8601
-	installMethod: InstallMethod;
-	platform: string; // e.g., "darwin-arm64"
-}
-
 // Install method types
 // method used to install SkyBox, determines upgrade command
 export type InstallMethod = "homebrew" | "github-release" | "source";

@@ -30,7 +30,6 @@ SkyBox creates the following directory structure:
 ```
 ~/.skybox/
 ├── config.yaml          # Main configuration file
-├── .installed           # First-run telemetry marker
 ├── .update-check.json   # Update check cache (24h TTL)
 ├── audit.log            # Audit log (when SKYBOX_AUDIT=1)
 ├── Projects/            # Local synced project copies
@@ -315,18 +314,6 @@ You can also rotate the log manually at any time:
 mv ~/.skybox/audit.log ~/.skybox/audit.log.$(date +%Y%m%d)
 ```
 :::
-
-### Telemetry
-
-SkyBox sends a single anonymous event on first run to help track installation counts. The data includes only the OS, architecture, version, and install method — no personal information is collected.
-
-To opt out, set `SKYBOX_TELEMETRY=0` before running any SkyBox command:
-
-```bash
-export SKYBOX_TELEMETRY=0
-```
-
-The telemetry event fires at most once. After the first run, a marker file (`~/.skybox/.installed`) is written and no further telemetry is sent.
 
 ## Creating Configuration
 

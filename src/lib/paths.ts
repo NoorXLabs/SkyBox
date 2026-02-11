@@ -5,7 +5,6 @@ import {
 	AUTO_UP_LOG_FILE,
 	BIN_DIR_NAME,
 	CONFIG_FILENAME,
-	INSTALLED_MARKER_FILE,
 	LOGS_DIR_NAME,
 	MUTAGEN_BINARY_NAME,
 	MUTAGEN_VERSION_FILE,
@@ -66,9 +65,4 @@ export const getMutagenVersionPath = (): string => {
 // used by shell hooks to log auto-start operations.
 export const getAutoUpLogPath = (): string => {
 	return join(getLogsDir(), AUTO_UP_LOG_FILE);
-};
-
-// get the path to the first-run telemetry marker file.
-export const getInstalledMarkerPath = (): string => {
-	return join(getSkyboxHome(), INSTALLED_MARKER_FILE);
 };
