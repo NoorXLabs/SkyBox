@@ -34,8 +34,7 @@ Install the following tools from their official sources before continuing:
 ::: code-group
 
 ```bash [Homebrew (macOS)]
-brew tap NoorXLabs/homebrew-tap
-brew install skybox
+brew install noorxlabs/tap/skybox
 ```
 
 ```bash [Direct Download (macOS / Linux / WSL)]
