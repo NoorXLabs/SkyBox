@@ -104,7 +104,7 @@ export default defineConfig({
         {
           text: 'Resources',
           items: [
-            { text: 'LLMs.txt', link: '/llms-full.txt' },
+            { text: 'LLM-Friendly Docs', link: '/llms-full.txt' },
           ],
         },
       ],
@@ -128,7 +128,7 @@ export default defineConfig({
         {
           text: 'Resources',
           items: [
-            { text: 'LLMs.txt', link: '/llms-full.txt' },
+            { text: 'LLM-Friendly Docs', link: '/llms-full.txt' },
           ],
         },
       ],

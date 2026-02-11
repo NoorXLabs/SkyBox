@@ -182,6 +182,10 @@ Or with cleanup to remove the container:
 skybox down my-project --cleanup
 ```
 
+::: tip Auto-Start with Shell Integration
+Tired of running `skybox up` manually? Set up [shell integration](/guide/shell-integration) to auto-start containers when you `cd` into a project directory.
+:::
+
 ## Need Help?
 
 If you hit issues during setup or first run:
@@ -242,6 +246,13 @@ If you need to rebuild the container from scratch:
 ```bash
 skybox up my-project --rebuild
 ```
+
+::: tip Working with Large Repos?
+If you're working in a monorepo or large project and only need specific directories, use [selective sync](/guide/concepts#selective-sync) to sync just the paths you need:
+```bash
+skybox config sync-paths my-app packages/frontend,packages/shared
+```
+:::
 
 ## Next Steps
 

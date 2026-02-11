@@ -267,6 +267,18 @@ Output shows:
 
 <!--@include: ../../snippets/status-detailed.md-->
 
+## Related Commands
+
+| Command | Usage in this workflow |
+|---------|----------------------|
+| [`skybox push`](/reference/push) | Push a local project to remote |
+| [`skybox clone`](/reference/clone) | Clone a remote project locally |
+| [`skybox new`](/reference/new) | Create a new project from scratch |
+| [`skybox browse`](/reference/browse) | List available remote projects |
+| [`skybox up`](/reference/up) | Start the dev container |
+| [`skybox status`](/reference/status) | Verify project setup |
+| [`skybox init`](/reference/init) | Initial SkyBox setup |
+
 ## Next Steps
 
 - [Daily Development](/guide/workflows/daily-development) - Learn the day-to-day workflow

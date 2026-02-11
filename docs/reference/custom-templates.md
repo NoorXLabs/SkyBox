@@ -48,6 +48,14 @@ When a template is applied to a project, SkyBox overrides `workspaceFolder` and 
 
 ## Starter Templates
 
+Choose a starter template based on your needs:
+
+| If you need... | Use |
+|---------------|-----|
+| Smallest possible config, add features yourself | [Minimal Template](#minimal-template) |
+| SSH keys, Docker, zsh — the same setup as built-in templates | [Recommended Template](#recommended-template) |
+| Full example with a language runtime (Bun/TypeScript) | [Language-Specific Example](#language-specific-example) |
+
 ### Minimal Template
 
 The bare minimum to get a working container. Copy this and customize it:

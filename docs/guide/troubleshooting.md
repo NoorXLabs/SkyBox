@@ -168,6 +168,10 @@ See also: [Concepts: Selective Sync](/guide/concepts#selective-sync), [Configura
 - Some projects succeed while others fail during batch operations (e.g., `skybox down --all`)
 - Mixed success/error output
 
+::: info Batch behavior
+When using `--all`, SkyBox processes projects sequentially. If a project fails, the batch continues with remaining projects and reports a success/failure summary at the end.
+:::
+
 **Solutions:**
 
 1. **Check per-project errors** - the output lists which projects failed and why. Address each failure individually.

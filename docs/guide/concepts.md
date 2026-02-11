@@ -7,6 +7,9 @@ description: Understand SkyBox projects, containers, bidirectional sync via Muta
 
 This page explains the key concepts behind SkyBox: how projects, containers, sync, and the remote server work together.
 
+**On this page:**
+[Projects](#projects) | [Containers](#containers) | [Sync](#sync) | [Templates](#templates) | [Encryption](#encryption) | [Shell Integration](#shell-integration) | [Remote Server](#remote-server) | [Non-interactive Mode](#non-interactive-mode) | [Configuration](#configuration)
+
 ## Projects
 
 A **project** in SkyBox is a directory containing your source code, managed as a unit. Projects are:
@@ -45,10 +48,10 @@ push/clone          up              down              rm
 
 ## Containers
 
-SkyBox uses **devcontainers** - Docker containers configured for development. They provide:
+SkyBox uses **[devcontainers](https://containers.dev/)** - Docker containers configured for development using the open [Development Containers specification](https://containers.dev/implementors/spec/). They provide:
 
 - Isolated development environment
-- Pre-installed tools and dependencies
+- Pre-installed tools and dependencies via [devcontainer features](https://containers.dev/features)
 - Consistent setup across machines
 - Editor integration (VS Code, Cursor)
 

@@ -25,6 +25,10 @@ This command has no options.
 
 ## Description
 
+::: tip Live Updates
+For a real-time, auto-refreshing view of all projects, use [`skybox dashboard`](/reference/dashboard) instead.
+:::
+
 The `status` command displays information about your SkyBox projects. It has two modes:
 
 ### Overview Mode (no argument)

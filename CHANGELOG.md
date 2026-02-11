@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-02-10
+
 ### Added
 
 - **SSH Passphrase-Protected Key Support**: Automatic ssh-agent integration detects passphrase-protected keys and prompts users to load them before SSH operations. Includes macOS Keychain persistence (`useKeychain` config option), no-agent detection with helpful guidance, and guards on all 8 SSH-dependent commands (up, down, clone, browse, push, status, rm, doctor).
@@ -24,8 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Remaining `escapeShellArg()` calls on remote paths replaced with `escapeRemotePath()` across clone, config-devcontainer, push, rm, ownership, remote-encryption, and remote modules
-- Incorrect `--rebuild-if-exists` flag in container rebuild replaced with correct `--remove-existing-container`
+- Container rebuild used non-existent `--rebuild-if-exists` flag — replaced with correct `--remove-existing-container`
 - `skybox new` encryption setup now requires passphrase re-entry confirmation before enabling encryption
+- Unreliable editor launching on macOS — new `editor-launch` module with process management, fallback paths, and `skybox doctor` editor check
 
 ## [0.8.0] - 2026-02-07
 
@@ -348,6 +351,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Design documents for commands
   - Implementation plans
 
+[0.8.1]: https://github.com/NoorXLabs/SkyBox/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/NoorXLabs/SkyBox/compare/v0.7.7...v0.8.0
 [0.7.7]: https://github.com/NoorXLabs/SkyBox/compare/v0.7.6...v0.7.7
 [0.7.6]: https://github.com/NoorXLabs/SkyBox/compare/v0.7.5...v0.7.6

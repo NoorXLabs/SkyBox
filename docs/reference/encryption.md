@@ -46,7 +46,7 @@ Enabling encryption requires a double confirmation:
 1. Warning about passphrase-only recovery
 2. Confirmation that you understand the risks
 
-After confirmation, you set your passphrase. A random salt is generated and stored in the project config.
+After confirmation, you set your passphrase by entering it twice for confirmation. A random salt is generated and stored in the project config.
 
 ### Disable Encryption
 
@@ -138,6 +138,10 @@ skybox down my-app
 |------|---------|
 | 0 | Success |
 | 1 | Error (no config, passphrase required, decryption failed) |
+
+## Troubleshooting
+
+If you run into issues with encryption, see the [Troubleshooting Guide](/guide/troubleshooting#encryption-issues) for solutions to common problems like forgotten passphrases and decryption errors.
 
 ## See Also
 

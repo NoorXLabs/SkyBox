@@ -142,6 +142,10 @@ export SKYBOX_HOME=/custom/path/.skybox
 
 ## Troubleshooting
 
+::: tip Quick Diagnosis
+Run `skybox doctor` to automatically check all dependencies, connectivity, and configuration in one command. It will identify most problems and suggest fixes.
+:::
+
 ### Docker Not Found
 
 If `skybox init` reports Docker is not found:
@@ -193,8 +197,8 @@ chmod 700 ~/.ssh
 
 ## Next Steps
 
-Once installation is complete:
+Once installation is complete, follow the **[Quick Start](/guide/quick-start)** to set up your first project and start developing in a container.
 
-- Follow the [Quick Start](/guide/quick-start) to create your first project
-- Learn about [Core Concepts](/guide/concepts) to understand how SkyBox works
-- Explore [Workflows](/guide/workflows/daily-development) for day-to-day patterns
+Want to learn more first?
+- [Core Concepts](/guide/concepts) - Understand how projects, containers, and sync work together
+- [Workflows](/guide/workflows/daily-development) - Day-to-day development patterns
