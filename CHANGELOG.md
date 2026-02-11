@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.8] - 2026-02-11
+
 ### Fixed
 
 - `skybox update` now checks for Homebrew first and shows `brew upgrade noorxlabs/tap/skybox` instead of attempting in-place self-update.
@@ -70,4 +72,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.8.4]: https://github.com/NoorXLabs/SkyBox/compare/v0.8.3...v0.8.4
 [0.8.5]: https://github.com/NoorXLabs/SkyBox/compare/v0.8.4...v0.8.5
 [0.8.7]: https://github.com/NoorXLabs/SkyBox/compare/v0.8.6...v0.8.7
-[Unreleased]: https://github.com/NoorXLabs/SkyBox/compare/v0.8.7...HEAD
+[0.8.8]: https://github.com/NoorXLabs/SkyBox/compare/v0.8.7...v0.8.8
+[Unreleased]: https://github.com/NoorXLabs/SkyBox/compare/v0.8.8...HEAD
