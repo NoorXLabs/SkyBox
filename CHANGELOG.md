@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.3] - 2026-02-11
+
+### Changed
+
+- Release housekeeping for `v0.8.3` with basic release metadata updates.
+
 ## [0.8.2] - 2026-02-10
 
 ### Added
@@ -31,3 +37,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unreliable editor launching on macOS — new `editor-launch` module with process management, fallback paths, and `skybox doctor` editor check
 
 [0.8.2]: https://github.com/NoorXLabs/SkyBox/compare/v0.8.1...v0.8.2
+[0.8.3]: https://github.com/NoorXLabs/SkyBox/compare/v0.8.2...v0.8.3
