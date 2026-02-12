@@ -12,6 +12,7 @@ import { AuditActions, logAuditEvent } from "@lib/audit.ts";
 import { requireConfig } from "@lib/config.ts";
 import { offerStartContainer } from "@lib/container-start.ts";
 import { getErrorMessage } from "@lib/errors.ts";
+import { getSyncStatus, terminateSession } from "@lib/mutagen.ts";
 import { getProjectsDir } from "@lib/paths.ts";
 import { finalizeProjectSync } from "@lib/project-sync.ts";
 import {
@@ -214,8 +215,17 @@ export const pushCommand = async (
 		success(`Copied to ${localPath}`);
 	}
 
+	// Clean up any stale sync session before creating a new one
+	const syncSpin = spinner("Setting up sync...");
+	const existingSync = await getSyncStatus(projectName);
+
+	if (existingSync.exists) {
+		syncSpin.text = "Removing old sync session...";
+		await terminateSession(projectName);
+	}
+
 	// Create sync session
-	const syncSpin = spinner("Starting sync...");
+	syncSpin.text = "Starting sync...";
 
 	const projectConfig = config.projects[projectName];
 	const ignores = config.defaults.ignore;
