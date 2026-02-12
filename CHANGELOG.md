@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `skybox push` no longer fails with "session is paused" when a stale Mutagen sync session exists from a previous push.
 - Fix `.gitignore` update failing on remote with "Could not update .gitignore on remote" warning during `push`, `up`, and `new`.
+- Prevent `deleteSession()` from deleting the entire state file when `.skybox/state.lock` contains corrupted JSON, which could inadvertently remove ownership data.
 
 ## [0.8.9] - 2026-02-11
 
