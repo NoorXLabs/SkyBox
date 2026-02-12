@@ -39,7 +39,7 @@ export const ensureGitignoreSkybox = async (
 
 	const gitignorePath = `${projectPath}/.gitignore`;
 	const escapedPath = escapeRemotePath(gitignorePath);
-	const entry = ".skybox/*";
+	const entry = ".skybox";
 	const block = `# SkyBox local state\n${entry}`;
 	const escapedEntry = escapeShellArg(entry);
 	const escapedBlock = escapeShellArg(block);

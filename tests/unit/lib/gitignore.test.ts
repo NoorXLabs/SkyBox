@@ -60,7 +60,7 @@ describe("ensureGitignoreSkybox", () => {
 		expect(mockWarn).not.toHaveBeenCalled();
 	});
 
-	test("no-ops when .skybox/* is already present", async () => {
+	test("no-ops when .skybox is already present", async () => {
 		mockRunRemoteCommand.mockResolvedValue({
 			success: true,
 			stdout: "EXISTS",
