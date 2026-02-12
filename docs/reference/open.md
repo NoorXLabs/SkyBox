@@ -85,7 +85,7 @@ skybox open my-project --shell
 skybox open my-project --editor --shell
 
 # Auto-detect project from current directory
-cd ~/.skybox/projects/my-project
+cd ~/.skybox/Projects/my-project
 skybox open
 
 # Non-interactive mode (does nothing if no flags)

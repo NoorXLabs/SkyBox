@@ -1,13 +1,9 @@
 import { describe, expect, test } from "bun:test";
+import { randomBytes } from "node:crypto";
 import { setupTestContext } from "@tests/helpers/test-utils.ts";
 
 describe("encrypt command", () => {
 	setupTestContext("encrypt");
-
-	test("encrypt command module exports encryptCommand", async () => {
-		const mod = await import("@commands/encrypt.ts");
-		expect(typeof mod.encryptCommand).toBe("function");
-	});
 
 	test("encryption config structure is valid", () => {
 		// Verify the ProjectEncryption type works as expected
@@ -24,7 +20,6 @@ describe("encrypt command", () => {
 	});
 
 	test("salt generation produces valid hex string", () => {
-		const { randomBytes } = require("node:crypto");
 		const salt = randomBytes(16).toString("hex");
 		expect(salt).toHaveLength(32);
 		expect(/^[0-9a-f]+$/.test(salt)).toBe(true);

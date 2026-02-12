@@ -11,6 +11,9 @@ import type { InstallMethod, Template } from "@typedefs/index.ts";
 export const INSTALL_METHOD: InstallMethod =
 	(process.env.SKYBOX_INSTALL_METHOD as InstallMethod) || "source";
 
+// documentation site URL.
+export const DOCS_URL = "https://skybox.noorxlabs.com";
+
 // GitHub repo coordinates for update checks.
 export const GITHUB_OWNER = "NoorXLabs";
 export const GITHUB_REPO = "SkyBox";
@@ -46,13 +49,13 @@ export const MAX_NAME_ATTEMPTS = 5;
 // config filename.
 export const CONFIG_FILENAME = "config.yaml";
 
-// session file path relative to project directory.
-export const SESSION_FILE = ".skybox/session.lock";
+// unified state file path relative to project directory.
+export const STATE_FILE = ".skybox/state.lock";
 
 // session TTL in milliseconds (24 hours).
 export const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
 
-// HMAC key for session file integrity verification.
+// HMAC key for session integrity verification.
 // not a secret — exists to detect accidental edits, not to prevent determined tampering.
 export const SESSION_HMAC_KEY = "skybox-session-integrity-v1";
 
@@ -61,9 +64,6 @@ export const SESSION_FILE_MODE = 0o400;
 
 // maximum audit log file size in bytes before rotation (10 MB).
 export const AUDIT_LOG_MAX_BYTES = 10 * 1024 * 1024;
-
-// ownership metadata file name.
-export const OWNERSHIP_FILE_NAME = ".skybox-owner";
 
 // default SkyBox home directory name.
 export const SKYBOX_HOME_DIR = ".skybox";
@@ -130,6 +130,9 @@ export const VSCODE_REMOTE_URI_PREFIX = "vscode-remote://dev-container+";
 // pinned Mutagen version for binary downloads.
 // @see https://github.com/mutagen-io/mutagen/releases
 export const MUTAGEN_VERSION = "0.18.1";
+
+// files to extract from the Mutagen release tarball.
+export const MUTAGEN_TAR_FILES = ["mutagen", "mutagen-agents.tar.gz"];
 
 // Mutagen binary name.
 export const MUTAGEN_BINARY_NAME = "mutagen";

@@ -166,27 +166,18 @@ export const isUriCapableEditor = (command: string): boolean => {
 	return URI_CAPABLE_EDITORS.has(commandId);
 };
 
-export const launchProjectInEditor = async (
+const launchWithFallback = async (
 	editor: string,
-	projectPath: string,
-	devcontainerUri: string,
+	parsed: ParsedEditorCommand,
+	targetArgs: string[],
+	fallbackTargetArgs: string[],
 	options?: LaunchOptions,
 ): Promise<EditorLaunchResult> => {
 	const platform = options?.platform ?? process.platform;
 	const appInstalled = options?.isAppInstalled ?? isMacAppInstalled;
 
-	let parsed: ParsedEditorCommand;
 	try {
-		parsed = parseEditorCommand(editor);
-	} catch (error: unknown) {
-		return { success: false, error: getErrorMessage(error) };
-	}
-
-	const useUri = isUriCapableEditor(parsed.command);
-	const launchArgs = useUri ? ["--folder-uri", devcontainerUri] : [projectPath];
-
-	try {
-		await tryLaunch(parsed, launchArgs, options);
+		await tryLaunch(parsed, targetArgs, options);
 		return { success: true };
 	} catch (error: unknown) {
 		const fallbackApp = getMacFallbackApp(parsed.command, platform);
@@ -199,11 +190,8 @@ export const launchProjectInEditor = async (
 			}
 
 			try {
-				const fallbackArgs = useUri
-					? ["-a", fallbackApp, "--args", "--folder-uri", devcontainerUri]
-					: ["-a", fallbackApp, projectPath];
 				const runner = options?.runner ?? defaultRunner;
-				await runner("open", fallbackArgs, {
+				await runner("open", ["-a", fallbackApp, ...fallbackTargetArgs], {
 					stdio: options?.inheritStdio ? "inherit" : "pipe",
 				});
 				return { success: true, usedFallback: true, fallbackApp };
@@ -226,14 +214,12 @@ export const launchProjectInEditor = async (
 	}
 };
 
-export const launchFileInEditor = async (
+export const launchProjectInEditor = async (
 	editor: string,
-	filePath: string,
+	projectPath: string,
+	devcontainerUri: string,
 	options?: LaunchOptions,
 ): Promise<EditorLaunchResult> => {
-	const platform = options?.platform ?? process.platform;
-	const appInstalled = options?.isAppInstalled ?? isMacAppInstalled;
-
 	let parsed: ParsedEditorCommand;
 	try {
 		parsed = parseEditorCommand(editor);
@@ -241,42 +227,34 @@ export const launchFileInEditor = async (
 		return { success: false, error: getErrorMessage(error) };
 	}
 
+	const useUri = isUriCapableEditor(parsed.command);
+	const targetArgs = useUri ? ["--folder-uri", devcontainerUri] : [projectPath];
+	const fallbackTargetArgs = useUri
+		? ["--args", "--folder-uri", devcontainerUri]
+		: [projectPath];
+
+	return launchWithFallback(
+		editor,
+		parsed,
+		targetArgs,
+		fallbackTargetArgs,
+		options,
+	);
+};
+
+export const launchFileInEditor = async (
+	editor: string,
+	filePath: string,
+	options?: LaunchOptions,
+): Promise<EditorLaunchResult> => {
+	let parsed: ParsedEditorCommand;
 	try {
-		await tryLaunch(parsed, [filePath], options);
-		return { success: true };
+		parsed = parseEditorCommand(editor);
 	} catch (error: unknown) {
-		const fallbackApp = getMacFallbackApp(parsed.command, platform);
-		if (isCommandNotFoundError(error) && fallbackApp) {
-			if (!appInstalled(fallbackApp)) {
-				return {
-					success: false,
-					error: buildMissingEditorError(editor, fallbackApp),
-				};
-			}
-
-			try {
-				const runner = options?.runner ?? defaultRunner;
-				await runner("open", ["-a", fallbackApp, filePath], {
-					stdio: options?.inheritStdio ? "inherit" : "pipe",
-				});
-				return { success: true, usedFallback: true, fallbackApp };
-			} catch (fallbackError: unknown) {
-				return {
-					success: false,
-					error: `Failed to launch ${fallbackApp} via macOS fallback: ${getErrorMessage(fallbackError)}`,
-				};
-			}
-		}
-
-		if (isCommandNotFoundError(error)) {
-			return {
-				success: false,
-				error: buildMissingEditorError(editor, fallbackApp),
-			};
-		}
-
 		return { success: false, error: getErrorMessage(error) };
 	}
+
+	return launchWithFallback(editor, parsed, [filePath], [filePath], options);
 };
 
 const commandExists = async (

@@ -22,7 +22,7 @@ import { statusCommand } from "@commands/status.ts";
 import { upCommand } from "@commands/up.ts";
 import { updateCommand } from "@commands/update.ts";
 
-import { INSTALL_METHOD } from "@lib/constants.ts";
+import { DOCS_URL, INSTALL_METHOD } from "@lib/constants.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { installShutdownHandlers } from "@lib/shutdown.ts";
 import { runStartupChecks } from "@lib/startup.ts";
@@ -35,7 +35,6 @@ import chalk from "chalk";
 import { type Command, program } from "commander";
 import pkg from "../package.json";
 
-const DOCS_URL = "https://skybox.noorxlabs.com";
 const ROOT_HELP_FOOTER = `
 Quick start:
   skybox init                     Set up SkyBox and your first remote

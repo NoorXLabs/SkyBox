@@ -2,14 +2,15 @@
 
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { getDiskUsage, getGitInfo, getLastActive } from "@commands/status.ts";
+import { getDiskUsage, getLastActive } from "@commands/status.ts";
 import { loadConfig } from "@lib/config.ts";
 import { CARD_GAP, CARD_WIDTH } from "@lib/constants.ts";
 import { getContainerInfo, getContainerStatus } from "@lib/container.ts";
+import { getGitInfo } from "@lib/git.ts";
 import { getSyncStatus } from "@lib/mutagen.ts";
 import { getProjectsDir } from "@lib/paths.ts";
 import { formatRelativeTime } from "@lib/relative-time.ts";
-import { getMachineName, readSession } from "@lib/session.ts";
+import { getMachineName, readSession } from "@lib/state.ts";
 import type { CardField, DashboardProject } from "@typedefs/index.ts";
 import { ContainerStatus } from "@typedefs/index.ts";
 import { Box, render, Text, useApp, useInput, useStdout } from "ink";
@@ -55,7 +56,7 @@ const gatherProjectData = async (): Promise<DashboardProject[]> => {
 		let sync = "none";
 		if (syncStatus.exists) sync = syncStatus.paused ? "paused" : "syncing";
 
-		// Determine session status from local .skybox/session.lock
+		// Determine session status from local .skybox/state.lock
 		let sessionStatus = "none";
 		const session = readSession(projectPath);
 		if (session) {

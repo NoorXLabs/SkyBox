@@ -6,14 +6,16 @@
 // be reset in afterEach. This file must run in its own test process. When run
 // alongside other test files, mock pollution may cause other tests to skip.
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { createHmac } from "node:crypto";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { hostname, userInfo } from "node:os";
 import { join } from "node:path";
 import {
 	DEVCONTAINER_CONFIG_NAME,
 	DEVCONTAINER_DIR_NAME,
-	SESSION_FILE,
+	SESSION_HMAC_KEY,
 	SESSION_TTL_MS,
+	STATE_FILE,
 } from "@lib/constants.ts";
 import {
 	createTestContext,
@@ -118,18 +120,23 @@ projects: {}
 			JSON.stringify({ workspaceFolder: "/workspaces/myapp" }),
 		);
 
-		// Create a real session file so shell command doesn't warn about missing session
-		const sessionDir = join(ctx.testDir, "Projects", "myapp", ".skybox");
-		mkdirSync(sessionDir, { recursive: true });
+		// Create a real state file so shell command doesn't warn about missing session
+		const skyboxDir = join(ctx.testDir, "Projects", "myapp", ".skybox");
+		mkdirSync(skyboxDir, { recursive: true });
+		const session = {
+			machine: hostname(),
+			user: userInfo().username,
+			timestamp: new Date().toISOString(),
+			pid: process.pid,
+			expires: new Date(Date.now() + SESSION_TTL_MS).toISOString(),
+		};
+		const payload = `${session.machine}:${session.user}:${session.timestamp}:${session.pid}:${session.expires}`;
+		const hash = createHmac("sha256", SESSION_HMAC_KEY)
+			.update(payload)
+			.digest("hex");
 		writeFileSync(
-			join(ctx.testDir, "Projects", "myapp", SESSION_FILE),
-			JSON.stringify({
-				machine: hostname(),
-				user: userInfo().username,
-				timestamp: new Date().toISOString(),
-				pid: process.pid,
-				expires: new Date(Date.now() + SESSION_TTL_MS).toISOString(),
-			}),
+			join(ctx.testDir, "Projects", "myapp", STATE_FILE),
+			JSON.stringify({ session: { ...session, hash } }),
 		);
 
 		exitCode = undefined;
@@ -176,7 +183,7 @@ projects: {}
 		test("proceeds when no session exists", async () => {
 			// Remove the session file created by beforeEach
 			const { unlinkSync } = await import("node:fs");
-			unlinkSync(join(ctx.testDir, "Projects", "myapp", SESSION_FILE));
+			unlinkSync(join(ctx.testDir, "Projects", "myapp", STATE_FILE));
 
 			const { shellCommand } = await import("@commands/shell.ts");
 			await shellCommand("myapp", {});

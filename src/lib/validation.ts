@@ -96,11 +96,7 @@ export const validateProjectName = (name: string): ValidationResult => {
 
 // validate that a project name is safe for use in remote path construction.
 // uses the same canonical rules as project-name validation elsewhere.
-export const validateRemoteProjectPath = (
-	project: string,
-): ValidationResult => {
-	return validateCanonicalProjectName(project);
-};
+export const validateRemoteProjectPath = validateProjectName;
 
 // validate an SSH config field value (hostname, username, friendly name).
 // blocks newlines and characters that could inject SSH config directives.

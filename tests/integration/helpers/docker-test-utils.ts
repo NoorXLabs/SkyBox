@@ -279,41 +279,6 @@ export const cleanupTestContainers = async (): Promise<number> => {
 };
 
 /**
- * Prunes Docker volumes with the skybox-test=true label.
- * Used for cleanup after test runs.
- *
- * @returns Number of volumes removed
- */
-export const cleanupTestVolumes = async (): Promise<number> => {
-	try {
-		// Find all volumes with the test label
-		const listResult = await execa("docker", [
-			"volume",
-			"ls",
-			"-q",
-			"--filter",
-			`label=${DOCKER_TEST_LABEL}`,
-		]);
-
-		const volumeNames = listResult.stdout
-			.trim()
-			.split("\n")
-			.filter((name) => name.length > 0);
-
-		if (volumeNames.length === 0) {
-			return 0;
-		}
-
-		// Remove all found volumes
-		await execa("docker", ["volume", "rm", "-f", ...volumeNames]);
-
-		return volumeNames.length;
-	} catch {
-		return 0;
-	}
-};
-
-/**
  * Creates a minimal devcontainer.json in the specified project directory.
  * Uses the node template by default, with test-specific labels for cleanup.
  *

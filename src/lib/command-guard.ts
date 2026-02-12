@@ -1,6 +1,4 @@
-import { requireConfig } from "@lib/config.ts";
 import { error, info } from "@lib/ui.ts";
-import type { SkyboxConfigV2 } from "@typedefs/index.ts";
 
 // exit with error
 export function exitWithError(message: string, code = 1): never {
@@ -18,8 +16,3 @@ export function exitWithErrorAndInfo(
 	info(infoMessage);
 	process.exit(code);
 }
-
-// require loaded config or exit
-export const requireLoadedConfigOrExit = (): SkyboxConfigV2 => {
-	return requireConfig();
-};

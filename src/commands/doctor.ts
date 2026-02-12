@@ -7,6 +7,7 @@ import { configExists, loadConfig } from "@lib/config.ts";
 import { MUTAGEN_VERSION } from "@lib/constants.ts";
 import { downloadMutagen } from "@lib/download.ts";
 import { checkEditorAvailability } from "@lib/editor-launch.ts";
+import { getErrorMessage } from "@lib/errors.ts";
 import {
 	ensureMutagenExtracted,
 	needsMutagenExtraction,
@@ -169,11 +170,11 @@ const checkConfig = (): DoctorCheckResult => {
 			status: "pass",
 			message: `Config loaded (${remoteCount} remote${remoteCount > 1 ? "s" : ""})`,
 		};
-	} catch (err) {
+	} catch (error: unknown) {
 		return {
 			name,
 			status: "fail",
-			message: `Config error: ${err instanceof Error ? err.message : "unknown"}`,
+			message: `Config error: ${getErrorMessage(error)}`,
 			fix: "Check ~/.skybox/config.yaml for errors",
 		};
 	}
@@ -243,11 +244,11 @@ export const checkEditor = async (
 			message: `'${editor}' was not found`,
 			fix: `Install '${editor}' or set a command like 'open -a Zed' with 'skybox config set editor "open -a Zed"'.`,
 		};
-	} catch (err) {
+	} catch (error: unknown) {
 		return {
 			name,
 			status: "warn",
-			message: `Editor check failed: ${err instanceof Error ? err.message : "unknown"}`,
+			message: `Editor check failed: ${getErrorMessage(error)}`,
 			fix: "Run 'skybox editor' to reconfigure your editor command",
 		};
 	}
@@ -302,11 +303,11 @@ const checkSSHConnectivity = async (): Promise<DoctorCheckResult[]> => {
 						fix: `Check SSH key and host configuration for '${remoteName}'`,
 					});
 				}
-			} catch (err) {
+			} catch (error: unknown) {
 				results.push({
 					name,
 					status: "fail",
-					message: `Connection failed: ${err instanceof Error ? err.message : "unknown"}`,
+					message: `Connection failed: ${getErrorMessage(error)}`,
 					fix: `Verify SSH access to ${remote.host}`,
 				});
 			}

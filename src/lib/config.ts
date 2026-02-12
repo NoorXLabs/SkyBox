@@ -1,10 +1,10 @@
 // YAML config file operations: load, save, query remotes and projects.
 import { existsSync, readFileSync } from "node:fs";
-import { homedir } from "node:os";
 import { writeFileAtomic } from "@lib/atomic-write.ts";
 import { validateConfig } from "@lib/config-schema.ts";
+import { getErrorMessage } from "@lib/errors.ts";
 import { migrateConfig, needsMigration } from "@lib/migration.ts";
-import { getConfigPath } from "@lib/paths.ts";
+import { getConfigPath, replaceHomedir } from "@lib/paths.ts";
 import { error } from "@lib/ui.ts";
 import type {
 	RemoteEntry,
@@ -12,16 +12,6 @@ import type {
 	SkyboxConfigV2,
 } from "@typedefs/index.ts";
 import { parse, stringify } from "yaml";
-
-// sanitize a path for error messages.
-// replaces home directory with ~ for privacy.
-const sanitizePath = (filePath: string): string => {
-	const home = homedir();
-	if (filePath.startsWith(home)) {
-		return `~${filePath.slice(home.length)}`;
-	}
-	return filePath;
-};
 
 // create the default config shape used when no config file exists yet.
 export const createDefaultConfig = (): SkyboxConfigV2 => {
@@ -53,10 +43,10 @@ export const loadConfig = (): SkyboxConfigV2 | null => {
 	let rawConfig: unknown;
 	try {
 		rawConfig = parse(content);
-	} catch (err) {
-		const message = err instanceof Error ? err.message : String(err);
+	} catch (error: unknown) {
+		const message = getErrorMessage(error);
 		throw new Error(
-			`Failed to parse config file at ${sanitizePath(configPath)}: ${message}`,
+			`Failed to parse config file at ${replaceHomedir(configPath)}: ${message}`,
 		);
 	}
 

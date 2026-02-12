@@ -1,10 +1,10 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { escapeShellArg } from "@lib/shell.ts";
 import {
 	createE2ETestContext,
 	type E2ETestContext,
+	escapeShellPath,
 	expectRemoteCommandSuccess,
 	rsyncFromRemote,
 	rsyncToRemote,
@@ -22,7 +22,7 @@ describe.skipIf(!e2eConfigured)("rsync push and clone workflow", () => {
 	let ctx: E2ETestContext;
 
 	beforeAll(async () => {
-		ctx = await createE2ETestContext("push-clone");
+		ctx = createE2ETestContext("push-clone");
 		await ctx.setup();
 
 		// Write config with test remote
@@ -62,7 +62,7 @@ describe.skipIf(!e2eConfigured)("rsync push and clone workflow", () => {
 		// Verify file exists on remote
 		const result = await runTestRemoteCommand(
 			ctx.testRemote,
-			`cat ${escapeShellArg(`${ctx.remotePath}/${ctx.projectName}/marker.txt`)}`,
+			`cat ${escapeShellPath(`${ctx.remotePath}/${ctx.projectName}/marker.txt`)}`,
 		);
 		expect(expectRemoteCommandSuccess(result)).toBe("test-content-from-e2e");
 

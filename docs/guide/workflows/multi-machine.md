@@ -12,7 +12,7 @@ This guide covers working with SkyBox across multiple machines, such as a laptop
 When you run `skybox up`, SkyBox creates a session file that records which machine is actively working on the project. This file lives at:
 
 ```
-<project>/.skybox/session.lock
+<project>/.skybox/state.lock
 ```
 
 Because this file is inside your project directory, Mutagen syncs it to your remote server and to any other machines syncing the same project. This means:

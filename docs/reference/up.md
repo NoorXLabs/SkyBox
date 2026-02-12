@@ -40,10 +40,11 @@ The `up` command starts a development container for the specified project. It pe
 3. **Session Check** - Creates a session for your machine, warning if the project is active elsewhere
 4. **Archive Decryption** - If encryption is enabled, decrypts the project archive on the remote
 5. **Sync Check** - Ensures the Mutagen sync session is active, resuming it if paused
-6. **Container Management** - Starts the container (or handles existing running containers)
-7. **Devcontainer Setup** - Creates devcontainer.json from templates if needed
-8. **Post-Up Hooks** - Runs any configured `post-up` hooks, e.g. `npm run db:migrate` (see [Hooks](/reference/hooks))
-9. **Post-Start Actions** - Optionally opens editor or attaches to shell
+6. **Gitignore Check** - Ensures `.skybox/*` is in `.gitignore` on the remote (self-healing)
+7. **Container Management** - Starts the container (or handles existing running containers)
+8. **Devcontainer Setup** - Creates devcontainer.json from templates if needed
+9. **Post-Up Hooks** - Runs any configured `post-up` hooks, e.g. `npm run db:migrate` (see [Hooks](/reference/hooks))
+10. **Post-Start Actions** - Optionally opens editor or attaches to shell
 
 ### Project Auto-Detection
 

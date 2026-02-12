@@ -5,24 +5,23 @@ import { join } from "node:path";
 import { getProjectRemote, getRemoteHost } from "@commands/remote.ts";
 import { requireConfig } from "@lib/config.ts";
 import { getContainerInfo, getContainerStatus } from "@lib/container.ts";
-import { getGitInfo as getSharedGitInfo } from "@lib/git.ts";
+import { getGitInfo } from "@lib/git.ts";
 import { getSyncStatus, sessionName } from "@lib/mutagen.ts";
 import { getProjectsDir } from "@lib/paths.ts";
 import { getLocalProjects } from "@lib/project.ts";
 import { formatRelativeTime as formatRelativeTimeShared } from "@lib/relative-time.ts";
+import { escapeRemotePath } from "@lib/shell.ts";
+import { requireRemoteKeyReady, runRemoteCommand } from "@lib/ssh.ts";
 import {
 	checkSessionConflict,
 	getMachineName,
 	readSession,
 	type SessionInfo,
-} from "@lib/session.ts";
-import { escapeRemotePath } from "@lib/shell.ts";
-import { ensureRemoteKeyReady, runRemoteCommand } from "@lib/ssh.ts";
-import { error, header, info } from "@lib/ui.ts";
+} from "@lib/state.ts";
+import { error, header } from "@lib/ui.ts";
 import {
 	type ContainerDetails,
 	ContainerStatus,
-	type GitDetails,
 	type ProjectSummary,
 	type SyncDetails,
 } from "@typedefs/index.ts";
@@ -69,13 +68,6 @@ export const getLastActive = async (
 	} catch {
 		return null;
 	}
-};
-
-// get shared git info (branch and last commit) for a project
-export const getGitInfo = async (
-	projectPath: string,
-): Promise<GitDetails | null> => {
-	return getSharedGitInfo(projectPath);
 };
 
 // apply color formatting to a container status string
@@ -383,12 +375,7 @@ const showDetailed = async (projectName: string): Promise<void> => {
 	// Ensure SSH key is loaded for remote disk usage query
 	const projectRemote = getProjectRemote(projectName);
 	if (projectRemote) {
-		const keyReady = await ensureRemoteKeyReady(projectRemote.remote);
-		if (!keyReady) {
-			error("Could not authenticate SSH key.");
-			info("Run 'ssh-add <keypath>' manually or check your key.");
-			process.exit(1);
-		}
+		await requireRemoteKeyReady(projectRemote.remote);
 	}
 
 	// Gather all details

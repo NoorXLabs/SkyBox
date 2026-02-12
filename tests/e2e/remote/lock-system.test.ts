@@ -15,7 +15,7 @@ describe.skipIf(!e2eConfigured)("lock system", () => {
 	let ctx: E2ETestContext;
 
 	beforeAll(async () => {
-		ctx = await createE2ETestContext("locks");
+		ctx = createE2ETestContext("locks");
 		await ctx.setup();
 	});
 

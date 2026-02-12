@@ -1,5 +1,6 @@
 // terminal UI helpers: colored output, spinners, headers.
 import { password } from "@inquirer/prompts";
+import { SUPPORTED_EDITORS } from "@lib/constants.ts";
 import chalk from "chalk";
 import { program } from "commander";
 import inquirer from "inquirer";
@@ -115,6 +116,39 @@ export const promptPassphraseWithConfirmation = async (
 
 		return passphrase;
 	}
+};
+
+// prompt the user to select an editor from SUPPORTED_EDITORS.
+// handles the "other" option by prompting for a custom command.
+export const promptEditorSelection = async (
+	message = "Preferred editor:",
+): Promise<string> => {
+	const choices = SUPPORTED_EDITORS.map((e) => ({
+		name: e.name,
+		value: e.id,
+	}));
+
+	const { selectedEditor } = await inquirer.prompt([
+		{
+			type: "rawlist",
+			name: "selectedEditor",
+			message,
+			choices,
+		},
+	]);
+
+	if (selectedEditor !== "other") {
+		return selectedEditor;
+	}
+
+	const { customEditor } = await inquirer.prompt([
+		{
+			type: "input",
+			name: "customEditor",
+			message: "Enter editor command:",
+		},
+	]);
+	return customEditor;
 };
 
 // check if --dry-run flag was passed to the CLI

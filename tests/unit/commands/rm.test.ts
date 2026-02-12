@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { validateProjectName } from "@lib/projectTemplates.ts";
+import { validateProjectName } from "@lib/validation.ts";
 
 describe("rm command validation", () => {
 	test("validateProjectName rejects path traversal", () => {

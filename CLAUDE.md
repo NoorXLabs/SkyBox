@@ -324,15 +324,14 @@ Use `src/lib/config.ts` functions:
 
 ## Architecture Notes
 
-### Session System
+### State System
 
-Local session files detect multi-machine conflicts:
-- Session file stored locally: `<project>/.skybox/session.lock`
-- Contains: machine name, user, timestamp, PID, expires (24h TTL)
-- Written by `skybox up`, deleted by `skybox down`
+Local state file (`<project>/.skybox/state.lock`) tracks ownership and session data:
+- Contains `ownership` section (machine, user, timestamp) and `session` section (PID, expires)
+- Written by `skybox up`, cleared by `skybox down`
 - Uses atomic write (temp file + rename) to prevent corruption
 - Sessions expire after 24 hours (`SESSION_TTL_MS` in constants.ts) — expired sessions ignored
-- See `src/lib/session.ts` for implementation
+- See `src/lib/state.ts` for implementation
 
 ### Sync System
 
@@ -357,7 +356,7 @@ Uses Docker with devcontainer spec:
 | `src/lib/config.ts` | Config file operations; `requireConfig()` loads config or exits with error |
 | `src/lib/container.ts` | Docker operations |
 | `src/lib/mutagen.ts` | Sync session management |
-| `src/lib/session.ts` | Local session management (conflict detection) |
+| `src/lib/state.ts` | Consolidated state management (ownership + session in `.skybox/state.lock`) |
 | `src/lib/ui.ts` | Terminal output helpers |
 | `src/lib/errors.ts` | Error handling utilities |
 | `src/lib/encryption.ts` | AES-256-GCM encrypt/decrypt for config values |
@@ -378,7 +377,6 @@ Uses Docker with devcontainer spec:
 | `src/lib/config-schema.ts` | Runtime schema validation for config objects |
 | `src/lib/migration.ts` | Config format migration from V1 to V2 |
 | `src/lib/mutagen-extract.ts` | Bundled Mutagen binary extraction and versioning |
-| `src/lib/ownership.ts` | Resource ownership verification for remote projects |
 | `src/lib/paths.ts` | Centralized path computation for SkyBox directories |
 | `src/lib/project.ts` | Local project path resolution and validation |
 | `src/lib/relative-time.ts` | Human-readable relative timestamps for status and dashboard |
@@ -427,7 +425,7 @@ Note: `bun run check` is enforced automatically by a native Stop hook — no man
 
 - **`TEMPLATES` is the single built-in template constant**: Defined in `src/lib/constants.ts`, includes all templates (node, bun, python, go, generic) with inline devcontainer configs. There is no separate `BUILT_IN_TEMPLATES` — it was consolidated. `projectTemplates.ts` `getBuiltInTemplates()` returns `TEMPLATES` directly.
 
-- **Ownership uses local OS username**: The `.skybox-owner` system uses `userInfo().username` (local OS username), not the SSH remote user. This means ownership is consistent for a user across machines but could conflict if different people share the same local username. This is a deliberate trade-off for simplicity.
+- **Ownership uses local OS username**: The `.skybox/state.lock` ownership section uses `userInfo().username` (local OS username), not the SSH remote user. This means ownership is consistent for a user across machines but could conflict if different people share the same local username. This is a deliberate trade-off for simplicity.
 
 - **Project resolution pattern for commands**: `resolveSingleProject()` in `project.ts` handles single-select (rawlist). For multi-select, commands define their own resolution function using `checkbox` from `@inquirer/prompts` and `resolveProjectFromCwd()` — see `up.ts` `resolveProjects()` and `down.ts` `resolveProjectsForDown()`. Don't modify `project.ts` for command-specific resolution logic.
 

@@ -56,7 +56,7 @@ The unified template selector offers three types of templates:
 - **Your custom templates** — local devcontainer.json files stored in `~/.skybox/templates/`. See [Custom Templates](/reference/custom-templates) for details
 - **Git URL** — clones a git repository to the remote as the project
 
-When selecting a built-in or custom template, SkyBox creates the project directory on the remote, writes the devcontainer.json, and initializes a git repo. When using a git URL, SkyBox clones the repo instead.
+When selecting a built-in or custom template, SkyBox creates the project directory on the remote, writes the devcontainer.json, ensures `.skybox/*` is in `.gitignore`, and initializes a git repo. When using a git URL, SkyBox clones the repo and ensures `.skybox/*` is in `.gitignore`.
 
 ## Examples
 

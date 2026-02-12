@@ -9,14 +9,16 @@ import {
 	writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
-import { MUTAGEN_REPO, MUTAGEN_VERSION } from "@lib/constants.ts";
-import { getErrorMessage } from "@lib/errors.ts";
+import {
+	MUTAGEN_REPO,
+	MUTAGEN_TAR_FILES,
+	MUTAGEN_VERSION,
+} from "@lib/constants.ts";
+import { getExecaErrorMessage } from "@lib/errors.ts";
 import { getMutagenPlatformInfo } from "@lib/mutagen-platform.ts";
 import { getBinDir, getMutagenPath } from "@lib/paths.ts";
 import { execa } from "execa";
 import { extract } from "tar";
-
-export { getMutagenPlatformInfo } from "@lib/mutagen-platform.ts";
 
 // get mutagen download url
 export const getMutagenDownloadUrl = (
@@ -156,7 +158,7 @@ export const downloadMutagen = async (
 		await extract({
 			file: tarPath,
 			cwd: binDir,
-			filter: (path) => path === "mutagen" || path === "mutagen-agents.tar.gz",
+			filter: (path) => MUTAGEN_TAR_FILES.includes(path),
 		});
 
 		// Make executable
@@ -168,6 +170,6 @@ export const downloadMutagen = async (
 		onProgress?.(`Installed mutagen v${MUTAGEN_VERSION}`);
 		return { success: true };
 	} catch (error: unknown) {
-		return { success: false, error: getErrorMessage(error) };
+		return { success: false, error: getExecaErrorMessage(error) };
 	}
 };

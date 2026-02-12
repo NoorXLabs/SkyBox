@@ -1,14 +1,13 @@
 // src/commands/editor.ts
 
-import { requireLoadedConfigOrExit } from "@lib/command-guard.ts";
-import { saveConfig } from "@lib/config.ts";
+import { requireConfig, saveConfig } from "@lib/config.ts";
 import { SUPPORTED_EDITORS } from "@lib/constants.ts";
 import { dryRun, header, info, isDryRun, success } from "@lib/ui.ts";
 import inquirer from "inquirer";
 
 // interactively change the default editor preference
 export const editorCommand = async (): Promise<void> => {
-	const config = requireLoadedConfigOrExit();
+	const config = requireConfig();
 
 	const currentEditor = config.editor || "not set";
 	header("Editor Configuration");

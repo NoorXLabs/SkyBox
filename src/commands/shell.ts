@@ -1,11 +1,8 @@
 // src/commands/shell.ts
 
 import { upCommand } from "@commands/up.ts";
-import {
-	exitWithError,
-	exitWithErrorAndInfo,
-	requireLoadedConfigOrExit,
-} from "@lib/command-guard.ts";
+import { exitWithError, exitWithErrorAndInfo } from "@lib/command-guard.ts";
+import { requireConfig } from "@lib/config.ts";
 import { WORKSPACE_PATH_PREFIX } from "@lib/constants.ts";
 import {
 	getContainerId,
@@ -13,7 +10,7 @@ import {
 	getDevcontainerConfig,
 } from "@lib/container.ts";
 import { getProjectPath, projectExists } from "@lib/project.ts";
-import { checkSessionConflict, readSession } from "@lib/session.ts";
+import { checkSessionConflict, readSession } from "@lib/state.ts";
 import { dryRun, error, header, info, isDryRun, warn } from "@lib/ui.ts";
 import { ContainerStatus, type ShellOptions } from "@typedefs/index.ts";
 import { execa } from "execa";
@@ -25,7 +22,7 @@ export const shellCommand = async (
 	options: ShellOptions,
 ): Promise<void> => {
 	// Step 1: Check config exists
-	requireLoadedConfigOrExit();
+	requireConfig();
 
 	// Step 2: Verify project exists locally
 	if (!projectExists(project)) {

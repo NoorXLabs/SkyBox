@@ -18,7 +18,7 @@ import {
 	SSH_TIMEOUT_MS,
 } from "@lib/constants.ts";
 import { getErrorMessage, getExecaErrorMessage } from "@lib/errors.ts";
-import { info } from "@lib/ui.ts";
+import { error, info } from "@lib/ui.ts";
 import { validateSSHField, validateSSHHost } from "@lib/validation.ts";
 import type { RemoteEntry, SSHConfigEntry, SSHHost } from "@typedefs/index.ts";
 import { execa } from "execa";
@@ -451,4 +451,17 @@ export const ensureRemoteKeyReady = async (
 ): Promise<boolean> => {
 	if (!remote.key) return true; // using SSH config defaults
 	return ensureKeyInAgent(remote.key, remote.useKeychain);
+};
+
+// require that a remote's SSH key is loaded in the agent.
+// exits with an error message if authentication fails.
+export const requireRemoteKeyReady = async (
+	remote: RemoteEntry,
+): Promise<void> => {
+	const keyReady = await ensureRemoteKeyReady(remote);
+	if (!keyReady) {
+		error("Could not authenticate SSH key.");
+		info("Run 'ssh-add <keypath>' manually or check your key.");
+		process.exit(1);
+	}
 };

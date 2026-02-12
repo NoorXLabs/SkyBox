@@ -6,7 +6,7 @@ import {
 	getRemoteHost,
 	getRemotePath,
 } from "@commands/remote.ts";
-import { checkbox, password } from "@inquirer/prompts";
+import { password } from "@inquirer/prompts";
 import { AuditActions, logAuditEvent } from "@lib/audit.ts";
 import { requireConfig, saveConfig } from "@lib/config.ts";
 import { MAX_PASSPHRASE_ATTEMPTS } from "@lib/constants.ts";
@@ -24,14 +24,15 @@ import {
 	getLocalProjects,
 	getProjectPath,
 	projectExists,
-	resolveProjectFromCwd,
+	resolveProjectsMulti,
+	runBatchOperation,
 } from "@lib/project.ts";
 import {
 	createRemoteArchiveTarget,
 	encryptRemoteArchive,
 } from "@lib/remote-encryption.ts";
-import { deleteSession } from "@lib/session.ts";
 import { ensureRemoteKeyReady } from "@lib/ssh.ts";
+import { deleteSession } from "@lib/state.ts";
 import {
 	dryRun,
 	error,
@@ -136,41 +137,12 @@ const resolveProjectsForDown = async (
 	projectArg: string | undefined,
 	options: DownOptions,
 ): Promise<string[] | null> => {
-	// Explicit argument: single project
-	if (projectArg) {
-		return [projectArg];
-	}
-
-	// Try to resolve from cwd
-	const cwdProject = resolveProjectFromCwd() ?? undefined;
-	if (cwdProject) {
-		return [cwdProject];
-	}
-
-	// No argument and not in a project dir — prompt with checkbox
-	const projects = getLocalProjects();
-
-	if (projects.length === 0) {
-		error("No local projects found.");
-		return null;
-	}
-
-	if (options.noPrompt) {
-		error("No project specified and --no-prompt is set.");
-		return null;
-	}
-
-	const selected = await checkbox({
-		message: "Select project(s) to stop:",
-		choices: projects.map((p) => ({ name: p, value: p })),
+	return resolveProjectsMulti({
+		projectArg,
+		noPrompt: options.noPrompt,
+		promptMessage: "Select project(s) to stop:",
+		emptyMessage: "No local projects found.",
 	});
-
-	if (selected.length === 0) {
-		error("No projects selected.");
-		return null;
-	}
-
-	return selected;
 };
 
 // stop a single project: hooks, sync flush, container stop, encryption, session delete.
@@ -299,6 +271,17 @@ const resolveCleanupTargets = async (
 	return targets;
 };
 
+// generate mode-dependent message: in single mode returns the base message,
+// in multi mode appends the project name for context.
+const cleanupMsg = (
+	mode: CleanupMode,
+	base: string,
+	project?: string,
+): string => {
+	if (mode === "single" || !project) return base;
+	return `${base} for '${project}'`;
+};
+
 // handle cleanup prompts and actions for stopped projects.
 // single mode keeps prior behavior where --cleanup can still remove local files
 // even if no container exists.
@@ -317,14 +300,15 @@ const handleCleanupForProjects = async (
 		shouldCleanup === undefined &&
 		targetsWithContainers.length > 0
 	) {
+		const message =
+			mode === "single"
+				? "Remove the container to free up resources?"
+				: `Remove containers for ${targetsWithContainers.length} project(s) to free up resources?`;
 		const { cleanup } = await inquirer.prompt([
 			{
 				type: "confirm",
 				name: "cleanup",
-				message:
-					mode === "single"
-						? "Remove the container to free up resources?"
-						: `Remove containers for ${targetsWithContainers.length} project(s) to free up resources?`,
+				message,
 				default: false,
 			},
 		]);
@@ -333,24 +317,19 @@ const handleCleanupForProjects = async (
 
 	if (shouldCleanup && targetsWithContainers.length > 0) {
 		for (const target of targetsWithContainers) {
-			const removeSpin =
-				mode === "single"
-					? spinner("Removing container...")
-					: spinner(`Removing container for '${target.project}'...`);
+			const removeSpin = spinner(
+				cleanupMsg(mode, "Removing container...", target.project),
+			);
 			const removeResult = await removeContainer(target.projectPath, {
 				removeVolumes: true,
 			});
 			if (removeResult.success) {
 				removeSpin.succeed(
-					mode === "single"
-						? "Container removed"
-						: `Container removed for '${target.project}'`,
+					cleanupMsg(mode, "Container removed", target.project),
 				);
 			} else {
 				removeSpin.fail(
-					mode === "single"
-						? "Failed to remove container"
-						: `Failed to remove container for '${target.project}'`,
+					cleanupMsg(mode, "Failed to remove container", target.project),
 				);
 				warn(removeResult.error || "Unknown error");
 			}
@@ -359,14 +338,15 @@ const handleCleanupForProjects = async (
 
 	let shouldRemoveLocal = false;
 	if (!options.noPrompt && shouldCleanup && targets.length > 0) {
+		const removeLocalMessage =
+			mode === "single"
+				? "Also remove local project files? (Remote copy will be preserved)"
+				: `Also remove local project files for ${targets.length} project(s) with containers? (Remote copies will be preserved)`;
 		const { removeLocal } = await inquirer.prompt([
 			{
 				type: "confirm",
 				name: "removeLocal",
-				message:
-					mode === "single"
-						? "Also remove local project files? (Remote copy will be preserved)"
-						: `Also remove local project files for ${targets.length} project(s) with containers? (Remote copies will be preserved)`,
+				message: removeLocalMessage,
 				default: false,
 			},
 		]);
@@ -374,14 +354,15 @@ const handleCleanupForProjects = async (
 
 		if (shouldRemoveLocal) {
 			const projectNames = targets.map((target) => target.project).join(", ");
+			const confirmMessage =
+				mode === "single"
+					? `Are you sure? This will delete ${targets[0].projectPath}`
+					: `Are you sure? This will delete local files for: ${projectNames}`;
 			const { confirmRemove } = await inquirer.prompt([
 				{
 					type: "confirm",
 					name: "confirmRemove",
-					message:
-						mode === "single"
-							? `Are you sure? This will delete ${targets[0].projectPath}`
-							: `Are you sure? This will delete local files for: ${projectNames}`,
+					message: confirmMessage,
 					default: false,
 				},
 			]);
@@ -391,30 +372,20 @@ const handleCleanupForProjects = async (
 
 	if (shouldRemoveLocal) {
 		for (const target of targets) {
-			const syncSpin =
-				mode === "single"
-					? spinner("Stopping sync...")
-					: spinner(`Stopping sync for '${target.project}'...`);
-			await pauseSync(target.project);
-			syncSpin.succeed(
-				mode === "single"
-					? "Sync paused"
-					: `Sync paused for '${target.project}'`,
+			const syncSpin = spinner(
+				cleanupMsg(mode, "Stopping sync...", target.project),
 			);
+			await pauseSync(target.project);
+			syncSpin.succeed(cleanupMsg(mode, "Sync paused", target.project));
 
-			const rmSpin =
-				mode === "single"
-					? spinner("Removing local files...")
-					: spinner(`Removing local files for '${target.project}'...`);
+			const rmSpin = spinner(
+				cleanupMsg(mode, "Removing local files...", target.project),
+			);
 			try {
 				if (existsSync(target.projectPath)) {
 					rmSync(target.projectPath, { recursive: true });
 				}
-				rmSpin.succeed(
-					mode === "single"
-						? "Local files removed"
-						: `Local files removed for '${target.project}'`,
-				);
+				rmSpin.succeed(cleanupMsg(mode, "Local files removed", target.project));
 
 				const projectRemoteInfo = getProjectRemote(target.project, config);
 				if (config.projects?.[target.project]) {
@@ -433,43 +404,33 @@ const handleCleanupForProjects = async (
 				info(`Run 'skybox clone ${target.project}' to restore locally.`);
 			} catch (err: unknown) {
 				rmSpin.fail(
-					mode === "single"
-						? "Failed to remove local files"
-						: `Failed to remove local files for '${target.project}'`,
+					cleanupMsg(mode, "Failed to remove local files", target.project),
 				);
 				error(getErrorMessage(err));
 			}
 		}
 	} else if (!shouldCleanup && !options.noPrompt) {
+		const pauseMessage =
+			mode === "single"
+				? "Pause background sync to save resources?"
+				: "Pause background sync for all stopped projects?";
 		const { pauseSyncSession } = await inquirer.prompt([
 			{
 				type: "confirm",
 				name: "pauseSyncSession",
-				message:
-					mode === "single"
-						? "Pause background sync to save resources?"
-						: "Pause background sync for all stopped projects?",
+				message: pauseMessage,
 				default: false,
 			},
 		]);
 
 		if (pauseSyncSession) {
 			for (const project of projects) {
-				const syncSpin =
-					mode === "single"
-						? spinner("Pausing sync...")
-						: spinner(`Pausing sync for '${project}'...`);
+				const syncSpin = spinner(cleanupMsg(mode, "Pausing sync...", project));
 				const pauseResult = await pauseSync(project);
 				if (pauseResult.success) {
-					syncSpin.succeed(
-						mode === "single" ? "Sync paused" : `Sync paused for '${project}'`,
-					);
+					syncSpin.succeed(cleanupMsg(mode, "Sync paused", project));
 				} else {
-					syncSpin.warn(
-						mode === "single"
-							? "Could not pause sync"
-							: `Could not pause sync for '${project}'`,
-					);
+					syncSpin.warn(cleanupMsg(mode, "Could not pause sync", project));
 				}
 			}
 		}
@@ -494,28 +455,14 @@ export const downCommand = async (
 		}
 		info(`Stopping ${projects.length} projects...`);
 		const config = requireConfig();
-		let succeeded = 0;
-		let failed = 0;
-		const stoppedProjects: string[] = [];
-		for (const project of projects) {
-			try {
-				header(`\n${project}`);
-				const ok = await stopSingleProject(project, config, options);
-				if (ok) {
-					succeeded++;
-					stoppedProjects.push(project);
-				} else {
-					failed++;
-				}
-			} catch (err) {
-				failed++;
-				error(`Failed: ${getErrorMessage(err)}`);
-			}
+		const { succeeded } = await runBatchOperation({
+			projects,
+			operation: (project) => stopSingleProject(project, config, options),
+			label: "stopped",
+		});
+		if (succeeded.length > 0) {
+			await handleCleanupForProjects(succeeded, config, options, "multi");
 		}
-		if (stoppedProjects.length > 0) {
-			await handleCleanupForProjects(stoppedProjects, config, options, "multi");
-		}
-		info(`\nDone: ${succeeded} stopped, ${failed} failed.`);
 		return;
 	}
 
@@ -539,27 +486,13 @@ export const downCommand = async (
 	}
 
 	// Multi-project: stop each, then batch cleanup
-	let succeeded = 0;
-	let failed = 0;
-	const stoppedProjects: string[] = [];
-	for (const project of resolvedProjects) {
-		try {
-			const ok = await stopSingleProject(project, config, options);
-			if (ok) {
-				succeeded++;
-				stoppedProjects.push(project);
-			} else {
-				failed++;
-			}
-		} catch (err) {
-			failed++;
-			error(`Failed to stop '${project}': ${getErrorMessage(err)}`);
-		}
-	}
+	const { succeeded } = await runBatchOperation({
+		projects: resolvedProjects,
+		operation: (project) => stopSingleProject(project, config, options),
+		label: "stopped",
+	});
 
-	if (stoppedProjects.length > 0) {
-		await handleCleanupForProjects(stoppedProjects, config, options, "multi");
+	if (succeeded.length > 0) {
+		await handleCleanupForProjects(succeeded, config, options, "multi");
 	}
-
-	info(`\nDone: ${succeeded} stopped, ${failed} failed.`);
 };

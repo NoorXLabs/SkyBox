@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { escapeShellArg } from "@lib/shell.ts";
 import {
 	createE2ETestContext,
 	type E2ETestContext,
+	escapeShellPath,
 	expectRemoteCommandSuccess,
 	runTestRemoteCommand,
 } from "@tests/e2e/helpers/e2e-test-utils.ts";
@@ -14,13 +14,13 @@ describe.skipIf(!e2eConfigured)("browse and list remote projects", () => {
 	let ctx: E2ETestContext;
 
 	beforeAll(async () => {
-		ctx = await createE2ETestContext("browse");
+		ctx = createE2ETestContext("browse");
 		await ctx.setup();
 
 		// Create some test project directories on remote
 		const setupResult = await runTestRemoteCommand(
 			ctx.testRemote,
-			`mkdir -p ${escapeShellArg(`${ctx.remotePath}/project-a`)} ${escapeShellArg(`${ctx.remotePath}/project-b`)}`,
+			`mkdir -p ${escapeShellPath(`${ctx.remotePath}/project-a`)} ${escapeShellPath(`${ctx.remotePath}/project-b`)}`,
 		);
 		expectRemoteCommandSuccess(setupResult);
 	});
@@ -32,7 +32,7 @@ describe.skipIf(!e2eConfigured)("browse and list remote projects", () => {
 	test("can list directories in remote path", async () => {
 		const result = await runTestRemoteCommand(
 			ctx.testRemote,
-			`ls -1 ${escapeShellArg(ctx.remotePath)}`,
+			`ls -1 ${escapeShellPath(ctx.remotePath)}`,
 		);
 		const output = expectRemoteCommandSuccess(result);
 
