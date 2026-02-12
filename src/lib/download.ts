@@ -9,12 +9,13 @@ import {
 	writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
-import { MUTAGEN_REPO, MUTAGEN_VERSION } from "@lib/constants.ts";
-import { getExecaErrorMessage } from "@lib/errors.ts";
 import {
-	getMutagenPlatformInfo,
+	MUTAGEN_REPO,
 	MUTAGEN_TAR_FILES,
-} from "@lib/mutagen-platform.ts";
+	MUTAGEN_VERSION,
+} from "@lib/constants.ts";
+import { getExecaErrorMessage } from "@lib/errors.ts";
+import { getMutagenPlatformInfo } from "@lib/mutagen-platform.ts";
 import { getBinDir, getMutagenPath } from "@lib/paths.ts";
 import { execa } from "execa";
 import { extract } from "tar";

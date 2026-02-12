@@ -1,4 +1,4 @@
-# Consolidate `.skybox-owner` and `session.lock` into `.skybox/state.json`
+# Consolidate `.skybox-owner` and `session.lock` into `.skybox/state.lock`
 
 ## Problem
 
@@ -13,7 +13,7 @@ Both contain `machine` and `user`/`owner`. The `.skybox-owner` file pollutes the
 
 ### File Format
 
-Single file: `.skybox/state.json`
+Single file: `.skybox/state.lock`
 
 ```json
 {
@@ -81,13 +81,13 @@ Clean break. Old `.skybox-owner` and `.skybox/session.lock` files are ignored. U
 
 - Remove `OWNERSHIP_FILE_NAME` (`.skybox-owner`)
 - Remove `SESSION_FILE` (`.skybox/session.lock`)
-- Add `STATE_FILE` = `.skybox/state.json`
+- Add `STATE_FILE` = `.skybox/state.lock`
 
 ### New Module (`src/lib/state.ts`)
 
 Replaces both `src/lib/ownership.ts` and `src/lib/session.ts`. Contains:
 
-- `readState(projectPath)` — parse `.skybox/state.json`
+- `readState(projectPath)` — parse `.skybox/state.lock`
 - `writeStateSection(projectPath, section, data)` — read-merge-write
 - `removeStateSection(projectPath, section)` — remove section, delete file if empty
 - Re-exports all existing public functions with same signatures:
@@ -114,7 +114,7 @@ These commands change imports from `ownership.ts`/`session.ts` to `state.ts` but
 
 ### SSH Command Changes (`src/commands/push.ts`)
 
-The SSH commands that read/write `.skybox-owner` on the remote need to target `.skybox/state.json` instead, using the read-merge-write pattern for the `ownership` section.
+The SSH commands that read/write `.skybox-owner` on the remote need to target `.skybox/state.lock` instead, using the read-merge-write pattern for the `ownership` section.
 
 ### Tests
 
@@ -124,7 +124,7 @@ The SSH commands that read/write `.skybox-owner` on the remote need to target `.
 
 ## Documentation Updates
 
-The following docs reference `.skybox-owner` or `session.lock` and need updating to reflect `.skybox/state.json`:
+The following docs reference `.skybox-owner` or `session.lock` and need updating to reflect `.skybox/state.lock`:
 
 **Guide:**
 - `docs/guide/concepts.md` — session system section, project ownership section, remote directory structure
@@ -151,12 +151,12 @@ Add to `[Unreleased]` section:
 
 ### Changed
 
-- Consolidated `.skybox-owner` and `.skybox/session.lock` into a single `.skybox/state.json` file. Ownership and session data now live in one file with independent sections.
+- Consolidated `.skybox-owner` and `.skybox/session.lock` into a single `.skybox/state.lock` file. Ownership and session data now live in one file with independent sections.
 
 ### Removed
 
 - `.skybox-owner` file no longer created in project root.
-- `.skybox/session.lock` file replaced by `session` section in `.skybox/state.json`.
+- `.skybox/session.lock` file replaced by `session` section in `.skybox/state.lock`.
 
 ### Migration
 

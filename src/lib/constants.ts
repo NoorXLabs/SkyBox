@@ -131,6 +131,9 @@ export const VSCODE_REMOTE_URI_PREFIX = "vscode-remote://dev-container+";
 // @see https://github.com/mutagen-io/mutagen/releases
 export const MUTAGEN_VERSION = "0.18.1";
 
+// files to extract from the Mutagen release tarball.
+export const MUTAGEN_TAR_FILES = ["mutagen", "mutagen-agents.tar.gz"];
+
 // Mutagen binary name.
 export const MUTAGEN_BINARY_NAME = "mutagen";
 

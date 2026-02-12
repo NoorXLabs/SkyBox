@@ -90,7 +90,7 @@ skybox clone backend-api
 The `skybox new` command creates a project on the remote server from scratch, with full template selection:
 
 ```bash
-skybox new my-app
+skybox new
 ```
 
 SkyBox walks you through the full setup:
@@ -238,7 +238,7 @@ After creating a project, your file structure looks like:
 
 ```
 ~/.skybox/
-  projects/
+  Projects/
     my-project/           # Local synced copy
       .devcontainer/
         devcontainer.json

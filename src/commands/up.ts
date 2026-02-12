@@ -41,7 +41,7 @@ import {
 	decryptRemoteArchive,
 	remoteArchiveExists,
 } from "@lib/remote-encryption.ts";
-import { requireRemoteKeyReady } from "@lib/ssh.ts";
+import { ensureRemoteKeyReady } from "@lib/ssh.ts";
 import {
 	deleteSession,
 	getMachineName,
@@ -456,7 +456,10 @@ export const upCommand = async (
 	const { succeeded } = await runBatchOperation({
 		projects: resolvedProjects.map((r) => r.project),
 		operation: async (project) => {
-			const resolved = resolvedMap.get(project)!;
+			const resolved = resolvedMap.get(project);
+			if (!resolved) {
+				throw new Error(`Project ${project} not found in resolved list`);
+			}
 			await startSingleProject(
 				resolved.project,
 				resolved.projectPath,
@@ -491,7 +494,12 @@ const startSingleProject = async (
 	// Ensure SSH key is loaded for remote operations
 	const projectRemote = getProjectRemote(project, config);
 	if (projectRemote) {
-		await requireRemoteKeyReady(projectRemote.remote);
+		const keyReady = await ensureRemoteKeyReady(projectRemote.remote);
+		if (!keyReady) {
+			error("Could not authenticate SSH key.");
+			info("Run 'ssh-add <keypath>' manually or check your key.");
+			throw new Error("SSH key authentication failed");
+		}
 	}
 
 	if (isDryRun()) {

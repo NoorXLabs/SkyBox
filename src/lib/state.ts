@@ -49,15 +49,20 @@ const readStateFile = (projectPath: string): StateFile => {
 
 // write a section into the state file using read-merge-write.
 // creates the file if it doesn't exist, merges into existing if it does.
+// optionally sets file mode immediately after write to avoid race conditions.
 const writeStateSection = <K extends keyof StateFile>(
 	projectPath: string,
 	section: K,
 	data: StateFile[K],
+	mode?: number,
 ): void => {
 	const state = readStateFile(projectPath);
 	state[section] = data;
 	const filePath = join(projectPath, STATE_FILE);
 	writeFileAtomic(filePath, JSON.stringify(state, null, 2));
+	if (mode !== undefined) {
+		chmodSync(filePath, mode);
+	}
 };
 
 // remove a section from the state file.
@@ -310,13 +315,10 @@ export const writeSession = (projectPath: string): void => {
 	// Compute integrity hash before writing
 	session.hash = computeSessionHash(session);
 
-	writeStateSection(projectPath, "session", session);
-
 	// Set read-only to prevent accidental edits.
 	// writeFileAtomic uses rename, which bypasses target permissions on POSIX,
 	// so subsequent writes/deletes still work despite the read-only mode.
-	const filePath = join(projectPath, STATE_FILE);
-	chmodSync(filePath, SESSION_FILE_MODE);
+	writeStateSection(projectPath, "session", session, SESSION_FILE_MODE);
 };
 
 // remove the session section from the state file.

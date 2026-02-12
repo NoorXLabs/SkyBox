@@ -7,12 +7,9 @@ import {
 	writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
-import { MUTAGEN_VERSION } from "@lib/constants.ts";
+import { MUTAGEN_TAR_FILES, MUTAGEN_VERSION } from "@lib/constants.ts";
 import { getExecaErrorMessage } from "@lib/errors.ts";
-import {
-	getMutagenPlatformInfo,
-	MUTAGEN_TAR_FILES,
-} from "@lib/mutagen-platform.ts";
+import { getMutagenPlatformInfo } from "@lib/mutagen-platform.ts";
 import {
 	getBinDir,
 	getMutagenPath,
