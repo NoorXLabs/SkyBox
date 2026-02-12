@@ -1,5 +1,7 @@
 // src/types/index.ts
 
+import type { HOOK_EVENTS } from "@lib/constants.ts";
+
 // SSH types
 
 // SSH host entry parsed from ~/.ssh/config
@@ -121,6 +123,12 @@ export interface ContainerResult {
 	containerId?: string;
 }
 
+// common result shape for operations that may fail
+export interface OperationResult {
+	success: boolean;
+	error?: string;
+}
+
 // runtime metadata for a Docker container
 export interface ContainerInfo {
 	id: string;
@@ -167,23 +175,6 @@ export interface GitDetails {
 	status: "clean" | "dirty";
 	ahead: number;
 	behind: number;
-}
-
-// local and remote disk usage for a project
-export interface DiskDetails {
-	local: string;
-	remote: string;
-}
-
-// full detailed status for the status command output
-export interface DetailedStatus {
-	name: string;
-	path: string;
-	container: ContainerDetails;
-	sync: SyncDetails;
-	git: GitDetails | null;
-	session: string;
-	disk: DiskDetails;
 }
 
 // Project types
@@ -261,12 +252,6 @@ export interface Template {
 	config: DevcontainerConfig;
 }
 
-// User-defined project templates (git repos)
-export interface UserTemplate {
-	name: string;
-	url: string;
-}
-
 // User local devcontainer template (stored in ~/.skybox/templates/)
 export interface UserLocalTemplate {
 	name: string;
@@ -304,7 +289,7 @@ export interface OpenOptions {
 }
 
 // Ownership types
-// project ownership metadata stored in .skybox-owner
+// project ownership metadata stored in .skybox/state.lock
 export interface OwnershipInfo {
 	owner: string; // Local OS username who created the project
 	created: string; // ISO 8601 timestamp
@@ -345,7 +330,7 @@ export interface DoctorReport {
 // Hook types
 
 // valid lifecycle hook event names
-export type HookEvent = "pre-up" | "post-up" | "pre-down" | "post-down";
+export type HookEvent = (typeof HOOK_EVENTS)[number];
 
 // single hook definition: a shell command with optional context
 export interface HookEntry {

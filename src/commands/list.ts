@@ -10,7 +10,7 @@ import { header, info } from "@lib/ui.ts";
 import type { LocalProject } from "@typedefs/index.ts";
 
 // scan the projects directory and return local project names with git branch info
-const getLocalProjects = async (): Promise<LocalProject[]> => {
+const getLocalProjectDetails = async (): Promise<LocalProject[]> => {
 	const projectsDir = getProjectsDir();
 	if (!existsSync(projectsDir)) {
 		return [];
@@ -33,7 +33,7 @@ const getLocalProjects = async (): Promise<LocalProject[]> => {
 		} catch (err) {
 			if (process.env.DEBUG) {
 				console.error(
-					`[debug] getLocalProjects entry "${entry}":`,
+					`[debug] getLocalProjectDetails entry "${entry}":`,
 					getErrorMessage(err),
 				);
 			}
@@ -69,7 +69,7 @@ const printEmpty = (): void => {
 export const listCommand = async (): Promise<void> => {
 	requireConfig();
 
-	const projects = await getLocalProjects();
+	const projects = await getLocalProjectDetails();
 
 	if (projects.length === 0) {
 		printEmpty();

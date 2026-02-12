@@ -12,12 +12,15 @@ import { AuditActions, logAuditEvent } from "@lib/audit.ts";
 import { requireConfig } from "@lib/config.ts";
 import { offerStartContainer } from "@lib/container-start.ts";
 import { getErrorMessage } from "@lib/errors.ts";
-import { checkWriteAuthorization, setOwnership } from "@lib/ownership.ts";
 import { getProjectsDir } from "@lib/paths.ts";
 import { finalizeProjectSync } from "@lib/project-sync.ts";
-import { checkRemoteProjectExists } from "@lib/remote.ts";
+import {
+	checkRemoteProjectExists,
+	ensureGitignoreSkybox,
+} from "@lib/remote.ts";
 import { escapeRemotePath } from "@lib/shell.ts";
-import { ensureRemoteKeyReady, runRemoteCommand } from "@lib/ssh.ts";
+import { requireRemoteKeyReady, runRemoteCommand } from "@lib/ssh.ts";
+import { checkWriteAuthorization, setOwnership } from "@lib/state.ts";
 import {
 	confirmDestructiveAction,
 	dryRun,
@@ -78,12 +81,7 @@ export const pushCommand = async (
 	const remoteName = await selectRemote(config);
 	const remote = config.remotes[remoteName];
 
-	const keyReady = await ensureRemoteKeyReady(remote);
-	if (!keyReady) {
-		error("Could not authenticate SSH key.");
-		info("Run 'ssh-add <keypath>' manually or check your key.");
-		process.exit(1);
-	}
+	await requireRemoteKeyReady(remote);
 
 	const host = getRemoteHost(remote);
 	const remotePath = getRemotePath(remote, projectName);
@@ -257,6 +255,9 @@ export const pushCommand = async (
 	if (!ownerResult.success) {
 		warn(`Could not set ownership: ${ownerResult.error}`);
 	}
+
+	// Ensure .skybox/* is in .gitignore
+	await ensureGitignoreSkybox(host, remotePath);
 
 	logAuditEvent(AuditActions.PUSH_SUCCESS, {
 		project: projectName,

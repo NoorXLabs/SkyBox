@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Automatically add `.skybox/*` to `.gitignore` on the remote during `new`, `push`, and `up` to prevent state files from being tracked by git.
+
+### Changed
+
+- Consolidated `.skybox-owner` and `.skybox/session.lock` into a single `.skybox/state.lock` file with `ownership` and `session` sections.
+
+### Removed
+
+- `.skybox-owner` file no longer created in project root.
+- `.skybox/session.lock` replaced by `session` section in `.skybox/state.lock`.
+
+### Migration
+
+- Existing `.skybox-owner` and `session.lock` files are not migrated. Run `skybox push` to re-establish ownership and `skybox up` to create a new session.
+
 ## [0.8.8] - 2026-02-11
 
 ### Fixed

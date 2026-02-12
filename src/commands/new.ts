@@ -15,6 +15,7 @@ import { hasLocalDevcontainerConfig } from "@lib/container.ts";
 import { offerStartContainer } from "@lib/container-start.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { getProjectPath } from "@lib/project.ts";
+import { ensureGitignoreSkybox } from "@lib/remote.ts";
 import { pushDevcontainerJsonToRemote } from "@lib/remote-devcontainer.ts";
 import { escapeRemotePath, escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
@@ -39,7 +40,7 @@ import type {
 import inquirer from "inquirer";
 
 // add workspace folder and mount settings to a devcontainer config
-const withWorkspaceSettings = (
+export const withWorkspaceSettings = (
 	config: DevcontainerConfig,
 	projectName: string,
 ): DevcontainerConfig => {
@@ -205,6 +206,9 @@ const createProjectWithConfig = async (
 		process.exit(1);
 	}
 
+	// Ensure .skybox/* is in .gitignore before git init
+	await ensureGitignoreSkybox(host, remotePath);
+
 	// Initialize git repo
 	const gitResult = await runRemoteCommand(
 		host,
@@ -291,6 +295,9 @@ const cloneGitToRemote = async (
 
 		addSpin.succeed("Added devcontainer.json");
 	}
+
+	// Ensure .skybox/* is in .gitignore
+	await ensureGitignoreSkybox(host, remotePath);
 };
 
 // prompt to clone the newly created remote project locally

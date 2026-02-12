@@ -4,6 +4,7 @@
  */
 
 import { expect } from "bun:test";
+import { getRemoteHost } from "@commands/remote.ts";
 import { escapeShellArg } from "@lib/shell.ts";
 import { runRemoteCommand } from "@lib/ssh.ts";
 import { getTestRemoteConfig } from "@tests/e2e/helpers/test-config.ts";
@@ -29,7 +30,7 @@ export const escapeShellPath = (arg: string): string => {
 };
 
 /** Options for the retry wrapper */
-export interface RetryOptions {
+interface RetryOptions {
 	/** Maximum number of attempts (default: 3) */
 	attempts?: number;
 	/** Base delay in milliseconds between retries (default: 1000) */
@@ -86,13 +87,6 @@ const validateTestName = (name: string): void => {
 			`Invalid test name "${name}": only alphanumeric characters and hyphens are allowed`,
 		);
 	}
-};
-
-/**
- * Returns the SSH host string from a remote entry.
- */
-const getRemoteHost = (remote: RemoteEntry): string => {
-	return remote.user ? `${remote.user}@${remote.host}` : remote.host;
 };
 
 /**
@@ -166,7 +160,7 @@ export const createE2ETestContext = (name: string): E2ETestContext => {
  * @returns Result of the function
  * @throws Last error if all attempts fail
  */
-export const withRetry = async <T>(
+const withRetry = async <T>(
 	fn: () => Promise<T>,
 	options: RetryOptions = {},
 ): Promise<T> => {

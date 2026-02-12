@@ -25,6 +25,7 @@ import {
 	info,
 	isDryRun,
 	printNextSteps,
+	promptEditorSelection,
 	spinner,
 	success,
 	warn,
@@ -399,31 +400,7 @@ const configureRemote = async (): Promise<{
 // prompt user to select a preferred editor
 const configureEditor = async (): Promise<string> => {
 	header("Configure editor");
-
-	const { editor } = await inquirer.prompt([
-		{
-			type: "rawlist",
-			name: "editor",
-			message: "Preferred editor:",
-			choices: [
-				{ name: "Cursor", value: "cursor" },
-				{ name: "VS Code", value: "code" },
-				{ name: "Zed", value: "zed" },
-				{ name: "Vim", value: "vim" },
-				{ name: "Neovim", value: "nvim" },
-				{ name: "Other", value: "__other__" },
-			],
-		},
-	]);
-
-	if (editor === "__other__") {
-		const { customEditor } = await inquirer.prompt([
-			{ type: "input", name: "customEditor", message: "Editor command:" },
-		]);
-		return customEditor;
-	}
-
-	return editor;
+	return promptEditorSelection();
 };
 
 // run the first-time SkyBox setup wizard

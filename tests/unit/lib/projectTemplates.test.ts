@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { validateProjectName as validateFromProjectTemplates } from "@lib/projectTemplates.ts";
-import { validateProjectName as validateFromValidation } from "@lib/validation.ts";
+import {
+	validateProjectName as validateFromProjectTemplates,
+	validateProjectName as validateFromValidation,
+} from "@lib/validation.ts";
 
 describe("projectTemplates", () => {
 	test("re-exports validateProjectName from validation", () => {

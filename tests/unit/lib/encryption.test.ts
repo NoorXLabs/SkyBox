@@ -1,7 +1,20 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { mkdirSync, rmSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import {
+	ENCRYPTION_CHECK_CONTENT,
+	ENCRYPTION_CHECK_FILENAME,
+} from "@lib/constants.ts";
+import {
+	decrypt,
+	decryptFile,
+	deriveKey,
+	encrypt,
+	encryptFile,
+	isEncrypted,
+	resolveProjectKdf,
+} from "@lib/encryption.ts";
 import type { ProjectEncryption } from "@typedefs/index.ts";
 
 describe("encryption", () => {
@@ -17,7 +30,6 @@ describe("encryption", () => {
 	});
 
 	test("deriveKey produces consistent output for same passphrase", async () => {
-		const { deriveKey } = await import("@lib/encryption.ts");
 		const key1 = await deriveKey(
 			"test-passphrase",
 			"a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4",
@@ -30,7 +42,6 @@ describe("encryption", () => {
 	});
 
 	test("deriveKey produces different output for different passphrases", async () => {
-		const { deriveKey } = await import("@lib/encryption.ts");
 		const key1 = await deriveKey(
 			"passphrase-a",
 			"a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4",
@@ -43,7 +54,6 @@ describe("encryption", () => {
 	});
 
 	test("encrypt and decrypt round-trip", async () => {
-		const { decrypt, deriveKey, encrypt } = await import("@lib/encryption.ts");
 		const key = await deriveKey(
 			"test-passphrase",
 			"a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4",
@@ -58,19 +68,12 @@ describe("encryption", () => {
 		expect(decrypted).toBe(plaintext);
 	});
 
-	test("isEncrypted detects encrypted values", async () => {
-		const { isEncrypted } = await import("@lib/encryption.ts");
+	test("isEncrypted detects encrypted values", () => {
 		expect(isEncrypted("ENC[abc123]")).toBe(true);
 		expect(isEncrypted("plain text")).toBe(false);
 	});
 
 	test("encryptFile and decryptFile round-trip", async () => {
-		const { deriveKey, encryptFile, decryptFile } = await import(
-			"@lib/encryption.ts"
-		);
-		const { writeFileSync, readFileSync } = await import("node:fs");
-		const { join } = await import("node:path");
-
 		const key = await deriveKey(
 			"test-passphrase",
 			"a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4",
@@ -103,12 +106,6 @@ describe("encryption", () => {
 	});
 
 	test("decryptFile throws on wrong passphrase", async () => {
-		const { deriveKey, encryptFile, decryptFile } = await import(
-			"@lib/encryption.ts"
-		);
-		const { writeFileSync } = await import("node:fs");
-		const { join } = await import("node:path");
-
 		const salt = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4";
 		const correctKey = await deriveKey("correct-passphrase", salt);
 		const wrongKey = await deriveKey("wrong-passphrase", salt);
@@ -125,10 +122,6 @@ describe("encryption", () => {
 	});
 
 	test("decryptFile throws on corrupted file", async () => {
-		const { deriveKey, decryptFile } = await import("@lib/encryption.ts");
-		const { writeFileSync } = await import("node:fs");
-		const { join } = await import("node:path");
-
 		const key = await deriveKey("test", "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4");
 		const corruptedPath = join(testDir, "corrupted.tar.enc");
 		const outputPath = join(testDir, "output.tar");
@@ -141,10 +134,6 @@ describe("encryption", () => {
 	});
 
 	test("encryptFile produces different output each time (random IV)", async () => {
-		const { deriveKey, encryptFile } = await import("@lib/encryption.ts");
-		const { writeFileSync, readFileSync } = await import("node:fs");
-		const { join } = await import("node:path");
-
 		const key = await deriveKey("test", "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4");
 		const inputPath = join(testDir, "input.tar");
 		const enc1Path = join(testDir, "enc1.tar.enc");
@@ -160,15 +149,12 @@ describe("encryption", () => {
 		expect(enc1).not.toEqual(enc2);
 	});
 
-	test("ENCRYPTION_CHECK constants are exported", async () => {
-		const { ENCRYPTION_CHECK_FILENAME, ENCRYPTION_CHECK_CONTENT } =
-			await import("@lib/constants.ts");
+	test("ENCRYPTION_CHECK constants are exported", () => {
 		expect(ENCRYPTION_CHECK_FILENAME).toBe(".skybox-enc-check");
 		expect(ENCRYPTION_CHECK_CONTENT).toBe("skybox-encryption-verify");
 	});
 
 	test("deriveKey returns a 32-byte buffer", async () => {
-		const { deriveKey } = await import("@lib/encryption.ts");
 		const key = await deriveKey(
 			"test-passphrase",
 			"a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4",
@@ -177,8 +163,7 @@ describe("encryption", () => {
 		expect(key.length).toBe(32);
 	});
 
-	test("resolveProjectKdf defaults to scrypt when kdf is missing", async () => {
-		const { resolveProjectKdf } = await import("@lib/encryption.ts");
+	test("resolveProjectKdf defaults to scrypt when kdf is missing", () => {
 		expect(
 			resolveProjectKdf({
 				enabled: true,
@@ -187,8 +172,7 @@ describe("encryption", () => {
 		).toBe("scrypt");
 	});
 
-	test("resolveProjectKdf accepts explicit scrypt metadata", async () => {
-		const { resolveProjectKdf } = await import("@lib/encryption.ts");
+	test("resolveProjectKdf accepts explicit scrypt metadata", () => {
 		expect(
 			resolveProjectKdf({
 				enabled: true,
@@ -198,22 +182,19 @@ describe("encryption", () => {
 		).toBe("scrypt");
 	});
 
-	test("resolveProjectKdf throws for unsupported kdf values", async () => {
-		const { resolveProjectKdf } = await import("@lib/encryption.ts");
+	test("resolveProjectKdf throws for unsupported kdf values", () => {
 		expect(() =>
 			resolveProjectKdf({ enabled: true, kdf: "legacy-kdf" as "scrypt" }),
 		).toThrow("Unsupported encryption KDF");
 	});
 
-	test("resolveProjectKdf throws when kdf is present but empty", async () => {
-		const { resolveProjectKdf } = await import("@lib/encryption.ts");
+	test("resolveProjectKdf throws when kdf is present but empty", () => {
 		expect(() =>
 			resolveProjectKdf({ enabled: true, kdf: "" as "scrypt" }),
 		).toThrow("Unsupported encryption KDF");
 	});
 
-	test("resolveProjectKdf throws when kdfParamsVersion is set without kdf", async () => {
-		const { resolveProjectKdf } = await import("@lib/encryption.ts");
+	test("resolveProjectKdf throws when kdfParamsVersion is set without kdf", () => {
 		expect(() =>
 			resolveProjectKdf({
 				enabled: true,
@@ -222,15 +203,13 @@ describe("encryption", () => {
 		).toThrow("kdfParamsVersion is set but kdf is missing");
 	});
 
-	test("resolveProjectKdf throws when kdfParamsVersion is missing", async () => {
-		const { resolveProjectKdf } = await import("@lib/encryption.ts");
+	test("resolveProjectKdf throws when kdfParamsVersion is missing", () => {
 		expect(() => resolveProjectKdf({ enabled: true, kdf: "scrypt" })).toThrow(
 			"Unsupported encryption KDF params version",
 		);
 	});
 
-	test("resolveProjectKdf throws when kdfParamsVersion is unsupported", async () => {
-		const { resolveProjectKdf } = await import("@lib/encryption.ts");
+	test("resolveProjectKdf throws when kdfParamsVersion is unsupported", () => {
 		expect(() =>
 			resolveProjectKdf({
 				enabled: true,

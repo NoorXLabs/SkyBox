@@ -6,6 +6,7 @@ import { spawn } from "node:child_process";
 import { appendFileSync, existsSync, mkdirSync } from "node:fs";
 import { isAutoUpEnabled, loadConfig } from "@lib/config.ts";
 import { getContainerStatus } from "@lib/container.ts";
+import { getErrorMessage } from "@lib/errors.ts";
 import { getAutoUpLogPath, getLogsDir } from "@lib/paths.ts";
 import { resolveProjectFromCwd } from "@lib/project.ts";
 import { dryRun, error, isDryRun } from "@lib/ui.ts";
@@ -188,10 +189,9 @@ export const hookCheckCommand = async (): Promise<void> => {
 		child.unref();
 
 		process.exit(0);
-	} catch (err) {
+	} catch (error: unknown) {
 		// Log error but never fail
-		const message = err instanceof Error ? err.message : String(err);
-		logAutoUp(`Error: ${message}`);
+		logAutoUp(`Error: ${getErrorMessage(error)}`);
 		process.exit(0);
 	}
 };

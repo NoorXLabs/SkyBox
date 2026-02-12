@@ -4,12 +4,8 @@ import {
 	determinePostStartAction,
 	executePostStartAction,
 } from "@commands/up.ts";
-import {
-	exitWithError,
-	exitWithErrorAndInfo,
-	requireLoadedConfigOrExit,
-} from "@lib/command-guard.ts";
-import { saveConfig } from "@lib/config.ts";
+import { exitWithError, exitWithErrorAndInfo } from "@lib/command-guard.ts";
+import { requireConfig, saveConfig } from "@lib/config.ts";
 import { getContainerStatus } from "@lib/container.ts";
 import {
 	getProjectPath,
@@ -25,7 +21,7 @@ export const openCommand = async (
 	projectArg: string | undefined,
 	options: OpenOptions,
 ): Promise<void> => {
-	const config = requireLoadedConfigOrExit();
+	const config = requireConfig();
 
 	// Step 2: Resolve project
 	const resolution = await resolveSingleProject({

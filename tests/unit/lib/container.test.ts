@@ -12,13 +12,8 @@ import {
 	SUPPORTED_EDITORS,
 } from "@lib/constants.ts";
 import {
-	attachToShell,
 	getDevcontainerConfig,
 	hasLocalDevcontainerConfig,
-	openInEditor,
-	removeContainer,
-	startContainer,
-	stopContainer,
 } from "@lib/container.ts";
 import {
 	createTestContext,
@@ -40,26 +35,6 @@ afterEach(() => {
 });
 
 describe("container module exports", () => {
-	test("removeContainer is a function", () => {
-		expect(typeof removeContainer).toBe("function");
-	});
-
-	test("startContainer is a function", () => {
-		expect(typeof startContainer).toBe("function");
-	});
-
-	test("stopContainer is a function", () => {
-		expect(typeof stopContainer).toBe("function");
-	});
-
-	test("openInEditor is a function", () => {
-		expect(typeof openInEditor).toBe("function");
-	});
-
-	test("attachToShell is a function", () => {
-		expect(typeof attachToShell).toBe("function");
-	});
-
 	test("SUPPORTED_EDITORS contains expected editors", () => {
 		expect(SUPPORTED_EDITORS).toContainEqual({ id: "code", name: "VS Code" });
 		expect(SUPPORTED_EDITORS).toContainEqual({ id: "cursor", name: "Cursor" });

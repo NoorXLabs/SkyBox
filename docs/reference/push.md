@@ -40,8 +40,9 @@ The `push` command uploads a local project to your configured remote server and 
 8. **Sync Setup** - Creates a Mutagen sync session for bidirectional synchronization (uses selective sync if project has `sync_paths` configured)
 9. **Initial Sync** - Uploads all files to the remote
 10. **Set Ownership** - Records you as the project owner on the remote
-11. **Registration** - Registers the project in SkyBox configuration
-12. **Container Prompt** - Offers to start the development container immediately
+11. **Gitignore Check** - Ensures `.skybox/*` is in the project's `.gitignore`
+12. **Registration** - Registers the project in SkyBox configuration
+13. **Container Prompt** - Offers to start the development container immediately
 
 ### Git Repository
 
@@ -113,7 +114,7 @@ skybox push .
 
 ### Project Ownership
 
-When you push a project, SkyBox automatically records you as the owner on the remote server (via a `.skybox-owner` file). This prevents other users from accidentally overwriting or deleting your projects.
+When you push a project, SkyBox automatically records you as the owner on the remote server (via the `ownership` section in `.skybox/state.lock`). This prevents other users from accidentally overwriting or deleting your projects.
 
 If someone else owns the project, the push is blocked:
 

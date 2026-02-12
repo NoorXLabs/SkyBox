@@ -14,7 +14,8 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 // Import only the helper functions that don't depend on PROJECTS_DIR
-import { getDiskUsage, getGitInfo, getLastActive } from "@commands/status.ts";
+import { getDiskUsage, getLastActive } from "@commands/status.ts";
+import { getGitInfo } from "@lib/git.ts";
 import {
 	createTestContext,
 	createTestGitRepo,

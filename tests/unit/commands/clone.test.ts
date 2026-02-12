@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { getLocalProjects, getProjectPath } from "@lib/project.ts";
-import { validateProjectName } from "@lib/projectTemplates.ts";
+import { validateProjectName } from "@lib/validation.ts";
 import {
 	createTestContext,
 	type TestContext,

@@ -2,12 +2,12 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { withWorkspaceSettings } from "@commands/new.ts";
 import { exitWithError, exitWithErrorAndInfo } from "@lib/command-guard.ts";
 import { loadConfig } from "@lib/config.ts";
 import {
 	DEVCONTAINER_CONFIG_NAME,
 	DEVCONTAINER_DIR_NAME,
-	WORKSPACE_PATH_PREFIX,
 } from "@lib/constants.ts";
 import { launchFileInEditor } from "@lib/editor-launch.ts";
 import { getProjectPath, projectExists } from "@lib/project.ts";
@@ -87,11 +87,7 @@ export const devcontainerResetCommand = async (
 		return;
 	}
 
-	const devcontainerConfig = {
-		...selection.config,
-		workspaceFolder: `${WORKSPACE_PATH_PREFIX}/${project}`,
-		workspaceMount: `source=\${localWorkspaceFolder},target=${WORKSPACE_PATH_PREFIX}/${project},type=bind,consistency=cached`,
-	};
+	const devcontainerConfig = withWorkspaceSettings(selection.config, project);
 
 	writeDevcontainerConfig(projectPath, devcontainerConfig);
 	success("Reset devcontainer.json from template.");

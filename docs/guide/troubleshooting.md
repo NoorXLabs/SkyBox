@@ -546,7 +546,7 @@ Warning: Session file integrity check failed
 This means a session file was modified outside of SkyBox (the HMAC-SHA256 signature doesn't match). The session will be treated as invalid.
 
 **Common causes:**
-- Manual editing of `.skybox/session.lock` files
+- Manual editing of `.skybox/state.lock` files
 - File corruption during sync
 
 **Solutions:**
@@ -559,7 +559,7 @@ This means a session file was modified outside of SkyBox (the HMAC-SHA256 signat
 
 2. **If the project won't stop cleanly**, the session file can be removed manually:
    ```bash
-   rm ~/.skybox/Projects/myproject/.skybox/session.lock
+   rm ~/.skybox/Projects/myproject/.skybox/state.lock
    skybox up myproject
    ```
 

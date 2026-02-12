@@ -8,8 +8,11 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 import { MUTAGEN_VERSION } from "@lib/constants.ts";
-import { getErrorMessage } from "@lib/errors.ts";
-import { getMutagenPlatformInfo } from "@lib/mutagen-platform.ts";
+import { getExecaErrorMessage } from "@lib/errors.ts";
+import {
+	getMutagenPlatformInfo,
+	MUTAGEN_TAR_FILES,
+} from "@lib/mutagen-platform.ts";
 import {
 	getBinDir,
 	getMutagenPath,
@@ -38,7 +41,7 @@ export const needsMutagenExtraction = (): boolean => {
 export const recordMutagenVersion = (): void => {
 	const binDir = getBinDir();
 	if (!existsSync(binDir)) {
-		mkdirSync(binDir, { recursive: true });
+		mkdirSync(binDir, { recursive: true, mode: 0o700 });
 	}
 	writeFileSync(getMutagenVersionPath(), MUTAGEN_VERSION);
 };
@@ -60,7 +63,7 @@ export const extractBundledMutagen = async (
 
 	try {
 		if (!existsSync(binDir)) {
-			mkdirSync(binDir, { recursive: true });
+			mkdirSync(binDir, { recursive: true, mode: 0o700 });
 		}
 
 		onProgress?.("Extracting bundled Mutagen...");
@@ -84,7 +87,7 @@ export const extractBundledMutagen = async (
 		await extract({
 			file: assetPath,
 			cwd: binDir,
-			filter: (path) => path === "mutagen" || path === "mutagen-agents.tar.gz",
+			filter: (path) => MUTAGEN_TAR_FILES.includes(path),
 		});
 
 		chmodSync(getMutagenPath(), 0o755);
@@ -93,7 +96,7 @@ export const extractBundledMutagen = async (
 		onProgress?.(`Extracted Mutagen v${MUTAGEN_VERSION}`);
 		return { success: true };
 	} catch (error: unknown) {
-		return { success: false, error: getErrorMessage(error) };
+		return { success: false, error: getExecaErrorMessage(error) };
 	}
 };
 

@@ -1,6 +1,6 @@
 // src/commands/up.ts
 
-import { realpathSync } from "node:fs";
+import { withWorkspaceSettings } from "@commands/new.ts";
 import {
 	getProjectRemote,
 	getRemoteHost,
@@ -13,8 +13,6 @@ import {
 	DEVCONTAINER_CONFIG_NAME,
 	DEVCONTAINER_DIR_NAME,
 	MAX_PASSPHRASE_ATTEMPTS,
-	SUPPORTED_EDITORS,
-	WORKSPACE_PATH_PREFIX,
 } from "@lib/constants.ts";
 import {
 	attachToShell,
@@ -28,25 +26,28 @@ import { deriveKey, resolveProjectKdf } from "@lib/encryption.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { runHooks } from "@lib/hooks.ts";
 import { getSyncStatus, resumeSync } from "@lib/mutagen.ts";
+import { safeRealpathSync } from "@lib/paths.ts";
 import {
 	getLocalProjects,
 	getProjectPath,
 	projectExists,
-	resolveProjectFromCwd,
+	resolveProjectsMulti,
+	runBatchOperation,
 } from "@lib/project.ts";
 import { formatRelativeTime } from "@lib/relative-time.ts";
+import { ensureGitignoreSkybox } from "@lib/remote.ts";
 import {
 	createRemoteArchiveTarget,
 	decryptRemoteArchive,
 	remoteArchiveExists,
 } from "@lib/remote-encryption.ts";
+import { requireRemoteKeyReady } from "@lib/ssh.ts";
 import {
 	deleteSession,
 	getMachineName,
 	readSession,
 	writeSession,
-} from "@lib/session.ts";
-import { ensureRemoteKeyReady } from "@lib/ssh.ts";
+} from "@lib/state.ts";
 import { selectTemplate, writeDevcontainerConfig } from "@lib/templates.ts";
 import {
 	dryRun,
@@ -54,6 +55,7 @@ import {
 	header,
 	info,
 	isDryRun,
+	promptEditorSelection,
 	spinner,
 	success,
 	warn,
@@ -105,14 +107,7 @@ const normalizeProject = async (
 	}
 
 	const rawPath = getProjectPath(project);
-	let normalizedPath: string;
-	try {
-		normalizedPath = realpathSync(rawPath);
-	} catch {
-		normalizedPath = rawPath;
-	}
-
-	return { project, projectPath: normalizedPath };
+	return { project, projectPath: safeRealpathSync(rawPath) };
 };
 
 // resolve which project(s) to operate on from argument, cwd, or prompt.
@@ -122,46 +117,18 @@ const resolveProjects = async (
 	projectArg: string | undefined,
 	options: UpOptions,
 ): Promise<ResolvedProject[] | null> => {
-	// If explicit argument, return single project
-	if (projectArg) {
-		const resolved = await normalizeProject(projectArg);
-		return resolved ? [resolved] : null;
-	}
-
-	// Try to resolve from cwd
-	const cwdProject = resolveProjectFromCwd() ?? undefined;
-	if (cwdProject) {
-		const resolved = await normalizeProject(cwdProject);
-		return resolved ? [resolved] : null;
-	}
-
-	// No argument and not in a project dir — prompt with checkbox
-	const projects = getLocalProjects();
-
-	if (projects.length === 0) {
-		error(
+	const names = await resolveProjectsMulti({
+		projectArg,
+		noPrompt: options.noPrompt,
+		promptMessage: "Select project(s) to start:",
+		emptyMessage:
 			"No local projects found. Run 'skybox clone' or 'skybox push' first.",
-		);
-		return null;
-	}
-
-	if (options.noPrompt) {
-		error("No project specified and --no-prompt is set.");
-		return null;
-	}
-
-	const selected = await checkbox({
-		message: "Select project(s) to start:",
-		choices: projects.map((p) => ({ name: p, value: p })),
 	});
 
-	if (selected.length === 0) {
-		error("No projects selected.");
-		return null;
-	}
+	if (!names) return null;
 
 	const resolved: ResolvedProject[] = [];
-	for (const name of selected) {
+	for (const name of names) {
 		const r = await normalizeProject(name);
 		if (!r) return null;
 		resolved.push(r);
@@ -344,11 +311,7 @@ const ensureDevcontainerConfig = async (
 		return false;
 	}
 
-	const config = {
-		...selection.config,
-		workspaceFolder: `${WORKSPACE_PATH_PREFIX}/${project}`,
-		workspaceMount: `source=\${localWorkspaceFolder},target=${WORKSPACE_PATH_PREFIX}/${project},type=bind,consistency=cached`,
-	};
+	const config = withWorkspaceSettings(selection.config, project);
 
 	writeDevcontainerConfig(projectPath, config);
 	success("Created .devcontainer/devcontainer.json");
@@ -455,19 +418,14 @@ export const upCommand = async (
 			return;
 		}
 		info(`Starting ${projects.length} projects...`);
-		let succeeded = 0;
-		let failed = 0;
-		for (const project of projects) {
-			try {
-				header(`\n${project}`);
+		await runBatchOperation({
+			projects,
+			operation: async (project) => {
 				await upCommand(project, { ...options, all: false });
-				succeeded++;
-			} catch (err) {
-				failed++;
-				error(`Failed: ${getErrorMessage(err)}`);
-			}
-		}
-		info(`\nDone: ${succeeded} started, ${failed} failed.`);
+				return true;
+			},
+			label: "started",
+		});
 		return;
 	}
 
@@ -494,28 +452,28 @@ export const upCommand = async (
 	}
 
 	// Multi-project: start each sequentially, then multi-post-start
-	const succeeded: ResolvedProject[] = [];
-	for (const resolved of resolvedProjects) {
-		try {
-			header(`\n${resolved.project}`);
+	const resolvedMap = new Map(resolvedProjects.map((r) => [r.project, r]));
+	const { succeeded } = await runBatchOperation({
+		projects: resolvedProjects.map((r) => r.project),
+		operation: async (project) => {
+			const resolved = resolvedMap.get(project)!;
 			await startSingleProject(
 				resolved.project,
 				resolved.projectPath,
 				config,
 				options,
 			);
-			succeeded.push(resolved);
-		} catch (err) {
-			error(`Failed to start '${resolved.project}': ${getErrorMessage(err)}`);
-		}
-	}
+			return true;
+		},
+		label: "started",
+	});
 
-	info(
-		`\nDone: ${succeeded.length} started, ${resolvedProjects.length - succeeded.length} failed.`,
-	);
+	const succeededResolved = succeeded
+		.map((name) => resolvedMap.get(name))
+		.filter(Boolean) as ResolvedProject[];
 
-	if (succeeded.length > 0) {
-		await handleMultiPostStart(succeeded, config, options);
+	if (succeededResolved.length > 0) {
+		await handleMultiPostStart(succeededResolved, config, options);
 	}
 };
 
@@ -533,12 +491,7 @@ const startSingleProject = async (
 	// Ensure SSH key is loaded for remote operations
 	const projectRemote = getProjectRemote(project, config);
 	if (projectRemote) {
-		const keyReady = await ensureRemoteKeyReady(projectRemote.remote);
-		if (!keyReady) {
-			error("Could not authenticate SSH key.");
-			info("Run 'ssh-add <keypath>' manually or check your key.");
-			throw new Error("SSH key authentication failed");
-		}
+		await requireRemoteKeyReady(projectRemote.remote);
 	}
 
 	if (isDryRun()) {
@@ -573,6 +526,13 @@ const startSingleProject = async (
 		}
 
 		await checkAndResumeSync(project);
+
+		// Self-healing: ensure .skybox/* is in .gitignore on remote
+		if (projectRemote) {
+			const host = getRemoteHost(projectRemote.remote);
+			const remotePath = getRemotePath(projectRemote.remote, project);
+			await ensureGitignoreSkybox(host, remotePath);
+		}
 
 		const statusResult = await handleContainerStatus(projectPath, options);
 		if (statusResult.action === "exit") {
@@ -618,30 +578,7 @@ const resolveEditorForPostStart = async (
 		return configuredEditor;
 	}
 
-	const { selectedEditor } = await inquirer.prompt([
-		{
-			type: "rawlist",
-			name: "selectedEditor",
-			message: "Which editor would you like to use?",
-			choices: [
-				...SUPPORTED_EDITORS.map((e) => ({ name: e.name, value: e.id })),
-				{ name: "Other (specify command)", value: "other" },
-			],
-		},
-	]);
-
-	if (selectedEditor !== "other") {
-		return selectedEditor;
-	}
-
-	const { customEditor } = await inquirer.prompt([
-		{
-			type: "input",
-			name: "customEditor",
-			message: "Enter editor command:",
-		},
-	]);
-	return customEditor;
+	return promptEditorSelection("Which editor would you like to use?");
 };
 
 // optionally persist an interactively selected editor as default.

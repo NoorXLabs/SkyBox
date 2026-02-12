@@ -17,15 +17,18 @@ import {
 } from "@lib/container.ts";
 import { getErrorMessage } from "@lib/errors.ts";
 import { terminateSession } from "@lib/mutagen.ts";
-import { checkWriteAuthorization } from "@lib/ownership.ts";
 import {
 	getLocalProjects,
 	getProjectPath,
 	projectExists,
 } from "@lib/project.ts";
-import { deleteSession, readSession } from "@lib/session.ts";
 import { escapeRemotePath } from "@lib/shell.ts";
-import { ensureRemoteKeyReady, runRemoteCommand } from "@lib/ssh.ts";
+import { requireRemoteKeyReady, runRemoteCommand } from "@lib/ssh.ts";
+import {
+	checkWriteAuthorization,
+	deleteSession,
+	readSession,
+} from "@lib/state.ts";
 import {
 	confirmDestructiveAction,
 	dryRun,
@@ -211,12 +214,7 @@ const rmRemoteInteractive = async (
 	const remoteName = await selectRemote(config);
 	const remote = config.remotes[remoteName];
 
-	const keyReady = await ensureRemoteKeyReady(remote);
-	if (!keyReady) {
-		error("Could not authenticate SSH key.");
-		info("Run 'ssh-add <keypath>' manually or check your key.");
-		return;
-	}
+	await requireRemoteKeyReady(remote);
 
 	const host = getRemoteHost(remote);
 
@@ -451,12 +449,7 @@ const deleteFromRemote = async (
 
 	const { remote } = projectRemote;
 
-	const keyReady = await ensureRemoteKeyReady(remote);
-	if (!keyReady) {
-		error("Could not authenticate SSH key.");
-		info("Run 'ssh-add <keypath>' manually or check your key.");
-		process.exit(1);
-	}
+	await requireRemoteKeyReady(remote);
 
 	const remotePath = `${remote.path}/${project}`;
 	const host = getRemoteHost(remote);

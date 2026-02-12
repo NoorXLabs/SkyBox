@@ -25,6 +25,7 @@ A **project** in SkyBox is a directory containing your source code, managed as a
 ├── .devcontainer/
 │   └── devcontainer.json    # Container configuration
 ├── .git/                     # Git repository
+├── .gitignore                # Includes .skybox/* (auto-managed)
 ├── src/                      # Your source code
 ├── package.json
 └── ...
@@ -267,7 +268,7 @@ SkyBox supports passphrase-protected SSH keys via `ssh-agent` integration. When 
 ~/code/                          # Base path
 ├── my-app/                      # Project directories
 │   ├── .skybox/
-│   │   └── session.lock         # Session file (synced via Mutagen)
+│   │   └── state.lock           # State file (ownership + session, synced via Mutagen)
 │   ├── src/
 │   └── ...
 └── other-project/
@@ -299,7 +300,7 @@ Session file format (stored as JSON):
 
 ### How Session Sync Works
 
-Session files live inside the project directory at `<project>/.skybox/session.lock`. Because Mutagen syncs project files bidirectionally, the session file is automatically visible on all machines syncing the same project. This means no SSH round-trip is needed to check session status.
+Session data lives inside the project directory at `<project>/.skybox/state.lock` (in the `session` section). Because Mutagen syncs project files bidirectionally, the state file is automatically visible on all machines syncing the same project. This means no SSH round-trip is needed to check session status.
 
 ### Session Conflicts
 
@@ -325,7 +326,7 @@ Sessions automatically expire after 24 hours. If a machine crashes without runni
 
 ### Project Ownership
 
-SkyBox tracks **project ownership** on the remote server to prevent accidental overwrites and deletions by other users. When you push a project, a `.skybox-owner` file is created on the remote recording your username and machine.
+SkyBox tracks **project ownership** on the remote server to prevent accidental overwrites and deletions by other users. When you push a project, ownership is recorded in `.skybox/state.lock` (in the `ownership` section) on the remote, storing your username and machine.
 
 Ownership is checked when:
 - **Pushing** to an existing remote project — only the owner can overwrite
@@ -427,7 +428,7 @@ projects:
 │  ~/code/                                                     │
 │  └── my-app/               Synced project files             │
 │      └── .skybox/                                            │
-│          └── session.lock  Session file                      │
+│          └── state.lock    State file                      │
 │                                                              │
 └─────────────────────────────────────────────────────────────┘
 ```

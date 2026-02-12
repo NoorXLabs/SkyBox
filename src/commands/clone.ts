@@ -19,7 +19,7 @@ import { getLocalProjects } from "@lib/project.ts";
 import { finalizeProjectSync } from "@lib/project-sync.ts";
 import { checkRemoteProjectExists } from "@lib/remote.ts";
 import { escapeRemotePath } from "@lib/shell.ts";
-import { ensureRemoteKeyReady, runRemoteCommand } from "@lib/ssh.ts";
+import { requireRemoteKeyReady, runRemoteCommand } from "@lib/ssh.ts";
 import {
 	confirmDestructiveAction,
 	dryRun,
@@ -189,12 +189,7 @@ export const cloneCommand = async (project?: string): Promise<void> => {
 
 		const remoteName = await selectRemote(config);
 		const remote = config.remotes[remoteName];
-		const keyReady = await ensureRemoteKeyReady(remote);
-		if (!keyReady) {
-			error("Could not authenticate SSH key.");
-			info("Run 'ssh-add <keypath>' manually or check your key.");
-			process.exit(1);
-		}
+		await requireRemoteKeyReady(remote);
 		const cloned = await cloneSingleProject(project, remoteName, config);
 		if (!cloned) {
 			process.exit(1);
@@ -213,12 +208,7 @@ export const cloneCommand = async (project?: string): Promise<void> => {
 	// Interactive flow: select remote, fetch projects, multi-select
 	const remoteName = await selectRemote(config);
 	const remote = config.remotes[remoteName];
-	const keyReady = await ensureRemoteKeyReady(remote);
-	if (!keyReady) {
-		error("Could not authenticate SSH key.");
-		info("Run 'ssh-add <keypath>' manually or check your key.");
-		process.exit(1);
-	}
+	await requireRemoteKeyReady(remote);
 	const host = getRemoteHost(remote);
 
 	const fetchSpin = spinner(`Fetching projects from ${remoteName}...`);

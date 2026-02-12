@@ -1,10 +1,10 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { escapeShellArg } from "@lib/shell.ts";
 import {
 	createE2ETestContext,
 	type E2ETestContext,
+	escapeShellPath,
 	expectRemoteCommandSuccess,
 	rsyncToRemote,
 	runTestRemoteCommand,
@@ -17,7 +17,7 @@ describe.skipIf(!e2eConfigured)("full lifecycle workflow", () => {
 	let ctx: E2ETestContext;
 
 	beforeAll(async () => {
-		ctx = await createE2ETestContext("lifecycle");
+		ctx = createE2ETestContext("lifecycle");
 		await ctx.setup();
 	});
 
@@ -45,7 +45,7 @@ describe.skipIf(!e2eConfigured)("full lifecycle workflow", () => {
 		// Step 3: Verify files on remote
 		const listResult = await runTestRemoteCommand(
 			ctx.testRemote,
-			`ls -1 ${escapeShellArg(`${ctx.remotePath}/${ctx.projectName}`)}`,
+			`ls -1 ${escapeShellPath(`${ctx.remotePath}/${ctx.projectName}`)}`,
 		);
 		const files = expectRemoteCommandSuccess(listResult).split("\n");
 		expect(files).toContain("README.md");
@@ -54,7 +54,7 @@ describe.skipIf(!e2eConfigured)("full lifecycle workflow", () => {
 		// Step 4: Verify content matches
 		const contentResult = await runTestRemoteCommand(
 			ctx.testRemote,
-			`cat ${escapeShellArg(`${ctx.remotePath}/${ctx.projectName}/index.ts`)}`,
+			`cat ${escapeShellPath(`${ctx.remotePath}/${ctx.projectName}/index.ts`)}`,
 		);
 		expect(expectRemoteCommandSuccess(contentResult)).toBe(
 			"console.log('hello');",

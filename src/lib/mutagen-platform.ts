@@ -1,5 +1,7 @@
 import type { MutagenPlatformInfo } from "@typedefs/index.ts";
 
+export const MUTAGEN_TAR_FILES = ["mutagen", "mutagen-agents.tar.gz"];
+
 // normalize platform/arch into mutagen release naming components.
 export const getMutagenPlatformInfo = (
 	platform: string,

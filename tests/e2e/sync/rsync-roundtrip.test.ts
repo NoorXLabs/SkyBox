@@ -1,10 +1,10 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { escapeShellArg } from "@lib/shell.ts";
 import {
 	createE2ETestContext,
 	type E2ETestContext,
+	escapeShellPath,
 	expectRemoteCommandSuccess,
 	rsyncFromRemote,
 	rsyncToRemote,
@@ -18,7 +18,7 @@ describe.skipIf(!e2eConfigured)("file synchronization", () => {
 	let ctx: E2ETestContext;
 
 	beforeAll(async () => {
-		ctx = await createE2ETestContext("sync");
+		ctx = createE2ETestContext("sync");
 		await ctx.setup();
 	});
 
@@ -42,14 +42,14 @@ describe.skipIf(!e2eConfigured)("file synchronization", () => {
 		// Verify on remote
 		const verifyResult = await runTestRemoteCommand(
 			ctx.testRemote,
-			`cat ${escapeShellArg(`${ctx.remotePath}/sync-test/sync-marker.txt`)}`,
+			`cat ${escapeShellPath(`${ctx.remotePath}/sync-test/sync-marker.txt`)}`,
 		);
 		expect(expectRemoteCommandSuccess(verifyResult)).toBe("synced-content");
 
 		// Modify on remote
 		const modifyResult = await runTestRemoteCommand(
 			ctx.testRemote,
-			`echo "modified-on-remote" > ${escapeShellArg(`${ctx.remotePath}/sync-test/sync-marker.txt`)}`,
+			`echo "modified-on-remote" > ${escapeShellPath(`${ctx.remotePath}/sync-test/sync-marker.txt`)}`,
 		);
 		expectRemoteCommandSuccess(modifyResult);
 

@@ -9,10 +9,10 @@ import {
 	renameSync,
 	statSync,
 } from "node:fs";
-import { homedir, hostname, userInfo } from "node:os";
+import { hostname, userInfo } from "node:os";
 import { dirname, join } from "node:path";
 import { AUDIT_LOG_MAX_BYTES } from "@lib/constants.ts";
-import { getSkyboxHome } from "@lib/paths.ts";
+import { getSkyboxHome, replaceHomedir } from "@lib/paths.ts";
 import type { AuditEntry } from "@typedefs/index.ts";
 
 // cached audit enabled state (can be overridden for testing).
@@ -45,14 +45,10 @@ export const getAuditLogPath = (): string => {
 const sanitizeDetails = (
 	details: Record<string, unknown>,
 ): Record<string, unknown> => {
-	const home = homedir();
 	const sanitized: Record<string, unknown> = {};
 	for (const [key, value] of Object.entries(details)) {
 		if (typeof value === "string") {
-			let clean = value;
-			if (home && clean.includes(home)) {
-				clean = clean.replaceAll(home, "~");
-			}
+			let clean = replaceHomedir(value);
 			// Redact credential-like patterns
 			clean = clean.replace(
 				/(?:password|token|secret|api_?key|auth(?:orization)?)[=:]\S+/gi,

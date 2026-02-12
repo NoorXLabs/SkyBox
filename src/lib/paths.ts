@@ -1,4 +1,5 @@
 // centralized path computation for SkyBox directories and binaries.
+import { realpathSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import {
@@ -65,4 +66,22 @@ export const getMutagenVersionPath = (): string => {
 // used by shell hooks to log auto-start operations.
 export const getAutoUpLogPath = (): string => {
 	return join(getLogsDir(), AUTO_UP_LOG_FILE);
+};
+
+// resolve a path to its real location, falling back to the original path on error.
+export const safeRealpathSync = (path: string): string => {
+	try {
+		return realpathSync(path);
+	} catch {
+		return path;
+	}
+};
+
+// replace the user's home directory with ~ for display purposes.
+export const replaceHomedir = (str: string): string => {
+	const home = homedir();
+	if (str.includes(home)) {
+		return str.replaceAll(home, "~");
+	}
+	return str;
 };
