@@ -59,7 +59,7 @@ export const ensureGitignoreSkybox = async (
 		`  printf '%s\\n' ${escapedBlock} > ${escapedPath}`,
 		`  echo "CREATED"`,
 		`fi`,
-	].join(" ");
+	].join("\n");
 
 	try {
 		const result = await runRemoteCommand(host, script);
