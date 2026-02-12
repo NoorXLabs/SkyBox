@@ -33,17 +33,26 @@ interface StateFile {
 	session?: SessionInfo;
 }
 
+interface ReadStateResult {
+	state: StateFile;
+	parseError: boolean;
+}
+
 // read and parse the state file for a project.
-// returns an empty object if the file doesn't exist or is invalid.
-const readStateFile = (projectPath: string): StateFile => {
+// returns an empty state if the file doesn't exist.
+// sets parseError when the file exists but contains invalid JSON.
+const readStateFile = (projectPath: string): ReadStateResult => {
 	const filePath = join(projectPath, STATE_FILE);
 	if (!existsSync(filePath)) {
-		return {};
+		return { state: {}, parseError: false };
 	}
 	try {
-		return JSON.parse(readFileSync(filePath, "utf-8"));
+		return {
+			state: JSON.parse(readFileSync(filePath, "utf-8")),
+			parseError: false,
+		};
 	} catch {
-		return {};
+		return { state: {}, parseError: true };
 	}
 };
 
@@ -56,7 +65,7 @@ const writeStateSection = <K extends keyof StateFile>(
 	data: StateFile[K],
 	mode?: number,
 ): void => {
-	const state = readStateFile(projectPath);
+	const { state } = readStateFile(projectPath);
 	state[section] = data;
 	const filePath = join(projectPath, STATE_FILE);
 	writeFileAtomic(filePath, JSON.stringify(state, null, 2));
@@ -76,7 +85,14 @@ const removeStateSection = (
 		return;
 	}
 
-	const state = readStateFile(projectPath);
+	const { state, parseError } = readStateFile(projectPath);
+
+	// don't modify or delete a corrupted file — we can't reliably
+	// determine what sections it contains, so leave it for manual recovery.
+	if (parseError) {
+		return;
+	}
+
 	delete state[section];
 
 	if (Object.keys(state).length === 0) {
@@ -270,7 +286,7 @@ const verifySessionHash = (session: SessionInfo): boolean => {
 // read and parse the session data from the state file.
 // returns null if the file doesn't exist, session is missing/invalid, expired, or fails integrity check.
 export const readSession = (projectPath: string): SessionInfo | null => {
-	const state = readStateFile(projectPath);
+	const { state } = readStateFile(projectPath);
 	const session = state.session;
 
 	if (!session) {
