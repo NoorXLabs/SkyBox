@@ -44,6 +44,7 @@ SkyBox stores your code on a remote server while running containers locally. You
 ## Requirements
 
 - Docker
+- DevContainer CLI
 - SSH access to a remote server
 
 Mutagen is bundled and extracted automatically during setup.
