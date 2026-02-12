@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `skybox push` no longer fails with "session is paused" when a stale Mutagen sync session exists from a previous push.
+
 ## [0.8.9] - 2026-02-11
 
 ### Added
